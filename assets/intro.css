@@ -1,0 +1,240 @@
+/* ============================================================
+   intro.css — 零基础入门子站专用样式
+   叠加在 style.css 之上，仅用于 intro/ 目录的页面
+   ============================================================ */
+
+/* ---- Hero: 入门页更柔和的绿色调，区别于进阶主站 ---- */
+.intro-hero {
+  background: linear-gradient(135deg,
+    oklch(96% 0.03 150 / 0.6),
+    oklch(96% 0.02 180 / 0.4));
+  border-radius: var(--radius);
+  padding: var(--space-2xl) var(--space-xl);
+  margin-bottom: var(--space-xl);
+}
+.intro-hero h1 { font-size: clamp(28px, 4vw, 40px); }
+[data-theme="dark"] .intro-hero {
+  background: linear-gradient(135deg,
+    oklch(28% 0.03 150 / 0.5),
+    oklch(26% 0.02 180 / 0.3));
+}
+
+/* ---- 路径切换器（封面页） ---- */
+.path-switch {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: var(--space-lg);
+  margin: var(--space-xl) 0;
+}
+.path-card {
+  display: block;
+  text-decoration: none;
+  background: var(--bg-elev);
+  border: 2px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-xl);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.path-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-2px);
+  box-shadow: var(--shadow-md);
+}
+.path-card.active {
+  border-color: var(--accent);
+  background: var(--accent-tint);
+}
+.path-icon { font-size: 36px; margin-bottom: var(--space-sm); }
+.path-card h3 {
+  font-size: 18px;
+  font-weight: 700;
+  margin-bottom: var(--space-2xs);
+  color: var(--text);
+}
+.path-card p {
+  font-size: 14px;
+  color: var(--text-dim);
+  line-height: 1.6;
+  margin: 0;
+}
+
+/* ---- 十册网格（封面页） ---- */
+.volume-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: var(--space-md);
+  margin: var(--space-xl) 0;
+}
+.vol-card {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  text-decoration: none;
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-lg) var(--space-md);
+  transition: border-color 0.15s ease, transform 0.15s ease, box-shadow 0.15s ease;
+}
+.vol-card:hover {
+  border-color: var(--accent);
+  transform: translateY(-3px);
+  box-shadow: var(--shadow-md);
+}
+.vol-no {
+  font-family: var(--mono);
+  font-size: 11px;
+  color: var(--text-faint);
+  letter-spacing: 1px;
+  text-transform: uppercase;
+  margin-bottom: var(--space-2xs);
+}
+.vol-emoji { font-size: 32px; margin-bottom: var(--space-2xs); }
+.vol-title {
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--text);
+  line-height: 1.4;
+}
+
+/* ---- 目录速览 ---- */
+.toc-quick {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-md) var(--space-lg);
+  margin-bottom: var(--space-xl);
+}
+.toc-quick summary {
+  cursor: pointer;
+  font-weight: 600;
+  color: var(--text);
+  padding: var(--space-2xs) 0;
+  user-select: none;
+}
+.toc-quick[open] summary { margin-bottom: var(--space-sm); }
+.lec-toc {
+  columns: 2;
+  column-gap: var(--space-xl);
+  margin: 0;
+  padding-left: var(--space-lg);
+}
+.lec-toc li {
+  break-inside: avoid;
+  padding: 3px 0;
+  font-size: 14px;
+}
+.lec-toc a { color: var(--text-dim); text-decoration: none; }
+.lec-toc a:hover { color: var(--accent); }
+@media (max-width: 720px) { .lec-toc { columns: 1; } }
+
+/* ---- 单讲容器 ---- */
+.lecture {
+  background: var(--bg-elev);
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: var(--space-xl) var(--space-xl) var(--space-lg);
+  margin-bottom: var(--space-lg);
+  scroll-margin-top: 80px;
+}
+.lec-head {
+  display: flex;
+  align-items: center;
+  gap: var(--space-sm);
+  margin-bottom: var(--space-md);
+  padding-bottom: var(--space-md);
+  border-bottom: 1px solid var(--border);
+  flex-wrap: wrap;
+}
+.lec-badge {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 700;
+  letter-spacing: 0.5px;
+  color: var(--accent);
+  background: var(--accent-tint);
+  padding: 3px 10px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+.lecture h2 {
+  font-size: 22px;
+  font-weight: 700;
+  line-height: 1.3;
+  margin: 0;
+  color: var(--text);
+  letter-spacing: -0.01em;
+}
+.lecture > p { margin: var(--space-sm) 0; }
+.lecture h3 {
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--text);
+  margin: var(--space-lg) 0 var(--space-2xs);
+  padding-left: var(--space-2xs);
+  border-left: 3px solid var(--accent);
+}
+
+/* ---- 核心要点卡片 ---- */
+.callout.keypoints {
+  background: oklch(96% 0.02 175);
+  border: 1px solid oklch(88% 0.04 175);
+  border-radius: var(--radius-sm);
+  padding: var(--space-md) var(--space-lg);
+  margin: var(--space-md) 0 var(--space-lg);
+}
+.callout.keypoints .head {
+  font-weight: 700;
+  font-size: 13px;
+  color: var(--accent);
+  margin-bottom: var(--space-2xs);
+}
+.callout.keypoints ul { margin: 0; padding-left: var(--space-lg); }
+.callout.keypoints li {
+  padding: 3px 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text);
+}
+[data-theme="dark"] .callout.keypoints {
+  background: oklch(30% 0.03 175 / 0.5);
+  border-color: oklch(40% 0.05 175);
+}
+
+/* ---- 误区条目 ---- */
+.pitfall {
+  background: oklch(96% 0.02 25);
+  border-left: 3px solid oklch(60% 0.14 25);
+  border-radius: 0 var(--radius-sm) var(--radius-sm) 0;
+  padding: var(--space-2xs) var(--space-md);
+  margin: var(--space-2xs) 0;
+  font-size: 14.5px;
+  line-height: 1.6;
+  color: var(--text-dim);
+}
+[data-theme="dark"] .pitfall {
+  background: oklch(30% 0.04 25 / 0.4);
+}
+
+/* ---- 有序/无序列表（讲内） ---- */
+.lecture ol, .lecture ul {
+  margin: var(--space-2xs) 0;
+  padding-left: var(--space-xl);
+}
+.lecture li {
+  padding: 4px 0;
+  font-size: 14.5px;
+  line-height: 1.65;
+  color: var(--text);
+}
+
+/* ---- 扩展案例：轻微的不同底色，暗示是附加内容 ---- */
+.lecture:has(.lec-badge:only-child) {}
+.lecture .lec-badge:only-child {}
+
+/* ---- 响应式 ---- */
+@media (max-width: 900px) {
+  .lecture { padding: var(--space-lg); }
+  .lecture h2 { font-size: 19px; }
+}

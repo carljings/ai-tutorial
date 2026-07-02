@@ -1,0 +1,6 @@
+.DS_Store
+__pycache__/
+*.pyc
+build_*.py
+update_sidebars.py
+short_titles.py

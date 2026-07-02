@@ -1,0 +1,469 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Skills / MCP / CLI / Function Call 到底什么区别 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="progress" id="progress"></div>
+<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
+<div class="layout">
+      <aside class="sidebar">
+    <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
+    <div class="nav-group"><h3>导览</h3>
+      <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
+      <a href="index.html"><span class="num">00</span>封面与目录</a>
+    </div>
+    <div class="nav-group"><h3>基石</h3>
+      <a href="concepts-skills-mcp-cli-functioncall.html" class="active"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
+      <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
+      <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
+      <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
+      <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
+      <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
+      <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+    </div>
+    <div class="nav-group"><h3>工程</h3>
+      <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
+      <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
+      <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
+    </div>
+    <div class="nav-group"><h3>原理</h3>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
+      <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
+      <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+    </div>
+    <div class="nav-group"><h3>专题</h3>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
+      <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
+      <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
+      <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
+      <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
+      <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
+      <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
+      <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
+      <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
+      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
+      <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
+      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+    </div>
+    <div class="nav-group"><h3>参考</h3>
+      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
+      <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
+      <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
+      <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
+    </div>
+    <div class="nav-group"><h3>★Transformer</h3>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+    </div>
+    <div class="nav-group"><h3>★向量检索</h3>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+    </div>
+    <div class="nav-group"><h3>★Agent源码</h3>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+    </div>
+    <div class="nav-group"><h3>★Skills技能</h3>
+      <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
+      <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+    </div>
+    <div class="nav-group"><h3>★Agent设计模式</h3>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
+      <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
+    </div>
+    <div class="nav-group"><h3>★Agent框架</h3>
+      <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
+      <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
+      <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+    </div>
+    <div class="nav-group"><h3>★Deep Agent</h3>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+    </div>
+    <div class="nav-group"><h3>★LLMOps工程化</h3>
+      <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+    </div>
+    <div class="nav-group"><h3>★Agent交互设计</h3>
+      <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
+      <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+    </div>
+    <div class="nav-group"><h3>★模型压缩部署</h3>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+    </div>
+    <div class="nav-group"><h3>★AI知识拓宽</h3>
+      <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
+      <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
+    </div>
+    <div class="nav-group"><h3>★zvec向量库</h3>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
+      <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
+      <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
+      <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+    </div>
+    <div class="nav-group"><h3>★智能涌现原理</h3>
+      <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
+      <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
+    </div>
+    <div class="nav-group"><h3>★知识库与安全</h3>
+      <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+    </div>
+  </aside>
+  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 概念辨析 · 全局导览</span>
+    <h1>Skills / MCP / CLI / Function Call 到底什么区别</h1>
+    <p class="lead">这四个词总让人犯晕——它们都在讲"让 AI 做更多事"，但本质完全不同。这一章用类比、对比表、完整故事和代码，把它们彻底讲清。读完你会明白：它们不在一个层面上，是配合关系，不是竞争关系。</p>
+    <div class="meta"><span class="chip">概念辨析</span><span class="chip">深入浅出</span><span class="chip">★ 必读</span></div></section>
+    <h2><span class="idx"></span>为什么这四个概念总让人犯晕</h2>
+    <p>如果你刚开始接触 AI agent，几乎一定会被这四个词绕进去：Skills、MCP、CLI、Function Call。它们听起来都在讲"让 AI 做更多事"，文档里又经常混着用，到底谁是谁？这一章就用最直白的方式把它们彻底讲清——不堆术语，只讲本质。读完你会明白：这四个根本不在一个层面上，把它们放一起比较就像拿"菜谱""厨具""手""切菜动作"来比，它们是配合关系，不是竞争关系。</p>
+    <p>先把结论亮出来，后面逐个展开：Function Call 是 AI "开口要东西"的能力；CLI 是"命令行"这种操作界面；MCP 是连接外部系统的"标准插头"；Skills 是教 AI "怎么做某类复杂任务"的知识包。一个负责说、一个负责界面、一个负责接、一个负责懂。下面我们用一个统一的场景把它们串起来。</p>
+    <div class="callout tip"><div class="head">💡 要点</div><p>一句话记忆：Function Call = 嘴（说要什么） · CLI = 手的动作（敲命令） · MCP = 插头（接外部系统） · Skills = 脑子里的经验（知道怎么做）。</p></div>
+    <h2><span class="idx"></span>先认识这四位"选手"</h2>
+    <p>在深入之前，先给每个人画个速写，建立初步印象。不用记细节，只要感受到它们各管一摊就行。</p>
+    <h3>Function Call（函数调用）：AI 学会"点菜"</h3>
+    <p>最早的 AI 只会聊天——你说一句它回一句，它没办法真的"去做"任何事。Function Call 的出现改变了一切：它让 AI 能在回答里"附带一个结构化的请求"，比如告诉系统"帮我调用查天气这个函数，参数是城市=上海"。系统收到这个请求，真的去查天气，把结果喂回给 AI，AI 再据此回答你。</p>
+    <p>打个比方：以前 AI 是个只会动嘴的顾问，你说"今天出门带伞吗"，它只能说"建议你查查天气"。有了 Function Call，它变成了能"按下服务铃"的顾问——它会按一下铃（发起函数调用），让服务员（系统）去查天气，查完回来它再告诉你"带伞，今天有雨"。这个"按铃"的能力，就是 Function Call。</p>
+    <p>注意：Function Call 本身不执行任何操作，它只是 AI 表达"我要调用某个功能"的一种约定格式。真正执行的是系统侧的代码。AI 是点菜的顾客，系统是厨房；Function Call 是那张点菜单。</p>
+    <h3>CLI（命令行）：人和机器的"文字对话框"</h3>
+    <p>CLI 是 Command Line Interface 的缩写，就是那个黑底白字、靠敲命令操作的界面。ls、cd、git、npm 这些都是 CLI 命令。CLI 不是 AI 专属的概念——它从计算机诞生起就存在，是最古老也最强大的人机交互方式之一。</p>
+    <p>在 AI agent 的语境里，CLI 之所以重要，是因为很多 agent（比如 Codex、Aider、OpenCode）就运行在命令行里，而且它们执行任务时往往通过"敲命令"来完成——AI 决定要跑个测试，它就调用 bash 这个工具执行 npm test 这样的 CLI 命令。所以 CLI 既是 agent 的"工作台"（agent 本身在命令行里跑），也是 agent 的"操作方式"（通过执行命令来干活）。</p>
+    <p>类比：CLI 就像是厨房里的"操作台"——所有切、炒、煮的动作都在这上面发生。AI agent 站在这个操作台前，决定执行什么操作。</p>
+    <h3>MCP（模型上下文协议）：AI 世界的"USB 标准"</h3>
+    <p>MCP 是 Model Context Protocol 的缩写。它解决的问题是：每接一个外部系统（数据库、Slack、GitHub、文件系统），都要单独写一套对接代码，太累了。MCP 定义了一套统一协议——只要外部系统按这个协议封装成"MCP server"，任何支持 MCP 的 AI agent 都能直接连上用它，不用为每个 agent 单独适配。</p>
+    <p>类比：MCP 就像 USB 接口标准。USB 出现之前，鼠标是圆口、键盘是 PS/2、打印机是并口，每个设备一种线。USB 统一了接口，任何设备只要做成 USB 的，任何电脑只要有 USB 口就能用。MCP 之于 AI agent，就是 USB 之于电脑——一个"插上就能用"的统一标准。</p>
+    <p>具体来说，一个 MCP server 把自己提供的"能力"（查询数据、发消息、读文件）按 MCP 协议暴露成一组"工具"，agent 通过 MCP 协议发现这些工具、调用它们。从 agent 的视角看，不管背后是 PostgreSQL 还是 Slack，调用方式都一样——这就是标准化的力量。</p>
+    <h3>Skills（技能）：AI 的"操作手册"</h3>
+    <p>Skills 是最近兴起的概念，代表"打包好的、可复用的任务执行知识"。一个 Skill 本质上是一个文件夹，里面有一份 SKILL.md 说明书（告诉 AI 这类任务该怎么做）加上模板、示例等辅助文件。当 AI 遇到相关任务时，加载对应的 Skill，就"学会了"这套做事方法。</p>
+    <p>类比：Skills 就像是新员工入职时发的"SOP 操作手册"。手册里写着"处理客户投诉分五步：倾听→记录→分类→回应→归档"。新员工（AI）原本不知道怎么做，但读了手册就按这套流程走。不同的 Skill 就是不同的手册——代码审查手册、写周报手册、部署流程手册。</p>
+    <h2><span class="idx"></span>一张表看清四者的本质区别</h2>
+    <p>概念速写建立印象后，我们用一张对比表把四个维度的差异钉死。这张表是本章的核心——如果只记一样东西，就记这张表。</p>
+    <table class="data-table"><thead><tr><th>维度</th><th>Function Call</th><th>CLI</th><th>MCP</th><th>Skills</th></tr></thead><tbody><tr><td>一句话</td><td>AI 表达"我要用某功能"的格式</td><td>命令行界面/执行命令的方式</td><td>连接外部系统的统一协议</td><td>打包的任务执行知识</td></tr><tr><td>类比</td><td>点菜单</td><td>厨房操作台</td><td>USB 标准</td><td>SOP 操作手册</td></tr><tr><td>本质层面</td><td>通信协议层（AI↔系统怎么对话）</td><td>交互界面层（在哪操作）</td><td>集成连接层（怎么接外部）</td><td>知识注入层（怎么做）</td></tr><tr><td>谁定义</td><td>AI 模型厂商（OpenAI/Anthropic）</td><td>操作系统/工具（bash/git）</td><td>MCP 标准组织</td><td>技能作者（任何人）</td></tr><tr><td>载体</td><td>API 请求里的 JSON 结构</td><td>终端进程</td><td>运行中的 server 进程</td><td>文件系统里的文件夹</td></tr><tr><td>解决什么</td><td>AI 怎么"开口要"执行操作</td><td>人/AI 怎么操作计算机</td><td>AI 怎么连外部系统</td><td>AI 怎么掌握复杂任务</td></tr><tr><td>典型例子</td><td>调用 get_weather(city)</td><td>执行 npm test / git commit</td><td>连 PostgreSQL/Slack/GitHub</td><td>"做代码审查""生成PDF报告"</td></tr></tbody></table>
+    <div class="callout note"><div class="head">💡 要点</div><p>关键洞察：这四个不在同一层面。Function Call 是"语言"（怎么对话）、CLI 是"地点"（在哪干）、MCP 是"通道"（怎么接）、Skills 是"知识"（怎么干）。它们是配合关系，不是替代关系。</p></div>
+    <h2><span class="idx"></span>用一个完整故事把它们串起来</h2>
+    <p>抽象对比容易忘，我们用一个具体任务把四个概念串成一条线。任务是这样的：用户对 AI agent 说"帮我看下这个月的销售数据，写份月报发到团队群"。这看似一句话，背后四个概念全用上了。</p>
+    <h3>第一步：Function Call 让 AI "开口"</h3>
+    <p>AI 接到这个任务，它知道自己需要两样东西：销售数据、发消息的能力。但它自己没有这些能力——它只是个语言模型。于是它用 Function Call 发起请求："请调用 query_sales 函数，参数 month=本月"。这个"调用 query_sales"的请求，就是 Function Call。AI 在这里扮演点菜的角色，Function Call 是点菜单。</p>
+    <h3>第二步：MCP 提供"连接外部系统"的通道</h3>
+    <p>query_sales 这个函数背后是什么？是公司的销售数据库。AI 怎么连这个数据库？通过 MCP。有人把销售数据库封装成了一个 MCP server，按 MCP 协议暴露了 query_sales 这个工具。AI agent 通过 MCP 协议连上这个 server，就能调用它——不用关心背后是 MySQL 还是 MongoDB，MCP 把这些差异屏蔽了。MCP 在这里扮演 USB 的角色，让 AI 能"插上"数据库。</p>
+    <h3>第三步：CLI 可能是执行动作的方式</h3>
+    <p>数据拿到了，AI 要生成月报。它可能调用一个生成报告的工具——而这个工具底层可能是通过 CLI 执行的，比如跑一个 pandoc 命令把 Markdown 转成 PDF。或者 AI 要把报告发到团队群，它调用的发消息工具，底层可能是执行一个 curl 命令调用 webhook。这里 CLI 是"执行动作的操作台"——很多 agent 的工具，底层就是执行各种命令行命令。</p>
+    <h3>第四步：Skills 教 AI "怎么做月报"</h3>
+    <p>但 AI 怎么知道"月报该包含哪些章节、用什么格式、数据怎么呈现"？这需要领域知识。如果 agent 装了"月报生成"这个 Skill，AI 会先加载它（读 SKILL.md），里面写着"月报结构：概述→数据总览→亮点→问题→下月计划，用公司模板，数据用表格呈现"。AI 按这套"操作手册"来组织报告。Skills 在这里扮演 SOP 手册的角色，让 AI 从"乱写一气"变成"按规范来"。</p>
+    <div class="callout tip"><div class="head">💡 要点</div><p>串起来看：Skills 教 AI 怎么做（知识）→ Function Call 是 AI 表达需求的格式（语言）→ MCP 提供连接数据库的通道（集成）→ CLI 是执行具体命令的操作台（界面）。一个任务，四个概念各司其职，缺一不可。</p></div>
+    <h2><span class="idx"></span>最容易搞混的两对关系</h2>
+    <p> despite 四者不在同一层面，初学者还是容易在两处混淆。我们把这两处单独拎出来讲透。</p>
+    <h3>混淆一：Function Call vs MCP</h3>
+    <p>很多人问："Function Call 不也是调用工具吗？MCP 不也是提供工具吗？它俩啥区别？"区别在于层次：Function Call 是 AI"怎么表达要调用工具"的格式约定（一张点菜单的格式），MCP 是"工具怎么被封装和发现"的集成标准（厨房怎么接入外卖平台）。</p>
+    <p>具体说：AI 通过 Function Call 说"我要调用 query_sales"——这是 Function Call 的作用。但 query_sales 这个工具从哪来、怎么连数据库、怎么返回结果——这些是 MCP server 负责的。没有 MCP，你得自己手写一个 query_sales 的实现并注册给 AI；有了 MCP，你只要起一个 MCP server，AI 自动发现并调用。Function Call 是"点菜的格式"，MCP 是"菜从哪来的供应链"。</p>
+    <p>换言之：MCP server 提供的工具，最终也是通过 Function Call 被 AI 调用的。它们不是竞争，是上下游——MCP 负责"工具的供给"，Function Call 负责"工具的消费"。</p>
+    <h3>混淆二：MCP vs Skills</h3>
+    <p>另一对常被搞混："MCP 和 Skills 不都是扩展 AI 能力吗？"是，但扩展的是完全不同的东西。MCP 扩展的是"能连什么"（access）——连数据库、连 Slack、连 GitHub。Skills 扩展的是"会怎么做"（know-how）——怎么做代码审查、怎么写月报。</p>
+    <p>一个更能说明问题的角度：MCP 提供能力，但 AI 可能不知道什么时候用、怎么用好。比如 MCP 给了一个"查数据库"的工具，但 AI 不知道该查哪些表、怎么 Join、结果怎么解读才算"对"。Skills 补的就是这一块——它教 AI 在特定场景下，该怎么组合使用这些工具。MCP 是"给 AI 一把锤子"，Skills 是"教 AI 这把锤子该敲哪里、怎么敲"。</p>
+    <p>所以它们是配合关系：Skills 里写的操作步骤，经常会用到 MCP 提供的工具。比如"月报技能"的步骤里会写"调用 query_sales 拿数据"——这个 query_sales 就是 MCP server 提供的。Skills 是方法，MCP 是手段。</p>
+    <div class="callout note"><div class="head">💡 要点</div><p>终极记忆法：把 AI agent 想象成一个新员工。Function Call 是它跟你沟通用的语言；CLI 是它工作的电脑终端；MCP 是公司给它开通的各种系统账号（邮箱、CRM、数据库）；Skills 是你发给它的岗位操作手册。语言、终端、账号、手册——缺哪个它都干不好活。</p></div>
+    <h2><span class="idx"></span>代码层面的对照</h2>
+    <p>最后用代码把它们各自的"样子"展示出来，建立具象认知。你会发现它们在代码里形态完全不同，根本不会搞混。</p>
+    <h3>Function Call 的样子：一段 JSON</h3>
+    <pre class="code"><code class="language-json">// AI 返回的 Function Call 请求（嵌在回复消息里）
+{
+  "role": "assistant",
+  "tool_calls": [{
+    "id": "call_abc123",
+    "type": "function",
+    "function": {
+      "name": "query_sales",
+      "arguments": "{"month": "2026-06"}"
+    }
+  }]
+}
+// 这就是 Function Call —— AI 用 JSON 表达"我要调用 query_sales"</code></pre>
+    <h3>CLI 的样子：一条终端命令</h3>
+    <pre class="code"><code class="language-bash"># AI 决定生成 PDF，底层执行 CLI 命令
+$ pandoc report.md -o report.pdf --template=company.tex
+
+# AI 决定发消息，底层可能是
+$ curl -X POST https://hooks.slack.com/xxx \
+    -d '{"text":"本月销售月报已生成"}'
+
+# CLI 就是这些在终端里敲的命令</code></pre>
+    <h3>MCP 的样子：一个运行中的 server</h3>
+    <pre class="code"><code class="language-python"># 一个 MCP server 的骨架（简化）
+from mcp import Server, Tool
+
+server = Server("sales-db")
+
+@server.tool()
+def query_sales(month: str) -&gt; dict:
+    """查询指定月份的销售数据。"""
+    # 连数据库、查数据、返回
+    return db.query(f"SELECT * FROM sales WHERE month='{month}'")
+
+@server.tool()
+def query_customers(region: str) -&gt; dict:
+    """查询某区域的客户列表。"""
+    return db.query(f"SELECT * FROM customers WHERE region='{region}'")
+
+# server.run() 后，任何 MCP 兼容的 agent 都能发现并调用这两个工具
+# 这就是 MCP —— 一个按协议暴露工具的运行时服务</code></pre>
+    <h3>Skills 的样子：一个文件夹</h3>
+    <pre class="code"><code class="language-text">monthly-report/              ← 技能文件夹
+├── SKILL.md                 ← 入口说明书（AI 只读这个就懂怎么做）
+│   ---
+│   name: monthly-report
+│   description: 按公司规范生成本月销售月报...
+│   ---
+│   # 月报生成流程
+│   1. 调用 query_sales 拿数据（这个工具由 MCP 提供）
+│   2. 按模板组织：概述→数据→亮点→问题→计划
+│   3. 生成 PDF 并发送
+├── template.tex             ← 公司月报模板（按需加载）
+└── examples/
+    └── sample.md            ← 范例（按需加载）
+# 这就是 Skills —— 一个装着"怎么做"知识</code></pre>
+    <p>看，四者在代码里的形态天差地别：Function Call 是 JSON 消息、CLI 是终端命令、MCP 是 server 进程、Skills 是文件夹。记住了这些"长相"，就不会再混淆了。</p>
+    <h2><span class="idx"></span>它们如何协同：一张架构图</h2>
+    <p>把四者放在一张架构图里，配合关系一目了然。想象一个完整的请求处理流程：</p>
+    <pre class="code"><code class="language-text">用户："帮我写本月销售月报"
+   │
+   ▼
+┌─────────────────────────────────────────────┐
+│  AI Agent（大脑）                            │
+│                                             │
+│  ① 加载 Skills「monthly-report」            │  ← Skills：教 AI 怎么做
+│     "月报要含概述/数据/亮点/问题/计划"        │
+│                                             │
+│  ② Function Call: query_sales(month=06)     │  ← Function Call：AI 开口要
+│     │                                       │
+│     ▼                                       │
+│  ③ MCP Server「sales-db」执行查询           │  ← MCP：连接外部数据库
+│     │                                       │
+│     ▼                                       │
+│  ④ 底层执行: psql -c "SELECT..."            │  ← CLI：实际敲的命令
+│     │                                       │
+│     ▼ 返回数据                              │
+│  ⑤ AI 按技能指引组织报告                    │
+│  ⑥ Function Call: send_slack(...)           │
+│     └→ MCP Server「slack」发送              │
+└─────────────────────────────────────────────┘
+   │
+   ▼
+用户收到："月报已生成并发送 ✓"</code></pre>
+    <div class="callout note"><div class="head">💡 要点</div><p>从图里能清楚看到：Skills 在最上层指挥"怎么做"，Function Call 是 AI 每一步表达需求的格式，MCP 在中间层连接外部系统，CLI 在最底层执行具体命令。自上而下：知识→表达→连接→执行。</p></div>
+    <h2><span class="idx"></span>常见疑问快答</h2>
+    <h3>Q：学会了 Function Call 是不是就不用 MCP 了？</h3>
+    <p>不是。Function Call 只是"格式"，你得有工具让它调用才行。如果你自己写工具实现，确实可以不用 MCP。但每接一个系统就写一套，太累。MCP 让你用现成的 server，省去重复造轮子。所以它们是配合：MCP 提供工具池，Function Call 是调用工具的格式。</p>
+    <h3>Q：Skills 和"写一个好的 system prompt"有什么区别？</h3>
+    <p>本质上 Skills 就是一种"按需加载的、模块化的 prompt"。区别在于工程：system prompt 是常驻的（一直占 token），Skills 是按需的（用到才加载）。你可以把 100 个 Skills 的简介都放进 system prompt，但只在用到某个时才加载它的完整内容——这就是上一章讲的"渐进式披露"。Skills 是 prompt 工程的工程化升级。</p>
+    <h3>Q：CLI 要被 AI agent 淘汰吗？</h3>
+    <p>恰恰相反——AI agent 让 CLI 更重要了。因为 agent 执行任务时大量依赖命令行工具（git、npm、grep、curl），CLI 是 agent 的"手"。而且 agent 本身很多就是 CLI 程序（Codex、Aider、OpenCode）。所以 AI 时代 CLI 不但没消失，反而成了人机协作的核心界面。</p>
+    <h3>Q：我该先学哪个？</h3>
+    <p>建议顺序：先理解 Function Call（它是基础，不懂这个后面的都悬）→ 再学 MCP（它是当前最热的集成标准，实用价值高）→ 然后看 Skills（它是更上层的方法论封装）→ CLI 作为通用技能随时补。如果你是开发者，Function Call + MCP 是必学的硬技能；如果你是应用者，Skills 能让你快速给 agent 装上专业能力。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>Function Call、CLI、MCP、Skills 是扩展 AI agent 能力的四种机制，但它们分属不同层面，是配合而非竞争。Function Call 是 AI 表达需求的"语言"，CLI 是执行操作的"界面"，MCP 是连接外部系统的"标准插头"，Skills 是封装做事方法的"知识包"。一个完整的 agent 任务往往四者协同：Skills 教怎么做，Function Call 表达每一步要什么，MCP 连接外部系统提供能力，CLI 在底层执行具体命令。</p>
+    <p>记住那个终极类比：把 AI agent 当新员工。Function Call 是它说话的方式，CLI 是它的电脑终端，MCP 是给它开的系统账号，Skills 是发的操作手册。四样齐备，它才能独立干活。分清了这四者，你再看任何 agent 的文档都不会犯晕——因为你已经建立了"哪个概念属于哪个层面"的清晰坐标系。</p>
+    <div class="chapter-nav">
+    <a href="index.html"><div class="lbl">← 上一章</div><div class="ttl">00 · 封面与目录</div></a>
+    <a href="01-llm-fundamentals.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">01 · LLM 基础与原理</div></a>
+    </div>
+    <footer><p>AI 全栈实战教学 · 概念辨析 · Skills / MCP / CLI / Function Call 到底什么区别</p><p>Function Call · CLI · MCP · Skills 四概念深度辨析</p></footer>
+  </main>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

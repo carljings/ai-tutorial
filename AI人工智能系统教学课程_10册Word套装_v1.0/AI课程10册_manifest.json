@@ -1,0 +1,68 @@
+{
+  "title": "AI人工智能系统教学课程 10册Word套装",
+  "version": "v1.0",
+  "total_non_space_chars": 1092726,
+  "volumes": [
+    {
+      "no": 1,
+      "title": "AI通识与学习地图",
+      "chars": 104749,
+      "file": "AI人工智能系统教学课程_第01册_AI通识与学习地图.docx"
+    },
+    {
+      "no": 2,
+      "title": "Python、数据处理与数学基础",
+      "chars": 106145,
+      "file": "AI人工智能系统教学课程_第02册_Python、数据处理与数学基础.docx"
+    },
+    {
+      "no": 3,
+      "title": "机器学习基础",
+      "chars": 106562,
+      "file": "AI人工智能系统教学课程_第03册_机器学习基础.docx"
+    },
+    {
+      "no": 4,
+      "title": "深度学习基础",
+      "chars": 108000,
+      "file": "AI人工智能系统教学课程_第04册_深度学习基础.docx"
+    },
+    {
+      "no": 5,
+      "title": "大语言模型原理",
+      "chars": 109076,
+      "file": "AI人工智能系统教学课程_第05册_大语言模型原理.docx"
+    },
+    {
+      "no": 6,
+      "title": "Prompt工程与AI协作",
+      "chars": 109950,
+      "file": "AI人工智能系统教学课程_第06册_Prompt工程与AI协作.docx"
+    },
+    {
+      "no": 7,
+      "title": "RAG知识库系统实战",
+      "chars": 111062,
+      "file": "AI人工智能系统教学课程_第07册_RAG知识库系统实战.docx"
+    },
+    {
+      "no": 8,
+      "title": "AI Agent系统实战",
+      "chars": 111509,
+      "file": "AI人工智能系统教学课程_第08册_AI Agent系统实战.docx"
+    },
+    {
+      "no": 9,
+      "title": "多模态AI与工程化落地",
+      "chars": 112583,
+      "file": "AI人工智能系统教学课程_第09册_多模态AI与工程化落地.docx"
+    },
+    {
+      "no": 10,
+      "title": "AI安全治理、行业项目与作品集",
+      "chars": 113090,
+      "file": "AI人工智能系统教学课程_第10册_AI安全治理、行业项目与作品集.docx"
+    }
+  ],
+  "index_file": "AI人工智能系统教学课程_10册总索引.docx"
+}

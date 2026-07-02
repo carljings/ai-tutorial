@@ -1,0 +1,756 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>01 · LLM 基础与原理 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                          <aside class="sidebar">
+    <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
+    <div class="nav-group"><h3>导览</h3>
+      <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
+      <a href="index.html"><span class="num">00</span>封面与目录</a>
+    </div>
+    <div class="nav-group"><h3>基石</h3>
+      <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
+      <a href="01-llm-fundamentals.html" class="active" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
+      <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
+      <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
+      <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
+      <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
+      <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+    </div>
+    <div class="nav-group"><h3>工程</h3>
+      <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
+      <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
+      <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
+    </div>
+    <div class="nav-group"><h3>原理</h3>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
+      <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
+      <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+    </div>
+    <div class="nav-group"><h3>专题</h3>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
+      <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
+      <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
+      <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
+      <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
+      <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
+      <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
+      <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
+      <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
+      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
+      <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
+      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+    </div>
+    <div class="nav-group"><h3>参考</h3>
+      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
+      <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
+      <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
+      <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
+    </div>
+    <div class="nav-group"><h3>★Transformer</h3>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+    </div>
+    <div class="nav-group"><h3>★向量检索</h3>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+    </div>
+    <div class="nav-group"><h3>★Agent源码</h3>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+    </div>
+    <div class="nav-group"><h3>★Skills技能</h3>
+      <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
+      <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+    </div>
+    <div class="nav-group"><h3>★Agent设计模式</h3>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
+      <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
+    </div>
+    <div class="nav-group"><h3>★Agent框架</h3>
+      <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
+      <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
+      <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+    </div>
+    <div class="nav-group"><h3>★Deep Agent</h3>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+    </div>
+    <div class="nav-group"><h3>★LLMOps工程化</h3>
+      <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+    </div>
+    <div class="nav-group"><h3>★Agent交互设计</h3>
+      <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
+      <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+    </div>
+    <div class="nav-group"><h3>★模型压缩部署</h3>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+    </div>
+    <div class="nav-group"><h3>★AI知识拓宽</h3>
+      <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
+      <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
+    </div>
+    <div class="nav-group"><h3>★zvec向量库</h3>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
+      <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
+      <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
+      <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+    </div>
+    <div class="nav-group"><h3>★智能涌现原理</h3>
+      <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
+      <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
+    </div>
+    <div class="nav-group"><h3>★知识库与安全</h3>
+      <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 01 · 大模型基石</span>
+      <h1>LLM 基础与原理<br>从 Token 到 Transformer 的底层旅行</h1>
+      <p class="lead">要看懂 GLM-5.2 是怎么「炼」出来的，得先理解它在炼什么。本章从最底层的 <strong>Token</strong> 一路讲到 <strong>Transformer 架构</strong>、<strong>Self-Attention</strong>、<strong>MoE 稀疏专家</strong>，把大模型这头「黑箱」拆成你能看得懂的零件。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★☆</span>
+        <span class="chip">前置：无</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="token"><span class="idx">01</span> 一切始于 Token：模型眼里的世界</h2>
+    <p>人类看文字是「字」，模型看文字是「<strong>Token</strong>」。这是理解一切大模型的第一道门槛。</p>
+
+    <h3>为什么不直接用「字」或「词」</h3>
+    <p>早期自然语言处理（NLP）用「词」作为单位，中文做分词、英文按空格切。但这套做法在多语言、新词、拼写错误面前非常脆弱：</p>
+    <ul>
+      <li>「ChatGPT」「元宇宙」「yyds」这些新词根本进不了词典；</li>
+      <li>不同语言切分粒度差异巨大，词表要么爆炸要么稀疏；</li>
+      <li>同一个词根的不同形态（run / running / ran）被当成完全无关的东西，浪费了语义。</li>
+    </ul>
+
+    <p>于是有了 <strong>子词分词（Subword Tokenization）</strong>：把词切成更小的、可复用的「零件」。当代大模型几乎都用它的某个变体。</p>
+
+    <div class="callout note">
+      <div class="head">🔑 一句话记住</div>
+      <p>Token 是模型处理文本的最小单位。1 个英文单词 ≈ 1.3 个 token，1 个汉字 ≈ 0.6~1 个 token（取决于词表和编码）。计费、上下文长度、推理成本，全部按 token 算。</p>
+    </div>
+
+    <h3>BPE：最主流的分词算法</h3>
+    <p><strong>BPE（Byte Pair Encoding，字节对编码）</strong>是 GPT 系列、GLM、LLaMA 等绝大多数模型的选择。它的训练思路异常朴素：</p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>初始化</h4>
+        <p>把所有训练语料拆成最细的字符（或字节）序列，每个不同的字符都是一个初始 token。</p>
+      </div>
+      <div class="step">
+        <h4>统计相邻频率</h4>
+        <p>数一数语料里所有相邻字符对出现的次数，找出最高频的那一对。</p>
+      </div>
+      <div class="step">
+        <h4>合并</h4>
+        <p>把最高频的字符对合并成一个新的 token，加入词表。</p>
+      </div>
+      <div class="step">
+        <h4>重复</h4>
+        <p>不断重复「统计-合并」，直到词表大小达到预设目标（比如 5 万、10 万、15 万）。</p>
+      </div>
+    </div>
+
+    <p>这样训练出来的词表有个绝妙性质：<strong>常见词整体进词表</strong>（如 "the"、"learning"），<strong>罕见词被拆成可复用的子词</strong>（如 "tokenization" → "token" + "ization"），<strong>完全没见过的词也能用字符兜底</strong>。这就解决了词典爆炸和未登录词（OOV）的难题。</p>
+
+    <div class="code-title">用 Python 直观感受 BPE 的合并过程</div>
+    <pre><code><span class="c"># 一个极简的 BPE 训练演示（仅教学用）</span>
+<span class="k">from</span> collections <span class="k">import</span> Counter
+
+<span class="k">def</span> <span class="f">get_pairs</span>(word):
+    <span class="c"># word 是一个 tuple，如 ('l','o','w','e','r')</span>
+    <span class="k">return</span> Counter(zip(word[:-<span class="n">1</span>], word[<span class="n">1</span>:]))
+
+corpus = [<span class="s">'low'</span>, <span class="s">'lower'</span>, <span class="s">'newest'</span>, <span class="s">'widest'</span>]
+vocab  = {w: <span class="k">tuple</span>(w + <span class="s">'$'</span>) <span class="k">for</span> w <span class="k">in</span> corpus}  <span class="c"># 加结束符</span>
+
+<span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(<span class="n">10</span>):                      <span class="c"># 合并 10 轮</span>
+    pairs = Counter()
+    <span class="k">for</span> w <span class="k">in</span> vocab.values():
+        pairs.update(zip(w[:-<span class="n">1</span>], w[<span class="n">1</span>:]))
+    best = pairs.most_common(<span class="n">1</span>)[<span class="n">0</span>][<span class="n">0</span>]        <span class="c"># 找到最高频相邻对</span>
+    <span class="k">if</span> best[<span class="n">1</span>] < <span class="n">2</span>: <span class="k">break</span>
+    new_token = <span class="s">''</span>.join(best)            <span class="c"># 例如 ('e','s') -> 'es'</span>
+    <span class="c"># 把所有词里的这对相邻符合并</span>
+    vocab = {w: <span class="f">tuple</span>(<span class="s">' '</span>.join(<span class="s">' '</span>.join(p) <span class="k">for</span> p <span class="k">in</span> ww).replace(
+        best[<span class="n">0</span>]+<span class="s">' '</span>+best[<span class="n">1</span>], new_token).split()) <span class="k">for</span> w, ww <span class="k">in</span> vocab.items()}
+    <span class="f">print</span>(<span class="s">f"合并: {best} -> {new_token}"</span>)</code></pre>
+
+    <h3>BPE 的兄弟们：WordPiece / Unigram / SentencePiece</h3>
+    <table>
+      <thead><tr><th>算法</th><th>核心思想</th><th>代表用户</th></tr></thead>
+      <tbody>
+        <tr><td><code>BPE</code></td><td>贪心合并最高频字符对</td><td>GPT 系列、GLM、LLaMA</td></tr>
+        <tr><td><code>WordPiece</code></td><td>类似 BPE，但用「似然增益」选合并对象</td><td>BERT、DistilBERT</td></tr>
+        <tr><td><code>Unigram</code></td><td>反向：先有大词表，再按概率删到目标大小</td><td>T5、ALBERT</td></tr>
+        <tr><td><code>SentencePiece</code></td><td>把语言无关的字节级 BPE/Unigram 封装成工具</td><td>多语言模型（含中文友好）</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="head">💡 为什么中文模型也得用子词</div>
+      <p>中文没有空格，但按「字」分会让词表僵化。现代中文友好的模型（如 GLM）多采用 <strong>字节级 BPE（Byte-level BPE）</strong>：把文本先编码成 UTF-8 字节，再在字节层面做 BPE。好处是<strong>任何语言的任何字符都不会 OOV</strong>——因为它最终都能还原到 256 个字节。GLM、GPT-2/4 都是这条路。</p>
+    </div>
+
+    <h3>词表大小是个工程权衡</h3>
+    <p>词表越大，每个 token 承载的信息越多（同样的话用更少 token 表达），推理更快、更省钱；但词表越大，Embedding 层参数越多，模型也更难训练。当前主流：</p>
+    <table>
+      <thead><tr><th>模型</th><th>词表大小</th><th>分词器</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-4 / GPT-4o</td><td>~100k</td><td>tiktoken (BPE)</td></tr>
+        <tr><td>GLM-4 / GLM-5 系列</td><td>~150k+</td><td>字节级 BPE</td></tr>
+        <tr><td>LLaMA 3</td><td>128k</td><td>SentencePiece-BPE</td></tr>
+        <tr><td>Claude</td><td>未公开</td><td>自研 BPE</td></tr>
+      </tbody>
+    </table>
+
+    <blockquote>
+      「Token 决定了模型的世界边界。模型永远无法直接理解 Token 以外的东西——这也是为什么后来需要 RAG、Tool Use、Skills 等机制来给它「装上手脚」。」
+    </blockquote>
+
+    <h2 class="section" id="embedding"><span class="idx">02</span> Embedding：让 Token 有了「意思」</h2>
+    <p>分完词，每个 token 还只是一个 ID（整数）。模型要让它们有「意义」，靠的是 <strong>Embedding（词嵌入）</strong>：把每个 token ID 映射成一个高维向量（比如 4096 维或 12288 维的浮点数组）。</p>
+
+    <h3>向量空间里的「语义距离」</h3>
+    <p>训练好的 Embedding 有个神奇的性质：<strong>语义相近的词，向量也相近</strong>。</p>
+    <div class="diagram">
+      <div class="cap" style="font-family:var(--mono);">
+        国王 [0.23, -0.41, ...] ─ 男人 ─ +女人 ─▶ 女王 [0.19, -0.38, ...]<br>
+        <span style="color:var(--accent);">向量运算 ≈ 语义运算，这是 Embedding 最迷人的地方</span>
+      </div>
+    </div>
+    <p>经典例子：<code>国王 - 男人 + 女人 ≈ 女王</code>。这种「语义可加性」让模型能做类比推理。这也是后面 RAG 里<strong>向量检索</strong>能成立的数学基础——我们会在第 6 章细讲。</p>
+
+    <h3>位置编码：告诉模型「顺序」</h3>
+    <p>Self-Attention 本身是「无序」的——它把序列当成一个集合。但语言显然有顺序：「狗咬人」和「人咬狗」意思天差地别。所以必须额外告诉模型每个 token 在哪个位置，这就是 <strong>位置编码（Positional Encoding）</strong>。</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">📐</span>
+        <h4>绝对位置编码</h4>
+        <p>给每个位置一个固定的向量（正弦/余弦或可学习）。简单直接，但泛化到训练时没见过的长度会变差。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🌀</span>
+        <h4>旋转位置编码 RoPE</h4>
+        <p>当前主流（LLaMA、GLM、Qwen 都用）。通过旋转矩阵把「相对位置」编码进 Attention，天然支持外推到超长上下文，是 GLM-5.2 实现 1M token 的重要基石。</p>
+      </div>
+    </div>
+
+    <h2 class="section" id="attention"><span class="idx">03</span> Transformer：当代大模型的总骨架</h2>
+    <p>2017 年 Google 的论文《Attention Is All You Need》提出了 Transformer。此后几乎<strong>所有</strong>主流大模型（GPT、GLM、Claude、LLaMA、Gemini）都建立在它的变体之上。理解 Transformer，就理解了大模型的「脊柱」。</p>
+
+    <h3>整体结构：Encoder 与 Decoder</h3>
+    <p>原始 Transformer 是 Encoder-Decoder 结构，用于翻译。但当代<strong>生成式大模型（LLM）几乎清一色是 Decoder-Only</strong>（只有解码器，也叫因果语言模型）。GLM 系列则走出了一条独特的「自回归空白填充」路线，后演进为成熟的 decoder-only。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;align-items:stretch;">
+        <div class="node accent" style="width:100%;">输入 Token IDs：[我, 爱, 学习]</div>
+        <div style="text-align:center;color:var(--text-faint);">▼</div>
+        <div class="node">Embedding + 位置编码 (RoPE)</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ × N 层（如 32 / 80 / 120 层）</div>
+        <div class="node violet">Transformer Block：Self-Attention → MLP</div>
+        <div style="text-align:center;color:var(--text-faint);">▼</div>
+        <div class="node sky">最终隐状态向量</div>
+        <div style="text-align:center;color:var(--text-faint);">▼</div>
+        <div class="node accent">输出层 (LM Head)：预测下一个 token 的概率分布</div>
+      </div>
+      <div class="cap">图 1-1 · 一个 Decoder-Only 模型的数据流</div>
+    </div>
+
+    <h3>Self-Attention：让 token 们「互相看见」</h3>
+    <p>Self-Attention 是 Transformer 的灵魂。它的核心思想是：<strong>序列中的每个 token，都去「查询」其他所有 token，决定该把多少注意力分给谁</strong>。</p>
+
+    <p>它通过三个矩阵把每个 token 投影成三个角色：</p>
+    <table>
+      <thead><tr><th>角色</th><th>符号</th><th>比喻</th></tr></thead>
+      <tbody>
+        <tr><td>Query（查询）</td><td><code>Q</code></td><td>「我在找什么？」——我作为搜索者发出的请求</td></tr>
+        <tr><td>Key（键）</td><td><code>K</code></td><td>「我有什么？」——我作为被检索者的标签</td></tr>
+        <tr><td>Value（值）</td><td><code>V</code></td><td>「我的内容是什么」——如果被选中，我贡献的信息</td></tr>
+      </tbody>
+    </table>
+
+    <p>计算过程（缩放点积注意力）：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:16px;color:var(--accent);font-family:var(--mono);">
+        Attention(Q, K, V) = softmax( Q·Kᵀ / √dₖ ) · V
+      </div>
+    </div>
+    <ol>
+      <li><strong>打分</strong>：每个 token 的 Query 和所有 token 的 Key 做点积，得到「相关度分数」；</li>
+      <li><strong>缩放</strong>：除以 √dₖ（Key 的维度开根号），防止分数过大导致 softmax 梯度消失；</li>
+      <li><strong>归一化</strong>：softmax 把分数变成概率（加起来等于 1）；</li>
+      <li><strong>加权</strong>：用这些概率对 Value 加权求和，得到该 token 的新表示。</li>
+    </ol>
+
+    <div class="callout note">
+      <div class="head">🔑 直觉理解</div>
+      <p>Self-Attention 让每个词都<strong>根据上下文重新定义自己</strong>。「苹果」在「我吃了一个苹果」里会因为关注到「吃」而指向水果；在「苹果发布了新手机」里会因为关注到「发布」「手机」而指向公司。这就是大模型能<strong>理解上下文</strong>的根源。</p>
+    </div>
+
+    <h3>多头注意力（Multi-Head Attention）</h3>
+    <p>一组 Q/K/V 只能学到一种「关注模式」。把它们拆成多组（比如 32 个「头」），每组独立做注意力，再拼接起来——这就是多头注意力。不同头能学到不同关系：有的关注语法、有的关注指代、有的关注情感。这也是 GLM-5.2 这类模型能捕捉丰富语义的关键。</p>
+
+    <h3>MLP（前馈网络）：每个 token 的「独立思考」</h3>
+    <p>Attention 负责 token 间的信息交换，<strong>MLP（Feed-Forward Network）负责每个 token 内部的信息加工</strong>。它的结构很简单：两层线性变换 + 一个非线性激活（如 SwiGLU）。可以把它理解为：每个 token 在吸收了上下文后，自己「消化」一下，把信息压缩/重组进新的表示。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 一个常见误解</div>
+      <p>很多人以为「参数都在 Attention 里」。其实恰恰相反——在大多数 Transformer 模型中，<strong>MLP 占了约 2/3 的参数量</strong>。Attention 是「路由」，MLP 才是「知识存储」。这也是为什么 MoE 主要改造的就是 MLP 层。</p>
+    </div>
+
+    <h2 class="section" id="moe"><span class="idx">04</span> MoE：用「稀疏」撬动超大模型</h2>
+    <p>当模型越做越大（几百亿、几千亿参数），一个残酷的现实是：<strong>每个 token 都要过完所有参数，算力和显存吃不消</strong>。MoE（Mixture-of-Experts，混合专家）给出的答案是：模型可以很大，但每个 token 只激活其中一小部分。</p>
+
+    <h3>核心思想：路由 + 专家</h3>
+    <p>MoE 把普通的 MLP 层替换成「<strong>多个并行的 MLP（专家）+ 一个路由器（Gate）</strong>」。每个 token 进来，路由器决定把它送给哪几个专家处理。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">输入 token 隐状态 h</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node violet">路由器 Gate(h) → 输出每个专家的权重</div>
+        <div style="color:var(--text-faint);">▼ 选 Top-K（如 K=2）个专家</div>
+        <div style="display:flex;gap:8px;justify-content:center;">
+          <div class="node sky" style="opacity:.35;">专家1</div>
+          <div class="node sky">专家2 ✅</div>
+          <div class="node sky" style="opacity:.35;">专家3</div>
+          <div class="node sky">专家4 ✅</div>
+          <div class="node sky" style="opacity:.35;">专家5</div>
+          <div class="node sky" style="opacity:.35;">专家6</div>
+          <div class="node sky" style="opacity:.35;">专家7</div>
+          <div class="node sky" style="opacity:.35;">专家8</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ 只激活 2 个，加权求和</div>
+        <div class="node accent">输出</div>
+      </div>
+      <div class="cap">图 1-2 · Top-2 MoE：8 个专家里只激活 2 个</div>
+    </div>
+
+    <h3>MoE 带来的三大收益</h3>
+    <div class="grid cols-3">
+      <div class="card">
+        <span class="ic">💾</span>
+        <h4>更大容量</h4>
+        <p>总参数可以做到很大（如 6710 亿），存储更多知识，但单次推理只动用一小部分。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚡</span>
+        <h4>更快推理</h4>
+        <p>每个 token 的计算量（FLOPs）只相当于一个更小的稠密模型，速度更快。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>专业分工</h4>
+        <p>不同专家会自发学会处理不同领域（代码、数学、中文、常识），实现隐式专业化。</p>
+      </div>
+    </div>
+
+    <h3>MoE 也不是免费的午餐</h3>
+    <div class="callout warn">
+      <div class="head">⚠️ MoE 的工程难点</div>
+      <ul style="margin:6px 0;">
+        <li><strong>显存占用</strong>：虽然计算少，但所有专家都得驻显存，对显存要求极高；</li>
+        <li><strong>通信开销</strong>：专家常分布在不同 GPU 上，token 要在不同卡间「搬运」（All-to-All 通信）；</li>
+        <li><strong>负载均衡</strong>：路由器可能偷懒只用少数专家，需要加辅助损失（load balancing loss）强制均衡；</li>
+        <li><strong>训练不稳定</strong>：稀疏激活让梯度更复杂，调参更难。</li>
+      </ul>
+    </div>
+
+    <p>代表性 MoE 模型：GLM 系列、DeepSeek-V3（6710 亿总参/370 亿激活）、Mixtral 8×7B、Qwen-MoE。2026 年，MoE 已经成为「千亿级开源模型」的事实标准架构。</p>
+
+    <h2 class="section" id="kv-cache"><span class="idx">05</span> KV Cache：让生成又快又省的魔法</h2>
+    <p>大模型生成文本是<strong>一个 token 一个 token 吐</strong>的。每生成一个新 token，都要重新计算前面所有 token 的 Attention。如果每次都重算，长文本生成会慢到不可用。</p>
+
+    <p>观察发现：Attention 里 Key 和 Value 只<strong>取决于已有的 token</strong>，新生成的 token 不改变它们的值。所以可以<strong>把已算好的 K、V 缓存下来</strong>，下一轮直接复用——这就是 <strong>KV Cache</strong>。</p>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node">prompt 处理<br>(prefill, 慢)</div>
+        <span class="arrow">▶</span>
+        <div class="node accent">缓存所有 K/V</div>
+        <span class="arrow">▶</span>
+        <div class="node">每生成 1 token<br>只算新 token 的 Q</div>
+        <span class="arrow">▶</span>
+        <div class="node sky">生成速度 ×10~100</div>
+      </div>
+      <div class="cap">图 1-3 · KV Cache 让自回归生成从 O(n²) 降到接近 O(n)</div>
+    </div>
+
+    <div class="callout pit">
+      <div class="head">⚠️ KV Cache 是显存大户</div>
+      <p>KV Cache 的大小随上下文长度<strong>线性增长</strong>。一个 70B 模型在 128K 上下文下，单条请求的 KV Cache 就可能高达几十 GB。这也是为什么长上下文（如 GLM-5.2 的 1M token）在工程上极其困难——后续章节会讲 DSA、Paged Attention 等优化。</p>
+    </div>
+
+    <h2 class="section" id="attention-math"><span class="idx">07</span> 深度推导：Self-Attention 的完整数学</h2>
+    <p>把第 3.2 节的公式拆到最细。设输入序列长度 T、隐状态维度 d。对于头数为 h 的多头注意力，每个头维度 d<sub>h</sub> = d/h。</p>
+
+    <h3>单头注意力的逐步计算</h3>
+    <ol>
+      <li><strong>线性投影</strong>：输入 X (T×d) 通过三个权重矩阵投影成 Q、K、V：<br>
+        <code>Q = X·W<sup>Q</sup></code>，<code>K = X·W<sup>K</sup></code>，<code>V = X·W<sup>V</sup></code>，每个都是 T×d<sub>h</sub></li>
+      <li><strong>打分矩阵</strong>：<code>S = Q·K<sup>T</sup></code>，得到 T×T 的分数矩阵，<code>S<sub>ij</sub></code> 是位置 i 对位置 j 的关注分数</li>
+      <li><strong>缩放</strong>：<code>S = S / √d<sub>h</sub></code>（防止 softmax 饱和）</li>
+      <li><strong>因果掩码</strong>（Decoder 才有）：把 <code>S<sub>ij</sub></code>（i &lt; j，即未来位置）置为 −∞</li>
+      <li><strong>归一化</strong>：<code>A = softmax(S, dim=-1)</code>，每行加起来等于 1</li>
+      <li><strong>加权求和</strong>：<code>O = A·V</code>，输出 T×d<sub>h</sub>，每个位置是所有 V 的加权和</li>
+    </ol>
+    <p>复杂度分析：<strong>计算量 O(T²·d)</strong>（Q·K<sup>T</sup> 和 A·V 各占一半），<strong>显存 O(T²)</strong>（分数矩阵）。这就是为什么长序列 Attention 又慢又费显存——序列翻倍，计算量变 4 倍。</p>
+
+    <h3>多头的并行与合并</h3>
+    <p>h 个头各自独立算 attention，得到 h 个 T×d<sub>h</sub> 的输出，沿最后一维拼接成 T×d，再过一个输出投影 <code>W<sup>O</sup></code>。数学上等价于在 d 维空间里学习 h 个不同的「关注模式」。</p>
+
+    <h2 class="section" id="rope-math"><span class="idx">08</span> 深度推导：旋转位置编码 RoPE</h2>
+    <p>第 2.2 节提到 RoPE 是 GLM 等模型实现长上下文的关键。它的数学很优雅：<strong>通过对 Q、K 施加旋转矩阵，把相对位置信息编码进 Attention 的点积</strong>。</p>
+    <p>核心性质：希望 <code>&lt;q<sub>m</sub>, k<sub>n</sub>&gt;</code>（位置 m 的 query 与位置 n 的 key 的点积）<strong>只依赖于相对位置 m−n</strong>。RoPE 的解是：把 q<sub>m</sub> 旋转一个角度 mθ，k<sub>n</sub> 旋转 nθ，则：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
+        &lt;R<sub>m</sub>q, R<sub>n</sub>k&gt; = &lt;q, R<sub>m−n</sub>k&gt; &nbsp;&nbsp; <span style="color:var(--text-faint);"># 只依赖 m−n</span><br>
+        R<sub>m</sub> = 旋转角度 mθ 的 2×2 旋转矩阵块对角堆叠
+      </div>
+    </div>
+    <p>其中 θ 是预设的频率（不同维度用不同 θ，覆盖不同尺度）。RoPE 的妙处：<strong>不引入额外参数、不改变 Attention 计算、天然支持任意长度、相对位置天然编码</strong>。配合「NTK-aware 缩放」等技巧，可以从训练时的 4K 外推到 1M——这正是 GLM-5.2 长上下文的数学基础。</p>
+
+    <h2 class="section" id="handwritten"><span class="idx">09</span> 代码实战：从零手写 Self-Attention</h2>
+    <p>理解 Attention 最好的方式就是手写一遍。下面用 NumPy 实现，每一步对应上面的数学：</p>
+
+    <div class="code-title">attention_from_scratch.py —— 用 NumPy 手写 Self-Attention</div>
+    <pre><code><span class="c">"""
+attention_from_scratch.py —— 从零实现 Self-Attention
+每一步都对应数学公式，无任何抽象
+"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+
+<span class="k">def</span> <span class="f">softmax</span>(x, axis=-<span class="n">1</span>):
+    e = np.exp(x - x.max(axis=axis, keepdims=<span class="k">True</span>))   <span class="c"># 减最大值防溢出</span>
+    <span class="k">return</span> e / e.sum(axis=axis, keepdims=<span class="k">True</span>)
+
+<span class="k">def</span> <span class="f">self_attention</span>(X, d_k, mask=<span class="k">None</span>):
+    <span class="c">"""
+    X: (T, d)  输入序列
+    d_k: 每个头的维度
+    返回: (T, d_k)  attention 输出
+    """</span>
+    T, d = X.shape
+
+    <span class="c"># ① 随机初始化权重矩阵（真实模型是学出来的）</span>
+    W_q = np.random.randn(d, d_k) * <span class="n">0.1</span>
+    W_k = np.random.randn(d, d_k) * <span class="n">0.1</span>
+    W_v = np.random.randn(d, d_k) * <span class="n">0.1</span>
+
+    <span class="c"># ② 投影成 Q, K, V</span>
+    Q = X @ W_q          <span class="c"># (T, d_k)</span>
+    K = X @ W_k          <span class="c"># (T, d_k)</span>
+    V = X @ W_v          <span class="c"># (T, d_k)</span>
+
+    <span class="c"># ③ 打分 + 缩放</span>
+    scores = Q @ K.T / np.sqrt(d_k)    <span class="c"># (T, T)</span>
+
+    <span class="c"># ④ 因果掩码（Decoder 用：不让看未来）</span>
+    <span class="k">if</span> mask == <span class="s">"causal"</span>:
+        tril = np.tril(np.ones((T, T)))               <span class="c"># 下三角</span>
+        scores = np.where(tril == <span class="n">1</span>, scores, -np.inf)
+
+    <span class="c"># ⑤ softmax 归一化</span>
+    attn = softmax(scores, axis=-<span class="n">1</span>)      <span class="c"># (T, T) 每行和为 1</span>
+
+    <span class="c"># ⑥ 加权求和</span>
+    output = attn @ V                     <span class="c"># (T, d_k)</span>
+
+    <span class="k">return</span> output, attn
+
+<span class="c"># ---------- 试跑 ----------</span>
+np.random.seed(<span class="n">0</span>)
+X = np.random.randn(<span class="n">5</span>, <span class="n">8</span>)    <span class="c"># 5 个 token，每个 8 维</span>
+out, attn = self_attention(X, d_k=<span class="n">4</span>, mask=<span class="s">"causal"</span>)
+print(<span class="s">"输出 shape:"</span>, out.shape)       <span class="c"># (5, 4)</span>
+print(<span class="s">"注意力矩阵（每行和为 1）:"</span>)
+print(np.round(attn, <span class="n">2</span>))
+<span class="c"># 上三角是 0（被掩码），对角线和下方有值——这就是「每个 token 只看自己和之前」</span></code></pre>
+
+    <p>这 40 行就是 Attention 的全部真相。跑一遍，打印注意力矩阵，你会<strong>亲眼看到</strong>「因果掩码」（上三角为 0）和「注意力权重」（每行加起来为 1）。GLM-5.2 里的 Attention，本质就是这个，只是维度大了几个数量级、加了 RoPE、优化了计算（FlashAttention）。</p>
+
+    <h2 class="section" id="kv-cache-math"><span class="idx">10</span> 深度：KV Cache 的显存计算</h2>
+    <p>第 5 节说 KV Cache 是显存大户，到底多大？精确计算：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);line-height:1.8;">
+        KV Cache 显存 = 2 × n_layers × n_heads × head_dim × seq_len × batch × dtype_bytes<br>
+        <span style="color:var(--text-faint);">2 = K 和 V 各一份；dtype: fp16=2字节, int8=1字节, int4=0.5字节</span>
+      </div>
+    </div>
+    <p>举例：一个 80 层、64 头、head_dim=128 的模型，序列 128K，batch=1，fp16：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:14px;color:var(--accent-2);font-family:var(--mono);">
+        2 × 80 × 64 × 128 × 131072 × 1 × 2 = 274 GB 😱
+      </div>
+    </div>
+    <p>单条请求的 KV Cache 就要 274GB！这就是为什么长上下文工程上极其困难。GLM-5.2 的 1M 上下文，靠 DSA（稀疏化 KV）、PagedAttention（分页管理）、量化（KV int4）等技术把显存压下来。<strong>长上下文不仅是模型能力问题，更是工程优化问题</strong>。</p>
+
+    <h2 class="section" id="summary"><span class="idx">06</span> 本章小结与延伸</h2>
+    <p>恭喜你完成了大模型底层的第一课。让我们用一张图把本章的核心概念串起来：</p>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node">原始文本</div><span class="arrow">▶</span>
+        <div class="node accent">Tokenizer → IDs</div><span class="arrow">▶</span>
+        <div class="node">Embedding + RoPE</div><span class="arrow">▶</span>
+        <div class="node violet">N × Transformer Block</div>
+      </div>
+      <div class="flow" style="margin-top:10px;">
+        <div class="node sky">Self-Attention</div><span class="arrow">+</span>
+        <div class="node sky">MLP (或 MoE 专家)</div><span class="arrow">=</span>
+        <div class="node accent">上下文感知的隐状态</div><span class="arrow">▶</span>
+        <div class="node">预测下一个 token</div>
+      </div>
+      <div class="cap">图 1-4 · 大模型的完整数据流水线</div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">📌 你现在应该能回答</div>
+        <ul style="margin:6px 0;">
+          <li>Token 是什么？为什么不直接用词？</li>
+          <li>Self-Attention 的 Q/K/V 各自扮演什么角色？</li>
+          <li>为什么 MLP 参数比 Attention 还多？</li>
+          <li>MoE 如何在「大容量」和「低计算」间取得平衡？</li>
+          <li>KV Cache 为什么能让生成变快？</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">📚 延伸阅读</div>
+        <ul style="margin:6px 0;">
+          <li>《Attention Is All You Need》——Transformer 原论文</li>
+          <li>3Blue1Brown 的 GPT 可视化视频</li>
+          <li>HuggingFace 的 NLP Course（免费）</li>
+          <li>Karpathy 的 nanoGPT——从零写一个 GPT</li>
+          <li>《探秘 Transformer 系列》博客园专栏</li>
+        </ul>
+      </div>
+    </div>
+
+    <div class="chapter-nav">
+      <a href="concepts-skills-mcp-cli-functioncall.html">
+        <div class="lbl">← 上一章</div>
+        <div class="ttl">★ · 概念辨析：Skills/MCP/CLI/函数调用</div>
+      </a>
+      <a href="02-glm-training.html" class="next">
+        <div class="lbl">下一章 →</div>
+        <div class="ttl">02 · GLM-5.2 从 0 到 1：一个模型的诞生</div>
+      </a>
+    </div>
+
+    <footer>
+      <p>AI 全栈实战教学 · 第 01 章 · LLM 基础与原理</p>
+      <p>概念综合自 Transformer 原论文、HuggingFace 文档、智谱 GLM 技术报告等公开资料</p>
+    </footer>
+  </main>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

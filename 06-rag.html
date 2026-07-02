@@ -1,0 +1,988 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>06 · RAG 知识库搭建 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                          <aside class="sidebar">
+    <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
+    <div class="nav-group"><h3>导览</h3>
+      <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
+      <a href="index.html"><span class="num">00</span>封面与目录</a>
+    </div>
+    <div class="nav-group"><h3>基石</h3>
+      <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
+      <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
+      <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
+      <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
+      <a href="06-rag.html" class="active" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
+      <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
+      <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+    </div>
+    <div class="nav-group"><h3>工程</h3>
+      <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
+      <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
+      <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
+    </div>
+    <div class="nav-group"><h3>原理</h3>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
+      <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
+      <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+    </div>
+    <div class="nav-group"><h3>专题</h3>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
+      <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
+      <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
+      <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
+      <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
+      <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
+      <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
+      <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
+      <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
+      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
+      <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
+      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+    </div>
+    <div class="nav-group"><h3>参考</h3>
+      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
+      <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
+      <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
+      <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
+    </div>
+    <div class="nav-group"><h3>★Transformer</h3>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+    </div>
+    <div class="nav-group"><h3>★向量检索</h3>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+    </div>
+    <div class="nav-group"><h3>★Agent源码</h3>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+    </div>
+    <div class="nav-group"><h3>★Skills技能</h3>
+      <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
+      <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+    </div>
+    <div class="nav-group"><h3>★Agent设计模式</h3>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
+      <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
+    </div>
+    <div class="nav-group"><h3>★Agent框架</h3>
+      <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
+      <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
+      <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+    </div>
+    <div class="nav-group"><h3>★Deep Agent</h3>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+    </div>
+    <div class="nav-group"><h3>★LLMOps工程化</h3>
+      <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+    </div>
+    <div class="nav-group"><h3>★Agent交互设计</h3>
+      <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
+      <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+    </div>
+    <div class="nav-group"><h3>★模型压缩部署</h3>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+    </div>
+    <div class="nav-group"><h3>★AI知识拓宽</h3>
+      <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
+      <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
+    </div>
+    <div class="nav-group"><h3>★zvec向量库</h3>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
+      <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
+      <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
+      <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+    </div>
+    <div class="nav-group"><h3>★智能涌现原理</h3>
+      <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
+      <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
+    </div>
+    <div class="nav-group"><h3>★知识库与安全</h3>
+      <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 06 · 重点章节 · 知识与技能</span>
+      <h1>RAG 知识库搭建<br>从分块到检索的完整工程</h1>
+      <p class="lead">大模型再强，也有「不知道」的事——你的私有数据、最新资讯、专业领域知识。<strong>RAG（检索增强生成）</strong>就是给模型外挂一个「知识库」，让它先查资料再回答。本章从分块策略、Embedding、向量检索，一路讲到 Late Chunking、多模态 RAG、GraphRAG。</p>
+      <div class="meta">
+        <span class="chip">阅读约 40 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 01 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-rag"><span class="idx">★</span> 为什么需要 RAG</h2>
+    <p>大模型有三个天生短板：<strong>知识有截止日期</strong>（不知道训练后的事）、<strong>不知道你的私有数据</strong>（公司文档、个人笔记）、<strong>会一本正经地胡说</strong>（幻觉）。RAG 同时缓解这三个问题。</p>
+
+    <blockquote>
+      <strong>RAG 的核心思想：</strong>不把所有知识塞进模型参数，而是<strong>把知识存在外部库，回答前先检索相关片段，塞进上下文</strong>，让模型基于检索到的内容作答。
+    </blockquote>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">用户提问</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node violet">① 检索：从知识库捞最相关的片段</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node sky">② 拼接：把片段 + 问题组成 prompt</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node accent">③ 生成：模型基于资料作答</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node">带引用的回答（可溯源）</div>
+      </div>
+      <div class="cap">图 6-1 · RAG 的三步：检索 → 拼接 → 生成</div>
+    </div>
+
+    <h3>RAG vs 微调，怎么选</h3>
+    <table>
+      <thead><tr><th>维度</th><th>RAG</th><th>微调（Fine-tuning）</th></tr></thead>
+      <tbody>
+        <tr><td>知识更新</td><td>秒级（改库即可）</td><td>慢（要重训）</td></tr>
+        <tr><td>成本</td><td>低（一次 embedding）</td><td>高（要训练）</td></tr>
+        <tr><td>可溯源</td><td>✅ 能给出处</td><td>❌ 融进参数了</td></tr>
+        <tr><td>适合</td><td>事实型、易变、私有知识</td><td>风格、格式、领域推理能力</td></tr>
+        <tr><td>两者关系</td><td colspan="2"><strong>互补，常组合使用</strong></td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="head">💡 一句话决策</div>
+      <p>知识是「<strong>事实</strong>」且会变 → RAG；要改变的是「<strong>怎么说话/怎么推理</strong>」→ 微调。绝大多数企业场景（客服、文档问答、知识管理）首选 RAG。</p>
+    </div>
+
+    <h2 class="section" id="pipeline"><span class="idx">01</span> RAG 完整流水线</h2>
+    <p>一个生产级 RAG 远不止「检索 + 生成」那么简单。它有<strong>两条流水线</strong>：</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">离线 · 索引流水线（建库）</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <div class="node">原始文档</div><span class="arrow">▶</span>
+          <div class="node violet">解析清洗</div><span class="arrow">▶</span>
+          <div class="node violet">分块 Chunking</div><span class="arrow">▶</span>
+          <div class="node violet">向量化 Embedding</div><span class="arrow">▶</span>
+          <div class="node sky">存入向量库</div>
+        </div>
+      </div>
+      <div class="flow" style="flex-direction:column;margin-top:14px;">
+        <div class="node accent">在线 · 查询流水线（问答）</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <div class="node">用户问题</div><span class="arrow">▶</span>
+          <div class="node violet">查询改写</div><span class="arrow">▶</span>
+          <div class="node violet">向量+关键词检索</div><span class="arrow">▶</span>
+          <div class="node violet">重排 Rerank</div><span class="arrow">▶</span>
+          <div class="node sky">拼接 Prompt</div><span class="arrow">▶</span>
+          <div class="node accent">生成回答</div>
+        </div>
+      </div>
+      <div class="cap">图 6-2 · RAG 的两条流水线：离线索引 + 在线查询</div>
+    </div>
+
+    <p>每一步都有大量工程细节。我们从最容易踩坑的「分块」讲起。</p>
+
+    <h2 class="section" id="chunking"><span class="idx">02</span> 分块（Chunking）：最被低估的关键步</h2>
+    <p>业内有句话：<strong>「RAG 效果 70% 取决于分块。」</strong>分块的好坏直接决定检索质量，却最容易被新手忽略。</p>
+
+    <h3>为什么要分块</h3>
+    <ul>
+      <li><strong> Embedding 有长度限制</strong>：大多数 Embedding 模型只吃几百 token，长文档塞不进去；</li>
+      <li><strong>检索精度</strong>：整篇文档当一个向量太粗，检索时「相关但不精确」；切成小块，每个小块语义集中，检索更准；</li>
+      <li><strong>上下文预算</strong>：检索回来要塞进 prompt，块太大会挤占宝贵的上下文窗口。</li>
+    </ul>
+
+    <p>分块的核心目的，用一句话说：<strong>把语义相同的内容聚到一起，把语义不同的内容切开</strong>。</p>
+
+    <h3>七种主流分块策略</h3>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">📏</span>
+        <h4>① 固定长度切分</h4>
+        <p>按固定字符/token 数切。最简单，但会粗暴切断句子。实践中常配合<strong>重叠（overlap）</strong>缓解边界问题。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔁</span>
+        <h4>② 递归切分（Recursive）</h4>
+        <p>按「段落 → 句子 → 词」层级递归切，尽量在自然边界断开。LangChain 的默认策略，最常用。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📄</span>
+        <h4>③ 文档结构切分</h4>
+        <p>按 Markdown 标题、HTML 标签、PDF 章节切。保留结构信息，质量高，但要解析文档格式。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🧠</span>
+        <h4>④ 语义切分（Semantic）</h4>
+        <p>用 Embedding 计算相邻句子的语义相似度，在「语义跳变」处切。自适应，但慢。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🤖</span>
+        <h4>⑤ LLM 切分</h4>
+        <p>让大模型自己决定在哪切。质量最高但最贵，适合小量高价值文档。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚙️</span>
+        <h4>⑥ 代码感知切分</h4>
+        <p>按函数/类切代码，保留语法完整性。对代码 RAG 必备。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🆕</span>
+        <h4>⑦ Late Chunking（新范式）</h4>
+        <p><strong>先对整文档 embedding 再切</strong>，保留全局上下文。2025-2026 的重要突破，下节详述。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🧩</span>
+        <h4>⑧ 父子分块（Small-to-Big）</h4>
+        <p>用小块做检索（精确），但取回时连带父块（完整上下文）。鱼与熊掌兼得。</p>
+      </div>
+    </div>
+
+    <h3>分块大小的权衡</h3>
+    <table>
+      <thead><tr><th>块大小</th><th>优点</th><th>缺点</th></tr></thead>
+      <tbody>
+        <tr><td>小（100-300 token）</td><td>检索精确，上下文省</td><td>可能丢失上下文，答案碎片化</td></tr>
+        <tr><td>大（800-2000 token）</td><td>上下文完整</td><td>检索粗，噪音多，贵</td></tr>
+        <tr><td>中（400-600 token）</td><td>平衡</td><td>——常用起点</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 分块三大坑</div>
+      <ul style="margin:6px 0;">
+        <li><strong>切断语义</strong>：在句子/段落中间硬切，破坏完整意思。<strong>解法</strong>：用递归/结构切分 + overlap；</li>
+        <li><strong>块内主题混杂</strong>：一个块里塞了两个不相关话题，检索时无法精确命中。<strong>解法</strong>：语义切分；</li>
+        <li><strong>元数据丢失</strong>：切完块忘了它来自哪个文档/章节，溯源困难。<strong>解法</strong>：每个块都带上 source/section 元数据。</li>
+      </ul>
+    </div>
+
+    <div class="code-title">用 LangChain 做递归分块（最常用）</div>
+    <pre><code><span class="k">from</span> langchain_text_splitters <span class="k">import</span> RecursiveCharacterTextSplitter
+
+splitter = RecursiveCharacterTextSplitter(
+    chunk_size=<span class="n">500</span>,            <span class="c"># 每块约 500 字符</span>
+    chunk_overlap=<span class="n">50</span>,         <span class="c"># 相邻块重叠 50 字符，防边界切断</span>
+    separators=[<span class="s">"\n\n"</span>, <span class="s">"\n"</span>, <span class="s">"。"</span>, <span class="s">"."</span>, <span class="s">" "</span>, <span class="s">""</span>],  <span class="c"># 优先在段落/句子断</span>
+)
+
+chunks = splitter.split_text(long_document)
+<span class="c"># 每个 chunk 都是一段相对完整的语义单元</span></code></pre>
+
+    <h2 class="section" id="embedding"><span class="idx">03</span> Embedding：把文字变成向量</h2>
+    <p>分完块，要把每个块变成一个向量（通常 768~3072 维），这个过程叫 <strong>Embedding</strong>。回顾第 1 章：Embedding 让「语义相近的文本，向量也相近」，这是向量检索能成立的数学基础。</p>
+
+    <h3>Embedding 模型怎么选</h3>
+    <table>
+      <thead><tr><th>模型</th><th>维度</th><th>特点</th></tr></thead>
+      <tbody>
+        <tr><td><code>BGE-m3</code>（智源）</td><td>1024</td><td>多语言/多功能/长文本，中文极强，开源</td></tr>
+        <tr><td><code>text-embedding-3</code>（OpenAI）</td><td>可变</td><td>闭源 API，效果好但需联网</td></tr>
+        <tr><td><code>智谱 embedding-3</code></td><td>2048/3072</td><td>中文友好，与 GLM 生态协同</td></tr>
+        <tr><td><code>GTE</code>（阿里）</td><td>768/1024</td><td>开源，多语言</td></tr>
+        <tr><td><code>Cohere embed</code></td><td>1024</td><td>多语言强，闭源</td></tr>
+      </tbody>
+    </table>
+
+    <p>选型要考虑：<strong>语言</strong>（中文优先 BGE/智谱）、<strong>维度</strong>（影响存储和速度）、<strong>部署方式</strong>（开源本地 vs 闭源 API）、<strong>MTEB 榜单表现</strong>。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 稠密向量 vs 稀疏向量</div>
+      <p><strong>稠密向量</strong>（Dense）：每个维度都有值，捕捉语义，擅长「意思相近」。<strong>稀疏向量</strong>（Sparse）：类似 BM25，关键词命中，擅长「精确匹配」。BGE-m3 同时输出三种向量（dense/sparse/multivec），可以混合检索，效果最好——既懂语义又抓关键词。</p>
+    </div>
+
+    <h2 class="section" id="vector-db"><span class="idx">04</span> 向量数据库：存与查</h2>
+    <p>Embedding 出来的几百万、几千万个向量，要存在专门的<strong>向量数据库</strong>里，并能快速做「找最相似的 K 个」检索。</p>
+
+    <h3>主流向量库</h3>
+    <table>
+      <thead><tr><th>向量库</th><th>定位</th><th>适合</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Milvus / Zilliz</strong></td><td>专业分布式向量库</td><td>大规模、生产级</td></tr>
+        <tr><td><strong>Qdrant</strong></td><td>Rust 写的高性能向量库</td><td>性能敏感场景</td></tr>
+        <tr><td><strong>Weaviate</strong></td><td>带混合检索的向量库</td><td>需要 dense+sparse 混合</td></tr>
+        <tr><td><strong>Chroma</strong></td><td>轻量嵌入式</td><td>原型、小项目</td></tr>
+        <tr><td><strong>pgvector</strong></td><td>PostgreSQL 扩展</td><td>已有 PG、不想加组件</td></tr>
+        <tr><td><strong>Elasticsearch</strong></td><td>搜索老牌 + 向量</td><td>已有 ES、要全文+向量</td></tr>
+      </tbody>
+    </table>
+
+    <h3>近似最近邻（ANN）索引</h3>
+    <p>暴力找最相似的 K 个要遍历所有向量，太慢。实际用<strong>近似最近邻</strong>算法加速，牺牲一点点精度换巨大速度提升：</p>
+    <ul>
+      <li><strong>HNSW</strong>（Hierarchical Navigable Small World）：基于图，查询快、精度高，最主流；</li>
+      <li><strong>IVF</strong>：先聚类再在类内搜，适合超大规模；</li>
+      <li><strong>PQ</strong>（Product Quantization）：压缩向量省内存，精度有损。</li>
+    </ul>
+
+    <h2 class="section" id="retrieval"><span class="idx">05</span> 检索：不只是向量搜索</h2>
+    <p>很多人以为 RAG 的检索就是「算 query 向量，找最相似的 K 个块」。这只是<strong>朴素向量检索</strong>，效果往往一般。生产级检索要做更多。</p>
+
+    <h3>查询改写（Query Rewriting）</h3>
+    <p>用户的原始问题往往<strong>不适合直接检索</strong>。比如「它怎么用？」里的「它」指代不清。检索前要先改写查询：</p>
+    <ul>
+      <li><strong>指代消解</strong>：结合对话历史，把「它」替换成具体实体；</li>
+      <li><strong>问题扩展</strong>：一个问题扩成多个相关问题，分别检索再合并（Multi-Query）；</li>
+      <li><strong>假设性文档（HyDE）</strong>：先让模型生成一个「假想答案」，用假想答案去检索（往往比用问题检索更准）；</li>
+      <li><strong>子问题分解</strong>：复杂问题拆成多个子问题分别检索。</li>
+    </ul>
+
+    <h3>混合检索（Hybrid Search）</h3>
+    <p>向量检索擅长语义，关键词检索（BM25）擅长精确匹配。<strong>两者结合</strong>效果最好：</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node accent">用户问题</div>
+        <span class="arrow">▶</span>
+        <div style="display:flex;flex-direction:column;gap:6px;">
+          <div class="node violet">向量检索（语义）</div>
+          <div class="node sky">BM25 检索（关键词）</div>
+        </div>
+        <span class="arrow">▶</span>
+        <div class="node accent">融合排序（RRF）</div>
+        <span class="arrow">▶</span>
+        <div class="node">最终候选集</div>
+      </div>
+      <div class="cap">图 6-3 · 混合检索：语义 + 关键词双路融合</div>
+    </div>
+    <p>融合常用 <strong>RRF（Reciprocal Rank Fusion）</strong>：不关心分数只看排名，把两路的排名倒数求和，简单且有效。</p>
+
+    <h3>重排（Rerank）：精筛的关键</h3>
+    <p>向量检索召回的 Top-K 里，常混入「相关但不精确」的块。再上一步<strong>Rerank</strong>：用一个专门的 rerank 模型（如 BGE-reranker、Cohere Rerank）对候选集精细打分重排。</p>
+    <div class="callout note">
+      <div class="head">🔑 为什么 Rerank 这么有效</div>
+      <p>Embedding 模型为了快，把整段压缩成一个向量，信息损失大；Rerank 模型是<strong>交叉编码器（Cross-Encoder）</strong>，把 query 和每个候选放一起精细计算相关性，精度高得多。典型做法：<strong>向量检索召回 50 条 → Rerank 精选 Top 5</strong>。这一步往往能让准确率提升 10-30%。</p>
+    </div>
+
+    <h2 class="section" id="advanced"><span class="idx">06</span> 进阶：让 RAG 更聪明的招式</h2>
+
+    <h3>Late Chunking：颠覆传统流程</h3>
+    <p>传统流程是「<strong>先切块，再 embedding</strong>」。但切块后每个块失去了全文上下文，导致「它」「该公司」这类指代无法正确编码。2025 年兴起的 <strong>Late Chunking</strong> 反过来：<strong>先对整文档做 embedding（得到 token 级向量序列），再切块（对每块的 token 向量做池化）</strong>。</p>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node">传统：文档 → 切块 → 逐块 embedding</div>
+      </div>
+      <div class="flow" style="margin-top:10px;">
+        <div class="node accent">Late：文档 → 整体 embedding → 切块池化</div>
+      </div>
+      <div class="cap">图 6-4 · Late Chunking：保留全局上下文的新范式</div>
+    </div>
+    <p>好处：每个块的向量都「知道」全文语境，指代消解自然发生，长文档检索质量显著提升。要求 Embedding 模型支持长输入（如 BGE-m3 支持 8K token）。</p>
+
+    <h3>父子分块（Small-to-Big / Parent-Child）</h3>
+    <p>矛盾：小块检索精确但上下文不足，大块上下文足但检索粗。<strong>父子分块</strong>的解法：用小块检索，命中后取回它所属的大块（父块）。</p>
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">小块（200 token）→ embedding → 检索精确</div>
+        <div style="color:var(--text-faint);">▼ 命中小块</div>
+        <div class="node violet">映射到父块（1500 token）→ 取回完整上下文</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node sky">送进 prompt：精确检索 + 完整上下文</div>
+      </div>
+      <div class="cap">图 6-5 · 父子分块：检索用小块，返回用大块</div>
+    </div>
+
+    <h3>多模态 RAG</h3>
+    <p>现实文档里有图片、表格、公式。<strong>多模态 RAG</strong> 把它们也纳入检索：</p>
+    <ul>
+      <li><strong>图片</strong>：用多模态 Embedding（如 CLIP）或先用 VLM 生成描述再 embedding；</li>
+      <li><strong>表格</strong>：保留结构，或转成 Markdown/自然语言描述；</li>
+      <li><strong>公式</strong>：用 LaTeX 保留，或转文本。</li>
+    </ul>
+    <p>GLM-4V、GPT-4V 等多模态模型让多模态 RAG 越来越实用——检索回来的图片可以直接喂给多模态 LLM 理解。</p>
+
+    <h3>GraphRAG：知识图谱加持</h3>
+    <p>向量检索有个根本短板：<strong>不擅长「跨文档的全局推理」</strong>。比如「这个领域的主要流派有哪些？」需要综合多篇文档抽象，单纯向量召回做不好。<strong>GraphRAG</strong>（微软提出）的思路：先用 LLM 从文档里抽取实体和关系，构建<strong>知识图谱</strong>，再基于图谱做检索和推理。</p>
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">文档 → LLM 抽取 → 实体 + 关系</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node violet">知识图谱（节点 = 实体，边 = 关系）</div>
+        <div style="color:var(--text-faint);">▼ 社区检测 / 图遍历</div>
+        <div class="node sky">回答「全局性」「关联性」问题</div>
+      </div>
+      <div class="cap">图 6-6 · GraphRAG：用知识图谱补足向量检索的短板</div>
+    </div>
+
+    <h3>Agentic RAG：让 RAG 自己决定怎么查</h3>
+    <p>把 RAG 放进 Agent Loop，让智能体<strong>自主决定</strong>：要不要查、查几次、查哪个库、要不要改写问题、要不要再查一次。<strong>Agentic RAG</strong> 是 2026 年的主流方向——简单的「一问一查」变成「多轮探索式检索」，质量上限大幅提升。</p>
+
+    <h2 class="section" id="evaluation"><span class="idx">07</span> RAG 的评估：怎么知道好不好</h2>
+    <p>RAG 最难的不是搭，是<strong>评估</strong>。常用的 RAG 评估框架（如 RAGAS、TruLens）从几个维度打分：</p>
+    <table>
+      <thead><tr><th>维度</th><th>含义</th></tr></thead>
+      <tbody>
+        <tr><td><strong>上下文相关性</strong></td><td>检索回来的内容，和问题相关吗？（检索质量）</td></tr>
+        <tr><td><strong>事实一致性</strong></td><td>回答是否忠于检索到的内容？（有没有幻觉）</td></tr>
+        <tr><td><strong>回答相关性</strong></td><td>回答是否切题？（有没有答非所问）</td></tr>
+        <tr><td><strong>召回率</strong></td><td>该查到的重要信息，查到了吗？</td></tr>
+      </tbody>
+    </table>
+    <p>评估需要一批「问题-标准答案-相关文档」的测试集。可以先人工标几十条，再用 LLM 自动扩展。每次改动分块/检索/Embedding，都跑评估集回归，确保没退化。</p>
+
+    <h2 class="section" id="build"><span class="idx">08</span> 实战：搭一个文档问答 RAG</h2>
+    <p>把前面所学串起来，搭一个完整可用的文档问答系统：</p>
+
+    <div class="code-title">doc_qa.py —— 一个最小但完整的 RAG（用智谱 GLM + BGE）</div>
+    <pre><code><span class="c">"""
+最小可用 RAG：文档问答
+依赖：pip install zhipuai langchain-community chromadb sentence-transformers
+"""</span>
+<span class="k">from</span> langchain_community.document_loaders <span class="k">import</span> DirectoryLoader
+<span class="k">from</span> langchain_text_splitters <span class="k">import</span> RecursiveCharacterTextSplitter
+<span class="k">from</span> langchain_community.embeddings <span class="k">import</span> HuggingFaceEmbeddings
+<span class="k">from</span> langchain_community.vectorstores <span class="k">import</span> Chroma
+<span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
+
+<span class="c"># ---------- ① 加载 + 分块 ----------</span>
+docs = DirectoryLoader(<span class="s">"./docs"</span>, glob=<span class="s">"**/*.md"</span>).load()
+chunks = RecursiveCharacterTextSplitter(chunk_size=<span class="n">500</span>, chunk_overlap=<span class="n">50</span>).split_documents(docs)
+
+<span class="c"># ---------- ② Embedding + 入库 ----------</span>
+embeddings = HuggingFaceEmbeddings(model_name=<span class="s">"BAAI/bge-m3"</span>)
+vectordb = Chroma.from_documents(chunks, embeddings, persist_directory=<span class="s">"./vectordb"</span>)
+retriever = vectordb.as_retriever(search_kwargs={<span class="s">"k"</span>: <span class="n">5</span>})
+
+<span class="c"># ---------- ③ 检索 + 生成 ----------</span>
+client = ZhipuAI()
+
+<span class="k">def</span> <span class="f">ask</span>(question):
+    <span class="c"># 检索</span>
+    relevant = retriever.invoke(question)
+    context = <span class="s">"\n\n"</span>.join(d.page_content <span class="k">for</span> d <span class="k">in</span> relevant)
+
+    <span class="c"># 拼接 prompt（带引用要求，减少幻觉）</span>
+    prompt = <span class="s">f"""你是文档助手。只根据下面资料回答，不知道就说不知道，给出引用编号。
+
+资料：
+{context}
+
+问题：{question}"""</span>
+
+    resp = client.chat.completions.create(model=<span class="s">"glm-5.2"</span>, messages=[{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: prompt}])
+    <span class="k">return</span> resp.choices[<span class="n">0</span>].message.content
+
+print(ask(<span class="s">"这个项目的部署方式是什么？"</span>))</code></pre>
+
+    <p>这 30 行已经是一个能用的文档问答系统。把它装进第 5 章的智能体，就成了一个<strong>带知识库的智能助手</strong>。</p>
+
+    <h2 class="section" id="vs-long-context"><span class="idx">09</span> RAG vs 长上下文：会取代吗</h2>
+    <p>GLM-5.2 有 1M 上下文。一个常见疑问：<strong>「上下文这么长，RAG 是不是没必要了？」</strong>答案是：<strong>不会取代，而是融合</strong>。</p>
+    <table>
+      <thead><tr><th>场景</th><th>更优选择</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>几十页文档问答</td><td>长上下文直接塞</td><td>简单、无检索损失</td></tr>
+        <tr><td>几万页知识库</td><td>必须 RAG</td><td>再长也塞不下</td></tr>
+        <tr><td>实时更新数据</td><td>RAG</td><td>改库即生效</td></tr>
+        <tr><td>多用户高并发</td><td>RAG</td><td>每用户塞 1M 太贵</td></tr>
+        <tr><td>需要精确溯源</td><td>RAG</td><td>能给出处</td></tr>
+      </tbody>
+    </table>
+    <div class="callout tip">
+      <div class="head">💡 2026 的最佳实践：Agentic RAG</div>
+      <p>让智能体<strong>动态决策</strong>：简单问题直接答，需要资料时先 RAG 检索，复杂问题多轮检索 + 反思。长上下文 + RAG 不是二选一，而是<strong>组合拳</strong>。GLM-5.2 的长上下文让 RAG 的「塞多少」更从容，但不改变「海量知识必须靠检索」的本质。</p>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">📌 核心要点</div>
+        <ul style="margin:6px 0;">
+          <li>RAG = <strong>检索增强生成</strong>，缓解幻觉、补足私有/最新知识、可溯源；</li>
+          <li>两条流水线：离线<strong>索引</strong> + 在线<strong>查询</strong>；</li>
+          <li><strong>分块决定 70% 效果</strong>，递归/语义/结构/Late Chunking 各有场景；</li>
+          <li><strong>混合检索（向量+BM25）+ Rerank</strong> 是生产标配；</li>
+          <li>进阶：Late Chunking、父子分块、多模态、GraphRAG、Agentic RAG；</li>
+          <li>长上下文不取代 RAG，而是<strong>融合</strong>。</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">📚 关键参考</div>
+        <ul style="margin:6px 0;">
+          <li>Firecrawl: Best Chunking Strategies for RAG 2026</li>
+          <li>智源 BGE-m3 模型与文档</li>
+          <li>Microsoft GraphRAG</li>
+          <li>RAGAS 评估框架</li>
+          <li>「先 embedding 再 chunking」Late Chunking</li>
+          <li>Zilliz Learn（向量库教学）</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="section" id="chunking-code"><span class="idx">11</span> 代码实战：八种分块策略的实现</h2>
+    <p>第 2 节讲了分块的理念，这里把<strong>最常用的几种分块策略</strong>都用代码实现出来，让你能直观对比它们的差异。</p>
+
+    <div class="code-title">chunking_strategies.py —— 八种分块策略对比</div>
+    <pre><code><span class="c">"""
+chunking_strategies.py —— 八种分块策略的实现与对比
+"""</span>
+<span class="k">import</span> re
+<span class="k">from</span> typing <span class="k">import</span> List
+
+<span class="c"># ========== ① 固定长度切分 ==========</span>
+<span class="k">def</span> <span class="f">fixed_size</span>(text, size=<span class="n">200</span>, overlap=<span class="n">30</span>):
+    chunks = []
+    i = <span class="n">0</span>
+    <span class="k">while</span> i &lt; <span class="f">len</span>(text):
+        chunks.append(text[i:i+size])
+        i += size - overlap          <span class="c"># 滑动窗口，带重叠</span>
+    <span class="k">return</span> chunks
+
+<span class="c"># ========== ② 递归切分（LangChain 同款思路） ==========</span>
+<span class="k">def</span> <span class="f">recursive_split</span>(text, separators=[<span class="s">"</span><span class="d">\n\n</span><span class="s">"</span>, <span class="s">"</span><span class="d">\n</span><span class="s">"</span>, <span class="s">"。"</span>, <span class="s">" "</span>, <span class="s">""</span>], chunk_size=<span class="n">300</span>):
+    <span class="c"># 用最优先的分隔符切，切出的块若仍太大，用下一级分隔符再切</span>
+    <span class="k">if</span> <span class="f">len</span>(text) &lt;= chunk_size <span class="k">or</span> not separators:
+        <span class="k">return</span> [text]
+    sep = separators[<span class="n">0</span>]
+    parts = text.split(sep)
+    result = []
+    <span class="k">for</span> p <span class="k">in</span> parts:
+        <span class="k">if</span> <span class="f">len</span>(p) &gt; chunk_size:
+            result.extend(recursive_split(p, separators[<span class="n">1</span>:], chunk_size))
+        <span class="k">else</span>:
+            result.append(p + sep)
+    <span class="c"># 合并过小的块</span>
+    merged, buf = [], <span class="s">""</span>
+    <span class="k">for</span> p <span class="k">in</span> result:
+        <span class="k">if</span> <span class="f">len</span>(buf) + <span class="f">len</span>(p) &lt;= chunk_size:
+            buf += p
+        <span class="k">else</span>:
+            <span class="k">if</span> buf: merged.append(buf)
+            buf = p
+    <span class="k">if</span> buf: merged.append(buf)
+    <span class="k">return</span> merged
+
+<span class="c"># ========== ③ Markdown 结构切分 ==========</span>
+<span class="k">def</span> <span class="f">markdown_split</span>(text):
+    <span class="c"># 按 # 标题切，保留标题层级</span>
+    pattern = r<span class="s">'(?=^#{1,6}\s)'</span>
+    sections = re.split(pattern, text, flags=re.MULTILINE)
+    <span class="k">return</span> [s.strip() <span class="k">for</span> s <span class="k">in</span> sections <span class="k">if</span> s.strip()]
+
+<span class="c"># ========== ④ 语义切分（基于 Embedding 相似度） ==========</span>
+<span class="k">def</span> <span class="f">semantic_split</span>(text, embed_fn, threshold=<span class="n">0.5</span>):
+    <span class="c"># 1. 先按句子切</span>
+    sentences = re.split(r<span class="s">'(?<=[。.!?])\s*'</span>, text)
+    <span class="k">if</span> <span class="f">len</span>(sentences) &lt;= <span class="n">1</span>: <span class="k">return</span> [text]
+    <span class="c"># 2. 算相邻句子的 embedding 相似度</span>
+    embs = [embed_fn(s) <span class="k">for</span> s <span class="k">in</span> sentences]
+    <span class="c"># 3. 相似度低于阈值处 → 语义跳变 → 在这里切</span>
+    chunks, buf = [], sentences[<span class="n">0</span>]
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">1</span>, <span class="f">len</span>(sentences)):
+        sim = cosine(embs[i-<span class="n">1</span>], embs[i])
+        <span class="k">if</span> sim &lt; threshold:           <span class="c"># 语义跳变</span>
+            chunks.append(buf); buf = sentences[i]
+        <span class="k">else</span>:
+            buf += sentences[i]
+    <span class="k">if</span> buf: chunks.append(buf)
+    <span class="k">return</span> chunks
+
+<span class="c"># ========== ⑤ 代码感知切分（按函数/类） ==========</span>
+<span class="k">def</span> <span class="f">code_split</span>(code, lang=<span class="s">"python"</span>):
+    <span class="c"># 按 def / class 切，保留完整语法单元</span>
+    pattern = r<span class="s">'(?=^(?:async\s+)?def\s+|class\s+)'</span>
+    blocks = re.split(pattern, code, flags=re.MULTILINE)
+    <span class="k">return</span> [b <span class="k">for</span> b <span class="k">in</span> blocks <span class="k">if</span> b.strip()]
+
+<span class="c"># ========== ⑥ 父子分块（Small-to-Big） ==========</span>
+<span class="k">def</span> <span class="f">parent_child_split</span>(text, child_size=<span class="n">200</span>, parent_size=<span class="n">1000</span>):
+    <span class="c"># 先切大块（父），再把每个父切成小块（子）</span>
+    parents = fixed_size(text, parent_size, overlap=<span class="n">0</span>)
+    mapping = []
+    <span class="k">for</span> pi, parent <span class="k">in</span> <span class="f">enumerate</span>(parents):
+        children = fixed_size(parent, child_size, overlap=<span class="n">30</span>)
+        <span class="k">for</span> child <span class="k">in</span> children:
+            mapping.append({<span class="s">"child"</span>: child, <span class="s">"parent_id"</span>: pi, <span class="s">"parent"</span>: parent})
+    <span class="k">return</span> mapping
+    <span class="c"># 检索时用 child 向量命中，返回时给 parent（完整上下文）</span>
+
+<span class="c"># cosine 相似度辅助</span>
+<span class="k">def</span> <span class="f">cosine</span>(a, b):
+    <span class="k">import</span> math
+    dot = <span class="f">sum</span>(x*y <span class="k">for</span> x,y <span class="k">in</span> <span class="f">zip</span>(a,b))
+    na = math.sqrt(<span class="f">sum</span>(x*x <span class="k">for</span> x <span class="k">in</span> a))
+    nb = math.sqrt(<span class="f">sum</span>(y*y <span class="k">for</span> y <span class="k">in</span> b))
+    <span class="k">return</span> dot/(na*nb) <span class="k">if</span> na*nb <span class="k">else</span> <span class="n">0</span></code></pre>
+
+    <p>实战中选择建议：<strong>通用文档</strong>用递归切分（②），<strong>Markdown/技术文档</strong>用结构切分（③），<strong>代码</strong>用代码切分（⑤），<strong>追求精度</strong>用语义切分（④）或父子分块（⑥）。<strong>没有银弹</strong>，最好的做法是用评估集（第 7 节）实测对比。</p>
+
+    <h2 class="section" id="hybrid-code"><span class="idx">12</span> 代码实战：混合检索 + Rerank 完整实现</h2>
+    <p>把第 5 节的「向量 + BM25 混合检索 + Rerank」用代码完整实现。这是生产级 RAG 检索的核心：</p>
+
+    <div class="code-title">hybrid_retrieval.py —— 混合检索 + RRF 融合 + Rerank</div>
+    <pre><code><span class="c">"""
+hybrid_retrieval.py —— 生产级混合检索
+向量检索（语义）+ BM25（关键词）+ RRF 融合 + Cross-Encoder Rerank
+"""</span>
+<span class="k">import</span> math
+<span class="k">from</span> collections <span class="k">import</span> Counter
+<span class="k">from</span> rank_bm25 <span class="k">import</span> BM25Okapi
+<span class="k">from</span> sentence_transformers <span class="k">import</span> SentenceTransformer
+
+<span class="c"># 嵌入模型（检索用）和 Rerank 模型（精排用）</span>
+embedder = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
+reranker = SentenceTransformer(<span class="s">"BAAI/bge-reranker-v2-m3"</span>, backend=<span class="s">"onnx"</span>)
+
+<span class="k">class</span> <span class="t">HybridRetriever</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, docs: <span class="t">list</span>[<span class="t">str</span>]):
+        self.docs = docs
+        <span class="c"># 建向量索引（演示用暴力搜索，生产用 HNSW）</span>
+        self.doc_embs = embedder.encode(docs, normalize_embeddings=<span class="k">True</span>)
+        <span class="c"># 建 BM25 索引</span>
+        self.bm25 = BM25Okapi([d.split() <span class="k">for</span> d <span class="k">in</span> docs])
+
+    <span class="k">def</span> <span class="f">vector_search</span>(self, query, k=<span class="n">20</span>):
+        q_emb = embedder.encode([query], normalize_embeddings=<span class="k">True</span>)[<span class="n">0</span>]
+        scores = self.doc_embs @ q_emb            <span class="c"># 余弦相似度（已归一化）</span>
+        idx = scores.argsort()[::-<span class="n">1</span>][:k]
+        <span class="k">return</span> [(i, scores[i]) <span class="k">for</span> i <span class="k">in</span> idx]
+
+    <span class="k">def</span> <span class="f">bm25_search</span>(self, query, k=<span class="n">20</span>):
+        scores = self.bm25.get_scores(query.split())
+        idx = scores.argsort()[::-<span class="n">1</span>][:k]
+        <span class="k">return</span> [(i, scores[i]) <span class="k">for</span> i <span class="k">in</span> idx]
+
+    <span class="k">def</span> <span class="f">rrf_fuse</span>(self, results_list, k_const=<span class="n">60</span>):
+        <span class="c"># Reciprocal Rank Fusion：不看分数只看排名</span>
+        rrf = Counter()
+        <span class="k">for</span> results <span class="k">in</span> results_list:
+            <span class="k">for</span> rank, (idx, _) <span class="k">in</span> <span class="f">enumerate</span>(results):
+                rrf[idx] += <span class="n">1</span> / (k_const + rank + <span class="n">1</span>)
+        <span class="k">return</span> [idx <span class="k">for</span> idx, _ <span class="k">in</span> rrf.most_common()]
+
+    <span class="k">def</span> <span class="f">rerank</span>(self, query, candidate_idxs, top_n=<span class="n">5</span>):
+        <span class="c"># Cross-Encoder 精排：把 query 和每个候选拼一起打分</span>
+        pairs = [[query, self.docs[i]] <span class="k">for</span> i <span class="k">in</span> candidate_idxs]
+        scores = reranker.predict(pairs)
+        ranked = sorted(<span class="f">zip</span>(candidate_idxs, scores), key=<span class="k">lambda</span> x: -x[<span class="n">1</span>])
+        <span class="k">return</span> ranked[:top_n]
+
+    <span class="k">def</span> <span class="f">search</span>(self, query, final_k=<span class="n">5</span>):
+        <span class="c"># 三步走：双路召回 → RRF 融合 → Rerank 精排</span>
+        vec_hits = self.vector_search(query, k=<span class="n">20</span>)
+        bm25_hits = self.bm25_search(query, k=<span class="n">20</span>)
+        fused = self.rrf_fuse([vec_hits, bm25_hits])
+        <span class="c"># 取融合后前 50 个，Rerank 精选 final_k 个</span>
+        final = self.rerank(query, fused[:<span class="n">50</span>], top_n=final_k)
+        <span class="k">return</span> [(self.docs[i], <span class="k">float</span>(s)) <span class="k">for</span> i, s <span class="k">in</span> final]
+
+<span class="c"># 使用</span>
+docs = [<span class="s">"GLM-5.2 支持 1M 上下文"</span>, <span class="s">"Transformer 用 Self-Attention"</span>, <span class="s">"RAG 检索增强生成"</span>, ...]
+retriever = HybridRetriever(docs)
+results = retriever.search(<span class="s">"GLM 上下文多长"</span>)
+<span class="c"># results = [("GLM-5.2 支持 1M 上下文", 0.95), ...]</span></code></pre>
+
+    <p>这套「<strong>双路召回 50 → RRF 融合 → Rerank 精选 5</strong>」是 2026 年 RAG 检索的黄金组合。向量检索召回语义相关的，BM25 兜底精确关键词，RRF 融合两者优势，Rerank 用更强的 Cross-Encoder 精排。实测比单纯向量检索准确率高 20-40%。</p>
+
+    <h2 class="section" id="hnsw"><span class="idx">13</span> HNSW 算法：向量检索为什么这么快</h2>
+    <p>第 4.2 节提到 HNSW 是最主流的 ANN 索引。它为什么快？核心思想是<strong>分层跳表</strong>：</p>
+    <ul>
+      <li>把向量构建成多层图，<strong>顶层稀疏</strong>（节点少，跨度大）用于快速定位区域，<strong>底层密集</strong>（所有节点）用于精确查找；</li>
+      <li>查询时从顶层开始，大步跳到目标附近，再逐层下沉，精细搜索；</li>
+      <li>类比：先坐高铁跨省（顶层），再坐地铁跨城（中层），最后步行找门牌（底层）。</li>
+    </ul>
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">顶层（稀疏）：快速跨域定位 ●───●───●</div>
+        <div class="node violet">中层：区域细化 ●──●──●──●──●</div>
+        <div class="node sky">底层（全量）：精确查找 ●·●·●·●·●·●·●·●</div>
+      </div>
+      <div class="cap">图 6-7 · HNSW 分层图：从粗到细逐层逼近</div>
+    </div>
+    <p>HNSW 把暴力 O(N) 搜索降到约 O(log N)，精度损失极小（recall &gt; 95%），是 Milvus、Qdrant、pgvector 的默认索引。理解它有助于你调参（<code>M</code> 控制图的连接度，<code>efConstruction</code>/<code>efSearch</code> 控制建图/查询的精度-速度权衡）。</p>
+
+    <h2 class="section" id="late-chunking-code"><span class="idx">14</span> 代码实战：Late Chunking 实现</h2>
+    <p>第 6.1 节讲的 Late Chunking，核心是「先 embedding 整文档，再切」。实现：</p>
+    <div class="code-title">late_chunking.py —— 先 embedding 后切分</div>
+    <pre><code><span class="c">"""
+late_chunking.py —— Late Chunking 实现
+需要支持长输入的 Embedding 模型（如 BGE-m3，支持 8K token）
+"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> sentence_transformers <span class="k">import</span> SentenceTransformer
+
+model = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
+
+<span class="k">def</span> <span class="f">late_chunk</span>(doc, chunk_size=<span class="n">256</span>):
+    <span class="c"># ① 先按 token 切分文档（记录每个 token 的位置）</span>
+    tokens = model.tokenizer(doc, return_offsets_mapping=<span class="k">True</span>, add_special_tokens=<span class="k">False</span>)
+
+    <span class="c"># ② 对整文档做 embedding，得到 token 级向量序列（带全文上下文！）</span>
+    <span class="c"># model_kwargs={'output_hidden_states':True} 拿到每层的隐状态</span>
+    outputs = model.encode([doc], output_value=<span class="s">"token_embeddings"</span>, convert_to_numpy=<span class="k">True</span>)
+    token_embs = outputs[<span class="n">0</span>]          <span class="c"># (num_tokens, dim)，每个向量都「看过」全文</span>
+
+    <span class="c"># ③ 按 chunk_size 分组，对每组做均值池化 → 得到 chunk 向量</span>
+    chunk_embs = []
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(<span class="n">0</span>, <span class="f">len</span>(token_embs), chunk_size):
+        chunk_vec = token_embs[i:i+chunk_size].mean(axis=<span class="n">0</span>)   <span class="c"># 池化</span>
+        chunk_embs.append(chunk_vec / np.linalg.norm(chunk_vec))  <span class="c"># 归一化</span>
+    <span class="k">return</span> chunk_embs
+
+<span class="c"># 传统 vs Late Chunking 的区别：
+# 传统：chunk_text → embed(chunk) → 每个 chunk 向量只有局部信息
+# Late：embed(全文档) → 切 token 向量 → 池化 → 每个 chunk 向量带全文上下文</span></code></pre>
+
+    <p>Late Chunking 的精妙之处：每个 chunk 的向量都<strong>隐含了全文的上下文</strong>（因为是在整文档 embedding 之后切的），所以「它」「该公司」这类指代能被正确编码。对于长文档检索，质量提升显著。代价是要求 Embedding 模型支持长输入，且 embedding 计算量更大。</p>
+
+    <h2 class="section" id="agentic-rag-code"><span class="idx">15</span> 代码实战：Agentic RAG——让检索自主化</h2>
+    <p>第 6.5 节的 Agentic RAG 是 2026 的主流。把 RAG 放进 Agent Loop，让智能体自主决定怎么查：</p>
+    <div class="code-title">agentic_rag.py —— 智能体驱动的多轮探索式 RAG</div>
+    <pre><code><span class="c">"""
+agentic_rag.py —— Agentic RAG：智能体自主决定检索策略
+能：改写查询、多次检索、跨库检索、判断是否查够了
+"""</span>
+<span class="k">def</span> <span class="f">agentic_rag</span>(question, retriever, llm, max_rounds=<span class="n">3</span>):
+    context = []
+    <span class="k">for</span> round <span class="k">in</span> <span class="f">range</span>(max_rounds):
+        <span class="c"># ① 让模型决定下一步：直接答 / 再查 / 改写查询</span>
+        decision = llm(<span class="s">f"""已有资料：{context}
+问题：{question}
+你还需要更多信息吗？
+- 如果资料够了，直接回答
+- 如果需要，给出一个更精准的检索查询（一次只给一个）"""</span>)
+
+        <span class="k">if</span> <span class="s">"查询："</span> <span class="k">in</span> decision:
+            query = decision.split(<span class="s">"查询："</span>)[<span class="n">1</span>].strip()
+            hits = retriever.search(query, final_k=<span class="n">3</span>)
+            context.extend(hits)             <span class="c"># 累积上下文</span>
+            print(<span class="s">f"</span><span class="d">\n🔄</span><span class="s"> 第 {round+1} 轮检索：'{query}' → {len(hits)} 条"</span>)
+        <span class="k">else</span>:
+            <span class="c"># 模型认为资料够了，给出最终答案</span>
+            <span class="k">return</span> decision
+    <span class="k">return</span> <span class="s">"检索轮数用尽"</span>
+
+<span class="c"># 对比朴素 RAG（一问一查）vs Agentic RAG（多轮探索）：
+# 朴素：query → 检索 → 生成（一次性的）
+# Agentic：query → 检索 → 判断 → 改写 → 再检索 → ... → 生成（探索式）
+# 复杂问题（如「对比 A 和 B 的优劣」）Agentic RAG 准确率显著更高</span></code></pre>
+
+    <blockquote>
+      RAG 给智能体装上了「外置大脑」。但知识库如果只是一堆切片，还不够聪明。下一章，我们讲怎么把知识沉淀成<strong>结构化的 LLM Wiki</strong>——一个能自我增长、带链接、带版本的知识中枢。
+    </blockquote>
+
+    <div class="chapter-nav">
+      <a href="05-agents.html">
+        <div class="lbl">← 上一章</div>
+        <div class="ttl">05 · 智能体深度实战</div>
+      </a>
+      <a href="07-llm-wiki.html" class="next">
+        <div class="lbl">下一章 →</div>
+        <div class="ttl">07 · LLM Wiki 知识中枢</div>
+      </a>
+    </div>
+
+    <footer>
+      <p>AI 全栈实战教学 · 第 06 章 · RAG 知识库搭建</p>
+      <p>参考：Firecrawl · 智源 BGE · Microsoft GraphRAG · RAGAS · Zilliz Learn</p>
+    </footer>
+  </main>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

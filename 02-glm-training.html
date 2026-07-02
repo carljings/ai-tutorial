@@ -1,0 +1,1268 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>02 · GLM-5.2 从 0 到 1 训练 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                          <aside class="sidebar">
+    <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
+    <div class="nav-group"><h3>导览</h3>
+      <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
+      <a href="index.html"><span class="num">00</span>封面与目录</a>
+    </div>
+    <div class="nav-group"><h3>基石</h3>
+      <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
+      <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
+      <a href="02-glm-training.html" class="active" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
+      <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
+      <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
+      <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
+      <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+    </div>
+    <div class="nav-group"><h3>工程</h3>
+      <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
+      <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
+      <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
+    </div>
+    <div class="nav-group"><h3>原理</h3>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
+      <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
+      <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+    </div>
+    <div class="nav-group"><h3>专题</h3>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
+      <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
+      <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
+      <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
+      <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
+      <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
+      <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
+      <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
+      <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
+      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
+      <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
+      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+    </div>
+    <div class="nav-group"><h3>参考</h3>
+      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
+      <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
+      <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
+      <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
+    </div>
+    <div class="nav-group"><h3>★Transformer</h3>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+    </div>
+    <div class="nav-group"><h3>★向量检索</h3>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+    </div>
+    <div class="nav-group"><h3>★Agent源码</h3>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+    </div>
+    <div class="nav-group"><h3>★Skills技能</h3>
+      <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
+      <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+    </div>
+    <div class="nav-group"><h3>★Agent设计模式</h3>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
+      <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
+    </div>
+    <div class="nav-group"><h3>★Agent框架</h3>
+      <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
+      <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
+      <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+    </div>
+    <div class="nav-group"><h3>★Deep Agent</h3>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+    </div>
+    <div class="nav-group"><h3>★LLMOps工程化</h3>
+      <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+    </div>
+    <div class="nav-group"><h3>★Agent交互设计</h3>
+      <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
+      <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+    </div>
+    <div class="nav-group"><h3>★模型压缩部署</h3>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+    </div>
+    <div class="nav-group"><h3>★AI知识拓宽</h3>
+      <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
+      <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
+    </div>
+    <div class="nav-group"><h3>★zvec向量库</h3>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
+      <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
+      <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
+      <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+    </div>
+    <div class="nav-group"><h3>★智能涌现原理</h3>
+      <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
+      <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
+    </div>
+    <div class="nav-group"><h3>★知识库与安全</h3>
+      <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 02 · 重点章节 · 大模型基石</span>
+      <h1>GLM-5.2 从 0 到 1<br>一个 2026 年大模型是如何诞生的</h1>
+      <p class="lead">这是全书的<strong>重头戏</strong>之一。我们将以智谱 <strong>GLM-5.2</strong>（2026 年 6 月发布）为锚点，完整复盘一个当代大模型从「一堆原始网页」到「能写代码、能推理、能跑智能体」的全过程：预训练 → 中期训练 → 对齐 → 智能体后训练。</p>
+      <div class="meta">
+        <span class="chip">阅读约 40 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 01 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="overview"><span class="idx">★</span> 先认识 GLM 家族</h2>
+    <p>在讲训练之前，先用一条时间线把 GLM 家族对齐。理解它的演进，就理解了过去几年大模型技术的主流路线。</p>
+
+    <div class="timeline">
+      <div class="tl-item">
+        <div class="when">2020</div>
+        <h4>GLM 论文发表</h4>
+        <p>清华团队提出 <strong>General Language Model (GLM)</strong>，用「自回归空白填充」统一了 BERT（理解）和 GPT（生成）两种范式。这是 GLM 名字的由来，也是它区别于纯 GPT 路线的基因。</p>
+      </div>
+      <div class="tl-item">
+        <div class="when">2023.03</div>
+        <h4>ChatGLM-6B 开源</h4>
+        <p>首个能在消费级显卡（6GB 显存）上跑的中文对话模型，引爆国内开源生态。INT4 量化让大模型「飞入寻常百姓家」。</p>
+      </div>
+      <div class="tl-item">
+        <div class="when">2023.10</div>
+        <h4>ChatGLM3 / 工具调用</h4>
+        <p>引入函数调用（Function Calling）、代码解释器，向智能体迈出第一步。</p>
+      </div>
+      <div class="tl-item">
+        <div class="when">2024</div>
+        <h4>GLM-4 系列</h4>
+        <p>对标 GPT-4 的多模态能力，发布 GLM-4V（视觉）、All Tools、长上下文。开源 GLM-4-9B，性能领先同尺寸。</p>
+      </div>
+      <div class="tl-item">
+        <div class="when">2025</div>
+        <h4>GLM-4.5 / GLM-4.6 / GLM-5</h4>
+        <p>MoE 架构全面落地，聚焦「智能体工程（Agentic Engineering）」。GLM-5 技术报告《from Vibe Coding to Agentic Engineering》公开了 27 万亿 token 预训练、Muon Split 等关键细节。</p>
+      </div>
+      <div class="tl-item">
+        <div class="when">2026.06.13 🆕</div>
+        <h4>GLM-5.2 发布</h4>
+        <p>智谱迄今能力最强的开源模型。核心升级：<strong>真正可用的 1M（百万）token 上下文</strong>、更强的 Agentic Coding（智能体编程）、MIT 协议开源、<strong>使用华为昇腾训练</strong>。4 个月内的第三次重大迭代。</p>
+      </div>
+    </div>
+
+    <div class="callout note">
+      <div class="head">📌 本章说明</div>
+      <p>GLM-5.2 是 GLM-5 的快速迭代版本，其独立完整技术报告在发布时尚未公开。本章的训练流程<strong>以 GLM-5 技术报告（arXiv 2602.15763）为核心依据</strong>，并结合智谱官方文档、媒体报道与公开访谈，合理推断 GLM-5.2 的训练要点。这是理解「一个 2026 年大模型怎么训」最权威的一手资料。</p>
+    </div>
+
+    <h2 class="section" id="pipeline"><span class="idx">01</span> 训练全景图：四段式流水线</h2>
+    <p>当代顶级大模型的训练早已不是「一把梭」的端到端过程，而是一条<strong>多阶段流水线</strong>。GLM-5/5.2 的训练大致分为四个阶段：</p>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node accent">① 预训练<br>Pretraining</div>
+        <span class="arrow">▶</span>
+        <div class="node violet">② 中期训练<br>Mid-training</div>
+        <span class="arrow">▶</span>
+        <div class="node sky">③ 对齐<br>SFT + RLHF</div>
+        <span class="arrow">▶</span>
+        <div class="node accent">④ 智能体后训练<br>Agentic Post-training</div>
+      </div>
+      <div class="cap">图 2-1 · GLM 训练的四段式流水线（每一段都可能是上一次能力的「乘性」增益）</div>
+    </div>
+
+    <table>
+      <thead><tr><th>阶段</th><th>主要目标</th><th>数据规模</th><th>算力占比</th></tr></thead>
+      <tbody>
+        <tr><td>① 预训练</td><td>让模型「学会世界知识 + 语言规律」</td><td>~27 万亿 token</td><td>最大（~90%）</td></tr>
+        <tr><td>② 中期训练</td><td>扩展能力边界：长上下文、推理、代码</td><td>数千亿 token</td><td>中等</td></tr>
+        <tr><td>③ 对齐</td><td>让模型「听懂人话、按规范回答」</td><td>百万~千万条</td><td>较小</td></tr>
+        <tr><td>④ 智能体后训练</td><td>让模型「会用工具、能完成多步任务」</td><td>轨迹数据</td><td>较小但关键</td></tr>
+      </tbody>
+    </table>
+
+    <p>下面我们逐一拆开。每一阶段都值得单独成书，但本章会抓核心，让你建立「地图感」。</p>
+
+    <h2 class="section" id="data"><span class="idx">02</span> 第〇步：数据——一切的基础</h2>
+    <p>业内有句话：<strong>「数据是新的代码」</strong>。模型的差距，80% 来自数据。GLM-5 用了 27 万亿 token 的语料——这是一个天文数字，背后是极其复杂的工程。</p>
+
+    <h3>数据从哪来</h3>
+    <div class="grid cols-3">
+      <div class="card">
+        <span class="ic">🌐</span>
+        <h4>网页爬取</h4>
+        <p>CommonCrawl、自建爬虫。覆盖广但有大量噪声，需深度清洗。占比最大。</p>
+      </div>
+      <div class="card">
+        <span class="ic">💻</span>
+        <h4>代码</h4>
+        <p>GitHub、GitLab 等代码仓库。<strong>对训练推理能力至关重要</strong>——GLM-5 在训练初期就重点引入代码与推理数据。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📚</span>
+        <h4>书籍与论文</h4>
+        <p>高质量长文本，是知识密集型和学术能力的主要来源。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔢</span>
+        <h4>数学与科学</h4>
+        <p>数学题、科学问答、定理证明。训练逻辑推理与符号操作。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🗣️</span>
+        <h4>对话与问答</h4>
+        <p>论坛、问答社区、合成对话。提供对话格式与常识。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🧪</span>
+        <h4>合成数据</h4>
+        <p>用更强的模型生成的高质量数据。<strong>2026 年最重要的趋势之一</strong>，后续会详述。</p>
+      </div>
+    </div>
+
+    <h3>数据清洗：决定上限的脏活累活</h3>
+    <p>原始数据里混着广告、乱码、重复、低质、有害、机密内容。清洗流水线通常包括：</p>
+    <div class="steps">
+      <div class="step"><h4>去重（Deduplication）</h4><p>用 MinHash、SimHash 等算法去除完全重复和近似重复的内容。重复数据会让模型「死记硬背」而非泛化。</p></div>
+      <div class="step"><h4>质量过滤（Quality Filter）</h4><p>用小模型或规则打分，剔除乱码、过短、广告、模板化内容。常用启发式：困惑度过滤、分类器过滤。</p></div>
+      <div class="step"><h4>安全与合规</h4><p>去除有害、涉密、个人信息（PII）。法律红线，必须做。</p></div>
+      <div class="step"><h4>语言识别与配比</h4><p>识别语言，按预设比例混合。GLM 是中英双语模型，中文配比显著高于海外模型。</p></div>
+      <div class="step"><h4>格式归一化</h4><p>统一编码、清理 HTML、提取正文、规范标点。</p></div>
+    </div>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 数据配比是玄学也是科学</div>
+      <p>「代码占多少？数学占多少？中文占多少？」这些配比没有公式，只能靠大量实验。<strong>GLM-5 的关键经验是：训练初期就大幅增加代码与推理数据的比重</strong>，而不是后期才补——这从根本上塑造了模型的「思维骨架」，也是它能成为顶级 Agentic Coding 模型的基因。</p>
+    </div>
+
+    <h3>数据质量的三层模型</h3>
+    <p>可以用一个金字塔来理解预训练数据：</p>
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;align-items:center;">
+        <div class="node accent" style="width:160px;">▲ 高质量合成数据（顶）</div>
+        <div class="node violet" style="width:240px;">▲ 精选书籍 / 论文 / 代码</div>
+        <div class="node sky" style="width:340px;">▲ 清洗后的网页 / 对话</div>
+        <div class="node" style="width:440px;">▲ 原始互联网语料（底）</div>
+      </div>
+      <div class="cap">图 2-2 · 预训练数据金字塔：越往上质量越高、数量越少、影响越大</div>
+    </div>
+
+    <h2 class="section" id="pretrain"><span class="idx">03</span> 第一阶段：预训练（Pretraining）</h2>
+    <p>预训练是整个流程中<strong>最贵、最久、最关键</strong>的一步。GLM-5 的预训练用了 27 万亿 token，数千张 GPU 跑数月。它的目标只有一个：</p>
+    <blockquote>「让模型学会<strong>预测下一个 token</strong>。」</blockquote>
+
+    <p>听起来简单到荒谬，但正是这个目标，配合海量数据，让模型涌现出了语言、知识、推理、甚至一定的规划能力。</p>
+
+    <h3>训练目标：下一个 token 预测</h3>
+    <p>给定一段文本 <code>[t₁, t₂, ..., tₙ]</code>，模型要学习的是：在看到 <code>t₁..tᵢ</code> 的情况下，<code>tᵢ₊₁</code> 是什么。形式化地，最大化对数似然：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:16px;color:var(--accent);font-family:var(--mono);">
+        L = − Σᵢ log P(tᵢ₊₁ | t₁, ..., tᵢ ; θ)
+      </div>
+    </div>
+
+    <div class="callout note">
+      <div class="head">🔑 为什么「预测下一个 token」就够了？</div>
+      <p>要精确预测下一个 token，模型必须<strong>理解语法、掌握事实、学会推理</strong>。比如要预测「法国的首都是___」的下一个词，它必须「知道」巴黎是法国首都。这个看似简单的任务，逼着模型把整个世界的统计规律压缩进参数里。Ilya Sutskever 曾说：「<strong>预测下一个 token，本质上就是在对整个世界建模。</strong>」</p>
+    </div>
+
+    <h3>Muon Split：让训练稳定的黑科技</h3>
+    <p>GLM-5 技术报告里提到一个关键技术：<strong>Muon Split</strong>。这是一个优化器/数值稳定性相关的技术。</p>
+    <p>大模型训练最怕的就是<strong>不稳定</strong>——Loss 突然爆炸、梯度消失或溢出、Attention 分数过大导致数值溢出。一旦发生，整轮训练可能作废，损失以百万美元计。</p>
+    <p>GLM-5 报告指出：借助 Muon Split，<strong>训练过程中 attention logits 的规模始终保持稳定，无需任何裁剪（clipping）</strong>。这是个了不起的工程成就，因为：</p>
+    <ul>
+      <li>传统做法靠裁剪 logits 来防爆炸，但裁剪会损失信息、损害模型能力；</li>
+      <li>能在不裁剪的情况下保持稳定，意味着优化器对训练动力学有更好的控制；</li>
+      <li>这让模型可以训得更深、更大、更久，而不必担心数值崩溃。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="head">💡 给工程师的直觉</div>
+      <p>你可以把 Muon Split 类比为「<strong>自适应的数值减震器</strong>」：它不限制模型的表达空间（不裁剪），而是在优化器层面让每一步的更新幅度恰到好处，避免训练过程「失控」。这类底层优化是顶级实验室的核心 know-how，往往不公开细节，但对最终模型质量影响巨大。</p>
+    </div>
+
+    <h3>分布式训练：数千张 GPU 如何协同</h3>
+    <p>一个千亿参数模型，单张 GPU 装不下也训不动。必须把模型和数据<strong>切分</strong>到多张卡上，这是分布式训练的核心难题。常见并行策略：</p>
+
+    <table>
+      <thead><tr><th>并行维度</th><th>切的是什么</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>数据并行（DP）</td><td>每张卡拿不同数据，模型各有一份</td><td>模型能装下单卡时</td></tr>
+        <tr><td>张量并行（TP）</td><td>把单个矩阵乘法切到多卡</td><td>层内切分，需高速互联</td></tr>
+        <tr><td>流水线并行（PP）</td><td>把不同层放到不同卡</td><td>层数多时</td></tr>
+        <tr><td>专家并行（EP）</td><td>不同专家放不同卡</td><td>MoE 模型专用</td></tr>
+        <tr><td>序列并行（SP）</td><td>切分超长序列</td><td>长上下文训练</td></tr>
+      </tbody>
+    </table>
+
+    <p>实际训练是<strong>多种并行组合</strong>（3D / 4D / 5D 并行），需要精心设计以平衡计算、通信和显存。GLM-5.2 使用华为昇腾训练，意味着这套分布式栈在国产硬件上跑通了——这本身就是个重大工程突破。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">一个千亿 MoE 模型 + 27T token</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div style="display:flex;gap:8px;flex-wrap:wrap;justify-content:center;">
+          <div class="node sky">数据并行</div>
+          <div class="node sky">张量并行</div>
+          <div class="node sky">流水线并行</div>
+          <div class="node sky">专家并行</div>
+          <div class="node sky">序列并行</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ 组合成多维并行</div>
+        <div class="node violet">数千张 GPU/昇腾 + 高速互联</div>
+        <div style="color:var(--text-faint);">▼ 训练数月</div>
+        <div class="node accent">一个基座模型 (Base Model)</div>
+      </div>
+      <div class="cap">图 2-3 · 预训练的分布式全景</div>
+    </div>
+
+    <h3>训练损失曲线：长什么样</h3>
+    <p>预训练的 loss 曲线通常是一个平滑下降的幂律曲线，但有几个特征值得记住：</p>
+    <ul>
+      <li><strong>前期快速下降</strong>：模型在学最基础的词频和语法；</li>
+      <li><strong>中期缓慢下降</strong>：在学更复杂的知识和推理；</li>
+      <li><strong>能力涌现（Emergence）</strong>：某些能力（如多位数加法、指令遵循）会在某个 loss 阈值后<strong>突然出现</strong>，而非渐进提升——这是大模型最迷人的现象之一；</li>
+      <li><strong>Loss spike（尖刺）</strong>：偶尔会突然跳上去再回落，往往意味着数据里有异常或优化器状态波动，是工程师最紧张的瞬间。</li>
+    </ul>
+
+    <h2 class="section" id="midtrain"><span class="idx">04</span> 第二阶段：中期训练（Mid-training）</h2>
+    <p>预训练结束后，得到的是一个「<strong>知识渊博但不会对话</strong>」的基座模型。你给它「法国首都是」，它能补「巴黎」；但你问它「请告诉我法国的首都」，它可能会继续编「请告诉我法国的首都和主要城市……」。中期训练就是<strong>让它开始「像样」</strong>。</p>
+
+    <p>GLM-5 技术报告明确提到中期训练阶段进行了<strong>上下文扩展</strong>等能力增强。主要工作包括：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">📏</span>
+        <h4>上下文长度扩展</h4>
+        <p>预训练通常在 4K~8K 上下文做。中期训练逐步扩展到 32K → 128K → 1M。技术手段：继续预训练（继续用长文本 + RoPE 频率调整）、<strong>DSA</strong>（见下节）。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🧩</span>
+        <h4>能力专项强化</h4>
+        <p>针对推理、代码、数学等高价值能力，做<strong>持续预训练（Continual Pretraining）</strong>，注入高质量专项数据。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🌐</span>
+        <h4>多语言扩展</h4>
+        <p>增加多语言数据配比，提升跨语言能力。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔗</span>
+        <h4>格式注入</h4>
+        <p>引入对话、指令、Markdown、JSON 等结构化格式数据，让模型「认识」这些格式。</p>
+      </div>
+    </div>
+
+    <h3>DSA：长上下文的关键技术</h3>
+    <p>GLM-5 引入了 <strong>DSA 技术</strong>（技术报告中明确提及），目标是：<strong>在确保长文本处理高度可靠的同时，大幅降低训练与推理开销</strong>。这是 GLM-5.2 能做到「真正可用 1M token」的基石。</p>
+
+    <p>为什么长上下文这么难？回顾第 1 章的 KV Cache：</p>
+    <div class="callout warn">
+      <div class="head">⚠️ 长上下文的三重地狱</div>
+      <ul style="margin:6px 0;">
+        <li><strong>显存爆炸</strong>：KV Cache 随长度线性增长，1M token 的 KV Cache 对大模型可能是几百 GB；</li>
+        <li><strong>计算爆炸</strong>：Attention 是 O(n²) 复杂度，1M² = 10¹² 次运算；</li>
+        <li><strong>可靠性下降</strong>：上下文越长，模型越容易「忘」中间内容（Lost in the Middle 现象），在中间位置的信息召回率显著下降。</li>
+      </ul>
+    </div>
+
+    <p>行业里解决这三重地狱的典型思路（DSA 类技术通常综合了其中若干）：</p>
+    <ul>
+      <li><strong>稀疏注意力 / 稀疏 KV</strong>：不要求每个 token 关注所有历史，只关注「重要的」一部分；</li>
+      <li><strong>滑动窗口 + 全局锚点</strong>：局部密集注意 + 少量全局 token 做信息枢纽；</li>
+      <li><strong>KV 压缩 / 量化</strong>：把 KV Cache 压缩或低比特量化存储；</li>
+      <li><strong>分块 / 分层注意力</strong>：层次化地组织注意力。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="head">💡 GLM-5.2 的「1M 真正可用」意味着什么</div>
+      <p>很多模型宣称「支持 128K/1M 上下文」，但实际测试中，<strong>把关键信息放在中间位置时召回率会暴跌</strong>。GLM-5.2 强调「真正可用」，意味着它在 1M 全长度、信息任意位置都有稳定的高召回率——这是 DSA 等技术打磨的结果，也是它能用于真实代码库级编程（整仓库上下文）的前提。</p>
+    </div>
+
+    <h2 class="section" id="alignment"><span class="idx">05</span> 第三阶段：对齐（SFT + RLHF）</h2>
+    <p>经过中期训练，模型已经有能力了，但它<strong>不知道你想让它怎么用这份能力</strong>。它可能啰嗦、可能答非所问、可能有偏见、可能拒绝你的合理请求。对齐（Alignment）就是<strong>让模型的行为符合人类意图与价值观</strong>。</p>
+
+    <h3>SFT：监督微调</h3>
+    <p>SFT（Supervised Fine-Tuning）是最直接的对齐手段。做法是构造<strong>高质量的「指令-回答」对</strong>，让模型学着模仿：</p>
+    <div class="code-title">SFT 训练样本示例（JSONL 格式）</div>
+    <pre><code>{
+  <span class="s">"messages"</span>: [
+    {<span class="s">"role"</span>: <span class="s">"system"</span>,    <span class="s">"content"</span>: <span class="s">"你是一个简洁的编程助手。"</span>},
+    {<span class="s">"role"</span>: <span class="s">"user"</span>,      <span class="s">"content"</span>: <span class="s">"Python 里怎么反转字符串？"</span>},
+    {<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: <span class="s">"s[::-1] 即可。例如 s[::-1] 对 'abc' 返回 'cba'。"</span>}
+  ]
+}</code></pre>
+
+    <p>SFT 数据的<strong>质量远比数量重要</strong>。业界共识：几千条精标数据可能胜过几十万条低质数据。LIMA 论文甚至证明 1000 条高质量样本就能让模型具备良好的指令遵循能力。</p>
+
+    <h3>RLHF：基于人类反馈的强化学习</h3>
+    <p>SFT 之后，模型会「按格式回答」了，但回答的<strong>好坏</strong>怎么衡量？不同回答哪个更好？这就需要 RLHF。它的三段式：</p>
+
+    <div class="steps">
+      <div class="step">
+        <h4>训练奖励模型（Reward Model）</h4>
+        <p>收集大量「同一个问题的两个回答 + 人类标注哪个更好」的数据，训练一个能给任意回答打分的模型（RM）。RM 学会了「人类的偏好」。</p>
+      </div>
+      <div class="step">
+        <h4>强化学习优化（通常是 PPO）</h4>
+        <p>让 SFT 模型生成回答，用 RM 打分，再用强化学习算法（如 PPO）更新模型参数，让它倾向于生成高分回答。</p>
+      </div>
+      <div class="step">
+        <h4>防止「奖励黑客」（Reward Hacking）</h4>
+        <p>模型可能找到 RM 的漏洞刷分（比如生成长但空洞的内容）。用 KL 散度约束，限制模型不能偏离 SFT 版本太远。</p>
+      </div>
+    </div>
+
+    <h3>DPO：RLHF 的简化替代</h3>
+    <p>PPO 训练复杂、不稳定、显存占用大。<strong>DPO（Direct Preference Optimization）</strong>直接用偏好数据优化模型，省去了显式的奖励模型和强化学习循环，更稳定、更简单，成为 2024-2026 年的主流选择之一。GLM 系列也大量采用这类直接偏好优化方法。</p>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node">人类偏好数据</div>
+        <span class="arrow">▶</span>
+        <div class="node accent">奖励模型 (RM)</div>
+        <span class="arrow">▶</span>
+        <div class="node violet">PPO 强化学习</div>
+      </div>
+      <div class="cap" style="margin-top:8px;">传统 RLHF（左） vs DPO（右，直接从偏好到模型）</div>
+      <div class="flow" style="margin-top:8px;">
+        <div class="node">人类偏好数据</div>
+        <span class="arrow">▶</span>
+        <div class="node sky">DPO 直接优化</div>
+      </div>
+    </div>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 对齐税（Alignment Tax）</div>
+      <p>对齐过程可能让模型在某些能力上<strong>变弱</strong>——比如 RLHF 后代码能力下降。这是著名的「对齐税」。顶级团队会通过精心设计的数据配比、能力保留训练来对冲。GLM-5 强调 ARC（Agentic/Reasoning/Coding）能力，意味着对齐时特别小心不要损害这三项。</p>
+    </div>
+
+    <h2 class="section" id="agentic"><span class="idx">06</span> 第四阶段：智能体后训练（Agentic Post-training）</h2>
+    <p>这是 GLM-5/5.2 区别于普通对话模型的<strong>核心差异化</strong>。技术报告标题就叫《from Vibe Coding to Agentic Engineering》——「从随性编程到智能体工程」。</p>
+
+    <p>普通对话模型只能「一问一答」，而<strong>智能体模型</strong>要能：</p>
+    <ul>
+      <li>理解一个复杂的多步任务，并自己拆解；</li>
+      <li>调用工具（搜索、代码执行、文件操作）；</li>
+      <li>观察工具返回的结果，决定下一步；</li>
+      <li>在出错时自我纠正；</li>
+      <li>持续工作直到任务完成。</li>
+    </ul>
+
+    <h3>从对话数据到轨迹数据</h3>
+    <p>对齐阶段用的是「单轮/多轮对话」，而智能体后训练用的是<strong>轨迹数据（Trajectories）</strong>——一条轨迹是一串「思考-行动-观察」的完整执行过程：</p>
+
+    <div class="code-title">一条智能体轨迹的简化示意</div>
+    <pre><code><span class="c"># 任务：找出当前目录下最大的文件</span>
+
+[Thought]  我需要先列出所有文件及其大小，可以用 ls -la 或 du。
+[Action]   run_shell(command=<span class="s">"du -ah . | sort -rh | head -5"</span>)
+[Observation]  128M  ./data/large.parquet
+                64M  ./models/baseline.pt
+                ...
+
+[Thought]  最大的是 data/large.parquet，128M。任务完成。
+[Action]   finish(answer=<span class="s">"data/large.parquet (128M)"</span>)
+[Observation]  任务完成。</code></pre>
+
+    <p>用大量这样的高质量轨迹做 SFT 和偏好优化，模型就学会了「智能体行为模式」。这也是为什么后面的 Harness、Agent Loop 如此重要——<strong>模型的智能体能力需要匹配的运行时来发挥</strong>。</p>
+
+    <h3>在 Harness 里训练</h3>
+    <p>LangChain 的《The Anatomy of an Agent Harness》指出一个关键趋势：<strong>Claude Code、Codex 这类产品会「在 Harness 里」做后训练</strong>。也就是说，不只是用静态轨迹数据，而是让模型在真实的 Harness 环境（带工具、带反馈）里反复执行任务、收集反馈、再优化。</p>
+    <p>这就形成了一个飞轮：<strong>Harness 越好 → 收集到的训练数据越好 → 模型在 Harness 里表现越好 → Harness 又能做得更复杂</strong>。GLM-5.2 强化 Agentic Coding，正是踩在这个飞轮上。</p>
+
+    <h2 class="section" id="eval"><span class="idx">07</span> 评估：怎么知道训得好不好</h2>
+    <p>训练完不算完，还得证明它强。但 2026 年的评估已经远不止「刷 benchmark」：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">📊</span>
+        <h4>静态 Benchmark</h4>
+        <p>MMLU（综合知识）、GSM8K（数学）、HumanEval（代码）、SWE-bench（真实仓库修 bug）、Terminal Bench（终端任务）。GLM-5 在 SWE-bench Verified、Terminal Bench 取得开源 SOTA。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🥊</span>
+        <h4>竞技场 / 盲测</h4>
+        <p>让真实用户盲测两个模型并投票（如 LMSYS Arena）。更难作弊，更贴近真实体验。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>智能体任务评估</h4>
+        <p>给模型真实的多步任务（改一个 GitHub issue、部署一个应用），看完成率和成本。这是 2026 年评估的重心。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔬</span>
+        <h4>对抗与红队</h4>
+        <p>专门找人攻击模型（越狱、注入、泄露），评估安全边界。</p>
+      </div>
+    </div>
+
+    <p>值得注意的是，<strong>GLM-5.2 发布当天没有放出 benchmark 跑分表</strong>，而是「先让用户用上」。这反映了行业的一个转向：跑分已经卷到边际收益很低，真实智能体任务的表现才是硬通货。</p>
+
+    <h2 class="section" id="synthetic"><span class="idx">08</span> 合成数据：2026 的最大变量</h2>
+    <p>2026 年大模型训练最显著的变量，是<strong>合成数据（Synthetic Data）</strong>的全面崛起。原因很简单：</p>
+    <blockquote>「高质量人类数据快被用完了。」</blockquote>
+
+    <p>于是大家开始用<strong>更强的模型生成数据来训更强的模型</strong>。这条「自我提升」路线的关键是质量控制：</p>
+    <ul>
+      <li><strong>生成</strong>：用顶级模型按模板生成大量任务和解法；</li>
+      <li><strong>验证</strong>：对代码/数学这类可验证的任务，用执行器/形式化验证自动过滤错误的；</li>
+      <li><strong>去重与多样化</strong>：避免合成数据高度同质化导致模型过拟合；</li>
+      <li><strong>难度过滤</strong>：只保留「略难于当前模型能力」的数据，最大化学习效率。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="head">💡 可验证奖励的强化学习（RLVR）</div>
+      <p>对于代码、数学这类有标准答案的任务，可以跳过人类标注：让模型生成多个解法，用验证器判断对错，直接用对错做奖励信号训模型。这是 2025-2026 推理模型（如 o1/R1 类）的核心技术之一，也是合成数据飞轮的关键一环。</p>
+    </div>
+
+    <h2 class="section" id="ascend"><span class="idx">09</span> 昇腾训练：国产算力的里程碑</h2>
+    <p>GLM-5.2 一个特别值得记录的细节：<strong>使用华为昇腾（Ascend）训练</strong>。这不仅是技术选型，更是一个产业信号。</p>
+    <p>过去几年，顶级大模型几乎清一色在 NVIDIA GPU（A100/H100/Blackwell）上训练。昇腾能跑通千亿 MoE、27T token 级别的训练，意味着：</p>
+    <ul>
+      <li>国产高端 AI 芯片的<strong>硬件能力</strong>已达到训练顶级模型的门槛；</li>
+      <li>围绕昇腾的<strong>软件栈</strong>（CANN、MindSpore、各类并行框架适配）已足够成熟；</li>
+      <li>中国大模型团队有了在制裁下持续迭代的算力保障。</li>
+    </ul>
+    <p>当然，挑战仍在：生态成熟度、工具链丰富度、与 CUDA 生态的差距，都需要时间补齐。但 GLM-5.2 的发布证明这条路走得通。</p>
+
+    <h2 class="section" id="put-together"><span class="idx">10</span> 把全过程串起来</h2>
+    <p>让我们用一张完整的大图，回顾 GLM-5.2 从 0 到 1 的全过程：</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;align-items:stretch;">
+        <div class="node accent" style="width:100%;">🌐 数据：网页/代码/书籍/数学/对话/合成 → 清洗去重 → 27T token</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ ① 预训练（最大算力）</div>
+        <div class="node violet">基座模型：MoE 架构 + Muon Split 稳定训练 + 多维并行 + 昇腾</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ ② 中期训练</div>
+        <div class="node sky">能力扩展：上下文 4K→1M（DSA）+ 推理/代码强化 + 格式注入</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ ③ 对齐</div>
+        <div class="node accent">SFT（高质量指令）+ DPO/RLHF（人类偏好）+ 控制对齐税</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ ④ 智能体后训练</div>
+        <div class="node violet">轨迹数据 + 在 Harness 里训练 → Agentic Coding 能力</div>
+        <div style="text-align:center;color:var(--text-faint);">▼ 评估 + 迭代</div>
+        <div class="node sky">SWE-bench / Terminal Bench / Arena / 真实任务</div>
+        <div style="text-align:center;color:var(--text-faint);">▼</div>
+        <div class="node accent" style="width:100%;">✨ GLM-5.2：1M 可用上下文 + Agentic Coding + MIT 开源</div>
+      </div>
+      <div class="cap">图 2-4 · GLM-5.2 从 0 到 1 的完整训练链路</div>
+    </div>
+
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">📌 本章核心结论</div>
+        <ul style="margin:6px 0;">
+          <li>大模型训练是<strong>四段式流水线</strong>：预训练 → 中期训练 → 对齐 → 智能体后训练；</li>
+          <li>数据（尤其合成数据）是最大变量，<strong>代码与推理数据的早期注入</strong>塑造思维骨架；</li>
+          <li><strong>Muon Split</strong> 让训练无需裁剪即稳定；<strong>DSA</strong> 让 1M 上下文真正可用；</li>
+          <li>智能体能力需要在<strong>真实 Harness 里训练</strong>，形成飞轮；</li>
+          <li>评估重心从 benchmark 转向<strong>真实智能体任务</strong>。</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">📚 关键参考资料</div>
+        <ul style="margin:6px 0;">
+          <li>GLM-5 技术报告《from Vibe Coding to Agentic Engineering》（arXiv 2602.15763）</li>
+          <li>《GLM 技术复盘：21 篇论文深度解读智谱模型家族》</li>
+          <li>智谱 AI 开放文档 docs.bigmodel.cn</li>
+          <li>GLM 5.2 模型卡（DataLearner）</li>
+          <li>LangChain《The Anatomy of an Agent Harness》</li>
+        </ul>
+      </div>
+    </div>
+
+    <h2 class="section" id="math"><span class="idx">11</span> 数学基石：训练背后的公式</h2>
+    <p>前面讲了「做什么」，这一节补上「为什么」——把训练过程中最核心的几个公式摆出来。理解这些数学，你才能真正读懂 GLM-5 技术报告里的每一句话。</p>
+
+    <h3>下一个 token 预测的完整数学</h3>
+    <p>给定语料 <code>x₁, x₂, ..., x_T</code>，模型参数为 θ，因果语言模型的训练目标是最大化对数似然（等价于最小化负对数似然损失）：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:17px;color:var(--accent);font-family:var(--mono);">
+        L(θ) = − (1/T) · Σ<sub>t=1..T</sub> log P(x<sub>t</sub> | x<sub>&lt;t</sub>; θ)
+      </div>
+    </div>
+    <p>其中 <code>P(x<sub>t</sub> | x<sub>&lt;t</sub>)</code> 由模型最后一层 softmax 给出：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:17px;color:var(--accent);font-family:var(--mono);">
+        P(x<sub>t</sub> = w) = exp(z<sub>w</sub>) / Σ<sub>w'</sub> exp(z<sub>w'</sub>)
+      </div>
+    </div>
+    <p>这里 <code>z = h<sub>t</sub> · E<sup>T</sup></code> 是隐状态与词嵌入矩阵的内积（LM Head），<code>h<sub>t</sub></code> 是第 t 个位置经过所有 Transformer 层后的输出向量。整个梯度通过 softmax 回传到模型的每一个参数。</p>
+
+    <h3>Scaled Dot-Product Attention 的推导</h3>
+    <p>Attention 为什么要除以 <code>√d<sub>k</sub></code>？这是初学者最常问的问题。推导如下：</p>
+    <ul>
+      <li>设 Q、K 各分量独立、均值为 0、方差为 1；</li>
+      <li>点积 <code>Q·K = Σ<sub>i=1..d<sub>k</sub></sub> Q<sub>i</sub>K<sub>i</sub></code>，方差为 <code>d<sub>k</sub></code>（每个乘积方差为 1，共 d<sub>k</sub> 项）；</li>
+      <li>当 <code>d<sub>k</sub></code> 很大（如 64、128）时，点积的绝对值会很大；</li>
+      <li>softmax 对大值极其敏感：最大值会几乎独占概率，梯度趋近 0（梯度消失）；</li>
+      <li>除以 <code>√d<sub>k</sub></code> 把方差拉回 1，让 softmax 工作在合理区间。</li>
+    </ul>
+    <div class="diagram">
+      <div class="cap" style="font-size:17px;color:var(--accent);font-family:var(--mono);">
+        Attention(Q,K,V) = softmax( QK<sup>T</sup> / √d<sub>k</sub> ) V
+      </div>
+    </div>
+
+    <h3>MoE 路由的数学</h3>
+    <p>Top-K MoE 路由器是一个线性层加 softmax。给定隐状态 h、N 个专家，路由器输出选择 Top-K 个专家：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);line-height:2;">
+        g(x) = softmax( W<sub>gate</sub> · h )  &nbsp;&nbsp; <span style="color:var(--text-faint);"># 路由权重</span><br>
+        G(x) = KeepTopK(g(x), k)  &nbsp;&nbsp; <span style="color:var(--text-faint);"># 只保留 Top-K，其余置 0</span><br>
+        y(x) = Σ<sub>i∈TopK</sub> G(x)<sub>i</sub> · E<sub>i</sub>(x)  &nbsp;&nbsp; <span style="color:var(--text-faint);"># 加权求和</span>
+      </div>
+    </div>
+    <p>为防止路由器偷懒（只用少数专家），加一个<strong>负载均衡损失</strong>：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
+        L<sub>balance</sub> = α · N · Σ<sub>i</sub> f<sub>i</sub> · P<sub>i</sub><br>
+        f<sub>i</sub> = 该专家被选中的 token 比例 &nbsp;|&nbsp; P<sub>i</sub> = 该专家的平均路由概率
+      </div>
+    </div>
+    <p>当所有专家均匀分担时，<code>f<sub>i</sub> = P<sub>i</sub> = 1/N</code>，乘积最小。任何不均衡都会增大这个损失，从而驱动路由器均衡分配。</p>
+
+    <h3>DPO 的推导（直接偏好优化）</h3>
+    <p>RLHF 的 PPO 需要训练奖励模型 + 强化学习，复杂。DPO 的洞察是：<strong>可以跳过显式奖励模型，直接从偏好数据推导出最优策略</strong>。核心等式：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
+        L<sub>DPO</sub>(θ) = − E<sub>(x,y<sub>w</sub>,y<sub>l</sub>)</sub> [ log σ( β log( π<sub>θ</sub>(y<sub>w</sub>|x) / π<sub>ref</sub>(y<sub>w</sub>|x) ) − β log( π<sub>θ</sub>(y<sub>l</sub>|x) / π<sub>ref</sub>(y<sub>l</sub>|x) ) ) ]
+      </div>
+    </div>
+    <p>其中 y<sub>w</sub> 是偏好（赢）的回答，y<sub>l</sub> 是不偏好（输）的回答，π<sub>θ</sub> 是当前策略，π<sub>ref</sub> 是参考策略（通常是 SFT 后的模型），β 是 KL 约束强度，σ 是 sigmoid。直观上：这个损失让模型<strong>提高赢的回答相对参考的概率，降低输的回答相对参考的概率</strong>，而 β 防止偏离太远。</p>
+
+    <h2 class="section" id="scaling-laws"><span class="idx">12</span> Scaling Laws：规模化是科学，不是堆料</h2>
+    <p>2020 年 OpenAI 的 Scaling Laws 论文揭示了一个深刻规律：<strong>模型的损失随参数量 N、数据量 D、算力 C 呈幂律下降</strong>，且可以精确预测。这是「大力出奇迹」的理论基础，也是 GLM-5 敢于用 27 万亿 token 训练的依据。</p>
+
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
+        L(N) = (N<sub>c</sub>/N)<sup>α<sub>N</sub></sup> &nbsp;&nbsp; L(D) = (D<sub>c</sub>/D)<sup>α<sub>D</sub></sup> &nbsp;&nbsp; L(C) = (C<sub>c</sub>/C)<sup>α<sub>C</sub></sup><br>
+        <span style="color:var(--text-faint);">典型值：α<sub>N</sub>≈0.076, α<sub>D</sub>≈0.095, α<sub>C</sub>≈0.05</span>
+      </div>
+    </div>
+
+    <h3>Chinchilla：最优算力分配</h3>
+    <p>DeepMind 的 Chinchilla 论文修正了 Scaling Laws 的一个关键结论：<strong>给定固定算力预算，参数量和数据量应该按大致 1:20 的比例同时增长</strong>（token 数约为参数数的 20 倍）。很多早期大模型「参数大、数据少」是次优的。GLM-5 用 27 万亿 token 训练千亿级模型，正是遵循了这个原则——<strong>数据量要配得上参数量</strong>。</p>
+
+    <table>
+      <thead><tr><th>模型</th><th>参数 N</th><th>token D</th><th>D/N</th><th>评价</th></tr></thead>
+      <tbody>
+        <tr><td>GPT-3</td><td>175B</td><td>300B</td><td>1.7</td><td>严重欠训练</td></tr>
+        <tr><td>Chinchilla</td><td>70B</td><td>1.4T</td><td>20</td><td>最优</td></tr>
+        <tr><td>Llama 2</td><td>70B</td><td>2T</td><td>28</td><td>过训练（换推理效率）</td></tr>
+        <tr><td>GLM-5</td><td>千亿级</td><td>27T</td><td>高</td><td>充分训练 + 推理优化</td></tr>
+      </tbody>
+    </table>
+
+    <h3>过训练（Over-training）：用数据换推理速度</h3>
+    <p>Llama 2/3 故意把 D/N 提到 20 以上（「过训练」），用更多训练算力换<strong>更小的推理模型</strong>：同样能力，参数更少，推理更快更便宜。这是 2024-2026 年的主流策略——<strong>训练成本一次性，推理成本持续发生</strong>，所以宁可训练时多花，也要推理时省。GLM-5.2 的 MoE 设计也是同一逻辑：总参数大（容量大），激活参数小（推理快）。</p>
+
+    <h2 class="section" id="pytorch"><span class="idx">13</span> 亲手写：一个最小可训练的语言模型</h2>
+    <p>讲了这么多原理，不如亲手训一个。下面是一个<strong>真正能在 CPU 上跑起来的最小 GPT</strong>——它有 Tokenizer、Embedding、Self-Attention、训练循环。虽然只有几万参数，但骨架和 GLM-5.2 完全一致。理解它，就理解了大模型训练的「最小内核」。</p>
+
+    <div class="code-title">mini_gpt.py —— 一个能在 CPU 上训练的最小 GPT（PyTorch）</div>
+    <pre><code><span class="c">"""
+mini_gpt.py —— 最小可训练 GPT
+理解这个文件 = 理解大模型训练的最小内核
+依赖：pip install torch
+"""</span>
+<span class="k">import</span> torch
+<span class="k">import</span> torch.nn <span class="k">as</span> nn
+<span class="k">import</span> torch.nn.functional <span class="k">as</span> F
+
+<span class="c"># ---------- 超参数 ----------</span>
+VOCAB   = <span class="n">100</span>      <span class="c"># 词表大小（演示用，真实是 10w+）</span>
+D_MODEL = <span class="n">64</span>       <span class="c"># 隐状态维度</span>
+N_HEAD  = <span class="n">4</span>        <span class="c"># 注意力头数</span>
+N_LAYER = <span class="n">2</span>        <span class="c"># Transformer 层数</span>
+CTX     = <span class="n">32</span>       <span class="c"># 上下文长度</span>
+HEAD    = D_MODEL // N_HEAD   <span class="c"># 每个头的维度 = 16</span>
+
+<span class="c"># ---------- 单个注意力头 ----------</span>
+<span class="k">class</span> <span class="t">Head</span>(nn.Module):
+    <span class="k">def</span> <span class="f">__init__</span>(self):
+        <span class="k">super</span>().__init__()
+        self.q = nn.Linear(D_MODEL, HEAD, bias=<span class="k">False</span>)
+        self.k = nn.Linear(D_MODEL, HEAD, bias=<span class="k">False</span>)
+        self.v = nn.Linear(D_MODEL, HEAD, bias=<span class="k">False</span>)
+        self.register_buffer(<span class="s">"tril"</span>, torch.tril(torch.ones(CTX, CTX)))
+
+    <span class="k">def</span> <span class="f">forward</span>(self, x):
+        B, T, C = x.shape
+        q = self.q(x); k = self.k(x); v = self.v(x)        <span class="c"># (B,T,HEAD)</span>
+        wei = q @ k.transpose(-<span class="n">2</span>, -<span class="n">1</span>) * (HEAD ** -<span class="n">0.5</span>)   <span class="c"># 缩放点积</span>
+        wei = wei.masked_fill(self.tril[:T,:T]==<span class="n">0</span>, <span class="k">float</span>(<span class="s">"-inf"</span>))  <span class="c"># 因果掩码</span>
+        wei = F.softmax(wei, dim=-<span class="n">1</span>)
+        <span class="k">return</span> wei @ v                                          <span class="c"># (B,T,HEAD)</span>
+
+<span class="c"># ---------- 多头注意力 ----------</span>
+<span class="k">class</span> <span class="t">MultiHead</span>(nn.Module):
+    <span class="k">def</span> <span class="f">__init__</span>(self):
+        <span class="k">super</span>().__init__()
+        self.heads = nn.ModuleList([Head() <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(N_HEAD)])
+        self.proj  = nn.Linear(D_MODEL, D_MODEL)
+    <span class="k">def</span> <span class="f">forward</span>(self, x):
+        out = torch.cat([h(x) <span class="k">for</span> h <span class="k">in</span> self.heads], dim=-<span class="n">1</span>)
+        <span class="k">return</span> self.proj(out)
+
+<span class="c"># ---------- 一个 Transformer Block = Attention + MLP ----------</span>
+<span class="k">class</span> <span class="t">Block</span>(nn.Module):
+    <span class="k">def</span> <span class="f">__init__</span>(self):
+        <span class="k">super</span>().__init__()
+        self.attn = MultiHead()
+        self.ln1  = nn.LayerNorm(D_MODEL)
+        self.mlp  = nn.Sequential(nn.Linear(D_MODEL, <span class="n">4</span>*D_MODEL), nn.GELU(), nn.Linear(<span class="n">4</span>*D_MODEL, D_MODEL))
+        self.ln2  = nn.LayerNorm(D_MODEL)
+    <span class="k">def</span> <span class="f">forward</span>(self, x):
+        x = x + self.attn(self.ln1(x))   <span class="c"># 残差 + LayerNorm（Pre-Norm）</span>
+        x = x + self.mlp(self.ln2(x))
+        <span class="k">return</span> x
+
+<span class="c"># ---------- 完整的 GPT ----------</span>
+<span class="k">class</span> <span class="t">MiniGPT</span>(nn.Module):
+    <span class="k">def</span> <span class="f">__init__</span>(self):
+        <span class="k">super</span>().__init__()
+        self.tok_emb = nn.Embedding(VOCAB, D_MODEL)
+        self.pos_emb = nn.Embedding(CTX, D_MODEL)        <span class="c"># 简单的可学习位置编码</span>
+        self.blocks  = nn.Sequential(*[Block() <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(N_LAYER)])
+        self.ln_f    = nn.LayerNorm(D_MODEL)
+        self.head    = nn.Linear(D_MODEL, VOCAB)         <span class="c"># LM Head</span>
+
+    <span class="k">def</span> <span class="f">forward</span>(self, idx, targets=<span class="k">None</span>):
+        B, T = idx.shape
+        pos  = torch.arange(T, device=idx.device)
+        x    = self.tok_emb(idx) + self.pos_emb(pos)     <span class="c"># token + 位置</span>
+        x    = self.blocks(x)
+        x    = self.ln_f(x)
+        logits = self.head(x)                            <span class="c"># (B,T,VOCAB)</span>
+        <span class="k">if</span> targets <span class="k">is</span> <span class="k">None</span>:
+            <span class="k">return</span> logits, <span class="k">None</span>
+        loss = F.cross_entropy(logits.view(-<span class="n">1</span>, VOCAB), targets.view(-<span class="n">1</span>))
+        <span class="k">return</span> logits, loss
+
+<span class="c"># ---------- 训练循环（这就是预训练的最小形态） ----------</span>
+torch.manual_seed(<span class="n">42</span>)
+model = MiniGPT()
+opt   = torch.optim.AdamW(model.parameters(), lr=<span class="n">1e-3</span>)
+
+<span class="c"># 假数据：一段重复的模式，让模型学会预测</span>
+data = torch.randint(<span class="n">0</span>, VOCAB, (<span class="n">1000</span>, CTX + <span class="n">1</span>))   <span class="c"># 1000 条样本</span>
+
+<span class="k">for</span> step <span class="k">in</span> <span class="f">range</span>(<span class="n">500</span>):
+    ix  = torch.randint(<span class="n">0</span>, <span class="f">len</span>(data), (<span class="n">32</span>,))        <span class="c"># batch=32</span>
+    batch = data[ix]
+    x, y  = batch[:, :-<span class="n">1</span>], batch[:, <span class="n">1</span>:]              <span class="c"># 输入 / 目标错开一位</span>
+    logits, loss = model(x, y)
+    opt.zero_grad()
+    loss.backward()                                     <span class="c"># 反向传播</span>
+    opt.step()                                          <span class="c"># 更新参数</span>
+    <span class="k">if</span> step % <span class="n">50</span> == <span class="n">0</span>:
+        print(<span class="s">f"step {step:3d}  loss {loss.item():.3f}"</span>)</code></pre>
+
+    <div class="callout tip">
+      <div class="head">💡 强烈建议跑一遍</div>
+      <p>把这个文件存下来，<code>pip install torch</code> 后运行。你会看到 loss 从 ~4.6 一路下降——这就是预训练最核心的画面。然后试着改：<strong>把 N_LAYER 调大、CTX 调大</strong>，看 loss 降得更低；<strong>把数据换成真实文本</strong>，它就开始学语言了。这个 80 行的程序，和 GLM-5.2 的训练循环在结构上<strong>没有本质区别</strong>——只是规模差了千万倍，加上了 MoE、分布式、对齐等工程。</p>
+    </div>
+
+    <h2 class="section" id="distributed"><span class="idx">14</span> 分布式训练深度：ZeRO 与混合并行</h2>
+    <p>千亿模型一张卡装不下，必须切分。除了第 3 节提到的并行维度，最关键的优化是 <strong>ZeRO（Zero Redundancy Optimizer）</strong>，它解决了数据并行里「每张卡都存完整优化器状态/梯度/参数」的冗余。</p>
+
+    <h3>ZeRO 的三个阶段</h3>
+    <table>
+      <thead><tr><th>阶段</th><th>切分什么</th><th>显存节省</th><th>通信代价</th></tr></thead>
+      <tbody>
+        <tr><td>ZeRO-1</td><td>优化器状态（如 Adam 的 m、v）</td><td>4x</td><td>低</td></tr>
+        <tr><td>ZeRO-2</td><td>+ 梯度</td><td>8x</td><td>中</td></tr>
+        <tr><td>ZeRO-3</td><td>+ 参数</td><td>N 倍（N=卡数）</td><td>高</td></tr>
+      </tbody>
+    </table>
+    <p>ZeRO-3 几乎能把一个超大模型均匀摊到所有卡上，代价是每次前向/反向都要跨卡实时收集（gather）参数，通信量大。实际中常把 <strong>ZeRO + 张量并行 + 流水线并行</strong> 组合成 3D 并行，在通信和显存间找平衡。GLM-5.2 在昇腾上的训练栈，本质就是这套并行策略的国产硬件适配版。</p>
+
+    <h3>通信原语：AllReduce / AllGather / ReduceScatter</h3>
+    <p>分布式训练的核心是<strong>集合通信</strong>：</p>
+    <ul>
+      <li><strong>AllReduce</strong>：所有卡把各自的梯度加起来，结果每张卡都有一份（数据并行的核心）；</li>
+      <li><strong>AllGather</strong>：每张卡把自己的分片收集成完整张量（ZeRO-3 前向时用）；</li>
+      <li><strong>ReduceScatter</strong>：先求和再分片（ZeRO-2 反向时用）。</li>
+    </ul>
+    <p>这些操作跑在高速互联上（NVLink、InfiniBand、昇腾的 HCCS），带宽直接决定训练效率。<strong>通信与计算的重叠</strong>（一边算一边传）是优化的关键技巧。</p>
+
+    <h2 class="section" id="synthetic-code"><span class="idx">15</span> 合成数据：代码实现一个自我提升飞轮</h2>
+    <p>第 8 节讲了合成数据的理念，这里给一个<strong>可运行的合成数据生成 + 质量过滤流水线</strong>，用于训练一个「会解数学题」的模型：</p>
+
+    <div class="code-title">synthetic_data.py —— 合成数据生成与过滤流水线</div>
+    <pre><code><span class="c">"""
+synthetic_data.py —— 用强模型生成数学题解法，再用验证器过滤
+这是 RLVR / 自我提升飞轮的最小实现
+"""</span>
+<span class="k">import</span> re, random
+<span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
+client = ZhipuAI()
+
+<span class="c"># ---------- ① 生成：用强模型给题目写多种解法 ----------</span>
+<span class="k">def</span> <span class="f">generate_solutions</span>(problem, n=<span class="n">5</span>):
+    solutions = []
+    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(n):
+        resp = client.chat.completions.create(model=<span class="s">"glm-5.2"</span>, messages=[
+            {<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: <span class="s">"你是数学老师。逐步解题，最后用 '答案：X' 给出数值答案。"</span>},
+            {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: problem},
+        ], temperature=<span class="n">0.9</span>)   <span class="c"># 高 temperature 保证多样性</span>
+        solutions.append(resp.choices[<span class="n">0</span>].message.content)
+    <span class="k">return</span> solutions
+
+<span class="c"># ---------- ② 验证：抽答案 + 判对错（可验证任务的核心） ----------</span>
+<span class="k">def</span> <span class="f">extract_answer</span>(text):
+    m = re.search(<span class="s">r"答案[：:]\s*([-\d./]+)"</span>, text)
+    <span class="k">return</span> <span class="k">float</span>(m.group(<span class="n">1</span>)) <span class="k">if</span> m <span class="k">else</span> <span class="k">None</span>
+
+<span class="k">def</span> <span class="f">verify</span>(solution, ground_truth):
+    pred = extract_answer(solution)
+    <span class="k">return</span> pred <span class="k">is</span> <span class="k">not</span> <span class="k">None</span> <span class="k">and</span> abs(pred - ground_truth) &lt; <span class="n">1e-6</span>
+
+<span class="c"># ---------- ③ 过滤：只保留正确的、多样的、略难的 ----------</span>
+<span class="k">def</span> <span class="f">filter_solutions</span>(problem, solutions, gt):
+    kept = [s <span class="k">for</span> s <span class="k">in</span> solutions <span class="k">if</span> verify(s, gt)]     <span class="c"># 正确性过滤</span>
+    <span class="c"># 去重：相似度高的去掉（这里用简单哈希演示）</span>
+    seen, unique = set(), []
+    <span class="k">for</span> s <span class="k">in</span> kept:
+        key = <span class="f">hash</span>(s[:<span class="n">50</span>])
+        <span class="k">if</span> key <span class="k">not</span> <span class="k">in</span> seen:
+            seen.add(key); unique.append(s)
+    <span class="k">return</span> unique
+
+<span class="c"># ---------- ④ 完整飞轮：生成 → 过滤 → 沉淀为训练数据 ----------</span>
+<span class="k">def</span> <span class="f">self_improve_loop</span>(problems_with_answers, rounds=<span class="n">3</span>):
+    dataset = []
+    <span class="k">for</span> r <span class="k">in</span> <span class="f">range</span>(rounds):
+        print(<span class="s">f"</span><span class="d">\n🔄</span><span class="s"> 第 {r+1} 轮自我提升"</span>)
+        <span class="k">for</span> problem, gt <span class="k">in</span> problems_with_answers:
+            sols  = generate_solutions(problem, n=<span class="n">5</span>)
+            good  = filter_solutions(problem, sols, gt)
+            dataset.extend([(<span class="s">"user"</span>, problem), (<span class="s">"assistant"</span>, g) <span class="k">for</span> g <span class="k">in</span> good])
+        print(<span class="s">f"   已积累 {len(dataset)//2} 条高质量样本"</span>)
+    <span class="k">return</span> dataset
+
+<span class="c"># 跑起来：给一批题，自动生成训练数据</span>
+problems = [(<span class="s">"3x + 5 = 20，求 x"</span>, <span class="n">5.0</span>), (<span class="s">"12 的因数有几个？"</span>, <span class="n">6.0</span>)]
+data = self_improve_loop(problems, rounds=<span class="n">2</span>)
+<span class="c"># data 现在可以直接拿去做 SFT</span></code></pre>
+
+    <p>这就是 GLM-5 这类模型强化推理能力的<strong>底层引擎</strong>：用模型自己生成解法，用可验证的正确性做过滤，把过滤后的高质量数据拿去训练——模型变强后又能生成更好的数据，形成飞轮。<strong>关键在于「可验证」</strong>：数学有标准答案、代码能跑测试，所以可以完全自动化；开放式任务则更难。</p>
+
+    <h2 class="section" id="stability"><span class="idx">16</span> 训练稳定性：为什么训练会爆炸</h2>
+    <p>千亿模型训练最大的工程噩梦是<strong>不稳定</strong>。一个 Loss spike 可能让几周训练白费。常见原因与对策：</p>
+    <table>
+      <thead><tr><th>问题</th><th>原因</th><th>对策</th></tr></thead>
+      <tbody>
+        <tr><td>Loss spike（尖刺）</td><td>异常数据、梯度爆炸、学习率过大</td><td>梯度裁剪、异常数据检测、回滚 checkpoint</td></tr>
+        <tr><td>Attention logits 爆炸</td><td>logits 过大导致 softmax 饱和</td><td><strong>Muon Split（GLM-5 的做法，无需裁剪即可稳定）</strong>、logit 软裁剪</td></tr>
+        <tr><td>梯度消失/爆炸</td><td>深网络、初始化不当</td><td>残差连接、LayerNorm/Pre-Norm、合理初始化（Xavier/He）</td></tr>
+        <tr><td>发散（Loss → NaN）</td><td>数值溢出、学习率过高</td><td>混合精度损失缩放、降低学习率、bf16 代替 fp16</td></tr>
+        <tr><td>MoE 路由坍缩</td><td>路由器只用少数专家</td><td>负载均衡损失、专家容量限制</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <div class="head">🔑 为什么 GLM-5 的「无需裁剪」很重要</div>
+      <p>裁剪（clipping）是一种「牺牲信息换稳定」的手段——它硬把超出范围的值截断，但截断意味着信息丢失，长期会损害模型能力。GLM-5 的 Muon Split 能<strong>在不裁剪的前提下保持 attention logits 稳定</strong>，意味着它既稳又不损失信息——这是底层优化器设计的胜利，也是模型质量能领先的关键之一。</p>
+    </div>
+
+    <h2 class="section" id="inference"><span class="idx">17</span> 推理优化：训练完之后的另一半战场</h2>
+    <p>训练只是开始，<strong>推理</strong>才是成本大头。一个模型部署后，每次调用都要算钱。2026 年的推理优化技术栈：</p>
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">⚡</span>
+        <h4>FlashAttention</h4>
+        <p>重排 Attention 计算，减少 HBM 读写，2-4x 加速。已是标配。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📦</span>
+        <h4>PagedAttention / vLLM</h4>
+        <p>像 OS 虚拟内存一样管理 KV Cache，显存利用率大幅提升，并发请求翻倍。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔢</span>
+        <h4>量化（Quantization）</h4>
+        <p>fp16 → int8 → int4，显存减半再减半。GLM 系列有成熟的 INT4 量化版。</p>
+      </div>
+      <div class="card">
+        <span class="ic">✂️</span>
+        <h4>推测解码（Speculative Decoding）</h4>
+        <p>用小模型猜几个 token，大模型批量验证，无损加速 2-3x。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>MoE 天然加速</h4>
+        <p>GLM-5.2 的 MoE：总参数大但激活参数小，单次推理只算一小部分。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🌬️</span>
+        <h4>蒸馏与剪枝</h4>
+        <p>把大模型的能力压缩进小模型，端侧部署。ChatGLM-6B 的 INT4 版就是经典案例。</p>
+      </div>
+    </div>
+
+    <h2 class="section" id="checklist-prod"><span class="idx">18</span> 训练一个模型的完整检查清单</h2>
+    <p>把整章串起来，给你一份「从头训一个模型」的检查清单（生产级）：</p>
+    <div class="steps">
+      <div class="step"><h4>数据层</h4><p>多源采集 → 去重（MinHash）→ 质量过滤 → 安全合规 → 配比设计 → 分词</p></div>
+      <div class="step"><h4>架构层</h4><p>选 dense/MoE → 层数/宽度/头数 → 位置编码（RoPE）→ 归一化（RMSNorm/Pre-Norm）</p></div>
+      <div class="step"><h4>预训练</h4><p>分布式策略（ZeRO+TP+PP）→ 优化器（AdamW/Muon）→ 学习率调度 → 稳定性监控</p></div>
+      <div class="step"><h4>中期训练</h4><p>上下文扩展（DSA）→ 能力专项数据 → 长文本持续训练</p></div>
+      <div class="step"><h4>对齐</h4><p>SFT（高质量指令）→ DPO/RLHF（偏好数据）→ 对齐税控制</p></div>
+      <div class="step"><h4>智能体后训练</h4><p>轨迹数据收集 → 在 Harness 里训练 → Agentic 能力强化</p></div>
+      <div class="step"><h4>评估</h4><p>Benchmark + Arena + 真实任务 + 红队，建立回归集</p></div>
+      <div class="step"><h4>部署</h4><p>量化 + KV Cache 优化 + 推理引擎（vLLM）+ 监控</p></div>
+    </div>
+
+    <h2 class="section" id="benchmarks"><span class="idx">19</span> Benchmark 复盘：那些跑分到底意味着什么</h2>
+    <p>2026 年看一个模型强不强，绕不开一堆 benchmark 缩写：MMLU、GSM8K、HumanEval、SWE-bench、Terminal Bench……它们各自测什么？分数怎么解读？这一节给你一份「跑分翻译手册」。</p>
+
+    <h3>综合知识类</h3>
+    <table>
+      <thead><tr><th>Benchmark</th><th>测什么</th><th>解读要点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MMLU</strong></td><td>57 个学科的多选题（文理科常识）</td><td>分数高 = 知识广，但不代表会推理。已被新题污染，看 MMLU-Pro 更可靠。</td></tr>
+        <tr><td><strong>MMLU-Pro</strong></td><td>MMLU 升级版，更难、10 选项</td><td>更抗刷题，区分度更高。</td></tr>
+        <tr><td><strong>C-Eval / CMMLU</strong></td><td>中文综合知识</td><td>中文模型必看。GLM 系列强项。</td></tr>
+        <tr><td><strong>BBH</strong></td><td>Big-Bench Hard，复杂推理任务合集</td><td>测「硬核推理」，区分度大。</td></tr>
+      </tbody>
+    </table>
+
+    <h3>数学与代码类（区分度最大）</h3>
+    <table>
+      <thead><tr><th>Benchmark</th><th>测什么</th><th>要点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GSM8K</strong></td><td>小学应用题</td><td>太简单，顶级模型接近满分，区分度低。看 MATH。</td></tr>
+        <tr><td><strong>MATH</strong></td><td>竞赛数学</td><td>真正考验推理。推理模型优势明显。</td></tr>
+        <tr><td><strong>HumanEval</strong></td><td>164 道 Python 编程题</td><td>单函数级，偏简单。看 SWE-bench。</td></tr>
+        <tr><td><strong>LiveCodeBench</strong></td><td>实时更新的编程题</td><td>防数据污染，更公平。</td></tr>
+      </tbody>
+    </table>
+
+    <h3>智能体类（2026 最重要）</h3>
+    <table>
+      <thead><tr><th>Benchmark</th><th>测什么</th><th>要点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>SWE-bench Verified</strong></td><td>修真实 GitHub issue</td><td>最接近「AI 工程师」能力的测试。GLM-5 在此开源 SOTA。</td></tr>
+        <tr><td><strong>Terminal Bench</strong></td><td>终端任务（运维、命令行）</td><td>测真实工程操作能力。</td></tr>
+        <tr><td><strong>WebArena</strong></td><td>网页操作（购物、查信息）</td><td>测 Computer-Using Agent。</td></tr>
+        <tr><td><strong>GAIA</strong></td><td>通用 AI 助手（多步推理+工具）</td><td>综合智能体能力。</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 看 benchmark 的三个陷阱</div>
+      <ul style="margin:6px 0;">
+        <li><strong>数据污染</strong>：题目可能进了训练集，分数虚高。看「新题」benchmark 更可靠；</li>
+        <li><strong>刷题效应</strong>：模型可能针对 benchmark 优化，实际体验不一定好；</li>
+        <li><strong>单点不代表全部</strong>：MMLU 高不等于会写代码。要看与你的场景相关的 benchmark。</li>
+      </ul>
+      <p style="margin-top:8px;">这也是 GLM-5.2 发布时不急于发跑分表的原因——<strong>真实智能体任务的表现才是硬通货</strong>。</p>
+    </div>
+
+    <h3>怎么读一张模型对比表</h3>
+    <p>看到一张 benchmark 对比表，问自己四个问题：</p>
+    <div class="steps">
+      <div class="step"><h4>这些 benchmark 与我的场景相关吗？</h4><p>做客服的看 MMLU 没用，该看 RAG/对话类。</p></div>
+      <div class="step"><h4>有没有数据污染嫌疑？</h4><p>分数突然飙升、远超同级别模型，要警惕。</p></div>
+      <div class="step"><h4>对比公平吗？</h4><p>同参数量级？同 prompt？同评测方式？</p></div>
+      <div class="step"><h4>有没有真实用户反馈佐证？</h4><p>Arena 盲测、社区口碑比跑分更可信。</p></div>
+    </div>
+
+    <h2 class="section" id="train-log"><span class="idx">20</span> 训练日志解读：那些数字在告诉你什么</h2>
+    <p>训练大模型时，工程师盯着一系列指标看。读懂它们，就读懂了训练的「健康状态」：</p>
+
+    <div class="code-title">一份典型的预训练日志（简化）</div>
+    <pre><code>step  1000  loss 3.214  grad_norm 0.82  lr 3.0e-4  tokens/sec 125k  mem 78%
+step  2000  loss 2.856  grad_norm 0.91  lr 3.0e-4  tokens/sec 124k  mem 78%
+step  3000  loss 2.634  grad_norm 1.12  lr 2.9e-4  tokens/sec 126k  mem 78%
+step  3100  loss 4.201  grad_norm 8.74  lr 2.9e-4  tokens/sec  88k  mem 82%  ⚠️ spike!
+step  3200  loss 2.701  grad_norm 0.95  lr 2.9e-4  tokens/sec 125k  mem 78%  ✅ 恢复
+step  5000  loss 2.412  grad_norm 0.78  lr 2.7e-4  tokens/sec 125k  mem 78%
+...
+step 50000  loss 1.892  grad_norm 0.65  lr 1.0e-5  tokens/sec 125k  mem 78%</code></pre>
+
+    <table>
+      <thead><tr><th>指标</th><th>含义</th><th>健康表现</th><th>异常信号</th></tr></thead>
+      <tbody>
+        <tr><td><code>loss</code></td><td>模型预测的负对数似然</td><td>平滑下降</td><td>突然飙升（spike）= 异常数据或梯度爆炸</td></tr>
+        <tr><td><code>grad_norm</code></td><td>梯度范数（梯度大小）</td><td>稳定在 0.5-2</td><td>突然变大 = 训练不稳定，可能要回滚</td></tr>
+        <tr><td><code>lr</code></td><td>当前学习率</td><td>按 schedule 变化（warmup→cosine 衰减）</td><td>不按计划 = 配置错</td></tr>
+        <tr><td><code>tokens/sec</code></td><td>训练吞吐</td><td>稳定（受硬件上限约束）</td><td>下降 = 有瓶颈（通信/IO）</td></tr>
+        <tr><td><code>mem</code></td><td>显存占用</td><td>稳定且有余量</td><td>飙升 = 内存泄漏或 batch 过大</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout warn">
+      <div class="head">⚠️ Loss Spike 处置流程</div>
+      <ol style="margin:6px 0;">
+        <li><strong>不要慌，先观察</strong>：很多 spike 是单次异常数据，下一步会恢复；</li>
+        <li><strong>持续 spike</strong>：检查最近喂的数据有没有异常（乱码、超长序列）；</li>
+        <li><strong>grad_norm 爆炸</strong>：降低学习率、加强梯度裁剪；</li>
+        <li><strong>loss 不回来</strong>：回滚到上一个 healthy checkpoint，从那里重训；</li>
+        <li><strong>根因分析</strong>：事后分析 spike 时的数据和参数，防止复发。</li>
+      </ol>
+    </div>
+
+    <h3>能力涌现：loss 与能力的非线性关系</h3>
+    <p>训练日志里最迷人的现象是<strong>能力涌现</strong>：某些能力（如指令遵循、多位数运算）在 loss 降到某个阈值后<strong>突然出现</strong>，而非渐进提升。</p>
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node">loss 3.0 → 不会做多位数加法</div>
+        <div class="node">loss 2.5 → 还是不会</div>
+        <div class="node accent">loss 2.3 → 突然会了！（涌现）</div>
+        <div class="node">loss 2.1 → 越做越好</div>
+      </div>
+      <div class="cap">图 2-5 · 能力涌现：某些能力在阈值后突然出现</div>
+    </div>
+    <p>这意味着：<strong>loss 下降不等于能力线性增长</strong>。一个模型可能在 loss 2.5 时看起来啥都不会，到 2.3 时突然「开窍」。这也是为什么训练大模型要坚持训下去——临界点往往就在坚持的几步之后。</p>
+
+    <h2 class="section" id="cost-breakdown"><span class="idx">21</span> 训练成本拆解：钱花在哪了</h2>
+    <p>训一个千亿模型要花几千万到上亿美元。钱花在哪？大致拆解：</p>
+    <table>
+      <thead><tr><th>环节</th><th>占比</th><th>说明</th></tr></thead>
+      <tbody>
+        <tr><td>GPU/昇腾算力</td><td>~60%</td><td>几千张卡跑几个月，最大头</td></tr>
+        <tr><td>数据工程</td><td>~15%</td><td>采集、清洗、标注、合成</td></tr>
+        <tr><td>人力（研究员/工程师）</td><td>~15%</td><td>顶级人才昂贵</td></tr>
+        <tr><td>评估与迭代</td><td>~5%</td><td>benchmark、红队、用户测试</td></tr>
+        <tr><td>基础设施</td><td>~5%</td><td>存储、网络、监控</td></tr>
+      </tbody>
+    </table>
+
+    <p>一个粗略估算公式：</p>
+    <div class="diagram">
+      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
+        训练成本 ≈ 6 × 参数量 × 训练 token 数 × (每 FLOP 价格)<br>
+        <span style="color:var(--text-faint);">例：175B 参数 × 300B token ≈ 3.5×10²³ FLOPs ≈ 数百万美元（A100 价位）</span>
+      </div>
+    </div>
+    <p>GLM-5 用 27 万亿 token 训千亿模型，算力消耗是天文数字——这也是为什么能做这件事的团队全球屈指可数，以及为什么<strong>昇腾能用、能省钱</strong>对国产大模型意义重大。</p>
+
+    <blockquote>
+      「下一代模型的差距，不在参数大小，而在<strong>数据工程、训练稳定性、对齐艺术、智能体后训练</strong>这四件事的精细度上。模型本身正在变便宜，围绕模型的工程正在变贵、变关键。」——这，正是我们下一章要讲的 Harness。
+    </blockquote>
+
+    <div class="chapter-nav">
+      <a href="01-llm-fundamentals.html">
+        <div class="lbl">← 上一章</div>
+        <div class="ttl">01 · LLM 基础与原理</div>
+      </a>
+      <a href="03-harness.html" class="next">
+        <div class="lbl">下一章 →</div>
+        <div class="ttl">03 · Harness 工程：让模型可靠跑起来的外壳</div>
+      </a>
+    </div>
+
+    <footer>
+      <p>AI 全栈实战教学 · 第 02 章 · GLM-5.2 从 0 到 1</p>
+      <p>核心依据：GLM-5 技术报告 arXiv:2602.15763 · 智谱官方文档 · 公开媒体报道</p>
+    </footer>
+  </main>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

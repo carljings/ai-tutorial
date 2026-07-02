@@ -1,0 +1,925 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>11 · 实战项目：企业级 AI 编程助手 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                          <aside class="sidebar">
+    <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
+    <div class="nav-group"><h3>导览</h3>
+      <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
+      <a href="index.html"><span class="num">00</span>封面与目录</a>
+    </div>
+    <div class="nav-group"><h3>基石</h3>
+      <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
+      <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
+      <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
+      <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
+      <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
+      <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
+      <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+    </div>
+    <div class="nav-group"><h3>工程</h3>
+      <a href="11-project-coding-agent.html" class="active" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
+      <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
+      <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
+    </div>
+    <div class="nav-group"><h3>原理</h3>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
+      <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
+      <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+    </div>
+    <div class="nav-group"><h3>专题</h3>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
+      <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
+      <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
+      <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
+      <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
+      <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
+      <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
+      <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
+      <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
+      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
+      <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
+      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+    </div>
+    <div class="nav-group"><h3>参考</h3>
+      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
+      <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
+      <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
+      <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
+    </div>
+    <div class="nav-group"><h3>★Transformer</h3>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+    </div>
+    <div class="nav-group"><h3>★向量检索</h3>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+    </div>
+    <div class="nav-group"><h3>★Agent源码</h3>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+    </div>
+    <div class="nav-group"><h3>★Skills技能</h3>
+      <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
+      <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+    </div>
+    <div class="nav-group"><h3>★Agent设计模式</h3>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
+      <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
+    </div>
+    <div class="nav-group"><h3>★Agent框架</h3>
+      <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
+      <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
+      <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+    </div>
+    <div class="nav-group"><h3>★Deep Agent</h3>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+    </div>
+    <div class="nav-group"><h3>★LLMOps工程化</h3>
+      <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+    </div>
+    <div class="nav-group"><h3>★Agent交互设计</h3>
+      <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
+      <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+    </div>
+    <div class="nav-group"><h3>★模型压缩部署</h3>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+    </div>
+    <div class="nav-group"><h3>★AI知识拓宽</h3>
+      <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
+      <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
+    </div>
+    <div class="nav-group"><h3>★zvec向量库</h3>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
+      <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
+      <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
+      <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+    </div>
+    <div class="nav-group"><h3>★智能涌现原理</h3>
+      <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
+      <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
+    </div>
+    <div class="nav-group"><h3>★知识库与安全</h3>
+      <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+    </div>
+  </aside>
+
+  <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 11 · 项目实战 · 全栈综合</span>
+      <h1>实战项目：从零打造企业级 AI 编程助手<br>把全部知识串成一个完整产品</h1>
+      <p class="lead">这一章是全书的<strong>集大成</strong>。我们把前 10 章的所有概念——模型、Harness、Agent Loop、智能体、RAG、Skills、MCP——融合成一个<strong>真正能用的 AI 编程助手</strong>。从架构设计到每一行代码，全程跟着做，你就能拥有自己的「Claude Code」。</p>
+      <div class="meta">
+        <span class="chip">阅读约 50 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+        <span class="chip">前置：全册</span>
+        <span class="chip">含完整可运行代码</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="goal"><span class="idx">★</span> 项目目标与最终形态</h2>
+    <p>我们要造的东西，叫 <strong>「CodeMate」</strong>——一个终端里的 AI 编程助手。它能：</p>
+    <ul>
+      <li>读懂你的代码库（RAG 索引整个项目）；</li>
+      <li>理解你的需求，自主读文件、改代码、跑测试（Agent Loop + Harness）；</li>
+      <li>复用沉淀的编程技能（Skills）；</li>
+      <li>调用外部工具（MCP：git、搜索、数据库）；</li>
+      <li>有权限控制、错误恢复、成本控制（生产级 Harness）。</li>
+    </ul>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">$ codemate "给这个函数加上单元测试"</div>
+        <div style="color:var(--text-faint);">▼ CodeMate 自主工作</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;">
+          <div class="node sky">📚 RAG 检索<br>项目代码规范</div>
+          <div class="node sky">🔍 读目标函数<br>理解逻辑</div>
+          <div class="node sky">🛠️ 加载「测试」<br>Skill</div>
+          <div class="node sky">✍️ 生成测试<br>写文件</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ PEV 循环</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div class="node violet">▶ 跑测试</div>
+          <div class="node violet">▶ 测试失败？分析</div>
+          <div class="node violet">▶ 修正后重试</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ 通过</div>
+        <div class="node accent">✅ 已为 3 个函数添加 12 个测试，全部通过</div>
+      </div>
+      <div class="cap">图 11-1 · CodeMate 的一次完整工作流程</div>
+    </div>
+
+    <h2 class="section" id="architecture"><span class="idx">01</span> 整体架构设计</h2>
+    <p>先把架构画清楚，再写代码。CodeMate 分五层，每一层对应前几章的一个主题：</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent" style="width:100%;">用户接口层：CLI / 交互循环</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node violet" style="width:100%;">Harness 层：权限 + Hook + 上下文装配 + 成本控制（第 3 章）</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node sky" style="width:100%;">Agent 层：Plan-Execute + ReAct Loop + 子 Agent（第 4-5 章）</div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div style="display:flex;gap:8px;width:100%;">
+          <div class="node" style="flex:1;">📚 RAG 层<br>（第 6 章）</div>
+          <div class="node" style="flex:1;">🛠️ Skill 层<br>（第 8 章）</div>
+          <div class="node" style="flex:1;">🔌 MCP 工具层<br>（第 8 章）</div>
+        </div>
+        <div style="color:var(--text-faint);">▼</div>
+        <div class="node accent" style="width:100%;">模型层：GLM-5.2 API</div>
+      </div>
+      <div class="cap">图 11-2 · CodeMate 五层架构：每层都对应前几章的一个主题</div>
+    </div>
+
+    <p>这个架构的价值在于<strong>每一层都可独立替换</strong>：模型可以换、RAG 可以换、Skill 可以加减。这就是分层架构的力量。</p>
+
+    <h2 class="section" id="file-structure"><span class="idx">02</span> 项目文件结构</h2>
+    <div class="code-title">CodeMate 项目结构</div>
+    <pre><code>codemate/
+├── codemate/
+│   ├── __init__.py
+│   ├── cli.py                  <span class="c"># 入口：CLI 交互循环</span>
+│   ├── harness/
+│   │   ├── permissions.py      <span class="c"># 权限引擎（第 3 章）</span>
+│   │   ├── hooks.py            <span class="c"># Hook 系统（第 3 章）</span>
+│   │   ├── context.py          <span class="c"># 上下文装配（第 3 章）</span>
+│   │   └── cost.py             <span class="c"># 成本控制</span>
+│   ├── agent/
+│   │   ├── loop.py             <span class="c"># Agent Loop（第 4 章）</span>
+│   │   ├── planner.py          <span class="c"># Plan-Execute（第 4 章）</span>
+│   │   └── subagent.py         <span class="c"># 子 Agent（第 5 章）</span>
+│   ├── knowledge/
+│   │   ├── indexer.py          <span class="c"># 代码索引（RAG，第 6 章）</span>
+│   │   └── retriever.py        <span class="c"># 混合检索</span>
+│   ├── skills/
+│   │   ├── registry.py         <span class="c"># 技能注册与发现（第 8 章）</span>
+│   │   └── builtin/
+│   │       ├── testing.md      <span class="c"># 「写测试」技能</span>
+│   │       ├── refactoring.md  <span class="c"># 「重构」技能</span>
+│   │       └── debugging.md    <span class="c"># 「调试」技能</span>
+│   ├── tools/                  <span class="c"># MCP 工具（第 8 章）</span>
+│   │   ├── filesystem.py       <span class="c"># 文件读写</span>
+│   │   ├── shell.py            <span class="c"># 执行命令</span>
+│   │   └── git.py              <span class="c"># git 操作</span>
+│   └── config.py               <span class="c"># 配置</span>
+├── skills/                     <span class="c"># 用户自定义技能</span>
+├── tests/                      <span class="c"># 项目自身测试</span>
+├── pyproject.toml
+└── README.md</code></pre>
+
+    <h2 class="section" id="build-harness"><span class="idx">03</span> 第一步：搭建 Harness 骨架</h2>
+    <p>Harness 是 CodeMate 的地基。我们整合第 3 章的权限、Hook、上下文装配，成一个统一的 Harness 类：</p>
+
+    <div class="code-title">codemate/harness/__init__.py —— Harness 整合</div>
+    <pre><code><span class="c">"""
+codemate/harness/__init__.py —— Harness 整合层
+把权限、Hook、上下文、成本控制组合起来
+"""</span>
+<span class="k">from</span> .permissions <span class="k">import</span> PermissionEngine, Decision
+<span class="k">from</span> .hooks <span class="k">import</span> HookManager, HookEvent
+<span class="k">from</span> .context <span class="k">import</span> ContextAssembler
+<span class="k">from</span> .cost <span class="k">import</span> CostTracker
+
+<span class="k">class</span> <span class="t">Harness</span>:
+    <span class="s">"""CodeMate 的工程外壳：权限 + Hook + 上下文 + 成本"""</span>
+    <span class="k">def</span> <span class="f">__init__</span>(self, config):
+        self.permissions = PermissionEngine(config[<span class="s">"rules"</span>])
+        self.hooks       = HookManager()
+        self.context     = ContextAssembler(config[<span class="s">"context_budget"</span>])
+        self.cost        = CostTracker(config[<span class="s">"budget"</span>])
+        self._register_default_hooks()
+
+    <span class="k">def</span> <span class="f">_register_default_hooks</span>(self):
+        <span class="c"># 默认 Hook：审计日志 + 危险拦截 + 写后格式化</span>
+        self.hooks.register(HookEvent.PRE_TOOL, self._audit_log)
+        self.hooks.register(HookEvent.PRE_TOOL, self._block_danger)
+        self.hooks.register(HookEvent.POST_TOOL, self._auto_format)
+
+    <span class="k">def</span> <span class="f">_audit_log</span>(self, ctx):
+        <span class="k">import</span> logging
+        logging.info(f<span class="s">"[工具] {ctx['tool']}({ctx.get('args','')[:50]})"</span>)
+        <span class="k">return</span> ctx
+
+    <span class="k">def</span> <span class="f">_block_danger</span>(self, ctx):
+        <span class="k">if</span> <span class="s">"rm -rf"</span> <span class="k">in</span> <span class="f">str</span>(ctx.get(<span class="s">"args"</span>, <span class="s">""</span>)):
+            <span class="k">return</span> <span class="k">None</span>   <span class="c"># 拦截</span>
+        <span class="k">return</span> ctx
+
+    <span class="k">def</span> <span class="f">_auto_format</span>(self, ctx):
+        <span class="k">if</span> ctx[<span class="s">"tool"</span>] == <span class="s">"write_file"</span> <span class="k">and</span> ctx.get(<span class="s">"path"</span>, <span class="s">""</span>).endswith(<span class="s">".py"</span>):
+            ctx[<span class="s">"feedback"</span>] = <span class="s">"建议跑 black 格式化"</span>
+        <span class="k">return</span> ctx
+
+    <span class="k">def</span> <span class="f">check_tool</span>(self, action):
+        <span class="s">"""检查一个工具调用是否被允许"""</span>
+        <span class="k">return</span> self.permissions.check(action)
+
+    <span class="k">def</span> <span class="f">before_tool</span>(self, ctx):
+        <span class="k">return</span> self.hooks.run(HookEvent.PRE_TOOL, ctx)
+
+    <span class="k">def</span> <span class="f">after_tool</span>(self, ctx):
+        <span class="k">return</span> self.hooks.run(HookEvent.POST_TOOL, ctx)
+
+    <span class="k">def</span> <span class="f">can_spend</span>(self, tokens):
+        <span class="s">"""检查预算是否还够"""</span>
+        <span class="k">return</span> self.cost.can_spend(tokens)</code></pre>
+
+    <div class="code-title">codemate/harness/cost.py —— 成本追踪</div>
+    <pre><code><span class="c">"""codemate/harness/cost.py —— 成本与预算控制"""</span>
+<span class="k">class</span> <span class="t">CostTracker</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, budget_tokens=<span class="n">500000</span>):
+        self.budget = budget_tokens
+        self.used   = <span class="n">0</span>
+        self.calls  = <span class="n">0</span>
+
+    <span class="k">def</span> <span class="f">record</span>(self, tokens):
+        self.used  += tokens
+        self.calls += <span class="n">1</span>
+
+    <span class="k">def</span> <span class="f">can_spend</span>(self, estimated):
+        <span class="k">return</span> self.used + estimated &lt;= self.budget
+
+    <span class="k">def</span> <span class="f">report</span>(self):
+        <span class="k">return</span> {<span class="s">"used"</span>: self.used, <span class="s">"budget"</span>: self.budget,
+                <span class="s">"calls"</span>: self.calls,
+                <span class="s">"ratio"</span>: <span class="f">round</span>(self.used/self.budget*<span class="n">100</span>, <span class="n">1</span>)}</code></pre>
+
+    <h2 class="section" id="build-rag"><span class="idx">04</span> 第二步：代码库 RAG 索引</h2>
+    <p>CodeMate 要「懂」你的项目，得先把整个代码库索引成可检索的知识。这是第 6 章的实战应用——而且针对<strong>代码</strong>有特殊处理：</p>
+
+    <div class="code-title">codemate/knowledge/indexer.py —— 代码库索引</div>
+    <pre><code><span class="c">"""
+codemate/knowledge/indexer.py —— 把代码库索引成可检索的知识
+特殊处理：按函数/类切分，保留符号元数据
+"""</span>
+<span class="k">import</span> os, ast
+<span class="k">from</span> sentence_transformers <span class="k">import</span> SentenceTransformer
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> chromadb
+
+embedder = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
+
+<span class="k">class</span> <span class="t">CodeIndexer</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, project_root):
+        self.root = project_root
+        self.db = chromadb.PersistentClient(path=<span class="s">".codemate/db"</span>)
+        self.collection = self.db.get_or_create_collection(<span class="s">"code"</span>)
+
+    <span class="k">def</span> <span class="f">index_project</span>(self):
+        <span class="s">"""遍历项目，把每个函数/类索引成一个 chunk"""</span>
+        chunks = []
+        <span class="k">for</span> dirpath, _, files <span class="k">in</span> os.walk(self.root):
+            <span class="k">for</span> f <span class="k">in</span> files:
+                <span class="k">if</span> <span class="k">not</span> f.endswith(<span class="s">".py"</span>): <span class="k">continue</span>
+                path = os.path.join(dirpath, f)
+                <span class="k">if</span> <span class="s">".codemate"</span> <span class="k">in</span> path: <span class="k">continue</span>
+                chunks.extend(self._index_python_file(path))
+
+        <span class="c"># 批量 embedding + 入库</span>
+        <span class="k">if</span> chunks:
+            texts  = [c[<span class="s">"content"</span>] <span class="k">for</span> c <span class="k">in</span> chunks]
+            embs   = embedder.encode(texts).tolist()
+            self.collection.add(
+                ids=[c[<span class="s">"id"</span>] <span class="k">for</span> c <span class="k">in</span> chunks],
+                documents=texts, embeddings=embs,
+                metadatas=[{<span class="s">"file"</span>: c[<span class="s">"file"</span>], <span class="s">"symbol"</span>: c[<span class="s">"symbol"</span>],
+                            <span class="s">"type"</span>: c[<span class="s">"type"</span>]} <span class="k">for</span> c <span class="k">in</span> chunks])
+        print(f<span class="s">"✅ 索引完成：{len(chunks)} 个代码符号"</span>)
+
+    <span class="k">def</span> <span class="f">_index_python_file</span>(self, path):
+        <span class="s">"""用 AST 把 Python 文件按函数/类切分（第 6 章代码切分）"""</span>
+        rel = os.path.relpath(path, self.root)
+        <span class="k">try</span>:
+            tree = ast.parse(open(path).read())
+        <span class="k">except</span>:
+            <span class="k">return</span> []
+        chunks = []
+        <span class="k">for</span> node <span class="k">in</span> ast.walk(tree):
+            <span class="k">if</span> <span class="f">isinstance</span>(node, (ast.FunctionDef, ast.AsyncFunctionDef)):
+                seg = ast.get_source_segment(open(path).read(), node)
+                <span class="k">if</span> seg <span class="k">and</span> <span class="f">len</span>(seg) &gt; <span class="n">20</span>:
+                    chunks.append({<span class="s">"id"</span>: f<span class="s">"{rel}:{node.name}:{node.lineno}"</span>,
+                                   <span class="s">"content"</span>: f<span class="s">"# 文件: {rel}</span><span class="d">\n</span><span class="s">"</span> + seg,
+                                   <span class="s">"file"</span>: rel, <span class="s">"symbol"</span>: node.name, <span class="s">"type"</span>: <span class="s">"function"</span>})
+            <span class="k">elif</span> <span class="f">isinstance</span>(node, ast.ClassDef):
+                seg = ast.get_source_segment(open(path).read(), node)
+                <span class="k">if</span> seg <span class="k">and</span> <span class="f">len</span>(seg) &gt; <span class="n">20</span>:
+                    chunks.append({<span class="s">"id"</span>: f<span class="s">"{rel}:{node.name}:{node.lineno}"</span>,
+                                   <span class="s">"content"</span>: f<span class="s">"# 文件: {rel}</span><span class="d">\n</span><span class="s">"</span> + seg[:<span class="n">2000</span>],
+                                   <span class="s">"file"</span>: rel, <span class="s">"symbol"</span>: node.name, <span class="s">"type"</span>: <span class="s">"class"</span>})
+        <span class="k">return</span> chunks</code></pre>
+
+    <p>注意几个针对代码的优化：<strong>按函数/类切分</strong>（而非固定长度），保留语法完整性；<strong>元数据带文件名和符号名</strong>，检索结果可溯源；<strong>用 AST 而非正则</strong>，准确可靠。这就是第 6 章「代码感知切分」的生产级实现。</p>
+
+    <h2 class="section" id="build-agent"><span class="idx">05</span> 第三步：核心 Agent Loop</h2>
+    <p>整合 Harness、RAG、工具，写出 CodeMate 的核心循环。这是全书第 4 章的工业级落地：</p>
+
+    <div class="code-title">codemate/agent/loop.py —— CodeMate 核心 Loop</div>
+    <pre><code><span class="c">"""
+codemate/agent/loop.py —— CodeMate 的核心 Agent Loop
+整合 Harness（权限/Hook/成本）+ RAG 检索 + 工具调用 + PEV
+"""</span>
+<span class="k">import</span> json
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+<span class="k">from</span> ..harness <span class="k">import</span> Harness, Decision
+
+client = OpenAI(base_url=<span class="s">"https://open.bigmodel.cn/api/paas/v4"</span>, api_key=<span class="s">"YOUR_KEY"</span>)
+MODEL = <span class="s">"glm-5.2"</span>
+
+SYSTEM = <span class="s">"""你是 CodeMate，企业级 AI 编程助手。工作原则：
+1. 改代码前先读相关文件，理解上下文；
+2. 每次改动后跑测试验证（PEV 工作法）；
+3. 测试失败时分析错误、修正、重试；
+4. 涉及写操作前说明意图；
+5. 工具失败如实报告，不臆测；
+6. 完成后给出简短总结与改动清单。"""</span>
+
+<span class="k">class</span> <span class="t">CodeMate</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, harness: Harness, retriever, skill_registry, tools):
+        self.harness = harness
+        self.retriever = retriever          <span class="c"># RAG 检索器</span>
+        self.skills = skill_registry         <span class="c"># 技能注册表</span>
+        self.tools = tools                   <span class="c"># 工具实现</span>
+
+    <span class="k">def</span> <span class="f">run</span>(self, task, max_steps=<span class="n">25</span>):
+        <span class="c"># ① 装配初始上下文：系统提示 + RAG 检索 + 技能匹配</span>
+        relevant_code = self.retriever.search(task, top_k=<span class="n">5</span>)
+        skills = self.skills.discover(task, top_k=<span class="n">2</span>)
+        skill_text = <span class="s">"</span><span class="d">\n</span><span class="s">"</span>.join(s[<span class="s">"workflow"</span>] <span class="k">for</span> s <span class="k">in</span> skills)
+
+        messages = [
+            {<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: SYSTEM + f<span class="s">"</span><span class="d">\n\n</span><span class="s">相关代码：</span><span class="d">\n</span><span class="s">{relevant_code}</span><span class="d">\n\n</span><span class="s">可用技能：</span><span class="d">\n</span><span class="s">{skill_text}"</span>},
+            {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: task},
+        ]
+
+        last_actions = []
+        <span class="k">for</span> step <span class="k">in</span> <span class="f">range</span>(max_steps):
+            <span class="c"># 预算检查</span>
+            <span class="k">if</span> not self.harness.can_spend(<span class="n">4000</span>):
+                <span class="k">return</span> <span class="s">"⚠️ 预算耗尽"</span>
+
+            <span class="c"># 任务漂移检查（每 5 步）</span>
+            <span class="k">if</span> step % <span class="n">5</span> == <span class="n">0</span> <span class="k">and</span> step &gt; <span class="n">0</span>:
+                messages.append({<span class="s">"role"</span>: <span class="s">"system"</span>,
+                    <span class="s">"content"</span>: f<span class="s">"提醒：原任务是「{task}」，确认是否在正轨。"</span>})
+
+            <span class="k">try</span>:
+                resp = client.chat.completions.create(model=MODEL, messages=messages,
+                                                     tools=self._tool_defs())
+                self.harness.cost.record(resp.usage.total_tokens)
+                msg = resp.choices[<span class="n">0</span>].message
+                messages.append(msg)
+
+                <span class="k">if</span> <span class="k">not</span> msg.tool_calls:
+                    <span class="k">return</span> msg.content    <span class="c"># 完成</span>
+
+                <span class="k">for</span> tc <span class="k">in</span> msg.tool_calls:
+                    obs = self._execute_tool(tc, last_actions)
+                    messages.append({<span class="s">"role"</span>: <span class="s">"tool"</span>, <span class="s">"tool_call_id"</span>: tc.id, <span class="s">"content"</span>: obs})
+
+            <span class="k">except</span> Exception <span class="k">as</span> e:
+                messages.append({<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: f<span class="s">"系统错误：{e}，请调整策略。"</span>})
+
+        <span class="k">return</span> <span class="s">"达到最大步数"</span>
+
+    <span class="k">def</span> <span class="f">_execute_tool</span>(self, tc, last_actions):
+        name = tc.function.name
+        args = json.loads(tc.function.arguments)
+        action = f<span class="s">"{name}:{args}"</span>
+
+        <span class="c"># 死循环检测</span>
+        <span class="k">if</span> last_actions[-<span class="n">3</span>:].count(action) &gt;= <span class="n">2</span>:
+            <span class="k">return</span> <span class="s">"[系统] 检测到重复动作，请换思路"</span>
+        last_actions.append(action)
+
+        <span class="c"># 权限检查（第 3 章）</span>
+        decision = self.harness.check_tool(action)
+        <span class="k">if</span> decision.decision == Decision.DENY:
+            <span class="k">return</span> f<span class="s">"[权限拒绝] {decision.reason}"</span>
+        <span class="k">if</span> decision.decision == Decision.ASK:
+            <span class="k">if</span> input(f<span class="s">"⚠️ 确认 {action}? [y/N]: "</span>).lower() != <span class="s">"y"</span>:
+                <span class="k">return</span> <span class="s">"[用户拒绝]"</span>
+
+        <span class="c"># PreToolUse Hook</span>
+        pre = self.harness.before_tool({<span class="s">"tool"</span>: name, <span class="s">"args"</span>: args})
+        <span class="k">if</span> pre <span class="k">is</span> <span class="k">None</span>:
+            <span class="k">return</span> <span class="s">"[Hook 拦截]"</span>
+
+        <span class="c"># 执行（带重试）</span>
+        result = self._call_with_retry(name, args)
+
+        <span class="c"># PostToolUse Hook（PEV 的 V：验证 + 反馈）</span>
+        post = self.harness.after_tool({<span class="s">"tool"</span>: name, <span class="s">"result"</span>: result, <span class="s">"args"</span>: args})
+        <span class="k">if</span> post <span class="k">and</span> post.get(<span class="s">"feedback"</span>):
+            result += f<span class="s">"</span><span class="d">\n</span><span class="s">[反馈] {post['feedback']}"</span>
+        <span class="k">return</span> result[:<span class="n">3000</span>]
+
+    <span class="k">def</span> <span class="f">_call_with_retry</span>(self, name, args, retries=<span class="n">2</span>):
+        <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(retries + <span class="n">1</span>):
+            <span class="k">try</span>:
+                <span class="k">return</span> self.tools[name](**args)
+            <span class="k">except</span> Exception <span class="k">as</span> e:
+                <span class="k">if</span> i == retries: <span class="k">return</span> f<span class="s">"[错误] {e}"</span>
+        <span class="k">return</span> <span class="s">"[未知错误]"</span></code></pre>
+
+    <p>这个 Loop 是全书所有理念的<strong>熔炉</strong>：RAG 检索（第 6 章）注入项目知识、技能发现（第 8 章）加载合适 Skill、Harness（第 3 章）管权限/Hook/成本、Agent Loop（第 4 章）的多重防护（死循环、漂移、预算、重试）、PEV 环（写后跑测试）。<strong>读懂这 100 行，你就读懂了 Claude Code 的核心</strong>。</p>
+
+    <h2 class="section" id="build-tools"><span class="idx">06</span> 第四步：工具实现（文件/Shell/Git）</h2>
+    <div class="code-title">codemate/tools/filesystem.py —— 文件读写工具</div>
+    <pre><code><span class="c">"""codemate/tools/filesystem.py —— 文件系统工具"""</span>
+<span class="k">import</span> os
+
+<span class="k">def</span> <span class="f">read_file</span>(path, max_chars=<span class="n">10000</span>):
+    <span class="s">"""读取文件内容"""</span>
+    <span class="k">if</span> not os.path.exists(path): <span class="k">return</span> <span class="s">f"[错误] 文件不存在: {path}"</span>
+    <span class="k">with</span> open(path) <span class="k">as</span> f:
+        content = f.read(max_chars)
+    <span class="k">return</span> content <span class="k">if</span> <span class="f">len</span>(content) &lt; max_chars <span class="k">else</span> content + <span class="s">"\n...[截断]"</span>
+
+<span class="k">def</span> <span class="f">write_file</span>(path, content):
+    <span class="s">"""写入文件（自动创建目录）"""</span>
+    os.makedirs(os.path.dirname(path) <span class="k">or</span> <span class="s">"."</span>, exist_ok=<span class="k">True</span>)
+    <span class="k">with</span> open(path, <span class="s">"w"</span>) <span class="k">as</span> f:
+        f.write(content)
+    <span class="k">return</span> f<span class="s">"✅ 已写入 {path} ({len(content)} 字符)"</span>
+
+<span class="k">def</span> <span class="f">list_dir</span>(path=<span class="s">"."</span>):
+    <span class="s">"""列出目录"""</span>
+    <span class="k">if</span> not os.path.isdir(path): <span class="k">return</span> <span class="s">f"[错误] 不是目录: {path}"</span>
+    items = []
+    <span class="k">for</span> name <span class="k">in</span> sorted(os.listdir(path)):
+        full = os.path.join(path, name)
+        tag = <span class="s">"📁"</span> <span class="k">if</span> os.path.isdir(full) <span class="k">else</span> <span class="s">"📄"</span>
+        items.append(f<span class="s">"{tag} {name}"</span>)
+    <span class="k">return</span> <span class="s">"</span><span class="d">\n</span><span class="s">"</span>.join(items[:<span class="n">50</span>])</code></pre>
+
+    <div class="code-title">codemate/tools/shell.py —— Shell 命令工具</div>
+    <pre><code><span class="c">"""codemate/tools/shell.py —— 执行 shell 命令"""</span>
+<span class="k">import</span> subprocess
+
+<span class="k">def</span> <span class="f">run_shell</span>(command, timeout=<span class="n">30</span>):
+    <span class="s">"""执行 shell 命令，返回输出（PEV 的关键：能跑测试）"""</span>
+    <span class="k">try</span>:
+        r = subprocess.run(command, shell=<span class="k">True</span>, capture_output=<span class="k">True</span>,
+                          text=<span class="k">True</span>, timeout=timeout)
+        out = (r.stdout + r.stderr)[:<span class="n">3000</span>]
+        <span class="k">return</span> f<span class="s">"[exit {r.returncode}]</span><span class="d">\n</span><span class="s">{out}"</span> <span class="k">or</span> <span class="s">"[无输出]"</span>
+    <span class="k">except</span> subprocess.TimeoutExpired:
+        <span class="k">return</span> <span class="s">"[超时]"</span>
+    <span class="k">except</span> Exception <span class="k">as</span> e:
+        <span class="k">return</span> f<span class="s">"[错误] {e}"</span></code></pre>
+
+    <h2 class="section" id="build-skills"><span class="idx">07</span> 第五步：内置技能（SKILL.md）</h2>
+    <p>CodeMate 的「聪明」很大程度来自内置技能。每个技能是一个 Markdown 文件，描述「这类任务怎么做」：</p>
+
+    <div class="code-title">codemate/skills/builtin/testing.md —— 「写测试」技能</div>
+    <pre><code>---
+name: write-tests
+description: 为指定函数或模块编写单元测试
+trigger: ["写测试", "加单元测试", "补测试", "test coverage"]
+tools: [read_file, write_file, run_shell]
+---
+# 写测试技能
+
+## 工作流程
+1. **理解目标**：读目标函数，理清输入输出、边界条件、异常情况
+2. **查规范**：看项目里现有测试的风格（pytest？unittest？mock 用法？）
+3. **设计用例**：
+   - 正常路径（happy path）至少 2 个
+   - 边界值（空、零、最大、最小）
+   - 异常输入（错误类型、越界）
+   - 如果有外部依赖，用 mock
+4. **写测试文件**：放到对应的 tests/ 目录，命名 test_xxx.py
+5. **跑测试**：`pytest tests/test_xxx.py -v`
+6. **PEV 循环**：失败就分析、修正、重跑，直到全绿
+
+## 经验（tips）
+- 一个测试只测一件事，函数名说明测的是什么
+- 用 fixture 复用 setup
+- 别测私有方法，只测公共接口
+- 覆盖率不是目的，测对关键路径才是</code></pre>
+
+    <div class="code-title">codemate/skills/builtin/debugging.md —— 「调试」技能</div>
+    <pre><code>---
+name: debug
+description: 定位并修复 bug
+trigger: ["修 bug", "报错", "不工作", "崩溃", "调试"]
+tools: [read_file, run_shell, list_dir]
+---
+# 调试技能
+
+## 工作流程
+1. **复现**：先拿到能稳定复现报错的最小步骤
+2. **读错误**：看 traceback，定位文件和行号
+3. **读上下文**：读报错处及调用的函数
+4. **提出假设**：可能的原因是什么？（类型错？空值？逻辑错？）
+5. **验证假设**：加 print/日志，或跑最小复现
+6. **修复**：改最小必要代码
+7. **回归测试**：跑相关测试确认没引入新问题
+
+## 经验
+- 不要在没复现前就改代码
+- 一次只改一处，改完就测
+- 如果修了 30 分钟没进展，重新读错误信息，可能方向错了
+- 修复后想想：这个 bug 的根因是什么？别处有没有类似问题？</code></pre>
+
+    <h2 class="section" id="build-cli"><span class="idx">08</span> 第六步：CLI 入口</h2>
+    <div class="code-title">codemate/cli.py —— 命令行入口</div>
+    <pre><code><span class="c">"""
+codemate/cli.py —— CodeMate 命令行入口
+用法：python -m codemate "给 utils.py 加测试"
+     或交互模式：python -m codemate
+"""</span>
+<span class="k">import</span> sys, argparse
+<span class="k">from</span> .harness <span class="k">import</span> Harness
+<span class="k">from</span> .knowledge.indexer <span class="k">import</span> CodeIndexer
+<span class="k">from</span> .knowledge.retriever <span class="k">import</span> CodeRetriever
+<span class="k">from</span> .skills.registry <span class="k">import</span> SkillRegistry
+<span class="k">from</span> .agent.loop <span class="k">import</span> CodeMate
+<span class="k">from</span> .tools.filesystem <span class="k">import</span> read_file, write_file, list_dir
+<span class="k">from</span> .tools.shell <span class="k">import</span> run_shell
+
+CONFIG = {
+    <span class="s">"rules"</span>: [
+        (<span class="s">"read_file:**"</span>, <span class="s">"allow"</span>), (<span class="s">"list_dir:**"</span>, <span class="s">"allow"</span>),
+        (<span class="s">"run_shell:git status"</span>, <span class="s">"allow"</span>), (<span class="s">"run_shell:pytest*"</span>, <span class="s">"allow"</span>),
+        (<span class="s">"write_file:**"</span>, <span class="s">"ask"</span>),
+        (<span class="s">"run_shell:rm*"</span>, <span class="s">"deny"</span>), (<span class="s">"run_shell:git push*"</span>, <span class="s">"deny"</span>),
+    ],
+    <span class="s">"context_budget"</span>: <span class="n">100000</span>,
+    <span class="s">"budget"</span>: <span class="n">500000</span>,
+}
+
+TOOLS = {<span class="s">"read_file"</span>: read_file, <span class="s">"write_file"</span>: write_file,
+         <span class="s">"list_dir"</span>: list_dir, <span class="s">"run_shell"</span>: run_shell}
+
+<span class="k">def</span> <span class="f">main</span>():
+    parser = argparse.ArgumentParser(description=<span class="s">"CodeMate - AI 编程助手"</span>)
+    parser.add_argument(<span class="s">"task"</span>, nargs=<span class="s">"?"</span>, help=<span class="s">"任务描述"</span>)
+    parser.add_argument(<span class="s">"--reindex"</span>, action=<span class="s">"store_true"</span>, help=<span class="s">"重新索引代码库"</span>)
+    args = parser.parse_args()
+
+    <span class="c"># 初始化各层</span>
+    harness = Harness(CONFIG)
+    indexer  = CodeIndexer(<span class="s">"."</span>)
+    <span class="k">if</span> args.reindex <span class="k">or</span> not indexer.collection.count():
+        print(<span class="s">"📚 索引代码库..."</span>)
+        indexer.index_project()
+    retriever = CodeRetriever(indexer.collection)
+    skills    = SkillRegistry(<span class="s">"codemate/skills/builtin"</span>)
+
+    mate = CodeMate(harness, retriever, skills, TOOLS)
+
+    <span class="k">if</span> args.task:
+        <span class="c"># 单次任务模式</span>
+        print(mate.run(args.task))
+    <span class="k">else</span>:
+        <span class="c"># 交互模式</span>
+        print(<span class="s">"🤖 CodeMate 已就绪（输入 exit 退出）"</span>)
+        <span class="k">while</span> <span class="k">True</span>:
+            task = input(<span class="s">"</span><span class="d">\n</span><span class="s">❯ "</span>).strip()
+            <span class="k">if</span> task <span class="k">in</span> (<span class="s">"exit"</span>, <span class="s">"quit"</span>): <span class="k">break</span>
+            <span class="k">if</span> task: print(mate.run(task))
+
+    print(f<span class="s">"</span><span class="d">\n</span><span class="s">📊 本次成本：{harness.cost.report()}"</span>)
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    main()</code></pre>
+
+    <h2 class="section" id="demo"><span class="idx">09</span> 实跑演示</h2>
+    <div class="code-title">实际运行 CodeMate</div>
+    <pre><code><span class="c"># 首次运行，索引代码库</span>
+$ python -m codemate --reindex
+📚 索引代码库...
+✅ 索引完成：47 个代码符号
+
+<span class="c"># 让它写测试</span>
+$ python -m codemate "给 utils.py 里的 calculate_price 函数加单元测试"
+
+🤖 CodeMate 工作中...
+🔧 执行: read_file(path="utils.py")
+📋 结果: def calculate_price(base, tax_rate, discount=0):...
+🤔 分析：函数算 最终价 = base * (1+tax_rate) * (1-discount)
+🔧 执行: list_dir(path="tests")
+📋 结果: 📄 test_main.py
+🔧 执行: read_file(path="tests/test_main.py")
+📋 结果: import pytest ...（学习现有测试风格）
+⚠️ 确认 write_file(path="tests/test_utils.py", content="...")? [y/N]: y
+🔧 执行: write_file(...) → ✅ 已写入 tests/test_utils.py (412 字符)
+🔧 执行: run_shell(command="pytest tests/test_utils.py -v")
+📋 结果: [exit 0] ===== 4 passed in 0.12s =====
+
+✅ 已为 calculate_price 添加 4 个测试（正常/边界/折扣/异常），全部通过。
+改动：新增 tests/test_utils.py
+
+📊 本次成本：{'used': 8421, 'budget': 500000, 'calls': 6, 'ratio': 1.7%}</code></pre>
+
+    <p>看到了吗？CodeMate 自主完成了「读函数 → 学测试风格 → 设计用例 → 写文件 → 跑测试 → 通过」的完整流程。这就是 Harness + Agent Loop + RAG + Skill 协同的威力。</p>
+
+    <h2 class="section" id="evaluate"><span class="idx">10</span> 怎么评估和迭代 CodeMate</h2>
+    <p>做出来只是开始，要持续打磨。建议建立<strong>任务回归集</strong>：</p>
+    <div class="code-title">tests/tasks.py —— 任务回归集</div>
+    <pre><code><span class="c"># 一批标准任务，每次改 CodeMate 都跑，确保不退化</span>
+TASKS = [
+    {<span class="s">"task"</span>: <span class="s">"给 utils.py 的 calculate_price 加测试"</span>, <span class="s">"expect"</span>: <span class="s">"测试文件被创建且通过"</span>},
+    {<span class="s">"task"</span>: <span class="s">"修复 main.py 第 42 行的 bug"</span>,      <span class="s">"expect"</span>: <span class="s">"bug 修复且测试通过"</span>},
+    {<span class="s">"task"</span>: <span class="s">"把 User 类重构成 dataclass"</span>,         <span class="s">"expect"</span>: <span class="s">"重构后功能不变"</span>},
+    {<span class="s">"task"</span>: <span class="s">"这个项目的架构是什么？"</span>,               <span class="s">"expect"</span>: <span class="s">"准确的架构描述"</span>},
+]
+<span class="c"># 跑这批任务，统计成功率、平均步数、平均成本</span></code></pre>
+
+    <div class="grid cols-3">
+      <div class="callout note"><div class="head">📊 核心指标</div><p>成功率、平均步数、平均 token、平均耗时。</p></div>
+      <div class="callout tip"><div class="head">🔬 调优方向</div><p>改系统提示、加 Skill、调权限、换检索策略。</p></div>
+      <div class="callout pit"><div class="head">⚠️ 回归</div><p>每次改动跑任务集，防止「修了 A 坏了 B」。</p></div>
+    </div>
+
+    <h2 class="section" id="extend"><span class="idx">11</span> 进阶扩展方向</h2>
+    <p>CodeMate 是个起点，你可以往这些方向扩展：</p>
+    <div class="grid cols-2">
+      <div class="card"><span class="ic">🌐</span><h4>多语言支持</h4><p>Indexer 加 JS/Go/Java 的解析器。</p></div>
+      <div class="card"><span class="ic">🔌</span><h4>更多 MCP 工具</h4><p>接 GitHub、Jira、Slack、数据库 MCP Server。</p></div>
+      <div class="card"><span class="ic">👥</span><h4>多 Agent</h4><p>加「reviewer」子 Agent，写完代码自动审查。</p></div>
+      <div class="card"><span class="ic">🧠</span><h4>长期记忆</h4><p>记住项目规范、用户偏好、历史决策。</p></div>
+      <div class="card"><span class="ic">🖥️</span><h4>IDE 插件</h4><p>把 CLI 包装成 VSCode 插件。</p></div>
+      <div class="card"><span class="ic">📈</span><h4>本地小模型</h4><p>简单任务（路由、分类）用本地小模型省成本。</p></div>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">12</span> 本章小结：你刚刚造了一个产品</h2>
+    <div class="callout note">
+      <div class="head">📌 这一章证明了什么</div>
+      <p>通过 CodeMate，我们把前 10 章学的<strong>所有概念</strong>融成了一个真正能用的产品：</p>
+      <ul style="margin:6px 0;">
+        <li>第 1-2 章的<strong>模型理解</strong>：知道 GLM-5.2 能力边界、怎么调；</li>
+        <li>第 3 章的<strong>Harness</strong>：权限、Hook、成本控制让 CodeMate 安全可控；</li>
+        <li>第 4-5 章的<strong>Agent Loop</strong>：让 CodeMate 自主多步工作；</li>
+        <li>第 6 章的<strong>RAG</strong>：让 CodeMate 懂你的代码库；</li>
+        <li>第 8 章的<strong>Skills/MCP</strong>：让 CodeMate 复用经验、调用工具。</li>
+      </ul>
+      <p style="margin-top:8px;"><strong>这就是全栈 AI 工程的完整闭环</strong>。你已经具备了从模型到产品的全部能力。</p>
+    </div>
+
+    <blockquote>
+      恭喜你，完成了全书最重要的实战项目。下一章，我们换个角度——<strong>从零亲手训练一个迷你大模型</strong>，让你对「模型是怎么炼成的」有第一手的肌肉记忆。
+    </blockquote>
+
+    <div class="chapter-nav">
+      <a href="10-resources.html">
+        <div class="lbl">← 上一章</div>
+        <div class="ttl">10 · 开源资源与精选</div>
+      </a>
+      <a href="12-project-mini-llm.html" class="next">
+        <div class="lbl">下一章 →</div>
+        <div class="ttl">12 · 实战：从零训练迷你大模型</div>
+      </a>
+    </div>
+
+    <footer>
+      <p>AI 全栈实战教学 · 第 11 章 · 实战项目：企业级 AI 编程助手</p>
+      <p>本项目综合运用了前 10 章的全部知识 · 代码可直接复用</p>
+    </footer>
+  </main>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>
