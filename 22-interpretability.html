@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>22 · LLM 可解释性与机理 · AI 全栈实战教学</title>
+<title>LLM 可解释性与机理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<div class="progress" id="progress"></div>
+<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                          <aside class="sidebar">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +81,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +247,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -303,97 +305,55 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
   <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 22 · 专题深度</span>
-      <h1>LLM 可解释性与机理研究<br>打开大模型的黑箱</h1>
-      <p class="lead">大模型是黑箱——我们知道它有效，但不知道<strong>为什么</strong>。<strong>机理可解释性（Mechanistic Interpretability）</strong>试图打开黑箱，找到模型内部的「思想」是如何形成的。本章讲注意力分析、探针、Superposition、特征可视化、激活导引等前沿。</p>
-      <div class="meta"><span class="chip">阅读约 35 分钟</span><span class="chip">难度 ★★★★★</span><span class="chip">前置：第 01 章</span></div>
-    </section>
+    <section class="hero"><span class="eyebrow">◆ 原理深挖</span>
+    <h1>LLM 可解释性与机理</h1><p class="lead">打开黑箱：大模型的"思想"长什么样</p>
+    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>为什么可解释性是 AI 安全的核心</h2>
+    <p>LLM 是一个有几千亿参数的黑箱——我们知道它能工作，但不知道它"怎么"工作。这不只是学术问题，而是直接关系到 AI 安全：如果一个模型的能力是"涌现"出来的，我们甚至无法预测它会做什么。可解释性（interpretability）研究的终极目标，就是把这个黑箱打开，理解模型内部到底在"想"什么——这也是我们在第 245 章（涌现原理）里讲的"机制可解释性"方向的延伸。</p>
+    <p>可解释性分两个层次：① **事后解释**（post-hoc）——训练完之后，试图理解模型的行为（如"为什么它这么回答"）；② **机理理解**（mechanistic）——深入到神经元和电路层面，搞清楚模型的"算法"是什么。前者实用（给用户一个解释），后者根本（理解智能的本质）。Anthropic 的 Transformer Circuits Thread 是后者的标杆。</p>
+    <div class="callout"><strong>💡 要点</strong><br>可解释性的终极愿景：如果我们能完全读懂 LLM 的内部，就能（1）在危险能力涌现前预警，（2）精确修改模型行为（而不是靠 prompt 碰运气），（3）证明模型确实"理解"而非"记忆"。这是 AI 对齐的终极武器。</div>
+    <h2><span class="idx"></span>探针（Probing）：问模型"你在想什么"</h2>
+    <p>最基础的可解释性技术是探针。做法：取模型中间层的激活值（如第 20 层的 hidden states），训练一个小分类器（线性探针）来预测"这个激活值里编码了什么信息"。如果探针能从激活值里准确预测"当前输入是英语还是法语"、"句子是肯定还是否定"，说明模型在那一层确实编码了这些信息。</p>
+    <pre class="code"><code class="language-python"># 探针示例：检测 LLM 的某一层是否编码了"情感"
+from sklearn.linear_model import LogisticRegression
+import torch
 
-    <h2 class="section" id="why"><span class="idx">★</span> 为什么要打开黑箱</h2>
-    <div class="grid cols-3">
-      <div class="card"><span class="ic">🔍</span><h4>信任</h4><p>能解释的模型才敢用在医疗、法律等高风险领域。</p></div>
-      <div class="card"><span class="ic">🛠️</span><h4>调试</h4><p>模型出错时，知道哪一层哪个特征出了问题。</p></div>
-      <div class="card"><span class="ic">🛡️</span><h4>安全</h4><p>找到「欺骗」模型的内部机制，防越狱。</p></div>
-    </div>
+# 1. 用 LLM 对一批句子做推理，取第 N 层激活
+activations = []  # shape: [num_sentences, hidden_dim]
+for sentence in sentences:
+    with torch.no_grad():
+        out = model(sentence, output_hidden_states=True)
+    activations.append(out.hidden_states[20].mean(dim=1))  # 第20层
 
-    <h2 class="section" id="attention-analysis"><span class="idx">01</span> 注意力分析：模型在看哪里</h2>
-    <p>最直观的可解释性：看模型生成某个 token 时，<strong>注意力权重分布</strong>在关注哪些输入 token。</p>
-    <div class="code-title">attention_viz.py —— 可视化注意力</div>
-    <pre><code><span class="c">"""attention_viz.py —— 提取并可视化注意力权重"""</span>
-<span class="k">import</span> torch
-<span class="k">from</span> transformers <span class="k">import</span> AutoModelForCausalLM, AutoTokenizer
+# 2. 训练线性探针
+probe = LogisticRegression(max_iter=1000)
+probe.fit(activations, sentiment_labels)  # labels: 0=负面, 1=正面
 
-model = AutoModelForCausalLM.from_pretrained(<span class="s">"THUDM/glm-4-9b"</span>, output_attentions=<span class="k">True</span>)
-tok   = AutoTokenizer.from_pretrained(<span class="s">"THUDM/glm-4-9b"</span>)
-
-inputs = tok(<span class="s">"猫坐在垫子上"</span>, return_tensors=<span class="s">"pt"</span>)
-<span class="k">with</span> torch.no_grad():
-    out = model(**inputs)
-
-<span class="c"># out.attentions[layer][batch][head][query][key]</span>
-<span class="c"># 看「坐」对其他词的注意力</span>
-attn = out.attentions[<span class="n">0</span>][<span class="n">0</span>][<span class="n">0</span>]   <span class="c"># 第0层第0头</span>
-tokens = tok.convert_ids_to_tokens(inputs[<span class="s">"input_ids"</span>][<span class="n">0</span>])
-<span class="k">for</span> i, t <span class="k">in</span> <span class="f">enumerate</span>(tokens):
-    print(<span class="s">f"{t}: 关注度 {attn[3][i]:.2f}"</span>)   <span class="c"># 「坐」(idx 3) 对每个词的关注</span>
-<span class="c"># 你会看到「坐」主要关注「猫」（主语）——模型学到了主谓关系！</span></code></pre>
-
-    <div class="callout pit">
-      <div class="head">⚠️ 注意力 ≠ 解释</div>
-      <p>注意力权重并不总是「模型在做决策的原因」。它只是<strong>信息混合的权重</strong>，不等于因果。这是可解释性研究的重要争议。但作为<strong>线索</strong>仍有价值。</p>
-    </div>
-
-    <h2 class="section" id="probing"><span class="idx">02</span> 探针：模型内部「知道」什么</h2>
-    <p><strong>探针（Probing）</strong>：在模型的中间层表示上训练一个小分类器，看它能不能预测某个属性（如词性、情感、事实）。如果能，说明模型<strong>内部编码了</strong>这个信息。</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">输入：「巴黎是法国首都」</div>
-        <div style="color:var(--text-faint);">▼ 经过若干层</div>
-        <div class="node violet">中间层向量 h</div>
-        <div style="color:var(--text-faint);">▼ 接一个探针分类器</div>
-        <div class="node sky">探针能预测「巴黎→首都？是」→ 说明该层编码了事实</div>
-      </div>
-      <div class="cap">图 22-1 · 探针：检测中间层是否编码了特定信息</div>
-    </div>
-
-    <h2 class="section" id="features"><span class="idx">03</span> Superposition 与特征</h2>
-    <p>Anthropic 的突破性发现：模型内部用<strong>超完备（Superposition）</strong>方式编码特征——维度有限，但要表示的特征远多于维度，于是多个特征<strong>共享</strong>维度（近似正交）。</p>
-    <p>通过<strong>Sparse Autoencoder（稀疏自编码器）</strong>，可以从模型的稠密表示里解出<strong>可解释的单一特征</strong>。例如在 Claude 的某一层，找到了专门对「背叛」「真诚」「安全」等概念响应的特征。<strong>这是「读懂模型思想」的里程碑</strong>。</p>
-
-    <h2 class="section" id="steering"><span class="idx">04</span> 激活导引：直接操控模型行为</h2>
-    <p>如果能找到「诚实」对应的特征向量，那<strong>在推理时给该方向的激活加一个偏置</strong>，就能让模型更诚实。这叫<strong>激活导引（Activation Steering）</strong>。</p>
-    <div class="diagram">
-      <div class="flow">
-        <div class="node accent">中间层激活 h</div>
-        <span class="arrow">+</span>
-        <div class="node violet">α · v_诚实（特征方向）</div>
-        <span class="arrow">▶</span>
-        <div class="node sky">模型变得更「诚实」</div>
-      </div>
-      <div class="cap">图 22-2 · 激活导引：直接干预内部表示改变行为</div>
-    </div>
-    <p>这是<strong>无需重新训练就能调整模型行为</strong>的前沿技术，可用于安全（抑制有害）、个性化（调整风格）、能力增强（提升推理）。</p>
-
-    <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>可解释性动机：信任、调试、安全；</li>
-        <li><strong>注意力分析</strong>看模型关注哪里（但有局限）；</li>
-        <li><strong>探针</strong>检测中间层编码了什么信息；</li>
-        <li><strong>Superposition + 稀疏自编码器</strong>解出可解释特征；</li>
-        <li><strong>激活导引</strong>直接操控模型行为，无需重训。</li>
-      </ul>
-    </div>
-
+# 3. 如果准确率远超随机(50%)，说明该层编码了情感
+print(f"探测准确率: {probe.score(test_act, test_labels):.2%}")
+# 如果是 95%，说明第 20 层"知道"句子的情感</code></pre>
+    <p>探针实验揭示了 LLM 内部的"信息分层"：低层编码语法（词性/语法树），中层编码语义（实体/关系），高层编码任务逻辑（推理/情感）。这种分层结构和人脑的语言处理皮层有惊人的相似性——但这不意味着 LLM"像人脑"，只是说高效的信息处理会收敛到类似的分层结构。</p>
+    <h2><span class="idx"></span>注意力可视化：模型在看哪里</h2>
+    <p>注意力权重是最直观的可解释性工具：它直接告诉你"模型在生成每个词时，在看输入的哪些词"。可视化注意力矩阵，你能看到模型在做"指代消解"（看到"它"时回看前面的名词）、"对齐"（翻译时对应源词和目标词）。</p>
+    <table class="data-table"><thead><tr><th>注意力模式</th><th>含义</th><th>出现时机</th></tr></thead><tbody><tr><td>对角线</td><td>模型在看当前词自己</td><td>低层（语法处理）</td></tr><tr><td>斜线偏移</td><td>模型在看前一个/后一个词</td><td>短语/依存关系</td></tr><tr><td>长距离连线</td><td>模型在看很远的某个词</td><td>指代消解/全局推理</td></tr><tr><td>均匀分散</td><td>模型在看所有词（在做"总结"）</td><td>全局语义聚合</td></tr></tbody></table>
+    <p>但注意力的解释力有争议——"注意力 ≠ 解释"（Anthropic 的一篇论文标题）。因为注意力权重是 softmax 归一化的，多个 head 的注意力会互相影响，光看一个 head 的注意力图可能误导。更可靠的方法是综合所有 head，或者用"积分梯度"等归因方法。</p>
+    <h2><span class="idx"></span>电路分析：Anthropic 的突破</h2>
+    <p>Transformer Circuits Thread（Anthropic 的可解释性研究系列）做到了可解释性的里程碑：他们在真实模型里定位了**具体的功能电路**。最经典的发现是 **induction heads**（归纳头）——一种两层的 attention 电路，它做的事情是"看到当前 token A，回头找上一个 A 出现的位置，复制 A 后面跟着的 token"。这个简单的"查找-复制"电路，被证明是 in-context learning（上下文学习）的核心机制。</p>
+    <p>我们在第 245 章（涌现原理）详细讲过这个发现：induction heads 的形成是一个**锐利的相变**——训练到某一步突然出现，恰好对应模型获得 few-shot 学习能力的时刻。这是"涌现"有史以来最强的机制级证据。</p>
+    <h3>从 induction heads 到"字典学习"</h3>
+    <p>Anthropic 2024 年的最新工作用**稀疏自编码器（sparse autoencoder, SAE）**从 LLM 的激活值里分解出"可解释的特征"。他们发现，LLM 内部有数百万个"特征探测器"——有的对"黄金"这个词激活，有的对"背叛"这个概念激活，有的对"代码函数定义"激活。这些特征像"概念的原子"，LLM 的"思想"就是这些原子的组合。这是人类第一次窥见 LLM 内部的"概念表示"。</p>
+    <div class="callout"><strong>💡 要点</strong><br>可解释性研究的哲学意义：如果 LLM 的内部可以被完全解读，那"理解"就不再是黑箱。Anthropic 的 SAE 工作指向一个未来——我们能像调试程序一样"调试"神经网络的每一个概念，精确地"增加"或"删除"某个能力。这是 AI 安全的终极武器。</div>
+    <h2><span class="idx"></span>实用可解释性：给用户一个解释</h2>
+    <p>机理可解释性还在研究阶段，但实用可解释性已经能用了。生产中最常见的三种"给用户解释"的方法：</p>
+    <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>用户体验</th></tr></thead><tbody><tr><td>引用来源</td><td>RAG 检索到的原文片段</td><td>"这个答案来自第3段，点击查看"</td></tr><tr><td>注意力高亮</td><td>高亮模型重点关注的输入</td><td>标记关键词</td></tr><tr><td>Chain-of-Thought</td><td>让模型显式输出推理过程</td><td>展示"我先算...再算..."</td></tr><tr><td>反事实解释</td><td>"如果输入改一点，结果会怎样"</td><td>"如果你的分数高10分，建议会变成..."</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>可解释性分两层：事后解释（实用，给用户理由）和机理理解（根本，理解黑箱）。核心技术：探针（检测中间层编码了什么）、注意力可视化（看模型关注哪里）、电路分析（定位功能电路，如 induction heads）、稀疏自编码器（分解出"概念原子"）。Anthropic 的 Transformer Circuits 工作是里程碑——第一次在真实模型里定位了具体电路，证明"黑箱可以被打开"。可解释性是 AI 安全的终极武器：如果我们能完全读懂模型内部，就能预警危险、精确修改行为、证明理解。</p>
     <div class="chapter-nav">
-      <a href="21-a2a-protocol.html"><div class="lbl">← 上一章</div><div class="ttl">21 · A2A 协议实战</div></a>
-      <a href="23-diffusion.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">23 · 扩散模型与生图</div></a>
+    <a href="21-a2a-protocol.html"><div class="lbl">← 上一章</div><div class="ttl">21 · A2A 多智能体协议实战</div></a>
+    <a href="23-diffusion.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">23 · 扩散模型与图像生成</div></a>
     </div>
-    <footer><p>AI 全栈实战教学 · 第 22 章 · 可解释性与机理</p><p>参考：Anthropic 机理可解释性 · 探针论文 · Sparse Autoencoder</p></footer>
+    <footer><p>AI 全栈实战教学 · 第 22 章 · LLM 可解释性与机理</p></footer>
   </main>
 </div>
 <script src="assets/main.js"></script>

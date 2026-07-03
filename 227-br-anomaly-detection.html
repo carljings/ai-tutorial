@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>异常检测：发现数据中的"不正常" · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>异常检测：发现数据中的"不正常" · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,26 +295,45 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>异常检测</h1><p class="lead">大海捞针找异常</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>异常检测的应用场景</h2>
-    <p>信用卡欺诈检测（这笔交易正常吗）、工业设备故障预警（这个传感器读数异常吗）、网络入侵检测（这个流量模式是攻击吗）、医疗异常发现（这个检查结果需要关注吗）。这些场景的共同点：正常数据很多，异常数据很少——传统分类器学不好。异常检测专门解决"少数派发现问题"。</p>
-    <h2><span class="idx"></span>主要方法</h2>
-    <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>适合</th></tr></thead><tbody><tr><td>统计方法</td><td>假设正常数据服从某分布，偏离即异常</td><td>简单场景，数据分布已知</td></tr><tr><td>Isolation Forest</td><td>异常点容易被随机分割"孤立"</td><td>通用，效果好</td></tr><tr><td>自编码器</td><td>正常数据能重建，异常重建误差大</td><td>高维数据</td></tr><tr><td>One-class SVM</td><td>学正常数据的边界，界外即异常</td><td>中小规模</td></tr></tbody></table>
-    <h2><span class="idx"></span>与 AI 系统的关联：质量监控</h2>
-    <p>在 LLM/Agent 系统中，异常检测的关联是"质量监控"——检测输出是否偏离正常模式。比如回答长度突然异常（变极短或极长）、工具调用频率异常飙升、某类问题突然集中出现。这些"行为异常"可能暗示系统出了问题。用异常检测技术监控 AI 系统的健康状态，是生产运维的实用手段。</p>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>异常检测：发现数据中的"不正常"</h1><p class="lead">从信用卡欺诈到设备故障——异常检测的方法论</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>异常检测的本质：在无标签里找"少数派"</h2>
+    <p>异常检测的核心难点：你通常没有"异常样本"来训练——异常是稀少的、不可预期的、形态多变的。所以异常检测大多用**无监督**方法——学习"正常"长什么样，偏离正常的就是异常。这和分类问题（有标签）完全不同。</p>
+    <div class="callout"><strong>💡 要点</strong><br>异常检测 vs 分类的关键区别：分类需要每个类别的标注样本；异常检测通常只有"正常"样本，通过"偏离正常"来定义异常。这让异常检测能在"不知道异常长什么样"的情况下工作——这是它的价值也是它的挑战。</div>
+    <h2><span class="idx"></span>主流方法</h2>
+    <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>统计方法(3σ/Z-score)</td><td>偏离均值 N 个标准差</td><td>简单可解释</td><td>只适合正态分布</td></tr><tr><td>Isolation Forest</td><td>异常点容易被随机分割孤立</td><td>高效、无需假设分布</td><td>对高维效果下降</td></tr><tr><td>One-Class SVM</td><td>学习正常数据的边界</td><td>理论基础好</td><td>大规模慢</td></tr><tr><td>Autoencoder</td><td>重建误差大=异常</td><td>非线性、可深度</td><td>需大量正常数据</td></tr><tr><td>LLM 异常检测</td><td>让 LLM 判断"这正常吗"</td><td>可解释、零样本</td><td>成本高、速度慢</td></tr></tbody></table>
+    <h3>Autoencoder 方法详解</h3>
+    <p>Autoencoder 是最流行的深度异常检测方法：训练一个编码器-解码器重建"正常"数据。测试时，如果某个样本的重建误差远大于正常水平，就是异常——因为模型只见过正常数据，不会重建异常模式。</p>
+    <pre class="code"><code class="language-python"># Autoencoder 异常检测
+import torch.nn as nn
+
+class AnomalyAE(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.encoder = nn.Sequential(
+            nn.Linear(dim, 64), nn.ReLU(),
+            nn.Linear(64, 16), nn.ReLU(),
+        )
+        self.decoder = nn.Sequential(
+            nn.Linear(16, 64), nn.ReLU(),
+            nn.Linear(64, dim),
+        )
+    def forward(self, x):
+        return self.decoder(self.encoder(x))
+
+# 训练：只用正常数据
+model = AnomalyAE(dim=100)
+for x in normal_data:  # 只有正常样本
+    loss = mse(model(x), x)  # 重建误差
+    loss.backward()
+
+# 检测：重建误差 &gt; 阈值 = 异常
+threshold = compute_threshold(validation_normal)  # 如 99 分位数
+is_anomaly = mse(model(test_sample), test_sample) &gt; threshold</code></pre>
+    <h2><span class="idx"></span>应用场景</h2>
+    <table class="data-table"><thead><tr><th>场景</th><th>数据</th><th>挑战</th><th>推荐方法</th></tr></thead><tbody><tr><td>信用卡欺诈</td><td>交易记录</td><td>极度不平衡(1:10000)</td><td>Isolation Forest + 规则</td></tr><tr><td>设备故障预警</td><td>传感器时序</td><td>故障样本极少</td><td>Autoencoder</td></tr><tr><td>网络入侵</td><td>流量日志</td><td>攻击类型不断变</td><td>One-Class SVM</td></tr><tr><td>日志异常</td><td>系统日志文本</td><td>非结构化</td><td>LLM + 向量检索</td></tr></tbody></table>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>异常检测专门解决"少数派发现"问题。主要方法有统计方法、Isolation Forest、自编码器。在 AI 系统中，异常检测可用于监控输出质量、检测行为漂移。</p>
+    <p>异常检测在无标签场景下找"少数派"，核心是学习"正常"模型，偏离正常即为异常。主流方法：统计(3σ)、Isolation Forest(高效)、Autoencoder(深度非线性)、LLM(可解释零样本)。关键是选对方法——简单场景用统计/IF，复杂高维用 Autoencoder，需要解释性用 LLM。</p>
     <div class="chapter-nav">
-    <a href="226-br-gnn.html"><div class="lbl">← 上一章</div><div class="ttl">226 · 图神经网络 GNN：处理图结构数据</div></a>
-    <a href="228-br-timeseries.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">228 · 时间序列预测：从数据中看趋势</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 251 章 · 异常检测：发现数据中的"不正常"</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="226-br-gnn.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 227 章 · 异常检测：发现数据中的"不正常"</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

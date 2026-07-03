@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>30 · AI 产品设计 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 产品设计 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,82 +295,21 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 30 · 专题深度</span>
-      <h1>AI 产品设计与方法论<br>技术之外的产品思维</h1>
-      <p class="lead">技术再强，做不出好产品也是白搭。AI 产品有其独特的设计挑战：不确定性（模型可能出错）、延迟、成本、信任。本章讲 AI 产品与传统产品的差异、设计原则、商业模式、用户教育。</p>
-      <div class="meta"><span class="chip">阅读约 25 分钟</span><span class="chip">难度 ★★☆</span><span class="chip">前置：全册</span></div>
-    </section>
-
-    <h2 class="section" id="differences"><span class="idx">★</span> AI 产品的独特性</h2>
-    <table>
-      <thead><tr><th>维度</th><th>传统软件</th><th>AI 产品</th></tr></thead>
-      <tbody>
-        <tr><td>确定性</td><td>输入→固定输出</td><td>输入→概率性输出（可能错）</td></tr>
-        <tr><td>延迟</td><td>毫秒级</td><td>秒级~分钟级</td></tr>
-        <tr><td>成本</td><td>固定（服务器）</td><td>按使用量（token）</td></tr>
-        <tr><td>质量</td><td>100% 正确</td><td>90%+ 正确（需兜底）</td></tr>
-        <tr><td>演进</td><td>发版更新</td><td>持续学习+模型升级</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="principles"><span class="idx">01</span> AI 产品设计六原则</h2>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">🛡️</span><h4>1. 优雅降级</h4><p>模型出错时，有合理的兜底，别让用户看到原始报错。</p></div>
-      <div class="card"><span class="ic">👁️</span><h4>2. 透明度</h4><p>告诉用户这是 AI 生成、给出引用、标注置信度。</p></div>
-      <div class="card"><span class="ic">✏️</span><h4>3. 可编辑</h4><p>AI 输出永远可让用户修改，别让它「霸占」结果。</p></div>
-      <div class="card"><span class="ic">⚡</span><h4>4. 流式反馈</h4><p>别让用户干等，流式输出 + 进度提示。</p></div>
-      <div class="card"><span class="ic">🔁</span><h4>5. 可重试</h4><p>「再生成一次」按钮是 AI 产品标配。</p></div>
-      <div class="card"><span class="ic">🎯</span><h4>6. 控制粒度</h4><p>给用户控制权：高级用户可调参数，普通用户用默认。</p></div>
-    </div>
-
-    <h2 class="section" id="use-cases"><span class="idx">02</span> AI 产品的高价值场景</h2>
-    <p>不是所有场景都适合 AI。AI 的核心价值在：</p>
-    <ul>
-      <li><strong>处理非结构化数据</strong>（文档、对话、图像）——传统软件做不到；</li>
-      <li><strong>创造性工作</strong>（写作、设计、代码）——AI 放大人的创造力；</li>
-      <li><strong>个性化</strong>（推荐、辅导）——AI 让每个人得到定制体验；</li>
-      <li><strong>7×24 服务</strong>（客服、问答）——AI 不知疲倦；</li>
-      <li><strong>知识密集型任务</strong>（法律、医疗、研究）——AI 辅助专家。</li>
-    </ul>
-    <div class="callout pit">
-      <div class="head">⚠️ 别在错误的地方用 AI</div>
-      <p>确定性的、规则明确的、零容错的任务（如计费、转账），<strong>用传统软件</strong>。AI 的不确定性在这些场景是灾难。AI 适合「<strong>对了 90% 就有价值、错了能容忍</strong>」的场景。</p>
-    </div>
-
-    <h2 class="section" id="business"><span class="idx">03</span> 商业模式</h2>
-    <table>
-      <thead><tr><th>模式</th><th>适合</th><th>注意</th></tr></thead>
-      <tbody>
-        <tr><td>API 计费</td><td>平台型</td><td>成本透明但用户难预估</td></tr>
-        <tr><td>订阅制</td><td>工具型（Cursor、ChatGPT Plus）</td><td>高频用户占便宜，需控成本</td></tr>
-        <tr><td>按结果付费</td><td>任务型（法律文书、设计稿）</td><td>对质量要求高</td></tr>
-        <tr><td>嵌入式（B2B2C）</td><td>企业服务</td><td>私有化部署需求（第 16 章）</td></tr>
-        <tr><td>免费+增值</td><td>消费级</td><td>免费层要有成本控制</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="summary"><span class="idx">04</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>AI 产品独特：不确定性、延迟、成本、质量都不同；</li>
-        <li>六原则：降级、透明、可编辑、流式、可重试、控制粒度；</li>
-        <li>高价值场景：非结构化/创造/个性化/知识密集；</li>
-        <li>别在零容错场景用 AI；</li>
-        <li>商业模式要匹配成本结构。</li>
-      </ul>
-    </div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 产品设计</h1><p class="lead">从"能用"到"好用"——AI 产品的设计哲学</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>AI 产品设计的核心矛盾：能力 vs 期望</h2>
+    <p>传统产品的逻辑是"功能确定"——你点按钮 A，一定发生 B。AI 产品的逻辑是"概率性的"——你问同一个问题，可能得到不同答案。这个根本差异让传统产品设计方法论（确定性交互/明确反馈/完整测试）大面积失效。AI 产品设计的核心就是：**如何用产品设计弥补模型的不确定性，让用户获得"确定性体验"**。</p>
+    <div class="callout"><strong>💡 要点</strong><br>AI 产品设计的第一原则：**永远不要让用户感到"不可控"**。模型可以不确定，但产品体验必须可控——用户需要知道"AI 在干嘛、结果可不可信、错了能怎么改"。这是 AI 产品成败的分水岭。</div>
+    <h2><span class="idx"></span>AI 产品的四大设计原则</h2>
+    <table class="data-table"><thead><tr><th>原则</th><th>传统产品</th><th>AI 产品</th><th>实现</th></tr></thead><tbody><tr><td>透明</td><td>功能可见即可用</td><td>AI 的推理不可见</td><td>展示思考过程/引用来源</td></tr><tr><td>可控</td><td>用户直接操作</td><td>AI 自主执行</td><td>渐进式自主/确认机制</td></tr><tr><td>容错</td><td>错误可避免</td><td>错误必然发生</td><td>优雅降级/可纠正</td></tr><tr><td>信任</td><td>功能=承诺</td><td>AI 可能出错</td><td>置信度展示/可溯源</td></tr></tbody></table>
+    <h2><span class="idx"></span>设计模式：从 Chatbot 到 Copilot 到 Agent</h2>
+    <p>AI 产品的交互形态在快速进化：</p>
+    <table class="data-table"><thead><tr><th>形态</th><th>交互模式</th><th>用户角色</th><th>代表</th></tr></thead><tbody><tr><td>Chatbot</td><td>一问一答</td><td>提问者</td><td>早期 ChatGPT</td></tr><tr><td>Copilot</td><td>AI 辅助+人主导</td><td>编辑者</td><td>GitHub Copilot/Cursor</td></tr><tr><td>Agent</td><td>AI 自主执行+人监督</td><td>监督者</td><td>Devin/AutoGPT</td></tr></tbody></table>
+    <p>从 Chatbot → Copilot → Agent，AI 的自主性越来越强，人的角色从"主导者"变成"监督者"。产品设计要匹配这个转变——自主性越强，越需要"透明（看得见在干嘛）"和"可控（能干预）"的设计。我们在第 220 章（Agent 错误降级）和第 219 章（人在回路）深入讨论了这个。</p>
+    <h2><span class="idx"></span>AI 产品的冷启动问题</h2>
+    <p>传统产品冷启动靠"功能够多"。AI 产品冷启动靠"第一次体验够惊艳"——用户第一次用就要感受到"哇，这个 AI 真的懂我"。这就是为什么 ChatGPT 上线时用一个精心设计的对话框+几个示例 prompt——它要在 30 秒内征服用户。AI 产品的冷启动设计：① 预设优质示例（让用户一键体验）；② 首次响应极快（用缓存/小模型先回）；③ 容忍初期不完美（用反馈机制快速改进）。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>AI 产品设计的核心是用产品弥补模型不确定性，让用户体验"可控"。四大原则：透明（展示推理/引用）、可控（渐进自主/确认）、容错（优雅降级）、信任（置信度/溯源）。交互形态从 Chatbot→Copilot→Agent 进化，自主性越强越需透明+可控。冷启动靠"30 秒惊艳"。</p>
     <div class="chapter-nav">
-      <a href="29-memory-systems.html"><div class="lbl">← 上一章</div><div class="ttl">29 · 记忆系统深度</div></a>
-      <a href="31-federated-learning.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">31 · 联邦学习</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 30 章 · AI 产品设计与方法论</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="29-memory-systems.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 30 章 · AI 产品设计</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

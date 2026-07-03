@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>时间序列预测：从数据中看趋势 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>时间序列预测：从数据中看趋势 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,26 +295,13 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>时间序列预测</h1><p class="lead">从历史数据预测未来</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>时间序列无处不在</h2>
-    <p>股价预测、销量预测、天气预测、流量预测、能耗预测——这些都是时间序列问题。核心是从历史数据中学习时间模式（趋势/周期/季节性），预测未来。传统方法（ARIMA/指数平滑）和深度学习方法（LSTM/Transformer/TimeSNet）各有适用场景。</p>
-    <h2><span class="idx"></span>传统方法 vs 深度学习</h2>
-    <table class="data-table"><thead><tr><th>方法</th><th>特点</th><th>适合</th></tr></thead><tbody><tr><td>ARIMA</td><td>经典统计方法，可解释</td><td>短期、线性、稳定序列</td></tr><tr><td>Prophet</td><td>Facebook 出品，处理季节性好</td><td>有强季节性的业务数据</td></tr><tr><td>LSTM/GRU</td><td>循环神经网络，捕捉长依赖</td><td>中等复杂度序列</td></tr><tr><td>Transformer for TS</td><td>注意力机制，捕捉全局依赖</td><td>复杂、长序列</td></tr><tr><td>TimesNet/TimeMixer</td><td>最新 SOTA</td><td>多尺度周期数据</td></tr></tbody></table>
-    <h2><span class="idx"></span>与 AI 系统的关联</h2>
-    <p>在 AI 系统运维中，时间序列预测用于：预测 token 消耗趋势（容量规划）、预测流量峰值（扩容准备）、预测模型质量变化趋势（提前发现退化）。这些"运维预测"让 AI 系统从"被动监控"进化为"主动预警"。</p>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>时间序列预测：从数据中看趋势</h1><p class="lead">从股票到天气——时间序列预测的 AI 方法</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>时间序列：最常见但最难的数据</h2>
+    <p>时间序列无处不在——股价、气温、销量、流量、心率。它的核心特征：**有时间依赖性**（今天的值和昨天有关），不能像表格数据一样打乱顺序。这使得传统 ML 方法（随机森林/XGBoost）效果有限——它们不"理解"时间结构。</p>
+    <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>ARIMA</td><td>自回归+差分</td><td>可解释、稳定</td><td>线性假设、难调参</td></tr><tr><td>Prophet</td><td>趋势+季节+节假日</td><td>自动、好调</td><td>Facebook 系、通用性一般</td></tr><tr><td>LSTM/GRU</td><td>循环神经网络</td><td>非线性、长依赖</td><td>训练慢、数据需求大</td></tr><tr><td>Transformer (Informer)</td><td>注意力机制</td><td>长序列好、并行</td><td>计算量大</td></tr><tr><td>Time-LLM</td><td>用 LLM 做时序</td><td>零样本、可解释</td><td>成本高、精度待验证</td></tr></tbody></table>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>时间序列预测从历史数据学时间模式。传统方法（ARIMA/Prophet）适合简单场景，深度学习（LSTM/Transformer）适合复杂序列。在 AI 运维中用于容量规划和趋势预警。</p>
+    <p>时间序列预测方法从 ARIMA（线性）→ LSTM（非线性）→ Transformer（长序列）→ Time-LLM（零样本）演进。选择取决于数据量和场景——小数据用 Prophet，大数据用 Transformer，需要零样本用 LLM。核心难点是"时间依赖性"和"非平稳性"。</p>
     <div class="chapter-nav">
-    <a href="227-br-anomaly-detection.html"><div class="lbl">← 上一章</div><div class="ttl">227 · 异常检测：发现数据中的"不正常"</div></a>
-    <a href="229-br-responsible-ai.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">229 · 负责任 AI 文档：模型卡与数据卡</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 252 章 · 时间序列预测：从数据中看趋势</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="227-br-anomaly-detection.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 228 章 · 时间序列预测：从数据中看趋势</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

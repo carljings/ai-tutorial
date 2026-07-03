@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>图神经网络 GNN：处理图结构数据 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>图神经网络 GNN：处理图结构数据 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,28 +295,32 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>图神经网络 GNN</h1><p class="lead">AI 不只处理文本和图像</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>图数据无处不在</h2>
-    <p>社交网络（人-人关系）、知识图谱（实体-关系）、分子结构（原子-化学键）、交通网络（路口-道路）——这些都是图结构数据。CNN 处理网格数据（图像），Transformer 处理序列（文本），GNN 处理图。GNN 通过"消息传递"让每个节点聚合邻居信息，从而学习节点的表示。</p>
-    <h2><span class="idx"></span>消息传递机制</h2>
-    <p>GNN 的核心是消息传递（Message Passing）：每个节点把自己的特征"传"给邻居，同时接收邻居的特征，聚合后更新自己的表示。多轮传递后，每个节点的表示既包含自身信息，也包含多跳邻居的信息。这就像"你朋友的朋友的信息也会影响你"。</p>
-    <h2><span class="idx"></span>经典 GNN 变体</h2>
-    <table class="data-table"><thead><tr><th>模型</th><th>特点</th><th>应用</th></tr></thead><tbody><tr><td>GCN</td><td>图卷积，用度归一化</td><td>节点分类</td></tr><tr><td>GraphSAGE</td><td>采样邻居，可处理大图</td><td>大图/归纳学习</td></tr><tr><td>GAT</td><td>注意力机制给邻居加权</td><td>关注重要邻居</td></tr><tr><td>GIN</td><td>理论上最具表达能力</td><td>图分类</td></tr></tbody></table>
-    <h2><span class="idx"></span>与 LLM 的结合：GraphRAG</h2>
-    <p>GNN 在 AI 教程中的关联点是 GraphRAG——把文档抽取为知识图谱，用图遍历增强检索。这能解决"跨文档推理"类问题（如"A 公司的竞争对手的 CEO 是谁"需要多跳推理）。微软的 GraphRAG 就是这个思路。GNN 可以为图谱中的实体学表示，辅助检索。</p>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>图神经网络 GNN：处理图结构数据</h1><p class="lead">当数据是"关系网"而非"表格"——GNN 的原理与应用</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>不是所有数据都是表格——有些是"图"</h2>
+    <p>传统深度学习擅长处理网格数据（图像=CNN，文本=Transformer）。但很多真实世界数据是**图结构**的——社交网络（人/关注关系）、知识图谱（实体/关系）、分子结构（原子/化学键）、交通网络（路口/道路）。这些数据没有规则的网格，传统 CNN/Transformer 直接用效果差。图神经网络（GNN）就是为图结构数据设计的。</p>
+    <div class="callout"><strong>💡 要点</strong><br>GNN 的核心洞察：一个节点的"表示"应该融合它邻居的信息。就像你了解一个人，不光看他自己的属性，还要看他的朋友圈——GNN 就是"通过邻居认识节点"。</div>
+    <h2><span class="idx"></span>消息传递机制：GNN 的核心</h2>
+    <p>GNN 的基本操作是"消息传递（message passing）"：每一层，每个节点收集邻居的信息，更新自己的表示。经过 K 层后，每个节点的表示融合了 K 跳邻居的信息。</p>
+    <pre class="code"><code class="language-text">GNN 消息传递（K 层 = 看 K 跳邻居）
+
+第 0 层：每个节点只有自己的初始特征
+  A: [1,0,0]   B: [0,1,0]   C: [0,0,1]
+
+第 1 层：聚合直接邻居
+  A ← B,C 的特征 → A: [1, 0.5, 0.5]   (融合了邻居)
+
+第 2 层：聚合邻居的邻居
+  A ← B(已含D) + C(已含E) → A: [1, 0.5, 0.5, 0.25, 0.25]
+
+K 层后：每个节点"看到"了 K 跳内的所有邻居
+→ 可用于节点分类/链路预测/图分类</code></pre>
+    <h2><span class="idx"></span>GNN 的三大主流变体</h2>
+    <table class="data-table"><thead><tr><th>变体</th><th>聚合方式</th><th>特点</th><th>适用</th></tr></thead><tbody><tr><td>GCN</td><td>加权平均邻居</td><td>简单高效</td><td>同构图</td></tr><tr><td>GAT</td><td>注意力加权邻居</td><td>学习邻居重要性</td><td>异构图</td></tr><tr><td>GraphSAGE</td><td>采样固定数量邻居</td><td>可扩展到大图</td><td>十亿节点</td></tr></tbody></table>
+    <h2><span class="idx"></span>GNN + LLM：知识图谱增强</h2>
+    <p>GNN 和 LLM 的结合是当前热点：LLM 擅长文本理解，GNN 擅长关系推理。用 LLM 从文本抽取实体/关系建图，用 GNN 在图上做推理——这就是 GraphRAG 的技术基础（我们在知识库章讲过）。微软的 GraphRAG 本质就是 LLM（抽取）+ 图算法（社区检测）+ LLM（社区摘要+问答）的组合。</p>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>GNN 处理图结构数据，核心是消息传递机制。在 LLM 时代，GNN 的主要关联是 GraphRAG——知识图谱增强检索。理解 GNN 有助于理解图谱如何辅助 AI 推理。</p>
+    <p>GNN 处理图结构数据（社交网络/知识图谱/分子），核心是消息传递——每层聚合邻居信息更新节点表示。三大变体：GCN（加权平均）、GAT（注意力加权）、GraphSAGE（采样可扩展）。GNN+LLM 的结合（GraphRAG）是知识库增强的前沿方向。</p>
     <div class="chapter-nav">
-    <a href="225-comp-edge.html"><div class="lbl">← 上一章</div><div class="ttl">225 · 端侧部署实战：手机/嵌入式跑模型</div></a>
-    <a href="227-br-anomaly-detection.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">227 · 异常检测：发现数据中的"不正常"</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 250 章 · 图神经网络 GNN：处理图结构数据</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="225-comp-edge.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 226 章 · 图神经网络 GNN：处理图结构数据</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>42 · AI 系统设计与面试 · AI 全栈实战教学</title>
+<title>AI 系统设计与面试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<div class="progress" id="progress"></div>
+<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                          <aside class="sidebar">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +81,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +247,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -303,62 +305,82 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
   <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 42 · 专题深度</span>
-      <h1>AI 系统设计与面试<br>大模型时代的经典题</h1>
-      <p class="lead">「设计一个 AI 客服系统」「设计一个编程助手」「设计一个 RAG 问答」——这些是 2026 年 AI 面试的高频题。本章用系统设计的方法论，剖析 5 道经典 AI 系统设计题。</p>
-      <div class="meta"><span class="chip">阅读约 30 分钟</span><span class="chip">难度 ★★★</span><span class="chip">前置：全册</span></div>
-    </section>
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span>
+    <h1>AI 系统设计与面试</h1><p class="lead">从 RAG 到多模态搜索：AI 时代的系统设计方法论</p>
+    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>为什么 AI 系统设计和传统系统设计不同</h2>
+    <p>传统系统设计面试（如"设计一个 Twitter"）关注：负载均衡、缓存、数据库分片、消息队列。AI 系统设计面试（如"设计一个智能客服"）多了三个新维度：① **模型推理延迟不可预测**（同样输入，推理时间可能差 2-3 倍）；② **输出不确定**（同一输入，每次输出可能不同）；③ **需要"知识层"**（向量库/知识图谱/RAG）。这三个维度让传统的 SLA 保障、缓存策略、一致性设计全部要重新考虑。</p>
+    <div class="callout"><strong>💡 要点</strong><br>AI 系统设计的核心矛盾：**用户期望"秒回 + 永远正确"，但 LLM 给的是"可能要等几秒 + 可能出错"**。整个架构设计就是围绕"如何用工程手段弥补模型的延迟和不确定性"展开的。</div>
+    <h2><span class="idx"></span>典型 AI 系统设计题：设计一个企业智能客服</h2>
+    <p>这是最常见的 AI 系统设计面试题。面试官会期望你在 40 分钟内覆盖：需求分析、高层架构、核心组件设计、瓶颈分析、扩展性。</p>
+    <h3>第一步：需求澄清（5 分钟）</h3>
+    <table class="data-table"><thead><tr><th>维度</th><th>要问的问题</th><th>影响</th></tr></thead><tbody><tr><td>规模</td><td>日活多少？峰值 QPS？</td><td>决定是否需要分布式推理</td></tr><tr><td>延迟</td><td>用户可接受的首 token 延迟？</td><td>决定是否流式输出</td></tr><tr><td>知识</td><td>有几条 FAQ？知识多久更新？</td><td>决定用 RAG 还是微调</td></tr><tr><td>安全</td><td>能回答所有问题吗？有无禁区？</td><td>决定安全过滤层设计</td></tr><tr><td>成本</td><td>每月预算？</td><td>决定模型选型和缓存策略</td></tr></tbody></table>
+    <h3>第二步：高层架构（10 分钟）</h3>
+    <pre class="code"><code class="language-text">企业智能客服高层架构
 
-    <h2 class="section" id="method"><span class="idx">★</span> AI 系统设计四步法</h2>
-    <div class="steps">
-      <div class="step"><h4>① 需求澄清</h4><p>用户量？QPS？延迟要求？准确率要求？成本约束？</p></div>
-      <div class="step"><h4>② 架构设计</h4><p>选模式（第 41 章）：直连/RAG/Agent/混合。画架构图。</p></div>
-      <div class="step"><h4>③ 关键技术</h4><p>模型选型、检索方案、上下文管理、成本控制。</p></div>
-      <div class="step"><h4>④ 瓶颈与优化</h4><p>延迟、成本、准确性、安全性如何保证。</p></div>
-    </div>
+用户消息
+    │
+    ▼
+[安全过滤] → 有害内容拦截
+    │
+    ▼
+[意图分类] → 小模型快速判断：FAQ/闲聊/转人工
+    │         │           │
+    │         ▼           ▼
+    │    [FAQ 匹配]   [闲聊 LLM]
+    │    向量精确匹配   小模型即可
+    │         │
+    ▼
+[RAG 检索] → 向量库召回 + rerank
+    │
+    ▼
+[LLM 生成] → 大模型基于检索结果回答
+    │
+    ▼
+[安全检查] → 输出过滤
+    │
+    ▼
+[流式返回] → SSE 推给用户
+    │
+    ▼
+[日志+反馈] → 记录答案，收集用户反馈
+                 → 数据飞轮</code></pre>
+    <h3>第三步：核心组件深挖（15 分钟）</h3>
+    <p>面试官会让你选一个组件深入。最常被问的是 RAG 检索层和推理服务层：</p>
+    <p>**RAG 检索层**要讲清：文档怎么切块（按标题/语义/固定大小）、embedding 模型选型（bge-large/e5/text-embedding-3）、向量库选型（Milvus/Qdrant/pgvector）、是否需要 reranker（cross-encoder 精排）、如何处理多轮对话的 query 改写。</p>
+    <p>**推理服务层**要讲清：用 vLLM/TGI 做批处理、用 prefix caching 加速公共 system prompt、模型量化（int8/int4）降低显存、多副本部署做负载均衡、优雅降级（大模型挂了用小模型顶）。</p>
+    <h2><span class="idx"></span>AI 系统的四个经典瓶颈与解法</h2>
+    <table class="data-table"><thead><tr><th>瓶颈</th><th>表现</th><th>工程解法</th></tr></thead><tbody><tr><td>推理延迟</td><td>首 token &gt;2s，用户流失</td><td>流式输出 + 小模型预热 + prefix cache</td></tr><tr><td>成本</td><td>每请求 $0.05，日活万级就破产</td><td>缓存（精确+语义）+ 模型路由 + 批处理</td></tr><tr><td>幻觉</td><td>编造不存在的信息</td><td>RAG + 输出校验 + 置信度门槛</td></tr><tr><td>并发</td><td>GPU 利用率低或 OOM</td><td>vLLM 连续批处理 + PagedAttention</td></tr></tbody></table>
+    <h2><span class="idx"></span>面试加分项：你能聊多深</h2>
+    <p>区分"背了模板"和"真懂"的关键，是你能不能在某个点上深入到底。比如面试官问"你的 RAG 召回率只有 60%，怎么办"，如果你能说出以下排查链，就是加分：</p>
+    <pre class="code"><code class="language-text">RAG 召回率排查链（从易到难）
 
-    <h2 class="section" id="q1"><span class="idx">01</span> 题 1：设计 AI 客服系统</h2>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">📋</span><h4>需求</h4><p>自动回答用户咨询，基于产品文档。万级 QPS，秒级响应，90%+ 准确率，无法回答转人工。</p></div>
-      <div class="card"><span class="ic">🏗️</span><h4>架构</h4><p>RAG 模式（第 6 章）：文档索引→向量检索→GLM 生成→带引用。人工兜底。</p></div>
-    </div>
-    <p><strong>关键决策</strong>：用小模型（快/省）做意图分类+简单问答，复杂问题才调大模型；KV Cache + prompt caching 降成本；流式输出降延迟。</p>
+1. 切块问题？
+   → 检查 chunk 是否切断语义单元
+   → 换语义切块 / 父子切块
 
-    <h2 class="section" id="q2"><span class="idx">02</span> 题 2：设计 AI 编程助手</h2>
-    <p>参考第 11 章 CodeMate：Harness + Agent Loop + 代码 RAG + Skills。关键点：PEV 循环（写完跑测试）、权限控制、子 Agent 上下文隔离、成本控制。</p>
+2. embedding 问题？
+   → 换更强模型（bge-large &gt; e5-small）
+   → 检查是否中英文不匹配
 
-    <h2 class="section" id="q3"><span class="idx">03</span> 题 3：设计企业知识库</h2>
-    <p>参考第 13 章 AskCorp：多格式解析、混合检索+Rerank、带引用生成、增量更新、权限隔离、评估闭环。</p>
+3. 检索问题？
+   → 加 BM25 混合检索
+   → 加 reranker 精排
 
-    <h2 class="section" id="q4"><span class="idx">04</span> 题 4：设计 AI 搜索引擎</h2>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">查询理解（意图/改写/扩展）</div>
-        <div class="node violet">多路检索（向量+关键词+实时网页）</div>
-        <div class="node sky">Rerank + 摘要生成</div>
-        <div class="node accent">带引用的结构化答案</div>
-      </div>
-      <div class="cap">图 42-1 · AI 搜索引擎架构</div>
-    </div>
+4. query 问题？
+   → query 改写（多轮对话上下文压缩）
+   → HyDE（假设性文档增强）
 
-    <h2 class="section" id="q5"><span class="idx">05</span> 题 5：设计多模态助手</h2>
-    <p>支持文/图/音输入的助手：多模态理解（第 14 章）+ RAG + Agent + 语音（第 27 章）。关键：模态路由、统一上下文、流式多模态输出。</p>
-
-    <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>四步法：需求→架构→技术→瓶颈；</li>
-        <li>客服=RAG；编程助手=Agent+RAG；搜索=多路检索+生成；</li>
-        <li>关键 trade-off：延迟/成本/准确率/安全。</li>
-      </ul>
-    </div>
+5. 数据问题？
+   → 知识库覆盖够不够
+   → 是否需要补充数据</code></pre>
+    <div class="callout"><strong>💡 要点</strong><br>面试核心技巧：AI 系统设计没有"标准答案"，但有"思考框架"。需求澄清 → 高层架构 → 核心组件 → 瓶颈分析 → 扩展性。每一步都要展现你的工程直觉——不是背名词，而是解释"为什么这么选、代价是什么、什么时候该换方案"。</div>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>AI 系统设计比传统系统设计多了三个维度：推理延迟不可预测、输出不确定、需要知识层。核心矛盾是"用户要秒回+永远正确" vs "LLM 可能慢+可能错"。典型架构是"安全过滤→意图分类→RAG检索→LLM生成→流式返回→反馈飞轮"。四个经典瓶颈（延迟/成本/幻觉/并发）各有标准工程解法。面试加分靠的是在某个点上能深入排查到底。</p>
     <div class="chapter-nav">
-      <a href="41-app-architecture.html"><div class="lbl">← 上一章</div><div class="ttl">41 · 应用架构</div></a>
-      <a href="43-agent-frameworks.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">43 · Agent 框架</div></a>
+    <a href="41-app-architecture.html"><div class="lbl">← 上一章</div><div class="ttl">41 · LLM 应用架构模式</div></a>
+    <a href="43-agent-frameworks.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">43 · LLM Agent 框架对比深度</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 42 章 · AI 系统设计与面试</p></footer>
   </main>

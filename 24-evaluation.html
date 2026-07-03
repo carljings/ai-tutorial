@@ -3,12 +3,14 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>24 · AI 评估方法论 · AI 全栈实战教学</title>
+<title>AI 评估方法论 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
+<div class="progress" id="progress"></div>
+<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                          <aside class="sidebar">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +81,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +247,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -303,93 +305,65 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
   <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 24 · 专题深度</span>
-      <h1>AI 评估方法论<br>怎么科学地知道「好不好」</h1>
-      <p class="lead">「我的 AI 系统到底好不好？」这是最难回答的问题。跑分刷榜、用户问卷、LLM-as-Judge……每种方法都有陷阱。本章系统讲清 LLM 评估、RAG 评估、Agent 评估的方法论，以及如何建立持续优化的评估闭环。</p>
-      <div class="meta"><span class="chip">阅读约 30 分钟</span><span class="chip">难度 ★★★</span><span class="chip">前置：全册</span></div>
-    </section>
+    <section class="hero"><span class="eyebrow">◆ 原理深挖</span>
+    <h1>AI 评估方法论</h1><p class="lead">怎么知道你的模型真的变好了——评估比训练更难</p>
+    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>为什么评估是 LLM 最难的部分</h2>
+    <p>传统机器学习的评估很简单：你有一个测试集，算准确率/F1，分数高就是好。LLM 评估完全不同——输出是开放式文本，"好"没有标准答案，同一个回答有人觉得好有人觉得差。这就导致了一个尴尬局面：**你的模型可能确实变好了，但你没有可靠的指标来证明它**。没有好的评估，就没有可靠的迭代——你不知道改动是帮助还是伤害。</p>
+    <div class="callout"><strong>💡 要点</strong><br>评估的核心困境：**LLM 的输出是开放的、主观的、多维的，没有单一指标能衡量"好不好"**。整个 LLM 评估领域就是在解决"如何用工程手段量化一个本质上主观的东西"。</div>
+    <h2><span class="idx"></span>评估的三大范式</h2>
+    <table class="data-table"><thead><tr><th>范式</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>标准基准（benchmark）</td><td>固定测试集+自动评分</td><td>可复现、快、便宜</td><td>过拟合/数据泄漏</td></tr><tr><td>LLM-as-judge</td><td>用 GPT-4 给回答打分</td><td>灵活、接近人类</td><td> judge 自身有偏</td></tr><tr><td>人工评估</td><td>人类标注员打分</td><td>最接近真实</td><td>贵、慢、不可复现</td></tr></tbody></table>
+    <h3>标准基准：MMLU / HumanEval / MT-Bench</h3>
+    <p>最常用的 LLM 基准：MMLU（57 学科多选题，测知识广度）、HumanEval（164 编程题，测代码能力）、GSM8K（小学数学应用题，测推理）。这些基准能快速横向对比模型，但有两个致命问题：</p>
+    <p>① **数据泄漏**——测试题可能混进了训练数据（尤其 GPT-4/Claude 的训练集不公开），分数虚高。解决办法是用动态生成的题（如 LiveCodeArena 实时出题）或私有测试集。② **过拟合**——模型专门针对基准优化，基准分数涨了但真实能力没涨。这就是"Goodhart 定律"：当一个指标成为目标，它就不再是好指标。</p>
+    <h3>LLM-as-judge：用 AI 评估 AI</h3>
+    <p>当前最流行的评估方式：用 GPT-4 当"裁判"，给两个模型的回答打分。优点是灵活（可以评估任何维度）、便宜（比人工快 100 倍）、接近人类判断（GPT-4 和人类的相关性约 80%+）。但有几个已知偏差要注意：</p>
+    <table class="data-table"><thead><tr><th>LLM-as-judge 的偏差</th><th>表现</th><th>缓解</th></tr></thead><tbody><tr><td>位置偏差</td><td>倾向选第一个/第二个</td><td>随机化顺序，取两次平均</td></tr><tr><td>长度偏差</td><td>倾向选更长的回答</td><td>在 prompt 里强调"长度不是质量"</td></tr><tr><td>自我偏好</td><td>GPT-4 偏好 GPT-4 风格</td><td>用多个不同模型交叉评估</td></tr><tr><td>能力上限</td><td>judge 比被评估的弱，评不准</td><td>judge 必须是当前最强模型</td></tr></tbody></table>
+    <pre class="code"><code class="language-python"># LLM-as-judge 的典型 prompt（简化版）
+JUDGE_PROMPT = """你是一个严格的评估员。
+请比较以下两个对同一问题的回答，按质量打分。
 
-    <h2 class="section" id="llm-eval"><span class="idx">01</span> LLM 评估：从 benchmark 到真实任务</h2>
-    <p>第 2 章第 19 节讲了 benchmark。这里补充评估方法论的层次：</p>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">📊</span><h4>静态 benchmark</h4><p>MMLU/GSM8K 等。便宜、可复现，但有污染和刷题问题。</p></div>
-      <div class="card"><span class="ic">🥊</span><h4>竞技场盲测</h4><p>用户盲测两个模型投票（LMSYS Arena）。贴近真实，难作弊。</p></div>
-      <div class="card"><span class="ic">🤖</span><h4>LLM-as-Judge</h4><p>用强模型当裁判打分。便宜、可规模化，但有偏见（偏长答案、偏自己）。</p></div>
-      <div class="card"><span class="ic">👥</span><h4>人工评估</h4><p>最可靠但最贵。适合关键场景的小规模金标准。</p></div>
-      <div class="card"><span class="ic">🎯</span><h4>任务完成率</h4><p>真实任务上做对了没。这是 2026 的重心（SWE-bench 等）。</p></div>
-      <div class="card"><span class="ic">🛡️</span><h4>对抗/红队</h4><p>专门测安全边界。第 15 章。</p></div>
-    </div>
+问题: {question}
+回答 A: {response_a}
+回答 B: {response_b}
 
-    <div class="callout pit">
-      <div class="head">⚠️ 评估的四大陷阱</div>
-      <ul style="margin:6px 0;">
-        <li><strong>数据污染</strong>：测试题进了训练集，分数虚高；</li>
-        <li><strong>刷题</strong>：针对 benchmark 优化，实际不行；</li>
-        <li><strong>分布偏差</strong>：benchmark 代表不了你的真实场景；</li>
-        <li><strong>单一指标</strong>：一个分数掩盖多维表现。</li>
-      </ul>
-    </div>
+评分维度: 准确性、完整性、清晰度、安全性
+请输出 JSON: {{"winner": "A"|"B"|"tie", "reason": "..."}}
+"""
 
-    <h2 class="section" id="rag-eval"><span class="idx">02</span> RAG 评估：RAGAS 框架</h2>
-    <p>第 6 章第 7 节提过 RAG 评估。RAGAS 的四个维度：</p>
-    <table>
-      <thead><tr><th>维度</th><th>测什么</th><th>需要</th></tr></thead>
-      <tbody>
-        <tr><td><strong>上下文相关性</strong></td><td>检索的内容和问题相关吗</td><td>问题 + 检索结果</td></tr>
-        <tr><td><strong>事实一致性</strong></td><td>回答忠于检索内容吗（防幻觉）</td><td>回答 + 检索结果</td></tr>
-        <tr><td><strong>回答相关性</strong></td><td>回答切题吗</td><td>问题 + 回答</td></tr>
-        <tr><td><strong>召回率</strong></td><td>该查到的重要信息查到了吗</td><td>问题 + 标准答案 + 检索</td></tr>
-      </tbody>
-    </table>
+# 关键控制：
+# 1. 随机化 A/B 顺序，消除位置偏差
+# 2. 用 GPT-4 级 judge（弱模型评判强模型会失准）
+# 3. 多次评估取多数（单次评估方差大）</code></pre>
+    <h3>人工评估：最后的真相</h3>
+    <p>当自动评估给出矛盾结论时，必须回到人工评估。人工评估的关键是**标注规范**——"好"必须被精确定义（如"准确性：回答的事实是否正确？1-5 分"），且要有多个标注员交叉检验（计算 IAA）。RLHF 训练时用的人工偏好数据，本身就是一种高质量的人工评估。</p>
+    <h2><span class="idx"></span>RAG 专项评估：RAGAS</h2>
+    <p>RAG 系统的评估比通用 LLM 更复杂，因为它有两个环节（检索+生成）都可能出错。RAGAS 是当前最流行的 RAG 评估框架，它拆成三个维度：</p>
+    <table class="data-table"><thead><tr><th>维度</th><th>衡量什么</th><th>怎么算</th></tr></thead><tbody><tr><td>Faithfulness（忠实度）</td><td>回答是否基于检索到的内容（不编造）</td><td>检查回答的每个claim能否在检索内容里找到支撑</td></tr><tr><td>Answer Relevancy（回答相关性）</td><td>回答是否切题</td><td>用 LLM 判断回答和问题的相关性</td></tr><tr><td>Context Precision（检索精度）</td><td>检索到的内容是否真的相关</td><td>检查检索的chunk是否和问题相关</td></tr></tbody></table>
+    <p>RAGAS 的精髓是把"RAG 好不好"拆成了可定位的三个数字——如果忠实度低，是生成环节在编造；如果检索精度低，是检索环节召回差；如果回答相关性低，是理解环节有问题。这种"分环节归因"让 RAG 调优有了明确方向。</p>
+    <h2><span class="idx"></span>评估的工程化：持续评估流水线</h2>
+    <p>评估不是"训完评一次"，而是要嵌入开发流程的持续环节。一个成熟的评估流水线：</p>
+    <pre class="code"><code class="language-text">持续评估流水线
 
-    <h2 class="section" id="agent-eval"><span class="idx">03</span> Agent 评估：最难的一关</h2>
-    <p>智能体是动态的，评估最难。关键指标：</p>
-    <ul>
-      <li><strong>任务完成率</strong>：最终做对了没（最重要）；</li>
-      <li><strong>效率</strong>：平均步数、token、耗时、成本；</li>
-      <li><strong>稳定性</strong>：同任务多次运行的一致性；</li>
-      <li><strong>鲁棒性</strong>：异常/失败时的恢复能力；</li>
-      <li><strong>轨迹质量</strong>：中间步骤是否合理（不止看结果）。</li>
-    </ul>
+代码提交 → 自动触发 → 跑基准(MMLU/HumanEval 子集)
+                      → 跑 LLM-as-judge(100 条 golden set)
+                      → 跑 RAGAS(如果改了 RAG)
+                      → 对比上次结果（回归检测）
+                      → 任何指标下降 &gt;2% → 阻断合并
+                      → 全部通过 → 人工抽检 50 条
+                      → 通过 → 上线（金丝雀发布）
 
-    <h2 class="section" id="loop"><span class="idx">04</span> 建立评估闭环</h2>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">建立评估集（几十~几百条标注样本）</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node violet">每次改动（prompt/模型/检索）跑评估</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node sky">对比指标，定位退化/提升</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node accent">迭代优化</div>
-        <div style="color:var(--accent);margin-top:8px;">↺ 持续循环</div>
-      </div>
-      <div class="cap">图 24-1 · 评估闭环：持续优化的基础</div>
-    </div>
-    <div class="callout tip">
-      <div class="head">💡 实践建议</div>
-      <p><strong>从第一天就建评估集</strong>。哪怕只有 20 条人工标注的真实问题，也比没有强。没有评估集的优化都是盲人摸象。随着产品运营，持续把真实 bad case 加进评估集——这是最宝贵的资产。</p>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>评估方法：benchmark/Arena/LLM-Judge/人工/任务完成率，各有优劣；</li>
-        <li>警惕四大陷阱：污染、刷题、分布偏差、单一指标；</li>
-        <li>RAG 用 RAGAS 四维度；Agent 看完成率+效率+稳定性；</li>
-        <li><strong>评估闭环</strong>是持续优化的基础，从第一天就建。</li>
-      </ul>
-    </div>
-
+关键：golden set 是你的"回归测试集"，
+      每次改动都跑，确保不退步。</code></pre>
+    <div class="callout"><strong>💡 要点</strong><br>评估的终极建议：**建立一个固定的 golden set（100-500 条精选问题+期望特征），每次模型/prompt 改动都跑一遍**。这不是为了得到一个绝对分数，而是为了做"回归检测"——确保你的改动没有引入退步。没有 golden set 回归检测的迭代，就是盲人摸象。</div>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>LLM 评估是最难的工程问题，因为输出是开放的、主观的。三大范式：标准基准（快但易过拟合）、LLM-as-judge（灵活但有偏差，注意位置/长度/自我偏好偏差）、人工评估（最准但贵）。RAG 专项用 RAGAS 拆成忠实度/相关性/检索精度三个可定位维度。工程化核心是建立 golden set 做持续回归检测——没有评估就没有可靠迭代。</p>
     <div class="chapter-nav">
-      <a href="23-diffusion.html"><div class="lbl">← 上一章</div><div class="ttl">23 · 扩散模型与生图</div></a>
-      <a href="25-inference-optimization.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">25 · 推理优化深度</div></a>
+    <a href="23-diffusion.html"><div class="lbl">← 上一章</div><div class="ttl">23 · 扩散模型与图像生成</div></a>
+    <a href="25-inference-optimization.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">25 · LLM 推理优化深度</div></a>
     </div>
-    <footer><p>AI 全栈实战教学 · 第 24 章 · AI 评估方法论</p><p>参考：RAGAS · LMSYS Arena · HELM · SWE-bench</p></footer>
+    <footer><p>AI 全栈实战教学 · 第 24 章 · AI 评估方法论</p></footer>
   </main>
 </div>
 <script src="assets/main.js"></script>

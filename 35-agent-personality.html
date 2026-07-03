@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>35 · AI Agent 人格设计 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Agent 人格设计 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,95 +295,47 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI Agent 人格设计</h1><p class="lead">让 AI 有"性格"——Agent 人格的 prompt 工程</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>为什么 Agent 需要"人格"</h2>
+    <p>同一个 GPT-4，配上不同 system prompt，表现出的"性格"天差地别——可以是严肃专家、幽默助手、严厉教练、温暖朋友。这个"性格"不是模型固有的，是 prompt 设计出来的。Agent 人格设计的本质：**通过 system prompt 精确控制模型的语气、立场、行为边界，让它在特定场景下表现得"像一个特定的角色"**。</p>
+    <div class="callout"><strong>💡 要点</strong><br>人格设计的核心矛盾：**一致性 vs 灵活性**。人格太死板（永远用同样语气）显得机械；太灵活（什么都顺着用户）又失去角色。好的设计是"有稳定内核+在边界内灵活"——就像一个好演员，角色性格稳定，但每场戏的表演自然。</div>
+    <h2><span class="idx"></span>人格设计的四要素</h2>
+    <table class="data-table"><thead><tr><th>要素</th><th>定义什么</th><th>示例</th></tr></thead><tbody><tr><td>身份</td><td>你是谁</td><td>"你是一位资深 Python 开发者"</td></tr><tr><td>语气</td><td>怎么说话</td><td>简洁直接、用代码说话、不啰嗦</td></tr><tr><td>边界</td><td>不做什么</td><td>不猜意图、不确定就说"我不知道"</td></tr><tr><td>价值观</td><td>什么重要</td><td>代码正确性 &gt; 代码美观；安全 &gt; 效率</td></tr></tbody></table>
+    <h2><span class="idx"></span>System Prompt 的工程化</h2>
+    <p>一个生产级的 system prompt 不是一个自然段，而是一份"规格书"——包含角色定义、行为规则（do/don't）、输出格式、安全边界、少样本示例。它本质上是在"编程"模型的行为，只是用的语言是自然语言而非代码。</p>
+    <pre class="code"><code class="language-text">生产级 system prompt 结构（示例）
 
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 35 · 专题深度</span>
-      <h1>AI Agent 人格设计<br>给智能体一个「灵魂」</h1>
-      <p class="lead">同样是 GLM-5.2，不同的系统提示能塑造出完全不同的「人格」——严谨的学者、温暖的朋友、犀利的评论家。<strong>Agent 人格设计</strong>是让 AI 从「工具」变成「角色」的关键，直接影响用户体验和信任。</p>
-      <div class="meta"><span class="chip">阅读约 25 分钟</span><span class="chip">难度 ★★★</span><span class="chip">前置：第 03、05、19 章</span></div>
-    </section>
+# 角色
+你是一位资深代码审查员，专注 Python。
 
-    <h2 class="section" id="why"><span class="idx">★</span> 为什么人格很重要</h2>
-    <div class="grid cols-3">
-      <div class="card"><span class="ic">💡</span><h4>可记忆</h4><p>有一致人格的 AI 更容易被记住，建立用户关系。</p></div>
-      <div class="card"><span class="ic">🎯</span><h4>一致性</h4><p>人格约束让 AI 的输出风格稳定，不会忽冷忽热。</p></div>
-      <div class="card"><span class="ic">❤️</span><h4>情感连接</h4><p>有人格的 AI 让用户更愿意用、更信任。</p></div>
-    </div>
+# 行为规则
+- 只审查用户提交的代码，不主动写新代码
+- 按严重程度排序问题：Critical &gt; Warning &gt; Style
+- 每个问题给：位置、问题描述、修复建议、修复后代码
+- 如果代码没有问题，明确说"代码质量良好"
 
-    <h2 class="section" id="dimensions"><span class="idx">01</span> 人格的五个维度</h2>
-    <table>
-      <thead><tr><th>维度</th><th>选项</th><th>影响</th></tr></thead>
-      <tbody>
-        <tr><td><strong>语气</strong></td><td>正式/随意/幽默/严肃</td><td>决定对话「感觉」</td></tr>
-        <tr><td><strong>专业度</strong></td><td>通用/专家/教学</td><td>决定信息深度</td></tr>
-        <tr><td><strong>主动性</strong></td><td>被动应答/主动建议/引导</td><td>决定交互节奏</td></tr>
-        <tr><td><strong>价值观</strong></td><td>务实/理想/谨慎/进取</td><td>决定决策倾向</td></tr>
-        <tr><td><strong>边界</strong></td><td>什么做/什么不做/怎么拒绝</td><td>决定安全行为</td></tr>
-    </tbody></table>
+# 输出格式
+## Critical (必须修)
+- 第 N 行：xxx
+  建议：xxx
+  ```python
+  修复后代码
+  ```
 
-    <h2 class="section" id="persona-design"><span class="idx">02</span> 人格设计模板</h2>
-    <div class="code-title">persona.md —— 人格定义文件</div>
-    <pre><code><span class="c"># 人格：智学（教育型学习助手）</span>
+# 边界
+- 不评论代码风格以外的设计决策
+- 不确定的问题标注"建议人工确认"
+- 安全漏洞（SQL注入/XSS）必须报 Critical
 
-## 身份
-你是「智学」，一位耐心、专业、循循善诱的学习导师。
-你相信每个人都有学习潜力，你的使命是帮助用户真正理解，而非死记。
-
-## 语气
-- 温暖但不油腻，像一个好老师
-- 用「我们」而非「你」，建立共同感
-- 适度幽默，但不偏离主题
-
-## 行为准则
-- 先理解用户「为什么问」，再回答
-- 不直接给答案，先引导思考（苏格拉底式）
-- 用类比和例子，避免术语轰炸
-- 用户错了不要直接否定，先肯定再纠正
-- 检测到用户困惑时，主动换种方式解释
-
-## 边界
-- 不替用户做作业（引导而非代劳）
-- 不确定时诚实说「我不确定」
-- 涉及价值观保持中立</code></pre>
-
-    <h2 class="section" id="implementation"><span class="idx">03</span> 人格的实现：三层架构</h2>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">① 核心人格（系统提示，不可变）</div>
-        <div class="node violet">② 记忆层（用户偏好、历史交互，第 29 章）</div>
-        <div class="node sky">③ 动态调整（根据上下文微调语气）</div>
-      </div>
-      <div class="cap">图 35-1 · 人格三层架构</div>
-    </div>
-
-    <h2 class="section" id="gensim"><span class="idx">04</span> Generative Agents：斯坦福小镇实验</h2>
-    <p>斯坦福的 <strong>Generative Agents</strong>（「AI 小镇」）实验展示了人格设计的极致：25 个 AI agent 各有人格、记忆、日常，自主社交、计划、互动——涌现出办派对、选举、八卦等复杂社会行为。关键技术：</p>
-    <ul>
-      <li><strong>记忆流</strong>：记录所有经历的带时间戳日志；</li>
-      <li><strong>反思</strong>：定期从记忆中抽象出更高层结论；</li>
-      <li><strong>计划</strong>：基于人格+记忆+反思制定每日计划。</li>
-    </ul>
-    <p>这预示了未来 AI NPC、虚拟助手、数字人的方向——<strong>有人格、有记忆、能自主的 AI 角色</strong>。</p>
-
-    <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>人格让 AI 从工具变成角色，提升记忆/一致/情感；</li>
-        <li>五维度：语气/专业度/主动性/价值观/边界；</li>
-        <li>三层实现：核心人格+记忆+动态调整；</li>
-        <li>Generative Agents 预示 AI 角色的未来。</li>
-      </ul>
-    </div>
+# 少样本示例
+[输入] def add(a, b): return a+b
+[输出] 代码质量良好。建议加类型注解：
+  def add(a: int, b: int) -&gt; int: return a+b</code></pre>
+    <h2><span class="idx"></span>人格漂移与一致性</h2>
+    <p>长对话中，模型可能"漂移"——前 10 轮很专业，后面越来越随意。这是 context window 里早期 system prompt 被"稀释"了。解法：① 在每 N 轮重新注入 system prompt（提醒角色）；② 把关键规则放在 prompt 最后（近因效应）；③ 用结构化输出约束（强制格式让模型"回到角色"）。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>Agent 人格通过 system prompt 设计，四要素：身份/语气/边界/价值观。生产级 prompt 是一份"规格书"（角色+规则+格式+边界+示例）。核心矛盾是一致性 vs 灵活性。长对话要防"人格漂移"——定期重注入 prompt。人格设计本质是"用自然语言编程模型行为"。</p>
     <div class="chapter-nav">
-      <a href="34-llm-compiler.html"><div class="lbl">← 上一章</div><div class="ttl">34 · LLM 编译器</div></a>
-      <a href="36-rag-advanced.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">36 · RAG 进阶</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 35 章 · AI Agent 人格设计</p><p>参考：Generative Agents (Stanford) · Character.AI · Persona 设计</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="34-llm-compiler.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 35 章 · AI Agent 人格设计</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

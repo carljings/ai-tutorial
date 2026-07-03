@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Computer Use agent：能操作图形界面的 agent · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                                <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Computer Use agent：操作图形界面 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" class="active" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" class="active" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,26 +295,31 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 232 章 · Deep Agent</span>
-    <h1>Computer Use agent</h1><p class="lead">AI 学会"看屏幕、点鼠标"</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>从"调 API"到"操作 GUI"</h2>
-    <p>前面的 agent 都是通过 API/命令行做事——调函数、执行命令。但人类用的很多软件只有图形界面（浏览器、Excel、设计软件），没有 API。Computer Use agent 解决这个问题：它能"看"屏幕截图、"点"鼠标、"敲"键盘，像人一样操作图形界面。Claude Computer Use、OpenAI Operator 是代表。</p>
-    <h2><span class="idx"></span>感知-行动循环</h2>
-    <p>Computer Use agent 的核心循环：截屏（感知当前界面）→ LLM 分析截图决定操作（点哪里/输入什么）→ 执行操作（模拟鼠标键盘）→ 再截屏看结果。这个循环和 ReAct 一样（Observe-Think-Act），只是 Observe 变成了"看截图"。</p>
-    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>难点</th></tr></thead><tbody><tr><td>截屏</td><td>获取当前屏幕画面</td><td>分辨率/多屏</td></tr><tr><td>理解</td><td>LLM 分析截图：有什么元素、该操作哪</td><td>视觉理解准确度</td></tr><tr><td>定位</td><td>计算要点击的坐标</td><td>元素定位精度</td></tr><tr><td>执行</td><td>模拟鼠标点击/键盘输入</td><td>时序/动画干扰</td></tr><tr><td>验证</td><td>截屏确认操作生效</td><td>加载等待/弹窗</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>Computer Use 是 agent 能力的重大扩展——它让 agent 能操作"任何人类能用的软件"，不再受限于"有没有 API"。代价是：视觉理解不完美（可能点错）、操作慢（每步都要截屏分析）、易碎（界面改版就失效）。它适合没有 API 的遗留系统或通用浏览器自动化。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★Deep Agent</span><h1>Computer Use agent：操作图形界面</h1><p class="lead">让 AI 看着屏幕点鼠标——Computer Use 的原理与挑战</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>Computer Use：AI 的"终极工具"</h2>
+    <p>之前的 Agent 调用的是 API（结构化接口）。Computer Use agent 调用的是**图形界面**——它看屏幕截图，决定点哪里、输入什么、按什么键，像一个人类在操作电脑。这是 Anthropic 在 2024 年推出的能力（Claude Computer Use），代表了 Agent 的"终极形态"——如果 AI 能操作任何 GUI，它就能用任何软件，不需要 API。</p>
+    <h2><span class="idx"></span>工作原理：看→想→做</h2>
+    <pre class="code"><code class="language-text">Computer Use agent 循环
+
+[截图] → 视觉模型理解屏幕内容（按钮/输入框/文字）
+   │
+   ▼
+[推理] → LLM 决定下一步操作
+   │     "看到搜索框，我应该点击它并输入关键词"
+   ▼
+[执行] → 模拟鼠标/键盘操作（点击坐标/输入文字/按键）
+   │
+   ▼
+[截图] → 看操作后的结果 → 继续...
+
+挑战：
+  - 屏幕元素定位（按钮在哪？坐标精度）
+  - 动态页面（元素会变位置）
+  - 状态判断（操作成功了吗？页面加载了吗？）
+  - 效率（截图→推理→执行循环很慢）</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>Computer Use agent 通过"截屏-理解-操作"循环让 AI 能操作图形界面。它突破了"必须有 API"的限制，让 agent 能用任何人类能用的软件。Claude Computer Use、OpenAI Operator、browser-use 等是这个方向的代表。虽然目前精度和速度有限，但这是 agent 走向"通用"的关键能力。</p>
+    <p>Computer Use agent 通过"截图→推理→模拟操作"循环操作 GUI，是 Agent 的终极形态——能用任何软件。核心挑战：屏幕元素定位、动态页面、状态判断、效率。当前还处于早期（慢且不够准），但代表了 Agent 通用化的方向。</p>
     <div class="chapter-nav">
-    <a href="207-deep-agentic-rag.html"><div class="lbl">← 上一章</div><div class="ttl">207 · Agentic RAG：让 RAG 学会自主决策</div></a>
-    <a href="209-deep-eval-observability.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">209 · Agent 评估与可观测性</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 232 章 · Computer Use agent：能操作图形界面的 agent</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="207-deep-agentic-rag.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 208 章 · Computer Use agent：操作图形界面</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

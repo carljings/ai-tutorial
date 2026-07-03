@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>端侧部署实战：手机/嵌入式跑模型 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>端侧部署实战：手机/嵌入式跑模型 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,27 +295,31 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★模型压缩与部署</span>
-    <h1>端侧部署实战</h1><p class="lead">让模型跑在手机和嵌入式设备上</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>端侧部署的独特挑战</h2>
-    <p>端侧（手机/平板/嵌入式）部署模型，限制比服务器严苛得多：内存小（手机 4-12GB，要和系统共享）、算力弱（移动 GPU/NPU 远不及服务器 GPU）、电量敏感（推理不能太耗电）、散热有限（不能满载太久）。所以端侧部署必须极致压缩+极致优化。</p>
-    <h2><span class="idx"></span>端侧推理框架</h2>
-    <table class="data-table"><thead><tr><th>框架</th><th>平台</th><th>特点</th></tr></thead><tbody><tr><td>llama.cpp / GGUF</td><td>跨平台(CPU为主)</td><td>C++实现，量化友好，社区最大</td></tr><tr><td>MLX</td><td>Apple Silicon</td><td>苹果官方，M 系列芯片优化好</td></tr><tr><td>ONNX Runtime Mobile</td><td>Android/iOS</td><td>跨平台，轻量化</td></tr><tr><td>TensorFlow Lite</td><td>Android/iOS</td><td>移动端经典</td></tr><tr><td>Core ML</td><td>iOS/macOS</td><td>苹果原生，NPU 加速</td></tr></tbody></table>
-    <h2><span class="idx"></span>端侧部署的工作流</h2>
-    <p>典型端侧部署流程：选小模型（7B 以内）→ 量化到 4bit（GGUF Q4_K_M）→ 用 llama.cpp/MLX 加载 → 测试延迟/内存/电量 → 打包进 App。7B Q4 模型约占 4GB 内存，iPhone 15 Pro（8GB）能流畅运行。3B 模型更省，适合更低端设备。</p>
-    <div class="callout"><strong>💡 要点</strong><br>端侧部署的最大优势是隐私（数据不出设备）和离线可用。医疗/金融场景的用户数据不能上云，端侧是唯一选择。缺点是模型小、能力有限——端侧 7B 和云端 GPT-4 差距巨大。要按场景权衡。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span><h1>端侧部署实战：手机/嵌入式跑模型</h1><p class="lead">让 LLM 跑在手机上——端侧部署的工程全景</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>为什么要端侧：隐私、延迟、离线、成本</h2>
+    <p>云端 LLM 有四个痛点：① 隐私（数据必须发到服务器）；② 延迟（网络往返 200ms+）；③ 离线不可用；④ 成本（按 token 付费）。端侧部署直接解决这四个问题——模型跑在用户设备上，数据不出设备、零网络延迟、完全离线、零边际成本。代价是模型必须小（1-7B 量化后），能力远不如云端大模型。</p>
+    <table class="data-table"><thead><tr><th>端侧方案</th><th>模型大小</th><th>硬件要求</th><th>能力</th></tr></thead><tbody><tr><td>llama.cpp + GGUF INT4</td><td>2-4 GB</td><td>8GB 内存手机</td><td>7B 级别</td></tr><tr><td>MLC-LLM</td><td>1-3 GB</td><td>iPhone 12+</td><td>7B 量化</td></tr><tr><td>CoreML/NCNN</td><td>&lt;1 GB</td><td>中端手机</td><td>1-3B 小模型</td></tr><tr><td>zvec + 嵌入模型</td><td>&lt;200 MB</td><td>任何设备</td><td>RAG 检索(非生成)</td></tr></tbody></table>
+    <h2><span class="idx"></span>端侧 LLM 的典型架构</h2>
+    <pre class="code"><code class="language-text">端侧 AI 应用架构（RAG + 本地 LLM）
+
+[用户输入]
+    │
+    ▼
+[嵌入模型] ← bge-small (90MB, 本地)
+    │
+    ▼
+[zvec 向量库] ← 本地知识库 (WAL 持久化)
+    │  召回 top-k chunks
+    ▼
+[本地 LLM] ← Qwen2.5-7B INT4 (4GB, llama.cpp)
+    │  基于检索结果生成
+    ▼
+[流式输出] ← UI 渲染
+
+全链路本地完成：零网络、零云成本、完全隐私</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>端侧部署要极致压缩（4bit 量化）+ 选对框架（llama.cpp/MLX/Core ML）。优势是隐私和离线，劣势是模型能力有限。适合隐私敏感/离线场景，不适合需要最强能力的场景。</p>
+    <p>端侧部署解决云端四大痛点（隐私/延迟/离线/成本）。典型架构：bge-small 嵌入 + zvec 向量库 + Qwen2.5-7B INT4 本地 LLM。工具链：llama.cpp（通用）、MLC-LLM（移动端）、zvec（端侧向量库）。能力受限但隐私和延迟优势明显，适合"数据不出设备"的场景。</p>
     <div class="chapter-nav">
-    <a href="224-comp-tensorrt.html"><div class="lbl">← 上一章</div><div class="ttl">224 · 编译优化：TensorRT / ONNX / vLLM</div></a>
-    <a href="226-br-gnn.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">226 · 图神经网络 GNN：处理图结构数据</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 249 章 · 端侧部署实战：手机/嵌入式跑模型</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="224-comp-tensorrt.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 225 章 · 端侧部署实战：手机/嵌入式跑模型</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

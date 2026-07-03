@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>71 · LLM 完整学习路径与资源地图 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 学习路径规划 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" class="active" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" class="active" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,55 +295,13 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 71 · 参考指南</span>
-      <h1>LLM 完整学习路径与资源地图<br>从零到全栈的进阶之路</h1>
-      <p class="lead">全书 71 章给了你知识，这一章给你<strong>路线</strong>。针对不同背景（零基础/程序员/算法/产品），给出个性化的学习路径、时间规划、实践项目、认证与社区。</p>
-      <div class="meta"><span class="chip">阅读约 25 分钟</span><span class="chip">难度 ★☆☆</span></div>
-    </section>
-
-    <h2 class="section" id="paths"><span class="idx">01</span> 四条学习路径</h2>
-    <div class="grid cols-2">
-      <div class="card" style="border-top:3px solid var(--success);"><span class="ic">🌱</span><h4>零基础（3-6 月）</h4><p><strong>目标</strong>：能搭 RAG 知识库、用 AI API。</p><p style="font-size:13px;">① Python 基础 → ② 读第 1/6 章 → ③ 跑第 13 章知识库项目 → ④ 学第 19 章 Prompt 工程。</p></div>
-      <div class="card" style="border-top:3px solid var(--accent);"><span class="ic">⌨️</span><h4>程序员（1-3 月）</h4><p><strong>目标</strong>：能做 AI 产品（Harness/Agent）。</p><p style="font-size:13px;">① 第 3-5 章 Harness/Agent → ② 第 11 章编程助手项目 → ③ 第 8 章 Skills/MCP → ④ 第 41 章架构模式。</p></div>
-      <div class="card" style="border-top:3px solid var(--accent-2);"><span class="ic">🔬</span><h4>算法/研究（2-4 月）</h4><p><strong>目标</strong>：理解模型、能微调。</p><p style="font-size:13px;">① 第 1-2 章原理+训练 → ② 第 12 章迷你模型 → ③ 第 26 章微调 → ④ 第 17 章推理模型。</p></div>
-      <div class="card" style="border-top:3px solid var(--accent-3);"><span class="ic">📊</span><h4>产品/方案（1-2 月）</h4><p><strong>目标</strong>：能设计 AI 产品方案。</p><p style="font-size:13px;">① 第 30/41 章产品+架构 → ② 第 6 章 RAG → ③ 第 24 章评估 → ④ 第 55 章行业案例。</p></div>
-    </div>
-
-    <h2 class="section" id="resources"><span class="idx">02</span> 精选资源地图</h2>
-    <table>
-      <thead><tr><th>类别</th><th>资源</th></tr></thead>
-      <tbody>
-        <tr><td>系统课</td><td>本教程、HuggingFace Course、Karpathy 系列、Stanford CS25/224N</td></tr>
-        <tr><td>论文</td><td>arXiv、HuggingFace Daily Papers、Papers with Code</td></tr>
-        <tr><td>实战</td><td>第 11-13/60 章项目、Kaggle、HuggingFace Spaces</td></tr>
-        <tr><td>社区</td><td>Reddit r/LocalLLaMA、HuggingFace Discord、智谱社区、GitHub Discussions</td></tr>
-        <tr><td>资讯</td><td>机器之心、量子位、Latent Space、ByteByteGo</td></tr>
-        <tr><td>API</td><td>智谱开放平台（GLM）、OpenAI、Anthropic</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="milestones"><span class="idx">03</span> 能力里程碑</h2>
-    <div class="steps">
-      <div class="step"><h4>L1：会用</h4><p>能调 API、写 prompt、搭基础 RAG。</p></div>
-      <div class="step"><h4>L2：会工程</h4><p>能搭 Harness/Agent、做 AI 产品。</p></div>
-      <div class="step"><h4>L3：会优化</h4><p>能调性能、降成本、做评估闭环。</p></div>
-      <div class="step"><h4>L4：会训练</h4><p>能微调/训练模型、理解原理。</p></div>
-      <div class="step"><h4>L5：会创新</h4><p>能做新架构/新方法、推动前沿。</p></div>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">04</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>四条路径按背景选：零基础/程序员/算法/产品；</li><li>资源：课程+论文+实战+社区+资讯；</li><li>五级里程碑：会用→工程→优化→训练→创新。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 学习路径规划</h1><p class="lead">从零到一——系统学习 AI 工程的路线图</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>AI 工程学习的三条路径</h2>
+    <p>不同背景的人学 AI 的路径不同：程序员→补 ML 理论；数据科学家→补工程能力；产品经理→补技术理解。但核心知识结构是共通的。</p>
+    <table class="data-table"><thead><tr><th>阶段</th><th>学什么</th><th>产出</th><th>用时</th></tr></thead><tbody><tr><td>基础</td><td>Python + ML 基础 + LLM API</td><td>能调 API 做应用</td><td>2-4 周</td></tr><tr><td>应用</td><td>Prompt 工程 + RAG + Agent</td><td>独立做 AI 应用</td><td>1-2 月</td></tr><tr><td>深入</td><td>Transformer 原理 + 微调 + 评估</td><td>能调优/微调</td><td>2-3 月</td></tr><tr><td>前沿</td><td>推理优化 + 多模态 + 安全</td><td>能做生产级系统</td><td>持续</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>AI 工程学习四阶段：基础（API/Prompt）→应用（RAG/Agent）→深入（Transformer/微调）→前沿（优化/安全）。最重要的一步是"动手做项目"——看 100 篇文章不如自己做一个 RAG 应用。</p>
     <div class="chapter-nav">
-      <a href="70-advanced-orchestration.html"><div class="lbl">← 上一章</div><div class="ttl">70 · 高级编排</div></a>
-      <a href="72-knowledge-graph.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">72 · 知识图谱</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 71 章 · LLM 完整学习路径与资源地图</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="70-advanced-orchestration.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 71 章 · AI 学习路径规划</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

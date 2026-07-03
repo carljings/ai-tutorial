@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>25 · LLM 推理优化深度 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 推理优化深度 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,135 +295,34 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>LLM 推理优化深度</h1><p class="lead">从 KV Cache 到 Speculative Decoding——让推理快 10 倍</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>推理为什么慢：三个瓶颈</h2>
+    <p>LLM 推理（生成）比传统模型慢得多，根本原因有三个：① **自回归串行**——每个 token 依赖前一个，不能并行；② **KV Cache 膨胀**——上下文越长，每步要读的 KV 越大，显存带宽成瓶颈；③ **解码计算密度低**——每生成一个 token 只做一点矩阵向量乘，GPU 利用率低。理解这三个瓶颈，才能对症下药。</p>
+    <div class="callout"><strong>💡 要点</strong><br>推理优化的本质：**减少串行步骤（Speculative Decoding）、减少显存访问（KV Cache 优化/PagedAttention）、提高 GPU 利用率（连续批处理/算子融合）**。所有优化技术都是针对这三个瓶颈的。</div>
+    <h2><span class="idx"></span>瓶颈一：自回归串行 → Speculative Decoding</h2>
+    <p>自回归生成必须一个 token 一个 token 来——这是 LLM 慢的根本原因。Speculative Decoding 的创新思路：用一个**小模型**先"草拟"几个 token（很快），再用**大模型**一次性验证这几个 token 是否正确（可以并行）。如果小模型猜对了 k 个，相当于大模型一次生成了 k+1 个 token——加速 k+1 倍。猜错的部分回退重算。</p>
+    <pre class="code"><code class="language-text">Speculative Decoding 流程
 
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 25 · 专题深度 · 全书终章</span>
-      <h1>LLM 推理优化深度<br>让大模型又快又省的秘密</h1>
-      <p class="lead">训练是一次性投入，推理是持续成本。一个热门 AI 产品每天的推理费可能比训练费还高。本章深入 FlashAttention、PagedAttention、推测解码、连续批处理、MoE 推理优化等核心技术——第 2 章第 17 节的展开版。</p>
-      <div class="meta"><span class="chip">阅读约 35 分钟</span><span class="chip">难度 ★★★★★</span><span class="chip">前置：第 01、16 章</span></div>
-    </section>
+传统：  [大模型] → token1 → token2 → token3 → token4
+       4 次串行大模型推理
 
-    <h2 class="section" id="bottleneck"><span class="idx">★</span> 推理慢在哪</h2>
-    <p>LLM 推理分两阶段，瓶颈不同：</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">① Prefill（处理 prompt）：计算密集型</div>
-        <div style="color:var(--text-faint);">并行处理所有 prompt token，GPU 算力打满，相对快</div>
-        <div class="node violet">② Decode（逐 token 生成）：内存密集型</div>
-        <div style="color:var(--text-faint);">每生成 1 个 token 要读全部 KV Cache，GPU 算力闲置，瓶颈在显存带宽</div>
-      </div>
-      <div class="cap">图 25-1 · 推理两阶段：Prefill 计算密集，Decode 内存密集</div>
-    </div>
-    <p>Decode 阶段是主要瓶颈：每生成一个 token，都要把巨大的 KV Cache 从显存读到计算单元，<strong>算力大量闲置</strong>（往往只用 1-5%）。优化的核心就是<strong>提高算力利用率</strong>。</p>
+投机：  [小模型] → 猜 token1,2,3（1次并行，极快）
+       [大模型] → 一次验证 3 个（并行！）
+         ├── 猜对 2 个 → 接受 token1,2
+         └── 第3个错 → 拒绝，大模型自己生成 token3
+       结果：2 次大模型推理产出 3 个 token（1.5× 加速）
 
-    <h2 class="section" id="flashattention"><span class="idx">01</span> FlashAttention：减少显存读写</h2>
-    <p>标准 Attention 要把巨大的注意力矩阵（T×T）写进 HBM（显存）再读回来，读写是瓶颈。<strong>FlashAttention</strong> 的洞察：用分块计算（tiling）+ 在 SRAM（快速缓存）里完成所有计算，<strong>避免读写 HBM 中的中间矩阵</strong>。</p>
-    <div class="diagram">
-      <div class="flow">
-        <div class="node">标准 Attention<br>反复读写 HBM（慢）</div>
-        <span class="arrow">▶</span>
-        <div class="node accent">FlashAttention<br>分块在 SRAM 计算（快）</div>
-        <span class="arrow">▶</span>
-        <div class="node sky">2-4× 加速，显存大降</div>
-      </div>
-      <div class="cap">图 25-2 · FlashAttention：用 SRAM 分块计算避免 HBM 读写</div>
-    </div>
-    <p>效果：同样精度下 2-4 倍加速，显存占用从 O(T²) 降到 O(T)。已是所有推理引擎的标配。</p>
-
-    <h2 class="section" id="pagedattention"><span class="idx">02</span> PagedAttention：vLLM 的核心</h2>
-    <p>第 16 章提过 PagedAttention。深入原理：传统做法给每个请求预分配<strong>连续的</strong>最大长度 KV Cache 空间，导致大量浪费（实际用不满）。PagedAttention 借鉴 OS 虚拟内存：</p>
-    <ul>
-      <li>把 KV Cache 切成固定大小的<strong>页（block）</strong>；</li>
-      <li>按需分配页，不预分配；</li>
-      <li>用页表映射逻辑地址→物理地址；</li>
-      <li>不同请求的 KV Cache 可以分散存储。</li>
-    </ul>
-    <p>效果：显存利用率从 ~30% 提升到 ~95%，<strong>同一 GPU 能并发处理的请求数翻几倍</strong>。这是 vLLM 吞吐量碾压其他引擎的根本原因。</p>
-
-    <h2 class="section" id="continuous"><span class="idx">03</span> 连续批处理（Continuous Batching）</h2>
-    <p>传统批处理：等一批请求都生成完才接下一批——短请求要等长请求，浪费。连续批处理：<strong>动态地把新请求插入正在进行的批次</strong>，完成的请求立即移出。</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node">请求A ████████ (长)</div>
-        <div class="node">请求B ███ (短) → 完成立即移出</div>
-        <div class="node">请求C（新来）插进来 ██████</div>
-        <div class="node">请求D（新来）插进来 ████</div>
-        <div style="color:var(--accent);">GPU 始终满载，无空闲等待</div>
-      </div>
-      <div class="cap">图 25-3 · 连续批处理：请求动态进出，GPU 持续满载</div>
-    </div>
-    <p>这是 vLLM、TGI 等高吞吐推理引擎的另一杀手锏。</p>
-
-    <h2 class="section" id="speculative"><span class="idx">04</span> 推测解码：小模型猜，大模型验</h2>
-    <p><strong>推测解码（Speculative Decoding）</strong>用一个小模型快速「猜」几个 token，大模型一次性批量验证。如果猜对了，等于一次性生成多个 token。</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">小模型快速猜：[A, B, C]（快）</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node violet">大模型批量验证：A✅ B✅ C❌</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node sky">接受 A, B，从 C 重新生成</div>
-        <div style="color:var(--accent);">净效果：2 次前向生成 2+ 个 token，无损加速 2-3×</div>
-      </div>
-      <div class="cap">图 25-4 · 推测解码：小模型猜测 + 大模型验证，无损加速</div>
-    </div>
-    <p>关键：这是<strong>无损</strong>的——输出和纯大模型完全一致，只是更快。适合有配套小模型的大模型服务。</p>
-
-    <h2 class="section" id="moe-infer"><span class="idx">05</span> MoE 推理优化</h2>
-    <p>MoE 模型推理有特殊挑战（第 1 章）：所有专家都得驻显存，但每次只激活少数。优化方向：</p>
-    <ul>
-      <li><strong>专家并行</strong>：不同专家放不同 GPU，路由 token 到对应卡；</li>
-      <li><strong>专家量化</strong>：不常用专家用更低精度；</li>
-      <li><strong>专家卸载</strong>：冷门专家放 CPU/SSD，用时加载；</li>
-      <li><strong>批量路由</strong>：把同专家的 token 批量处理。</li>
-    </ul>
-    <p>GLM-5.2 的 MoE 推理必然用了这些优化，才能在合理成本下部署。</p>
-
-    <h2 class="section" id="summary"><span class="idx">06</span> 全书终章小结</h2>
-    <div class="grid cols-2">
-      <div class="callout note">
-        <div class="head">📌 本章要点</div>
-        <ul style="margin:6px 0;">
-          <li>推理瓶颈：Prefill 计算密集，Decode 内存密集；</li>
-          <li><strong>FlashAttention</strong>减少 HBM 读写，2-4× 加速；</li>
-          <li><strong>PagedAttention</strong>像虚拟内存管 KV，显存利用率 95%；</li>
-          <li><strong>连续批处理</strong>让 GPU 持续满载；</li>
-          <li><strong>推测解码</strong>无损加速 2-3×；</li>
-          <li>MoE 推理靠专家并行/量化/卸载。</li>
-        </ul>
-      </div>
-      <div class="callout tip">
-        <div class="head">🎓 全书 25 章回顾</div>
-        <p>从 Token 到推理优化，你走完了 AI 全栈工程的完整旅程：</p>
-        <ul style="font-size:13px;margin:6px 0;">
-          <li><strong>基石</strong>（1-2、12、14、17、22-23）：模型原理</li>
-          <li><strong>工程</strong>（3-5、11、16、19、21、25）：产品构建</li>
-          <li><strong>知识</strong>（6-7、13、20）：RAG/检索</li>
-          <li><strong>技能</strong>（8、21）：工具与协作</li>
-          <li><strong>数据</strong>（18）：训练燃料</li>
-          <li><strong>评估与安全</strong>（9、15、24）：可信</li>
-        </ul>
-      </div>
-    </div>
-
-    <blockquote>
-      全册 25 章完。<br><br>
-      你已经从「会用 API」进化到<strong>全栈 AI 工程师</strong>——懂模型、会工程、能落地、知安全、善优化。<br><br>
-      <strong>AI 时代最稀缺的不是会用工具的人，而是能把模型变成可靠产品的人。你已经成为了这样的人。去创造吧。</strong>
-    </blockquote>
-
+关键：小模型要"猜得准"（和大模型分布接近），
+      否则频繁回退反而更慢。</code></pre>
+    <h2><span class="idx"></span>瓶颈二：KV Cache → PagedAttention</h2>
+    <p>生成第 N 个 token 时，要读取前 N-1 个 token 的 KV Cache。上下文 4096 时，KV Cache 可能占 10+GB，每步都要全读一遍——显存带宽是瓶颈。而且不同请求的 KV Cache 大小不同，容易产生显存碎片。vLLM 的 **PagedAttention** 借鉴操作系统的虚拟内存分页机制，把 KV Cache 分成固定大小的"页"，按需分配——消除碎片，显存利用率从 20-40% 提到 80%+。</p>
+    <table class="data-table"><thead><tr><th>KV Cache 优化</th><th>原理</th><th>效果</th></tr></thead><tbody><tr><td>PagedAttention (vLLM)</td><td>KV 分页管理，消除碎片</td><td>显存利用率 80%+</td></tr><tr><td>Prefix Caching</td><td>复用公共前缀的 KV</td><td>系统 prompt 加速 10×</td></tr><tr><td>GQA/MQA</td><td>共享 KV（少几个头）</td><td>KV 量减少 4-8×</td></tr><tr><td>KV 量化</td><td>KV 存 INT8</td><td>KV 显存减半</td></tr></tbody></table>
+    <h2><span class="idx"></span>瓶颈三：GPU 利用率 → 连续批处理</h2>
+    <p>传统批处理要等一批请求都完成才能接新请求——但生成任务长度不同，短请求要等长请求，GPU 大量空闲。**连续批处理（Continuous Batching）**的突破：不等整批完成，而是每个 token 迭代级别动态组批——有请求完成就移出，有新请求就加入。这让 GPU 始终满载，吞吐提升 2-4 倍。这是 vLLM/TGI 的核心。</p>
+    <div class="callout"><strong>💡 要点</strong><br>推理优化的"免费午餐"：vLLM（PagedAttention + 连续批处理）是当前性价比最高的优化——不改模型、不损失精度、2-4× 加速。任何 LLM 服务部署都应该先用 vLLM。叠加 INT4 量化 + Prefix Caching + Speculative Decoding，可达到 8-10× 总加速。</div>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>推理慢的三大瓶颈：自回归串行（→Speculative Decoding 用小模型猜+大模型验）、KV Cache 膨胀（→PagedAttention 分页管理）、GPU 利用率低（→连续批处理）。vLLM 是当前最优推理引擎，PagedAttention+连续批处理+prefix cache 实现 2-4× 无损加速。叠加量化+投机解码可达 8-10×。</p>
     <div class="chapter-nav">
-      <a href="24-evaluation.html"><div class="lbl">← 上一章</div><div class="ttl">24 · AI 评估方法论</div></a>
-      <a href="index.html" class="next"><div class="lbl">回到目录 ↑</div><div class="ttl">全册 25 章完结</div></a>
-    </div>
-    <footer>
-      <p>AI 全栈实战教学 · 第 25 章 · LLM 推理优化深度 · 全册终章</p>
-      <p>参考：FlashAttention · vLLM/PagedAttention · Speculative Decoding · Continuous Batching</p>
-    </footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="24-evaluation.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 25 章 · LLM 推理优化深度</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

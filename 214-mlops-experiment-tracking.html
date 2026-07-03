@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>实验追踪：让每次实验都可复现 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>实验追踪：让每次实验可复现 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" class="active" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" class="active" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,25 +295,15 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span>
-    <h1>实验追踪</h1><p class="lead">可复现是科学的基本要求</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么要追踪实验</h2>
-    <p>你试了 5 种 prompt、3 种 embedding 模型、2 种 chunk size——哪个组合最好？如果没有记录实验参数和结果，你只能凭记忆判断，而且无法复现"上次那个好的配置"。实验追踪就是把每次实验的"输入（参数/配置）→ 输出（指标）→ 制品（模型/日志）"完整记录下来。</p>
-    <h2><span class="idx"></span>实验追踪的核心概念</h2>
-    <table class="data-table"><thead><tr><th>概念</th><th>含义</th><th>示例</th></tr></thead><tbody><tr><td>Run</td><td>一次实验执行</td><td>用 BGE-M3 + chunk=512 跑 RAGAS</td></tr><tr><td>参数</td><td>实验的输入配置</td><td>model, chunk_size, top_k</td></tr><tr><td>指标</td><td>实验的输出评估</td><td>faithfulness=0.92, recall=0.85</td></tr><tr><td>制品</td><td>实验产出的文件</td><td>评估报告、索引快照</td></tr><tr><td>实验</td><td>一组可比的 Run</td><td>比较不同 chunk_size 的实验组</td></tr></tbody></table>
-    <p>工具上，Weights &amp; Biases（W&amp;B）、MLflow Tracking、LangSmith 都支持实验追踪。W&amp;B 的可视化最好；MLflow 开源自部署友好；LangSmith 专为 LLM 应用优化（能追踪 prompt/chain/agent 的完整执行轨迹）。</p>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>实验追踪：让每次实验可复现</h1><p class="lead">从"我记得上次跑了个好的"到"我能精确复现"——实验追踪</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>没有实验追踪 = 炼丹</h2>
+    <p>做 LLM 实验时，你会尝试几十种组合（模型/prompt/超参/数据）。如果没有实验追踪系统，一个月后你根本记不住"那个效果最好的配置是什么"——这就是"炼丹"。实验追踪系统记录每次实验的全部参数和结果，让任何实验都可复现、可对比、可回溯。</p>
+    <h2><span class="idx"></span>实验追踪记什么</h2>
+    <table class="data-table"><thead><tr><th>类别</th><th>记录内容</th><th>为什么</th></tr></thead><tbody><tr><td>参数</td><td>模型/prompt/超参/数据版本</td><td>可复现</td></tr><tr><td>指标</td><td>loss/accuracy/MMLU/RAGAS</td><td>可对比</td></tr><tr><td>产物</td><td>模型权重/日志/图表</td><td>可回溯</td></tr><tr><td>环境</td><td>GPU/依赖/随机种子</td><td>精确复现</td></tr></tbody></table>
+    <p>主流工具：MLflow（开源）、Weights &amp; Biases（付费 UI 好）、LangSmith（LangChain 生态）。它们都提供实验对比看板——把多次实验的指标画在一起，一眼看出哪个配置最好。</p>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>实验追踪让每次尝试都可记录、可比较、可复现。核心是记录"参数→指标→制品"三元组。在 prompt/模型/配置组合爆炸时，没有追踪就只能靠记忆——这在团队协作中是灾难。</p>
+    <p>实验追踪记录每次实验的参数/指标/产物/环境，让实验可复现/可对比/可回溯。没有它就是炼丹。主流工具：MLflow/W&amp;B/LangSmith。核心是"自动记录"——不要靠人记忆，要靠系统。</p>
     <div class="chapter-nav">
-    <a href="213-mlops-model-registry.html"><div class="lbl">← 上一章</div><div class="ttl">213 · 模型注册与版本管理：管理你的模型资产</div></a>
-    <a href="215-mlops-data-flywheel.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">215 · 数据飞轮：从线上反馈到模型迭代</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 238 章 · 实验追踪：让每次实验都可复现</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="213-mlops-model-registry.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 214 章 · 实验追踪：让每次实验可复现</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

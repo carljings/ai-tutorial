@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>模型注册与版本管理：管理你的模型资产 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>模型注册与版本管理 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" class="active" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" class="active" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,27 +295,17 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span>
-    <h1>模型注册与版本管理</h1><p class="lead">模型也是一种需要管理的资产</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么需要模型注册中心</h2>
-    <p>一个企业可能有几十个模型：自研微调的、开源下载的、API 调用的。每个模型有版本、有配置、有评估结果。如果没有统一管理，就会混乱："生产用的是哪个版本？""这个模型的评估结果存在哪？""旧版本能回滚吗？"模型注册中心（Model Registry）就是解决这个问题的——它是模型的"资产管理系统"。</p>
-    <h2><span class="idx"></span>模型注册中心管什么</h2>
-    <table class="data-table"><thead><tr><th>管理对象</th><th>内容</th><th>示例</th></tr></thead><tbody><tr><td>模型权重</td><td>文件位置 + 版本号</td><td>glm-5.2-v3.1.safetensors</td></tr><tr><td>模型元信息</td><td>架构/参数量/训练数据</td><td>GLM-5.2, 355B, 中文为主</td></tr><tr><td>评估结果</td><td>各基准上的分数</td><td>MMLU 82, C-Eval 79</td></tr><tr><td>部署状态</td><td>在哪些环境部署了</td><td>prod/staging/dev</td></tr><tr><td>关联制品</td><td>tokenizer/配置/prompt</td><td>配套的 chat_template</td></tr></tbody></table>
-    <h2><span class="idx"></span>开源工具：MLflow / W&amp;B / Hugging Face Hub</h2>
-    <p>MLflow 是最通用的模型注册中心——它的 Model Registry 支持模型版本管理、阶段切换（staging→production）、血缘追踪。Weights &amp; Biases 偏实验追踪但也有 artifact 管理。Hugging Face Hub 天然是"模型仓库"——每个模型一个 repo，有版本、有模型卡、有下载统计。</p>
-    <div class="callout"><strong>💡 要点</strong><br>选型建议：自研模型为主用 MLflow（完整生命周期管理）；开源模型为主用 Hugging Face Hub（天然集成）；实验追踪为主用 W&amp;B。三者可以配合使用。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>模型注册与版本管理</h1><p class="lead">管理你的模型资产——从 chaos 到 order</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>模型多了就是灾难</h2>
+    <p>一个成熟的 AI 团队会有几十上百个模型：不同基座（Llama/Qwen/Mistral）、不同微调版本（SFT v1/v2/v3）、不同量化版本（FP16/INT8/INT4）、不同用途（通用/代码/医疗）。没有模型注册中心，这些模型会散落在各种 S3 桶/本地磁盘/同事电脑里，没人知道哪个是最新版、哪个能用、哪个已废弃。模型注册中心（Model Registry）就是解决这个混乱的。</p>
+    <div class="callout"><strong>💡 要点</strong><br>模型注册中心的核心价值：**单一事实来源（single source of truth）**——任何人在任何环境用到模型，都从注册中心拉取，保证版本一致。配合元数据（训练数据/指标/用途），让模型可追溯、可回滚、可审计。</div>
+    <h2><span class="idx"></span>模型注册的标准元数据</h2>
+    <table class="data-table"><thead><tr><th>字段</th><th>示例</th><th>用途</th></tr></thead><tbody><tr><td>model_id</td><td>qwen2.5-7b-sft-v3</td><td>唯一标识</td></tr><tr><td>base_model</td><td>Qwen/Qwen2.5-7B</td><td>基座来源</td></tr><tr><td>training_data</td><td>dataset_v12.jsonl</td><td>可复现性</td></tr><tr><td>metrics</td><td>MMLU=72%, HumanEval=65%</td><td>质量基线</td></tr><tr><td>quantization</td><td>INT4 (GPTQ)</td><td>部署选型</td></tr><tr><td>status</td><td>staging/production/archived</td><td>生命周期</td></tr><tr><td>created_by/date</td><td>zhangsan/2026-03-01</td><td>可追溯</td></tr></tbody></table>
+    <h2><span class="idx"></span>主流工具</h2>
+    <table class="data-table"><thead><tr><th>工具</th><th>定位</th><th>特点</th></tr></thead><tbody><tr><td>MLflow</td><td>开源全流程</td><td>免费、生态全、UI 一般</td></tr><tr><td>Hugging Face Hub</td><td>模型仓库</td><td>开源模型标配、git-lfs</td></tr><tr><td>Weights &amp; Biases</td><td>实验追踪+模型注册</td><td>UI 好、收费</td></tr><tr><td>自建</td><td>S3+数据库+API</td><td>灵活、维护成本高</td></tr></tbody></table>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>模型注册中心是管理模型资产的基础设施：版本管理、元信息记录、评估结果归档、部署状态追踪、回滚支持。没有它，模型多了就会混乱。</p>
+    <p>模型注册中心是 LLMOps 的基石——单一事实来源，管理几十上百个模型版本。标准元数据包括基座/训练数据/指标/量化/状态。主流工具：MLflow（开源）、HF Hub（开源模型标配）、W&amp;B（付费 UI 好）。配合模型路由实现灰度发布和 A/B 测试。</p>
     <div class="chapter-nav">
-    <a href="212-mlops-monitoring.html"><div class="lbl">← 上一章</div><div class="ttl">212 · 线上监控与告警：质量、成本、延迟三维追踪</div></a>
-    <a href="214-mlops-experiment-tracking.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">214 · 实验追踪：让每次实验都可复现</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 237 章 · 模型注册与版本管理：管理你的模型资产</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="212-mlops-monitoring.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 213 章 · 模型注册与版本管理</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

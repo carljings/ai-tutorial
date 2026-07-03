@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>知识蒸馏进阶：从 logits 到 agent 行为 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>知识蒸馏进阶：从 logits 到 agent 行为 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,26 +295,30 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★模型压缩与部署</span>
-    <h1>知识蒸馏进阶</h1><p class="lead">大模型怎么"教"小模型</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>蒸馏不只是 logits</h2>
-    <p>基础的知识蒸馏是"logits 蒸馏"——大模型输出概率分布（soft label），小模型学习这个分布。但在 LLM 时代，蒸馏有了更丰富的形态：不只是学 logits，还学"回答风格""推理过程""工具使用行为"。这些"行为蒸馏"让小模型在能力上逼近大模型，远超简单的 logits 蒸馏。</p>
-    <h2><span class="idx"></span>LLM 蒸馏的三种形态</h2>
-    <table class="data-table"><thead><tr><th>形态</th><th>学什么</th><th>怎么做</th><th>效果</th></tr></thead><tbody><tr><td>Logits 蒸馏</td><td>输出概率分布</td><td>大模型 logits 作为 soft target</td><td>学知识，需白盒</td></tr><tr><td>输出模仿</td><td>大模型的回答</td><td>用大模型生成数据训小模型</td><td>最常用，不需白盒</td></tr><tr><td>推理链蒸馏</td><td>大模型的推理过程</td><td>让大模型输出 CoT，小模型学</td><td>学推理能力</td></tr></tbody></table>
-    <p>最实用的是"输出模仿"：用 GPT-4 生成大量高质量问答对，用这些数据 SFT 一个小模型（如 7B）。这就是 Alpaca、Vicuna 等早期开源模型的训练方式。不需要大模型的白盒访问（logits），只要 API 就行。成本低、效果好，是平民化大模型的主流路线。</p>
-    <div class="callout"><strong>💡 要点</strong><br>蒸馏的法律灰区：用 GPT-4 的输出来训练自己的模型，可能违反 OpenAI 的使用条款（"不能用输出来训练竞品"）。实际操作要注意许可协议。用开源大模型（Llama/GLM）作为老师则无此问题。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span><h1>知识蒸馏进阶：从 logits 到 agent 行为</h1><p class="lead">大模型怎么"教"小模型——蒸馏的三层境界</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>蒸馏的本质：老师教学生</h2>
+    <p>知识蒸馏（Knowledge Distillation）的核心思想：用一个大的"老师"模型指导一个小的"学生"模型。学生不只学"正确答案"（硬标签），还学老师对每个选项的"概率分布"（软标签）——这个软标签包含了老师"觉得哪些错误选项更像正确答案"的"暗知识（dark knowledge）"。</p>
+    <div class="callout"><strong>💡 要点</strong><br>软标签的价值：老师输出 [0.7, 0.2, 0.1]（猫/狗/鸟），比硬标签 [1,0,0]（猫）信息量大得多——它告诉学生"虽然答案是猫，但这个图也有点像狗"。这些"类间关系"是硬标签里没有的暗知识。</div>
+    <h2><span class="idx"></span>三层蒸馏</h2>
+    <table class="data-table"><thead><tr><th>层级</th><th>学生学什么</th><th>代表</th><th>压缩比</th></tr></thead><tbody><tr><td>L1: logit 蒸馏</td><td>老师的输出概率分布</td><td>DistilBERT</td><td>2×</td></tr><tr><td>L2: 回复蒸馏</td><td>老师生成的回答（SFT 数据）</td><td>Alpaca/Vicuna</td><td>10-25×</td></tr><tr><td>L3: 行为蒸馏</td><td>老师的 agent 行为（工具调用/推理链）</td><td>Agent 蒸馏</td><td>10-50×</td></tr></tbody></table>
+    <h3>L2 回复蒸馏：当前主流</h3>
+    <p>对于 LLM，最实用的蒸馏是 L2——用 GPT-4 生成大量高质量问答对，用这些数据 SFT 一个小模型。Alpaca（7B，用 5.2 万条 GPT-3.5 数据）和 Vicuna 就是这种路线。成本低（只需 API 调用）、效果好（7B 能达到 GPT-3.5 的 80%+ 能力）。</p>
+    <pre class="code"><code class="language-python"># L2 回复蒸馏流程
+# 1. 用老师模型（GPT-4）生成训练数据
+prompts = generate_diverse_prompts(n=50000)  # 多样化问题
+train_data = [{"prompt": p, "response": gpt4.generate(p)} for p in prompts]
+
+# 2. 用这些数据 SFT 学生模型（7B）
+student_model.sft(train_data, epochs=3)
+
+# 3. 评估学生 vs 老师的差距
+# MMLU: GPT-4=86%, 学生7B=68% → 达到老师 79% 水平
+# 成本: GPT-4 推理 $0.06/1K token, 学生7B 本地推理 ~$0.001/1K token</code></pre>
+    <h3>L3 行为蒸馏：Agent 时代的新前沿</h3>
+    <p>当老师是一个 Agent（能调工具、做多步推理），蒸馏就不只是"学回答"，而是"学行为"——学生在什么时候该调什么工具、推理链怎么展开。这是 2025 年的前沿方向，让小模型也能做 Agent 任务。</p>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM 时代的蒸馏从 logits 进化到行为模仿：输出模仿（最实用，用大模型生成数据训小模型）、推理链蒸馏（学推理过程）、agent 行为蒸馏（学工具使用）。这是让小模型"小而能"的关键技术。</p>
+    <p>知识蒸馏让大模型"教"小模型，三层境界：L1 logit 蒸馏（学软标签，2×）、L2 回复蒸馏（学老师生成的回答，10-25×，当前主流）、L3 行为蒸馏（学 agent 行为，前沿）。L2 是当前性价比最高的路线——用 GPT-4 生成数据 SFT 小模型，成本降低 10 倍。</p>
     <div class="chapter-nav">
-    <a href="222-comp-pruning.html"><div class="lbl">← 上一章</div><div class="ttl">222 · 剪枝：删掉模型里的冗余</div></a>
-    <a href="224-comp-tensorrt.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">224 · 编译优化：TensorRT / ONNX / vLLM</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 247 章 · 知识蒸馏进阶：从 logits 到 agent 行为</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="222-comp-pruning.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 223 章 · 知识蒸馏进阶：从 logits 到 agent 行为</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

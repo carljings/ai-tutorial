@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>微调策略决策：什么时候该微调 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>微调策略决策：什么时候该微调 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,25 +295,14 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>微调策略决策</h1><p class="lead">不是所有问题都需要微调</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>微调不是万能药</h2>
-    <p>很多人遇到"模型表现不好"就想到微调。但很多时候，prompt 优化、RAG、few-shot 就能解决，不需要动模型权重。微调的适用场景是：领域知识（模型不懂你的行业术语）、固定风格（要模型按特定格式/语气输出）、特定任务（模型在某类任务上不够好）。如果只是"知识不够"，RAG 通常比微调更合适——RAG 能实时更新，微调不能。</p>
-    <h2><span class="idx"></span>决策树：RAG vs 微调 vs Prompt</h2>
-    <table class="data-table"><thead><tr><th>场景</th><th>推荐方案</th><th>原因</th></tr></thead><tbody><tr><td>知识不够（最新信息/私有数据）</td><td>RAG</td><td>可实时更新，不需要训</td></tr><tr><td>风格/格式不对</td><td>Prompt 优化</td><td>改 prompt 比微调成本低 100×</td></tr><tr><td>领域术语不懂</td><td>微调（SFT）</td><td>要改变模型内在行为</td></tr><tr><td>复杂推理能力不足</td><td>微调（CoT 数据）</td><td>学推理模式</td></tr><tr><td>输出安全性/对齐</td><td>微调（DPO）</td><td>调整偏好</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>微调的成本远超 prompt 优化：需要数据（几千-几万条）、需要 GPU、需要评估、需要部署更新。所以"先穷尽 prompt 优化，再考虑 RAG，最后才微调"是理性的优先级。80% 的问题不需要微调。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>微调策略决策：什么时候该微调</h1><p class="lead">RAG vs 微调 vs 长 prompt——怎么选</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>最常被问的问题：该 RAG 还是微调？</h2>
+    <p>这是每个 LLM 应用团队都会纠结的问题。答案是：**90% 的场景应该先试 RAG，不够再考虑微调**。因为 RAG 成本低（不需训练）、可解释（能看到检索了什么）、易更新（改文档即可），而微调成本高、不可解释、更新要重训。</p>
+    <table class="data-table"><thead><tr><th>需求</th><th>推荐</th><th>理由</th></tr></thead><tbody><tr><td>知识更新频繁</td><td>RAG</td><td>改文档即可，不用重训</td></tr><tr><td>特定风格/格式</td><td>微调</td><td>风格是模型行为，RAG 改不了</td></tr><tr><td>领域知识注入</td><td>RAG 优先</td><td>知识=文档，RAG 最直接</td></tr><tr><td>推理能力提升</td><td>微调(推理数据)</td><td>推理是能力，不是知识</td></tr><tr><td>成本极敏感</td><td>微调小模型</td><td>长期看比 API 便宜</td></tr><tr><td>需要溯源</td><td>RAG</td><td>可引用来源，微调不能</td></tr></tbody></table>
+    <div class="callout"><strong>💡 要点</strong><br>决策口诀：**知识用 RAG，能力用微调，风格用 prompt**。三者不矛盾，可以组合——RAG 注入知识 + 微调提升能力 + prompt 控制风格。先 RAG 再微调，不要上来就微调。</div>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>微调决策遵循"prompt→RAG→微调"的优先级。知识问题用 RAG，风格问题用 prompt，只有需要改变模型内在行为（领域知识/推理/对齐）才微调。80% 的场景不需要微调。</p>
+    <p>90% 场景先试 RAG（低成本/可解释/易更新）。微调适合"能力/风格"提升（推理/代码/格式）。决策口诀：知识用 RAG，能力用微调，风格用 prompt。三者可组合。最贵的是上来就全量微调——先穷尽 RAG 和 prompt 工程。</p>
     <div class="chapter-nav">
-    <a href="233-br-a2a-protocol.html"><div class="lbl">← 上一章</div><div class="ttl">233 · A2A 协议：Agent 间通信标准</div></a>
-    <a href="235-br-cost-engineering.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">235 · 成本工程：Token 经济学与省钱之道</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 258 章 · 微调策略决策：什么时候该微调</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="233-br-a2a-protocol.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 234 章 · 微调策略决策：什么时候该微调</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

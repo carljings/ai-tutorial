@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>58 · LLM 运维手册 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLMOps 工程化入门 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" class="active" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" class="active" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,63 +295,14 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 58 · 专题深度</span>
-      <h1>LLM 运维手册<br>让 AI 服务 7×24 稳定运行</h1>
-      <p class="lead">上线只是开始，稳定运行才是挑战。LLM 服务有独特的运维难题：延迟波动、成本失控、质量退化、安全事件。本章是 LLM 专属的运维手册——监控指标、告警、故障排查、容量规划。</p>
-      <div class="meta"><span class="chip">阅读约 30 分钟</span><span class="chip">难度 ★★★</span><span class="chip">前置：第 03、25 章</span></div>
-    </section>
-
-    <h2 class="section" id="monitoring"><span class="idx">01</span> 核心监控指标</h2>
-    <table>
-      <thead><tr><th>类别</th><th>指标</th><th>告警阈值</th></tr></thead>
-      <tbody>
-        <tr><td rowspan="3"><strong>性能</strong></td><td>P50/P99 延迟</td><td>P99 &gt; 5s</td></tr>
-        <tr><td>吞吐量（QPS）</td><td>骤降 50%</td></tr>
-        <tr><td>首 token 延迟（TTFT）</td><td>&gt; 2s</td></tr>
-        <tr><td rowspan="3"><strong>成本</strong></td><td>每请求 token 数</td><td>异常飙升</td></tr>
-        <tr><td>每日总成本</td><td>超预算 80%</td></tr>
-        <tr><td>错误率</td><td>&gt; 1%</td></tr>
-        <tr><td rowspan="3"><strong>质量</strong></td><td>用户反馈（赞/踩）</td><td>踩率 &gt; 10%</td></tr>
-        <tr><td>幻觉率（抽检）</td><td>&gt; 5%</td></tr>
-        <tr><td>安全拦截率</td><td>异常波动</td></tr>
-        <tr><td rowspan="2"><strong>资源</strong></td><td>GPU 利用率</td><td>&lt; 30% 或 &gt; 95%</td></tr>
-        <tr><td>显存占用</td><td>&gt; 90%</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="incidents"><span class="idx">02</span> 常见故障与排查</h2>
-    <table>
-      <thead><tr><th>故障</th><th>症状</th><th>排查</th></tr></thead>
-      <tbody>
-        <tr><td>延迟飙升</td><td>P99 突增</td><td>查并发量、GPU 利用率、是否长上下文请求涌入</td></tr>
-        <tr><td>OOM 崩溃</td><td>进程退出</td><td>显存不够：降 batch/上下文/换更大卡</td></tr>
-        <tr><td>成本暴涨</td><td>账单异常</td><td>查是否有死循环 Agent、超长 prompt、爬虫滥用</td></tr>
-        <tr><td>质量退化</td><td>用户反馈变差</td><td>查是否模型升级、prompt 改动、RAG 数据污染</td></tr>
-        <tr><td>安全事件</td><td>越狱/注入</td><td>查攻击来源、加固 prompt/Hook/权限</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="capacity"><span class="idx">03</span> 容量规划</h2>
-    <ul>
-      <li><strong>峰值 QPS</strong>：按峰值（非平均）规划 GPU 数量；</li>
-      <li><strong>冗余</strong>：至少 30% 余量应对突发；</li>
-      <li><strong>弹性</strong>：用云 GPU 弹性扩缩容；</li>
-      <li><strong>模型路由</strong>：简单请求路由到小模型（省资源）。</li>
-    </ul>
-
-    <h2 class="section" id="summary"><span class="idx">04</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>监控四大类：性能/成本/质量/资源；</li><li>常见故障：延迟/OOM/成本/质量/安全；</li><li>容量按峰值+冗余规划。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLMOps 工程化入门</h1><p class="lead">从 demo 到生产——LLM 运维的核心实践</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>demo 和生产的鸿沟</h2>
+    <p>在 Jupyter 里跑通一个 RAG demo 只需 2 小时。但把它变成一个 7×24 稳定服务、给几百用户用、控制成本、持续迭代——这中间有一整门工程学问，叫 LLMOps。LLMOps 是 DevOps 在 AI 时代的延伸，我们在第 210-215 章深入讲了它的生命周期。本章是一个入门概览。</p>
+    <h2><span class="idx"></span>LLMOps 的五大核心实践</h2>
+    <table class="data-table"><thead><tr><th>实践</th><th>demo 里不用管</th><th>生产里必须做</th></tr></thead><tbody><tr><td>版本管理</td><td>改了就改了</td><td>prompt/模型/数据都要版本化</td></tr><tr><td>监控</td><td>跑通就行</td><td>质量/成本/延迟三维监控</td></tr><tr><td>评估</td><td>人眼看</td><td>golden set 回归 + LLM-as-judge</td></tr><tr><td>成本控制</td><td>不计费</td><td>模型路由/缓存/批处理</td></tr><tr><td>安全</td><td>信任输入</td><td>prompt injection 防护/输出过滤</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>LLMOps 是从 demo 到生产的工程鸿沟。五大实践：版本管理（prompt/模型/数据）、监控（质量/成本/延迟）、评估（golden set 回归）、成本控制（路由/缓存）、安全（injection 防护）。详见第 210-215 章的 LLMOps 系列。</p>
     <div class="chapter-nav">
-      <a href="57-paper-readings.html"><div class="lbl">← 上一章</div><div class="ttl">57 · 论文精读</div></a>
-      <a href="59-hardware-guide.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">59 · 硬件选型</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 58 章 · LLM 运维手册</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="57-paper-readings.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 58 章 · LLMOps 工程化入门</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

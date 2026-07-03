@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                                <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,26 +295,15 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 228 章 · Deep Agent</span>
-    <h1>Deep Research agent</h1><p class="lead">像研究员一样持续探索</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Deep Research 是 agent 的"高级形态"</h2>
-    <p>2025 年，OpenAI、Perplexity、Google 相继推出"Deep Research"功能。它不是简单的"搜索+总结"，而是一个能持续数分钟甚至数十分钟、执行几十轮搜索-阅读-综合的自主 agent。给它一个研究问题，它会像人类研究员一样：规划研究方向、多角度搜索、批判性地阅读每个来源、发现信息缺口继续深挖、最终综合成一份带引用的报告。这是 Plan-Execute + Reflection + 自主循环的综合应用。</p>
-    <h2><span class="idx"></span>Deep Research 的工作循环</h2>
-    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>对应模式</th></tr></thead><tbody><tr><td>规划</td><td>分解研究方向，生成子问题</td><td>Plan-Execute</td></tr><tr><td>搜索</td><td>并行搜索多个子问题</td><td>工具调用</td></tr><tr><td>阅读</td><td>深度阅读每个来源，提取要点</td><td>RAG</td></tr><tr><td>评估</td><td>信息够不够？有没有矛盾？</td><td>Reflection</td></tr><tr><td>补充</td><td>发现缺口，生成新搜索</td><td>自主循环</td></tr><tr><td>综合</td><td>把所有发现组织成报告</td><td>Plan-Execute 综合</td></tr></tbody></table>
-    <p>这个循环可能跑几十轮。关键挑战是：怎么判断"研究够了"（信息饱和度）、怎么避免重复搜索（去重）、怎么管理超长上下文（摘要+向量检索）、怎么控制成本（预算上限）。这些都是前面讲过的模式的综合运用。</p>
-    <div class="callout"><strong>💡 要点</strong><br>Deep Research 的本质是"把人类研究员的工作流程 agent 化"。人类做研究也是：先想清楚要查什么 → 搜索 → 阅读 → 发现新问题再查 → 综合成报告。agent 把这个过程自动化了，而且能并行、不知疲倦、覆盖更多来源。</div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★Deep Agent</span><h1>Deep Research agent：长周期的深度研究</h1><p class="lead">让 AI 像研究员一样做调研——深度研究 Agent 的架构</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>Deep Research：不只是搜索，是"研究"</h2>
+    <p>普通 RAG 是"查一次就答"，Deep Research agent 是"像一个人类研究员一样，规划调研策略、多轮搜索、交叉验证、综合写报告"。OpenAI 的 Deep Research、Google 的 Deep Research、开源的 GPT Researcher 都是这个方向。它解决的是"复杂研究问题"——如"对比2024年主流向量数据库的性能和成本"，需要查多个来源、综合对比、生成结构化报告。</p>
+    <h2><span class="idx"></span>Deep Research 的三段式架构</h2>
+    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>代表实现</th></tr></thead><tbody><tr><td>Planner</td><td>分解研究问题→子问题→搜索计划</td><td>LLM 规划</td></tr><tr><td>Researcher</td><td>执行搜索→多轮迭代→收集证据</td><td>搜索API+RAG</td></tr><tr><td>Reporter</td><td>综合所有证据→生成结构化报告</td><td>LLM 生成</td></tr></tbody></table>
+    <div class="callout"><strong>💡 要点</strong><br>Deep Research vs 普通 RAG：普通 RAG 是"检索-生成"一步走；Deep Research 是"规划-多轮检索-综合"的迭代循环。它更像人类研究员的工作流——先定方向，再查资料，边查边调整，最后综合。代价是慢（几分钟）和贵（多次 LLM 调用），换来的是研究级深度。</div>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>Deep Research 是当前 agent 技术的最高级应用之一：它综合运用 Plan-Execute（规划研究）、工具调用（搜索）、Reflection（评估信息质量）、自主循环（持续深挖）。理解了它，你就理解了"长周期自主 agent"的完整图景。下一章看开源的 GPT Researcher 怎么实现这个思路。</p>
+    <p>Deep Research agent 模拟人类研究员：Planner 分解问题→Researcher 多轮搜索→Reporter 综合报告。它不是"查一次就答"，而是迭代式研究，适合需要多源对比的综合分析任务。GPT Researcher 是开源标杆。下一章深入它的源码。</p>
     <div class="chapter-nav">
-    <a href="203-fw-others.html"><div class="lbl">← 上一章</div><div class="ttl">203 · 其它框架速览：Semantic Kernel / Haystack / Pydantic AI</div></a>
-    <a href="205-deep-gpt-researcher.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">205 · GPT Researcher：开源深度研究 agent 源码解析</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 228 章 · Deep Research agent：长周期的深度研究</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="203-fw-others.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 204 章 · Deep Research agent：长周期的深度研究</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

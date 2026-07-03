@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>62 · AI 法规与合规 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                          <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 法规与合规 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -79,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" class="active" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -245,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -302,59 +295,18 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 62 · 专题深度</span>
-      <h1>AI 法规与合规<br>在规则之内创新</h1>
-      <p class="lead">AI 不是法外之地。中国、欧盟、美国都在建立 AI 法规框架。不合规可能面临下架、罚款、刑事责任。本章梳理全球 AI 法规要点、中国《生成式 AI 服务管理办法》的核心要求、企业合规清单。</p>
-      <div class="meta"><span class="chip">阅读约 25 分钟</span><span class="chip">难度 ★★☆</span><span class="chip">前置：第 15、48 章</span></div>
-    </section>
-
-    <h2 class="section" id="china"><span class="idx">01</span> 中国 AI 法规</h2>
-    <table>
-      <thead><tr><th>法规</th><th>核心要求</th></tr></thead>
-      <tbody>
-        <tr><td><strong>《生成式 AI 服务管理办法》</strong></td><td>备案制、内容安全、训练数据合法、标注规范、安全评估</td></tr>
-        <tr><td><strong>《深度合成管理规定》</strong></td><td>深度合成内容需标识、不可用于欺诈</td></tr>
-        <tr><td><strong>《算法推荐管理规定》</strong></td><td>算法透明、用户选择权、防歧视</td></tr>
-        <tr><td><strong>《数据安全法》《个人信息保护法》</strong></td><td>数据分级、用户同意、跨境传输限制</td></tr>
-      </tbody>
-    </table>
-    <div class="callout danger"><div class="head">🚨 中国合规要点</div><ul style="margin:6px 0;"><li><strong>备案</strong>：面向公众的生成式 AI 需向网信办备案；</li><li><strong>安全评估</strong>：上线前需做算法安全评估；</li><li><strong>内容审核</strong>：生成内容需过政治/色情/暴力等审核；</li><li><strong>训练数据合法</strong>：数据来源合规、无侵权；</li><li><strong>标识</strong>：AI 生成内容（尤其深度合成）需标识。</li></ul></div>
-
-    <h2 class="section" id="global"><span class="idx">02</span> 全球法规对比</h2>
-    <table>
-      <thead><tr><th>地区</th><th>代表法规</th><th>特点</th></tr></thead>
-      <tbody>
-        <tr><td><strong>欧盟</strong></td><td>EU AI Act</td><td>风险分级：禁止/高/有限/低。最严格。</td></tr>
-        <tr><td><strong>美国</strong></td><td>行政令+行业自律</td><td>较松散，靠行业自律+事后追责</td></tr>
-        <tr><td><strong>中国</strong></td><td>管理办法+备案</td><td>事前备案+内容安全，务实</td></tr>
-        <tr><td><strong>英国</strong></td><td>pro-innovation</td><td>鼓励创新，轻监管</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="checklist"><span class="idx">03</span> 企业合规清单</h2>
-    <div class="steps">
-      <div class="step"><h4>数据合规</h4><p>训练数据来源合法、已脱敏、有授权。</p></div>
-      <div class="step"><h4>内容安全</h4><p>输出过审核、有害内容过滤、敏感话题拒绝。</p></div>
-      <div class="step"><h4>透明度</h4><p>告知用户用 AI、标识 AI 生成、可解释。</p></div>
-      <div class="step"><h4>用户权益</h4><p>用户可查询/删除/申诉，有投诉渠道。</p></div>
-      <div class="step"><h4>安全评估</h4><p>上线前过算法安全评估+红队测试。</p></div>
-      <div class="step"><h4>备案</h4><p>按规定向监管机构备案。</p></div>
-      <div class="step"><h4>持续合规</h4><p>定期审计、响应法规更新。</p></div>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">04</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>中国：备案制+内容安全+安全评估；</li><li>全球：欧盟最严（风险分级），美国松散，中国务实；</li><li>企业合规：数据/内容/透明/用户/评估/备案/持续；</li><li>不合规 = 法律风险。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 法规与合规</h1><p class="lead">EU AI Act 到中国生成式 AI 管理办法——全球 AI 监管地图</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>AI 法规的全球格局</h2>
+    <p>AI 监管在 2024-2026 年快速成形。三大法域各有侧重：欧盟走"风险分级"路线（EU AI Act），美国走"自愿框架"路线（NIST AI RMF + 行政令），中国走"内容安全"路线（生成式 AI 管理办法）。如果你的 AI 产品面向多国，必须同时满足多套法规。</p>
+    <table class="data-table"><thead><tr><th>法域</th><th>法规</th><th>核心要求</th><th>执行力度</th></tr></thead><tbody><tr><td>欧盟</td><td>EU AI Act (2024)</td><td>风险分级：高风险AI需评估/注册/人工监督</td><td>强（罚款高达营收6%）</td></tr><tr><td>美国</td><td>NIST AI RMF / 行政令</td><td>自愿框架+政府采购要求</td><td>中（靠市场/采购）</td></tr><tr><td>中国</td><td>生成式AI管理办法</td><td>安全评估/内容标识/算法备案</td><td>强（上线前审批）</td></tr><tr><td>英国</td><td>柔性监管</td><td>行业自律+原则指导</td><td>弱</td></tr></tbody></table>
+    <h2><span class="idx"></span>EU AI Act：最严格的风险分级</h2>
+    <p>EU AI Act 把 AI 按风险分四级：不可接受（禁止，如社会评分）、高风险（严格监管，如简历筛选/医疗）、有限风险（透明义务，如聊天机器人）、最小风险（自由）。高风险 AI 要做：合格评定、注册到欧盟数据库、人工监督、持续监控、技术文档。</p>
+    <h2><span class="idx"></span>中国生成式 AI 管理办法</h2>
+    <p>中国的核心要求：① 安全评估（上线前做算法安全评估）；② 内容标识（AI 生成内容要标注）；③ 算法备案（向网信办备案）；④ 训练数据合法（不得侵权/违法）；⑤ 用户实名+内容审核。</p>
+    <div class="callout"><strong>💡 要点</strong><br>合规建议：① 上线前做"法规体检"——你的 AI 属于哪个风险等级？需要哪些合规动作？② 建立审计日志——所有 AI 决策可追溯；③ 按人群/场景拆分评估——证明无歧视；④ 内容标识——AI 生成的要标注。这些在产品早期就考虑，否则后期补成本 10 倍。</div>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>全球 AI 监管三路线：欧盟风险分级（EU AI Act 最严）、美国自愿框架、中国内容安全。核心合规动作：安全评估/内容标识/算法备案/审计日志/公平性评估。建议产品早期就做法规体检，后期补成本极高。</p>
     <div class="chapter-nav">
-      <a href="61-redteam-handbook.html"><div class="lbl">← 上一章</div><div class="ttl">61 · 红队手册</div></a>
-      <a href="63-ai-investment.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">63 · AI 投资</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 62 章 · AI 法规与合规</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="61-redteam-handbook.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 62 章 · AI 法规与合规</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

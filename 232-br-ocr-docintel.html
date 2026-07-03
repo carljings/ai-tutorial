@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>OCR 与文档智能：把纸面变数据 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OCR 与文档智能：把纸面变数据 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,25 +295,15 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>OCR 与文档智能</h1><p class="lead">从扫描件到结构化数据</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>文档智能的核心任务</h2>
-    <p>企业有海量非结构化文档——PDF、扫描件、发票、合同、表格。文档智能的目标是把这些"给人看"的文档变成"给机器用"的结构化数据。核心任务包括：OCR（把图片里的文字识别出来）、版面分析（识别标题/段落/表格/图片的区域）、表格识别（把表格转成结构化数据）、信息抽取（提取关键字段如金额/日期/姓名）。</p>
-    <h2><span class="idx"></span>现代文档智能的 LLM 化</h2>
-    <p>传统的文档智能是"OCR + 规则"——先识别文字，再用正则/规则抽信息。现代做法是"多模态 LLM + OCR"——用 GPT-4V/Claude 等视觉模型直接理解文档（不需要先 OCR），用自然语言指令抽取信息（"提取这份合同的甲方、金额、签署日期"）。这种方式灵活得多，不需要为每种文档写规则。</p>
-    <table class="data-table"><thead><tr><th>方案</th><th>流程</th><th>优缺点</th></tr></thead><tbody><tr><td>传统 OCR+规则</td><td>OCR→正则提取</td><td>快，但每种文档要写规则</td></tr><tr><td>OCR+LLM</td><td>OCR→LLM 理解抽取</td><td>灵活，但 OCR 质量影响大</td></tr><tr><td>多模态 LLM 直读</td><td>VLM 直接看文档</td><td>最灵活，但贵且慢</td></tr></tbody></table>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>OCR 与文档智能：把纸面变数据</h1><p class="lead">从扫描件到结构化数据——文档智能的技术栈</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>文档智能：不只是 OCR</h2>
+    <p>传统 OCR 只做"图片→文字"。文档智能（Document Intelligence）要做的多得多——识别文档的版面结构（标题/段落/表格/图片）、提取键值对（发票号/金额/日期）、理解表格（行列关系）、分类文档类型。这是企业数字化（纸质合同/发票/报告的电子化）的核心技术。</p>
+    <table class="data-table"><thead><tr><th>层级</th><th>做什么</th><th>代表技术</th></tr></thead><tbody><tr><td>OCR</td><td>图片→文字</td><td>PaddleOCR/Tesseract</td></tr><tr><td>版面分析</td><td>识别标题/段落/表格/图</td><td>LayoutLM/Donut</td></tr><tr><td>信息提取</td><td>提取键值对/实体</td><td>LLM + 结构化 prompt</td></tr><tr><td>文档理解</td><td>问答/摘要/分类</td><td>多模态 LLM</td></tr></tbody></table>
+    <h2><span class="idx"></span>LLM 时代的文档智能</h2>
+    <p>多模态 LLM（GPT-4V/Claude Vision）正在颠覆文档智能——它能直接"看"文档图片，理解版面+提取信息+回答问题，不需要专门的 OCR + 版面分析 + 信息提取流水线。RAGFlow 的"深度文档理解"就是用多模态 LLM 处理复杂文档（表格/版式/扫描件），这是它 83K stars 的核心原因。</p>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>文档智能把非结构化文档变成结构化数据。从传统的 OCR+规则进化到多模态 LLM 直读。在企业 RAG 系统中，文档智能是数据接入的第一步——PDF/Word 要先智能解析才能进知识库。</p>
+    <p>文档智能从 OCR（文字识别）→ 版面分析（结构理解）→ 信息提取（键值对）→ 文档理解（问答/摘要）四层。LLM 时代，多模态 LLM 正在统一这些步骤——直接看图理解+提取+回答。RAGFlow 用这个思路处理复杂文档，是企业知识库的关键技术。</p>
     <div class="chapter-nav">
-    <a href="231-br-data-closedloop.html"><div class="lbl">← 上一章</div><div class="ttl">231 · AI 项目的数据闭环与持续改进</div></a>
-    <a href="233-br-a2a-protocol.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">233 · A2A 协议：Agent 间通信标准</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 256 章 · OCR 与文档智能：把纸面变数据</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="231-br-data-closedloop.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 232 章 · OCR 与文档智能：把纸面变数据</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

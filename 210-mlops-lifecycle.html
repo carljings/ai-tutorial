@@ -1,16 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
-<div class="layout">
-                      <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -81,20 +72,20 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" title="LLM 运维手册"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" title="AI 社区运营与开源贡献"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" title="LLM 完整学习路径与资源地图"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -247,15 +238,15 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" title="Computer Use agent：能操作图形界面的 agent"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" class="active" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
-      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 和模型也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" title="线上监控与告警：质量、成本、延迟三维追踪"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" title="模型注册与版本管理：管理你的模型资产"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验都可复现"><span class="num">214</span>实验追踪</a>
+      <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -304,30 +295,18 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span>
-    <h1>LLMOps 全景</h1><p class="lead">模型从实验台到生产线的完整旅程</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>LLMOps 全景：从实验到生产的生命周期</h1><p class="lead">模型从实验台到生产线的完整旅程——DevOps 在 AI 时代的延伸</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
     <h2><span class="idx"></span>为什么需要 LLMOps</h2>
-    <p>你在 Jupyter 里跑通了一个 RAG 系统，效果好得不得了。然后呢？要把它部署到生产环境、给几百个用户用、保证稳定、控制成本、持续迭代——这一路上有无数工程问题。LLMOps 就是解决这些问题的方法论和工具链，它是 DevOps 在 AI 时代的延伸。传统软件部署后是确定性的（相同输入相同输出），但 LLM 应用有随机性、有模型版本更新、有 prompt 漂移、有成本波动——运维复杂度高了一个量级。</p>
-    <p>LLMOps 的核心挑战是：模型不是静态代码。一个 GPT-4 的 API 更新可能让你的 prompt 突然不 work 了；一个嵌入模型的升级让所有向量索引需要重建；一个 token 价格调整让你的月度成本翻倍。所以 LLMOps 比传统 MLOps 多了"管理不确定性"这一层。</p>
-    <h2><span class="idx"></span>LLMOps 生命周期的七个阶段</h2>
-    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>关键工具</th><th>与传统 MLOps 的区别</th></tr></thead><tbody><tr><td>实验</td><td>原型验证、prompt 迭代</td><td>Jupyter/LangSmith</td><td>prompt 也是"代码"</td></tr><tr><td>数据</td><td>收集/标注/清洗训练数据</td><td>Label Studio/Doccano</td><td>合成数据占比高</td></tr><tr><td>训练</td><td>SFT/DPO/微调</td><td>Axolotr/LLaMA-Factory</td><td>需要大量 GPU</td></tr><tr><td>评估</td><td>自动化+人工评估</td><td>RAGAS/LM-eval-harness</td><td>评估本身用 LLM</td></tr><tr><td>部署</td><td>模型/API/Agent 上线</td><td>vLLM/BentoML/Ray</td><td>要管理模型版本</td></tr><tr><td>监控</td><td>质量/成本/延迟追踪</td><td>Langfuse/Phoenix</td><td>漂移检测更难</td></tr><tr><td>迭代</td><td>反馈→数据→重训闭环</td><td>数据飞轮</td><td>线上数据反哺训练</td></tr></tbody></table>
-    <h2><span class="idx"></span>与传统 MLOps 的关键差异</h2>
-    <p>传统 MLOps 管的是"模型权重"——训练一个分类器，部署，监控准确率。LLMOps 管的不只是模型权重，还有 prompt（一种"软代码"）、embedding 索引（会随模型版本失效）、agent 配置（工具列表/权限/系统提示）。这些东西都会"漂移"——OpenAI 偷偷升级了模型行为，你的 prompt 就可能不 work，但你没有任何代码改动。</p>
-    <div class="callout"><strong>💡 要点</strong><br>LLMOps 的核心认知转变：你的"系统"不只是代码，还包括 prompt、模型选择、嵌入索引、agent 配置。这些都是需要版本管理和监控的"制品"（artifact），不是写完就不管的。</div>
+    <p>传统软件部署后是确定性的——相同输入永远得到相同输出。LLM 应用完全不同：输出有随机性、模型会版本更新、prompt 会漂移、成本会波动、知识库会过时。这意味着 LLM 的运维复杂度比传统软件高一个量级。LLMOps 就是解决这些问题的方法论和工具链——它是 DevOps + MLOps 在大模型时代的进化。</p>
+    <div class="callout"><strong>💡 要点</strong><br>LLMOps 的核心挑战：你的"系统"不只是代码——还包括 prompt（软代码）、模型版本（会变）、嵌入索引（会失效）、agent 配置（工具/权限）。这些都需要版本管理、监控、回归测试。</div>
+    <h2><span class="idx"></span>LLMOps 生命周期七阶段</h2>
+    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>关键工具</th><th>与传统区别</th></tr></thead><tbody><tr><td>实验</td><td>原型验证、prompt 迭代</td><td>Jupyter/LangSmith</td><td>prompt 也是代码</td></tr><tr><td>数据</td><td>收集/标注/清洗</td><td>Argilla/Label Studio</td><td>合成数据占比高</td></tr><tr><td>训练</td><td>SFT/DPO/微调</td><td>Axolotl/LLaMA-Factory</td><td>需要大量 GPU</td></tr><tr><td>评估</td><td>自动化+人工评估</td><td>RAGAS/LM-eval-harness</td><td>评估本身用 LLM</td></tr><tr><td>部署</td><td>模型/API/Agent 上线</td><td>vLLM/BentoML</td><td>管理模型版本</td></tr><tr><td>监控</td><td>质量/成本/延迟追踪</td><td>Langfuse/Phoenix</td><td>漂移检测更难</td></tr><tr><td>迭代</td><td>反馈→数据→重训闭环</td><td>数据飞轮</td><td>线上数据反哺训练</td></tr></tbody></table>
     <h2><span class="idx"></span>制品管理：什么需要版本化</h2>
-    <table class="data-table"><thead><tr><th>制品</th><th>为什么要版本化</th><th>版本化方式</th></tr></thead><tbody><tr><td>Prompt 模板</td><td>改一个词可能改变行为</td><td>Git / Prompt 注册中心</td></tr><tr><td>模型版本</td><td>API 升级会改变输出</td><td>模型路由 + 灰度</td></tr><tr><td>嵌入索引</td><td>换嵌入模型需重建</td><td>索引版本号</td></tr><tr><td>Agent 配置</td><td>工具/权限/系统提示</td><td>配置文件 + Git</td></tr><tr><td>评估数据集</td><td>回归测试基准</td><td>数据版本控制 (DVC)</td></tr><tr><td>训练数据</td><td>可复现性 + 审计</td><td>DVC / LakeFS</td></tr></tbody></table>
+    <p>LLMOps 里需要版本管理的"制品（artifact）"比传统软件多得多：</p>
+    <table class="data-table"><thead><tr><th>制品</th><th>为什么要版本化</th><th>方式</th></tr></thead><tbody><tr><td>Prompt 模板</td><td>改一个词可能改变行为</td><td>Git/Prompt 注册中心</td></tr><tr><td>模型版本</td><td>API 升级会改变输出</td><td>模型路由+灰度</td></tr><tr><td>嵌入索引</td><td>换嵌入模型需重建</td><td>索引版本号</td></tr><tr><td>Agent 配置</td><td>工具/权限/系统提示</td><td>配置文件+Git</td></tr><tr><td>评估数据集</td><td>回归测试基准</td><td>DVC/数据版本控制</td></tr></tbody></table>
     <h2><span class="idx"></span>本章小结</h2>
-    <p>LLMOps 是 AI 应用走向生产的必经之路：它把"实验台上的 demo"变成"稳定、可控、可迭代的线上服务"。核心是管理不确定性——模型行为会变、prompt 会漂移、成本会波动。后续章节逐一展开生命周期各阶段的工程实践。</p>
+    <p>LLMOps 是 DevOps 在 AI 时代的延伸，核心是管理不确定性——模型行为会变、prompt 会漂移、成本会波动。七阶段生命周期：实验→数据→训练→评估→部署→监控→迭代。制品管理要版本化 prompt/模型/嵌入索引/agent 配置/评估集。后续章节逐一展开各阶段。</p>
     <div class="chapter-nav">
-    <a href="209-deep-eval-observability.html"><div class="lbl">← 上一章</div><div class="ttl">209 · Agent 评估与可观测性</div></a>
-    <a href="211-mlops-cicd.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">211 · LLM 应用的 CI/CD：prompt 和模型也要测试</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 234 章 · LLMOps 全景：从实验到生产的生命周期</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+    <a href="209-deep-eval-observability.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 210 章 · LLMOps 全景：从实验到生产的生命周期</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
