@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>56 · LLM 历史与里程碑 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 发展简史 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" class="active" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" class="active" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,67 +295,13 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 56 · 专题深度</span>
-      <h1>LLM 历史与里程碑<br>从统计语言模型到 AGI 之路</h1>
-      <p class="lead">理解当下最好的方式是理解历史。本章梳理从 1948 年的信息论，到 2017 年 Transformer，到 2022 年 ChatGPT，到 2026 年 GLM-5.2/推理模型的<strong>完整脉络</strong>。每个里程碑都不只是日期，而是「为什么」。</p>
-      <div class="meta"><span class="chip">阅读约 40 分钟</span><span class="chip">难度 ★★☆</span><span class="chip">前置：第 01-02 章</span></div>
-    </section>
-
-    <h2 class="section" id="timeline"><span class="idx">★</span> 大模型发展简史</h2>
-    <div class="timeline">
-      <div class="tl-item"><div class="when">1948</div><h4>信息论奠基</h4><p>香农发表《通信的数学理论》，提出「信息熵」。这是交叉熵损失（第 51 章）的理论源头。</p></div>
-      <div class="tl-item"><div class="when">1950s-80s</div><h4>统计语言模型</h4><p>N-gram 模型：用前 N-1 个词预测第 N 个。简单但有效，是「预测下一个词」思想的起源。</p></div>
-      <div class="tl-item"><div class="when">1986</div><h4>反向传播</h4><p>Rumelhart 等提出反向传播算法。神经网络训练有了数学基础（第 51 章）。</p></div>
-      <div class="tl-item"><div class="when">1997</div><h4>LSTM</h4><p>Hochreiter 提出 LSTM，解决 RNN 的长距离依赖问题。在 Transformer 前是序列建模之王。</p></div>
-      <div class="tl-item"><div class="when">2003</div><h4>神经语言模型</h4><p>Bengio 的神经概率语言模型——首次用神经网络做语言建模，Embedding 思想萌芽。</p></div>
-      <div class="tl-item"><div class="when">2013</div><h4>Word2Vec</h4><p>Mikolov 的 Word2Vec 让「词向量」普及。第一次让人直观看到「国王-男人+女人≈女王」（第 1 章）。</p></div>
-      <div class="tl-item"><div class="when">2014</div><h4>Seq2Seq + Attention</h4><p>Sutskever 和 Bahdanau 提出 Seq2Seq 和注意力机制。Attention 的起源。</p></div>
-      <div class="tl-item"><div class="when">2017 🔥</div><h4>Transformer</h4><p>《Attention Is All You Need》。舍弃 RNN/CNN，纯 Attention。这是<strong>一切的开端</strong>（第 1 章）。</p></div>
-      <div class="tl-item"><div class="when">2018</div><h4>BERT & GPT-1</h4><p>预训练+微调范式确立。BERT（Encoder）做理解，GPT（Decoder）做生成。</p></div>
-      <div class="tl-item"><div class="when">2020</div><h4>GPT-3 + Scaling Laws</h4><p>1750 亿参数，few-shot learning 涌现。「大力出奇迹」被验证（第 2 章 Scaling Laws）。</p></div>
-      <div class="tl-item"><div class="when">2021</div><h4>Codex / CLIP</h4><p>代码能力（Codex）和多模态对齐（CLIP）突破。Copilot 上线。</p></div>
-      <div class="tl-item"><div class="when">2022 🔥</div><h4>ChatGPT + RLHF</h4><p>ChatGPT 爆发。RLHF 让模型「听懂人话」。这是<strong>AI 走向大众的转折点</strong>。</p></div>
-      <div class="tl-item"><div class="when">2023</div><h4>GPT-4 + 开源爆发</h4><p>GPT-4 多模态。LLaMA 开源引发开源浪潮。ChatGLM-6B 让中文大模型「飞入百姓家」。</p></div>
-      <div class="tl-item"><div class="when">2024</div><h4>MoE + Agent + MCP</h4><p>MoE 成主流。Agent 概念爆发。Anthropic 发 MCP 协议。推理模型（o1）亮相。</p></div>
-      <div class="tl-item"><div class="when">2025</div><h4>推理模型 + Agentic Engineering</h4><p>DeepSeek-R1 开源推理。Claude Code 引领 Agentic Coding。Harness 工程成热点。</p></div>
-      <div class="tl-item"><div class="when">2026 🔥🆕</div><h4>GLM-5.2 + 统一多模态</h4><p>GLM-5.2（1M 上下文+Agentic Coding+昇腾训练）。GPT-4o 统一多模态。A2A 协议成熟。合成数据成主流。</p></div>
-    </div>
-
-    <h2 class="section" id="lessons"><span class="idx">01</span> 历史给我们的启示</h2>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">📊</span><h4>Scaling 胜出</h4><p>每次「参数/数据不够」的质疑，都被更大的模型打脸。Scaling Laws 是最可靠的规律。</p></div>
-      <div class="card"><span class="ic">🧠</span><h4>简单架构胜出</h4><p>Transformer 凭简单（纯 Attention）击败了 LSTM/CNN 等复杂架构。简单+规模化 &gt; 复杂+小规模。</p></div>
-      <div class="card"><span class="ic">🎯</span><h4>对齐是关键</h4><p>GPT-3 很强但不会对话，RLHF 让它变成 ChatGPT。能力需要对齐才能释放。</p></div>
-      <div class="card"><span class="ic">🔓</span><h4>开源推动民主化</h4><p>LLaMA/GLM 开源让大模型不再是大厂专属。开源是 AI 民主化的核心力量。</p></div>
-    </div>
-
-    <h2 class="section" id="future"><span class="idx">02</span> 下一个十年：走向 AGI</h2>
-    <p>从趋势看，通往 AGI 的几个关键方向：</p>
-    <ul>
-      <li><strong>推理能力</strong>：推理模型（o1/R1）让 AI 从「快思考」到「慢思考」（第 17 章）；</li>
-      <li><strong>Agent 能力</strong>：AI 从「回答」到「做事」（第 3-5 章）；</li>
-      <li><strong>多模态统一</strong>：从「只读文字」到「看听做一切」（第 14、37 章）；</li>
-      <li><strong>自学习</strong>：AI 自己生成数据、自己训练、自己进化（第 18 章）；</li>
-      <li><strong>对齐与安全</strong>：越强大越需要确保「做好事」（第 15 章）。</li>
-    </ul>
-
-    <blockquote>
-      回望历史，AI 的每一次飞跃都来自一个简单而强大的想法。Transformer 如此，RLHF 如此，RLVR 如此。<strong>下一个突破，也许就在读到这本书的某个人脑中。</strong>
-    </blockquote>
-
-    <h2 class="section" id="summary"><span class="idx">03</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>从 N-gram（1948）到 GLM-5.2（2026），AI 走了 78 年；</li><li>四大启示：Scaling/简单架构/对齐/开源；</li><li>AGI 之路：推理+Agent+多模态+自学习+安全。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 发展简史</h1><p class="lead">从ELMo到GPT-4——大模型的十年进化史</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>十年改变世界</h2>
+    <p>2017年 Transformer 诞生，2026年 GPT-4 级模型普及。不到十年，AI从"能做简单分类"进化到"能写代码/做研究/通过律师考试"。这条进化线上的关键节点，定义了今天AI的格局。</p>
+    <table class="data-table"><thead><tr><th>年份</th><th>里程碑</th><th>改变了什么</th></tr></thead><tbody><tr><td>2017</td><td>Transformer (Attention Is All You Need)</td><td>架构革命</td></tr><tr><td>2018</td><td>BERT / GPT-1</td><td>预训练范式确立</td></tr><tr><td>2020</td><td>GPT-3 (175B)</td><td>Scaling + Few-shot</td></tr><tr><td>2020</td><td>Scaling Laws</td><td>大力出奇迹有数学</td></tr><tr><td>2022</td><td>ChatGPT / InstructGPT (RLHF)</td><td>对齐让模型"听话"</td></tr><tr><td>2022</td><td>Chinchilla</td><td>数据vs参数配比</td></tr><tr><td>2023</td><td>GPT-4 / Claude / Gemini</td><td>多模态+推理</td></tr><tr><td>2024</td><td>开源爆发 (Llama3/Qwen2/DeepSeek)</td><td>开源追近闭源</td></tr><tr><td>2025-26</td><td>Agent/推理模型/端侧LLM</td><td>从聊天到自主行动</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>LLM十年关键节点：2017 Transformer→2018 BERT/GPT→2020 GPT-3+Scaling Laws→2022 ChatGPT+RLHF+Chinchilla→2023 GPT-4多模态→2024 开源爆发→2025-26 Agent时代。两条主线：架构(Transformer)和规模(Scaling Laws)。对齐(RLHF)让模型从"能续写"变成"能对话"。</p>
     <div class="chapter-nav">
-      <a href="55-industry-cases.html"><div class="lbl">← 上一章</div><div class="ttl">55 · 垂直行业</div></a>
-      <a href="57-paper-readings.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">57 · 论文精读</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 56 章 · LLM 历史与里程碑</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="55-industry-cases.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 56 章 · LLM 发展简史</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>64 · 高级编程实战案例（第二辑） · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>高级编程实战案例（第二辑） · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" class="active" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,87 +295,16 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 64 · 专题深度</span>
-      <h1>高级编程实战案例（第二辑）<br>更深更难的 AI 编程场景</h1>
-      <p class="lead">第 45 章是基础案例，本章是<strong>进阶案例</strong>——更复杂、更需要 AI 深度参与：系统设计生成、跨语言迁移、性能瓶颈定位、API 集成、数据库 schema 设计、安全审计。</p>
-      <div class="meta"><span class="chip">阅读约 35 分钟</span><span class="chip">难度 ★★★★</span><span class="chip">前置：第 11、28、45 章</span></div>
-    </section>
-
-    <h2 class="section" id="case1"><span class="idx">01</span> 案例 1：用 AI 做系统设计</h2>
-    <div class="code-title">prompt：让 AI 设计系统架构</div>
-    <pre><code>我要设计一个「百万用户级实时聊天系统」。
-需求：
-- 实时消息（&lt;100ms 延迟）
-- 群聊/私聊/已读
-- 离线消息
-- 媒体文件
-
-请：
-1. 给出架构图（组件+数据流）
-2. 选型理由（WebSocket vs SSE vs 长轮询？）
-3. 数据库设计（如何存消息？分片？）
-4. 瓶颈分析与扩展方案
-5. 用 ASCII 画架构图</code></pre>
-    <p>AI 能给出合理的架构方案（WebSocket+Redis 消息队列+Cassandra 分片+CDN 媒体）。<strong>但人必须审查</strong>——AI 可能在细节上出错（如分片策略）。把它当资深架构师的「初稿」，你来精修。</p>
-
-    <h2 class="section" id="case2"><span class="idx">02</span> 案例 2：性能瓶颈定位</h2>
-    <p>给 AI 性能分析数据（火焰图/profile 报告），让它定位瓶颈：</p>
-    <pre><code>这是 Python 服务的 cProfile 输出（前 20 行）：
-   ncalls  tottime  percall  filename:lineno(function)
-  1523421   12.334    0.000  utils.py:45(parse_json)
-   823122    5.231    0.000  db.py:89(query)
-   ...
-
-哪个函数是瓶颈？怎么优化？给出具体方案。</code></pre>
-    <p>AI 一眼看出 <code>parse_json</code> 调用 150 万次是瓶颈，建议：用 <code>orjson</code> 替代标准库、缓存解析结果、减少调用频率。<strong>比人工逐行看 profile 快得多</strong>。</p>
-
-    <h2 class="section" id="case3"><span class="idx">03</span> 案例 3：跨语言迁移</h2>
-    <p>把 Python 服务迁移到 Go（性能需求）。策略：</p>
-    <ol>
-      <li>AI 先读 Python 代码，产出「逻辑 spec」（接口定义）；</li>
-      <li>按 spec 生成 Go 版本；</li>
-      <li>逐模块对比测试（Python 版 vs Go 版输出一致性）；</li>
-      <li>优化 Go 的并发优势（goroutine 替代线程池）。</li>
-    </ol>
-
-    <h2 class="section" id="case4"><span class="idx">04</span> 案例 4：安全审计</h2>
-    <pre><code>审查这段代码的安全漏洞（SQL 注入/XSS/权限/密钥泄露/路径遍历）：
-[代码]
-按严重程度排序，给出修复代码。</code></pre>
-    <p>AI 擅长发现<strong>模式化漏洞</strong>（SQL 注入、硬编码密钥、未校验输入）。但对复杂逻辑漏洞可能漏报。<strong>最佳实践：AI 初审 + 人工复审 + SAST 工具三管齐下</strong>。</p>
-
-    <h2 class="section" id="case5"><span class="idx">05</span> 案例 5-8 速览</h2>
-    <table>
-      <thead><tr><th>案例</th><th>场景</th><th>要点</th></tr></thead>
-      <tbody>
-        <tr><td>5. API 集成</td><td>对接第三方 API</td><td>给 AI 文档，生成 SDK+错误处理+重试</td></tr>
-        <tr><td>6. DB Schema 设计</td><td>设计数据库</td><td>描述需求→表结构+索引+ER 图</td></tr>
-        <tr><td>7. Bug 根因分析</td><td>复杂 bug</td><td>给日志+代码+复现步骤，AI 推理根因</td></tr>
-        <tr><td>8. 学习新框架</td><td>快速上手</td><td>让 AI 用新框架重写你熟悉的代码</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="principles"><span class="idx">06</span> 高级 AI 编程的原则</h2>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">🎯</span><h4>AI 是副驾，你是主驾</h4><p>AI 出初稿，你做决策。别把架构/安全/核心逻辑完全交给 AI。</p></div>
-      <div class="card"><span class="ic">🧪</span><h4>测试是底线</h4><p>AI 写的任何代码，都要有测试验证。</p></div>
-      <div class="card"><span class="ic">📖</span><h4>给足够上下文</h4><p>AI 不了解你的业务，给背景、约束、意图。</p></div>
-      <div class="card"><span class="ic">🔄</span><h4>迭代而非一次</h4><p>别期望 AI 一次完美，通过对话精炼。</p></div>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">07</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>AI 能做系统设计/瓶颈分析/迁移/审计等高阶任务；</li><li>但它是副驾，核心决策由人；</li><li>给足够上下文+测试验证+迭代精炼；</li><li>AI 初审+人工复审+工具 = 最佳安全实践。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>高级编程实战案例（第二辑）</h1><p class="lead">10 个进阶 AI 编程场景——从 prompt 到生产</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>AI 编程不止是"写代码"</h2>
+    <p>AI 编程的能力远超"生成一段代码"——它能做代码审查、重构、调试、测试生成、文档编写、架构建议。本章用 10 个进阶场景展示 AI 编程的全谱系能力。</p>
+    <h2><span class="idx"></span>10 个进阶场景</h2>
+    <table class="data-table"><thead><tr><th>场景</th><th>AI 做什么</th><th>关键技巧</th></tr></thead><tbody><tr><td>代码审查</td><td>找 bug/安全漏洞/性能问题</td><td>给明确审查标准+少样本</td></tr><tr><td>自动重构</td><td>改善代码结构不改变行为</td><td>要求保持测试通过</td></tr><tr><td>测试生成</td><td>生成单元测试/边界用例</td><td>指定覆盖率目标</td></tr><tr><td>文档生成</td><td>从代码生成文档/注释</td><td>指定文档格式</td></tr><tr><td>调试辅助</td><td>分析报错+定位根因</td><td>给完整错误栈</td></tr><tr><td>SQL 生成</td><td>自然语言→SQL</td><td>给 schema+少样本</td></tr><tr><td>API 设计</td><td>从需求生成 API 设计</td><td>给 RESTful/GraphQL 规范</td></tr><tr><td>代码迁移</td><td>一种语言迁移到另一种</td><td>给目标语言惯用法</td></tr><tr><td>性能优化</td><td>分析瓶颈+建议优化</td><td>给 profiling 数据</td></tr><tr><td>安全审计</td><td>发现安全漏洞</td><td>给 OWASP 检查清单</td></tr></tbody></table>
+    <h3>场景详解：AI 代码审查</h3>
+    <p>AI 代码审查（如 GitHub Copilot Review/Cursor）能 7×24 不知疲倦地审查每一行代码。关键是给 AI 明确的审查标准——不是笼统的"审查这个 PR"，而是"检查 SQL 注入/XSS/权限/并发问题，按 Critical/Warning/Style 分类"。这比人工审查更一致、更全面（人工审查容易遗漏非自己专长的安全问题）。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>AI 编程 10 个进阶场景：代码审查/重构/测试/文档/调试/SQL/API设计/迁移/优化/安全审计。核心技巧是给 AI 明确标准+少样本+完整上下文。AI 审查比人工更一致全面（尤其安全审查）。关键：把 AI 当"不知疲倦的初级工程师"，给清晰任务+标准+反馈。</p>
     <div class="chapter-nav">
-      <a href="63-ai-investment.html"><div class="lbl">← 上一章</div><div class="ttl">63 · AI 投资</div></a>
-      <a href="65-community.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">65 · 社区运营</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 64 章 · 高级编程实战案例（第二辑）</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="63-ai-investment.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 64 章 · 高级编程实战案例（第二辑）</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

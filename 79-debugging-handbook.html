@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>79 · LLM 常见错误与调试手册 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 调试手册 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" class="active" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" class="active" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,98 +295,25 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 参考</span><h1>LLM 调试手册</h1><p class="lead">模型不听话怎么办——LLM调试方法论</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>LLM调试与传统调试完全不同</h2>
+    <p>传统软件的bug是确定性的——同样输入复现，断点看变量。LLM的"bug"是不确定的——输出有时对有时错，同一输入可能不同结果。这让传统调试方法（断点/日志/单步）大部分失效。LLM调试需要全新的方法论。</p>
+    <h2><span class="idx"></span>LLM常见"bug"分类</h2>
+    <table class="data-table"><thead><tr><th>bug类型</th><th>症状</th><th>排查方向</th></tr></thead><tbody><tr><td>幻觉</td><td>编造不存在的信息</td><td>加RAG/置信度门槛/输出校验</td></tr><tr><td>不听指令</td><td>不按格式/不遵循约束</td><td>改prompt（更明确/加示例）</td></tr><tr><td>不稳定</td><td>同一输入不同输出</td><td>降temperature/固定seed</td></tr><tr><td>工具调用错</td><td>调错工具/参数错</td><td>改工具描述/加few-shot</td></tr><tr><td>安全漏洞</td><td>被注入/越狱</td><td>加安全过滤/结构化分离</td></tr></tbody></table>
+    <h2><span class="idx"></span>调试流程</h2>
+    <pre class="code"><code class="language-text">LLM调试五步法
 
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 79 · 专题深度</span>
-      <h1>LLM 常见错误与调试手册<br>出了问题怎么办</h1>
-      <p class="lead">AI 应用开发不像传统软件有清晰的报错信息。模型输出「看起来对但实际错」、Agent 卡死、RAG 检不到——这些问题怎么排查？本章是 30 个高频问题的<strong>调试手册</strong>。</p>
-      <div class="meta"><span class="chip">阅读约 40 分钟</span><span class="chip">难度 ★★★</span><span class="chip">排错必备</span></div>
-    </section>
-
-    <h2 class="section" id="generation"><span class="idx">01</span> 生成质量问题（10 个）</h2>
-    <table>
-      <thead><tr><th>问题</th><th>原因</th><th>解法</th></tr></thead>
-      <tbody>
-        <tr><td>幻觉（编造事实）</td><td>模型不确定时倾向「编」而非「说不知道」</td><td>RAG 引用+系统提示「不确定就说」+事实核查</td></tr>
-        <tr><td>输出格式不一致</td><td>温度太高/无格式约束</td><td>低温度+结构化输出（JSON schema）+few-shot</td></tr>
-        <tr><td>回答太长/太短</td><td>没给长度约束</td><td>明确「3句话内」/max_tokens</td></tr>
-        <tr><td>不遵循指令</td><td>指令被淹没/prompt 太长</td><td>关键指令放最后（近因效应）/精简 prompt</td></tr>
-        <tr><td>角色不一致</td><td>多轮后角色漂移</td><td>每轮重申系统角色/定期重置</td></tr>
-        <tr><td>数字算错</td><td>LLM 不擅长精确计算</td><td>用工具（计算器）/CoT 分步/要求显示计算过程</td></tr>
-        <tr><td>语言混乱（中英夹杂）</td><td>训练数据混合</td><td>明确「用中文回答」/few-shot 示范</td></tr>
-        <tr><td>重复输出</td><td>温度太低/重复惩罚不够</td><td>提高温度/加 repetition_penalty</td></tr>
-        <tr><td>偏见/不当内容</td><td>训练数据偏见</td><td>输出过滤+对齐训练+系统提示约束</td></tr>
-        <tr><td>过度自信</td><td>模型不确定时不表达</td><td>要求标注置信度/「如果你不确定…」</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="rag-debug"><span class="idx">02</span> RAG 问题（8 个）</h2>
-    <table>
-      <thead><tr><th>问题</th><th>原因</th><th>解法</th></tr></thead>
-      <tbody>
-        <tr><td>检索不到相关内容</td><td>分块太碎/Embedding 差/query 和文档表述差异大</td><td>调分块策略/HyDE（先生成假想答案再检索）/查询改写</td></tr>
-        <tr><td>检索到但不相关</td><td>向量搜索精度不够</td><td>加 Rerank+混合检索（BM25）</td></tr>
-        <tr><td>回答不引用检索内容</td><td>prompt 没强调用资料</td><td>强化「只根据资料回答」+引用编号</td></tr>
-        <tr><td>检索慢</td><td>向量库索引差/数据量大</td><td>HNSW 索引/分片/缓存热查询</td></tr>
-        <tr><td>上下文太长</td><td>检索太多 chunk</td><td>减少 top_k/父子分块（小块检索大块返回）</td></tr>
-        <tr><td>Lost in the Middle</td><td>长上下文中段信息被忽略</td><td>重要信息放头尾/Rerank 重排</td></tr>
-        <tr><td>多语言检索差</td><td>Embedding 不够多语言</td><td>用 BGE-m3 等多语言模型</td></tr>
-        <tr><td>数据更新后检索旧</td><td>增量索引没做好</td><td>按 doc_id 增量 reindex</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="agent-debug"><span class="idx">03</span> Agent 问题（8 个）</h2>
-    <table>
-      <thead><tr><th>问题</th><th>原因</th><th>解法</th></tr></thead>
-      <tbody>
-        <tr><td>Agent 死循环</td><td>重复同一动作/无终止条件</td><td>重复检测+步数上限+「换思路」提示</td></tr>
-        <tr><td>工具调用失败</td><td>参数格式错/工具超时</td><td>JSON schema 校验+重试+错误喂回模型</td></tr>
-        <tr><td>Agent 忘了任务</td><td>上下文太长漂移</td><td>定期重申目标+完成度自检</td></tr>
-        <tr><td>上下文爆炸</td><td>对话历史累积过长</td><td>滚动摘要+子 Agent 隔离+选择性保留</td></tr>
-        <tr><td>成本失控</td><td>步数多+prompt 长</td><td>预算上限+模型分级+上下文裁剪</td></tr>
-        <tr><td>Agent「假装」成功</td><td>工具失败时模型编造结果</td><td>原始错误喂回+「失败必须如实报告」</td></tr>
-        <tr><td>权限被绕过</td><td>权限规则有漏洞</td><td>默认拒绝+deny 优先+审计</td></tr>
-        <tr><td>生成太慢</td><td>步数多+每步等模型</td><td>并发工具调用+流式+推测解码</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="system-debug"><span class="idx">04</span> 系统/部署问题（4 个）</h2>
-    <table>
-      <thead><tr><th>问题</th><th>原因</th><th>解法</th></tr></thead>
-      <tbody>
-        <tr><td>OOM 崩溃</td><td>显存不够（KV Cache 太大）</td><td>降 batch/上下文/量化/换大卡</td></tr>
-        <tr><td>延迟飙升</td><td>并发突增/长请求堆积</td><td>连续批处理+请求限流+超时</td></tr>
-        <tr><td>API 限流</td><td>超过 provider 的 RPM/TPM</td><td>重试+退避+多 key 轮换+私有部署</td></tr>
-        <tr><td>模型升级后退化</td><td>新版本行为变化</td><td>评估集回归+版本锁定+灰度</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="methodology"><span class="idx">05</span> 通用调试方法论</h2>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">① 复现：稳定复现问题（记录输入/参数/版本）</div>
-        <div class="node violet">② 定位：是生成？检索？Agent？系统？</div>
-        <div class="node sky">③ 缩小：二分法定位具体环节</div>
-        <div class="node accent">④ 假设：提出根因假设</div>
-        <div class="node violet">⑤ 验证：改一个变量，测效果</div>
-        <div class="node sky">⑥ 修复+回归：修后跑评估集确认不退化</div>
-      </div>
-      <div class="cap">图 79-1 · LLM 调试六步法</div>
-    </div>
-
-    <div class="callout tip"><div class="head">💡 调试利器：Trace 回放</div><p>记录每次请求的完整轨迹（prompt/参数/输出/中间步骤）。出问题时回放轨迹定位。第 3 章的可观测性就是为了这一刻——没有 trace 的 AI 系统，调试等于盲飞。</p></div>
-
-    <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>30 个高频问题分四类：生成(10)+RAG(8)+Agent(8)+系统(4)；</li><li>幻觉/格式/死循环/检索差/OOM 是最常见；</li><li>调试六步法：复现→定位→缩小→假设→验证→修复；</li><li>Trace 回放是核心调试利器。</li></ul></div>
+1. 复现 → 固定输入+seed，确认bug可复现
+2. 定位 → 是prompt问题？模型能力？RAG召回？
+   - 换GPT-4试：如果GPT-4也对 → 你的模型能力不足
+   - 换prompt试：如果改prompt好了 → prompt问题
+   - 看RAG召回：如果召回差 → 数据/检索问题
+3. 修复 → 针对性改prompt/加RAG/换模型
+4. 验证 → 在golden set上跑，确保不退步
+5. 防回退 → 把这个case加入回归测试集</code></pre>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>LLM调试不同于传统调试（输出不确定）。五类常见bug：幻觉（加RAG）、不听指令（改prompt）、不稳定（降temperature）、工具错（改描述）、安全漏洞（加过滤）。五步法：复现→定位（换GPT-4/改prompt/看RAG）→修复→验证→防回退。</p>
     <div class="chapter-nav">
-      <a href="78-finale.html"><div class="lbl">← 上一章</div><div class="ttl">78 · 总结展望</div></a>
-      <a href="80-product-growth.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">80 · 产品运营</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 79 章 · LLM 常见错误与调试手册</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="78-finale.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 79 章 · LLM 调试手册</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

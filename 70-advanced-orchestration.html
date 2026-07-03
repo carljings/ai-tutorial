@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>70 · AI Agent 高级编排与工作流引擎 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Agent 高级编排 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" class="active" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" class="active" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,84 +295,34 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI Agent 高级编排</h1><p class="lead">多 Agent 协作的工作流引擎设计</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>从单 Agent 到多 Agent 编排</h2>
+    <p>单个 Agent 能力有限——一个 Agent 既要理解需求、又要搜索、又要写代码、又要测试，context 爆炸、角色混乱。多 Agent 编排的思路：把复杂任务拆成子任务，每个 Agent 专精一个环节（研究/编码/审查/测试），由编排器协调。这就像人类团队分工——比一个人全包效率高得多。</p>
+    <h2><span class="idx"></span>三种编排模式</h2>
+    <table class="data-table"><thead><tr><th>模式</th><th>结构</th><th>适用</th><th>代表</th></tr></thead><tbody><tr><td>流水线</td><td>A→B→C 串行</td><td>明确步骤的任务</td><td>研究→写作→审核</td></tr><tr><td>主管-工人</td><td>主管分配任务给工人</td><td>可并行的子任务</td><td>GPT Researcher</td></tr><tr><td>辩论</td><td>多 Agent 各持立场辩论</td><td>需要多视角的任务</td><td>多角色讨论</td></tr></tbody></table>
+    <h3>主管模式详解</h3>
+    <p>主管（Supervisor/Router）模式是最实用的编排：一个"主管 Agent"接收任务，决定分给哪些"工人 Agent"，收集结果，综合输出。主管负责规划和协调，工人负责执行。这和人类组织的管理结构同构。</p>
+    <pre class="code"><code class="language-text">主管模式工作流
 
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 70 · 专题深度</span>
-      <h1>AI Agent 高级编排与工作流引擎<br>复杂 Agent 系统的工程设计</h1>
-      <p class="lead">第 5 章讲了多智能体协作模式，第 43 章对比了框架。本章深入<strong>编排引擎</strong>——状态机、DAG 工作流、事件驱动、人在环路、检查点/恢复。这是生产级 Agent 系统的工程核心。</p>
-      <div class="meta"><span class="chip">阅读约 35 分钟</span><span class="chip">难度 ★★★★★</span><span class="chip">前置：第 04、05、43 章</span></div>
-    </section>
+用户: "帮我调研向量数据库并写报告"
 
-    <h2 class="section" id="patterns"><span class="idx">01</span> 编排模式</h2>
-    <table>
-      <thead><tr><th>模式</th><th>适合</th><th>代表</th></tr></thead>
-      <tbody>
-        <tr><td><strong>状态机</strong></td><td>流程固定的任务</td><td>客服流程、审批</td></tr>
-        <tr><td><strong>DAG 工作流</strong></td><td>有依赖的多步任务</td><td>数据处理管线</td></tr>
-        <tr><td><strong>事件驱动</strong></td><td>响应外部事件的异步系统</td><td>消息处理、监控</td></tr>
-        <tr><td><strong>自由 Agent</strong></td><td>开放式探索任务</td><td>研究、编程</td></tr>
-        <tr><td><strong>混合</strong></td><td>复杂系统</td><td>固定流程+自由探索</td></tr>
-      </tbody>
-    </table>
+[主管 Agent] 分析任务 → 拆成子任务
+    │
+    ├──→ [研究 Agent] 调研主流向量库
+    │       └→ 返回: Milvus/Qdrant/pgvector 对比数据
+    │
+    ├──→ [数据 Agent] 查 benchmark
+    │       └→ 返回: 性能/成本对比表
+    │
+    └──→ [写作 Agent] 综合成报告
+            └→ 返回: 结构化报告
 
-    <h2 class="section" id="human-loop"><span class="idx">02</span> 人在环路（Human-in-the-Loop）</h2>
-    <p>不是所有决策都该交给 AI。<strong>关键节点暂停等人确认</strong>：</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">Agent 执行中...</div>
-        <div class="node violet">遇到高风险操作 → 暂停</div>
-        <div style="color:var(--text-faint);">▼ 等待</div>
-        <div class="node sky">人确认/修改/拒绝</div>
-        <div style="color:var(--text-faint);">▼</div>
-        <div class="node accent">Agent 继续</div>
-      </div>
-      <div class="cap">图 70-1 · 人在环路：关键节点暂停等人确认</div>
-    </div>
-    <p>LangGraph 原生支持：用 <code>interrupt()</code> 暂停，状态保存到检查点，人确认后恢复。</p>
-
-    <h2 class="section" id="checkpoint"><span class="idx">03</span> 检查点与恢复</h2>
-    <p>长任务（跑几小时）必须能<strong>保存状态、断点恢复</strong>：</p>
-    <div class="code-title">检查点机制</div>
-    <pre><code><span class="c"># LangGraph 的检查点：每步自动保存状态</span>
-<span class="k">from</span> langgraph.checkpoint.sqlite <span class="k">import</span> SqliteSaver
-
-checkpointer = SqliteSaver.from_conn_string(<span class="s">"checkpoints.db"</span>)
-app = graph.compile(checkpointer=checkpointer)
-
-<span class="c"># 每次执行，状态自动存盘</span>
-config = {<span class="s">"configurable"</span>: {<span class="s">"thread_id"</span>: <span class="s">"task-123"</span>}}
-result = app.invoke(inputs, config)
-
-<span class="c"># 如果中断，可以从检查点恢复</span>
-<span class="c"># result = app.invoke(None, config)  # 从上次中断处继续</span></code></pre>
-    <p>价值：<strong>崩溃不丢进度、可回放调试、长任务可暂停</strong>。这是生产级 Agent 的必备能力。</p>
-
-    <h2 class="section" id="concurrency"><span class="idx">04</span> 并发与异步</h2>
-    <ul>
-      <li><strong>并行子任务</strong>：多个独立子 Agent 同时跑（asyncio）；</li>
-      <li><strong>异步 I/O</strong>：等 API 时不阻塞，处理其他请求；</li>
-      <li><strong>背压</strong>：任务队列满了要拒绝/降级，别无限堆积。</li>
-    </ul>
-
-    <h2 class="section" id="error-handling"><span class="idx">05</span> 错误处理与补偿</h2>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">🔄</span><h4>重试</h4><p>瞬时错误（网络）自动重试 + 退避。</p></div>
-      <div class="card"><span class="ic">↩️</span><h4>补偿事务</h4><p>多步操作中间失败，回滚已做的（Saga 模式）。</p></div>
-      <div class="card"><span class="ic">🎭</span><h4>降级</h4><p>大模型失败时用小模型/规则兜底。</p></div>
-      <div class="card"><span class="ic">🛡️</span><h4>熔断</h4><p>持续失败时停止，防止级联故障。</p></div>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>五种编排模式：状态机/DAG/事件/自由/混合；</li><li>人在环路：高风险节点暂停等人；</li><li>检查点：保存状态、断点恢复、可回放；</li><li>并发+错误处理（重试/补偿/降级/熔断）。</li></ul></div>
+[主管] 收集所有结果 → 综合交付</code></pre>
+    <h2><span class="idx"></span>编排的工程挑战</h2>
+    <table class="data-table"><thead><tr><th>挑战</th><th>问题</th><th>解法</th></tr></thead><tbody><tr><td>Context 管理</td><td>多 Agent 之间传什么？传太多爆 context</td><td>只传结构化摘要</td></tr><tr><td>错误传播</td><td>一个 Agent 错了，后面全错</td><td>每步校验+可回退</td></tr><tr><td>成本控制</td><td>多 Agent = 多倍 LLM 调用</td><td>简单任务用小模型</td></tr><tr><td>并发控制</td><td>多 Agent 并行需协调</td><td>异步队列/状态机</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>多 Agent 编排把复杂任务拆给专精 Agent。三种模式：流水线（串行）、主管-工人（分配协调）、辩论（多视角）。主管模式最实用——主管拆任务+收集结果，工人执行。工程挑战：context 管理（传摘要）、错误传播（逐步校验）、成本（小模型）、并发（状态机）。代表框架：LangGraph/CrewAI/AutoGen。</p>
     <div class="chapter-nav">
-      <a href="69-adversarial-testing.html"><div class="lbl">← 上一章</div><div class="ttl">69 · 对抗测试</div></a>
-      <a href="71-learning-path.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">71 · 学习路径</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 70 章 · AI Agent 高级编排与工作流引擎</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="69-adversarial-testing.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 70 章 · AI Agent 高级编排</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

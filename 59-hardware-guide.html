@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>59 · AI 硬件选型与采购指南 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 硬件选型与采购指南 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" class="active" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,75 +295,19 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 59 · 专题深度</span>
-      <h1>AI 硬件选型与采购指南<br>买什么卡、买几张、怎么省</h1>
-      <p class="lead">第 33 章讲了芯片原理，本章是<strong>采购指南</strong>：不同场景（训练/推理/微调/端侧）该买什么卡、买几张、云 vs 自建、国产替代怎么选。</p>
-      <div class="meta"><span class="chip">阅读约 25 分钟</span><span class="chip">难度 ★★☆</span><span class="chip">前置：第 16、33 章</span></div>
-    </section>
-
-    <h2 class="section" id="scenario"><span class="idx">01</span> 按场景选卡</h2>
-    <table>
-      <thead><tr><th>场景</th><th>推荐</th><th>原因</th></tr></thead>
-      <tbody>
-        <tr><td><strong>预训练（千亿）</strong></td><td>H100/H200 集群 或 昇腾 910C 集群</td><td>算力+显存+互联都要顶级</td></tr>
-        <tr><td><strong>微调（QLoRA, 7-70B）</strong></td><td>1× RTX 4090（24GB）或 A10</td><td>QLoRA 单卡可跑（第 26 章）</td></tr>
-        <tr><td><strong>推理（7-13B）</strong></td><td>1× RTX 4090 / A10 / 昇腾 310</td><td>INT4 后单卡够</td></tr>
-        <tr><td><strong>推理（70B+）</strong></td><td>2-4× A100/H100 或多卡</td><td>大模型要多卡</td></tr>
-        <tr><td><strong>端侧</strong></td><td>不需要独立 GPU，用 NPU/CPU</td><td>量化小模型</td></tr>
-        <tr><td><strong>原型验证</strong></td><td>云 GPU（按小时租）</td><td>先验证再买，避免浪费</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="how-many"><span class="idx">02</span> 买几张：显存计算</h2>
-    <p>关键公式：<strong>所需显存 ≈ 模型参数 × 精度字节 + KV Cache + 激活</strong></p>
-    <table>
-      <thead><tr><th>模型</th><th>FP16 推理</th><th>INT4 推理</th><th>QLoRA 微调</th></tr></thead>
-      <tbody>
-        <tr><td>7B</td><td>~14 GB</td><td>~4 GB</td><td>~10 GB</td></tr>
-        <tr><td>13B</td><td>~26 GB</td><td>~8 GB</td><td>~18 GB</td></tr>
-        <tr><td>70B</td><td>~140 GB（2×A100）</td><td>~40 GB</td><td>~50 GB</td></tr>
-        <tr><td>千亿级</td><td>多卡集群</td><td>多卡</td><td>多卡集群</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="cloud-vs-own"><span class="idx">03</span> 云 vs 自建</h2>
-    <table>
-      <thead><tr><th>维度</th><th>云 GPU</th><th>自建</th></tr></thead>
-      <tbody>
-        <tr><td>初始成本</td><td>低（按用付费）</td><td>高（一次买断）</td></tr>
-        <tr><td>长期（高利用率）</td><td>贵</td><td>便宜</td></tr>
-        <tr><td>弹性</td><td>强（随时扩缩）</td><td>弱（固定）</td></tr>
-        <tr><td>数据隐私</td><td>看提供商</td><td>完全可控</td></tr>
-        <tr><td>运维</td><td>省心</td><td>自己负责</td></tr>
-      </tbody>
-    </table>
-    <div class="callout tip"><div class="head">💡 决策建议</div><p><strong>用量低/波动大/验证阶段</strong> → 云。<strong>7×24 高利用率/隐私敏感</strong> → 自建。<strong>混合</strong>：平时自建，峰值溢出到云。</p></div>
-
-    <h2 class="section" id="domestic"><span class="idx">04</span> 国产替代</h2>
-    <table>
-      <thead><tr><th>芯片</th><th>定位</th><th>生态</th></tr></thead>
-      <tbody>
-        <tr><td><strong>昇腾 910C</strong></td><td>训练/推理，对标 A100/H100</td><td>CANN + MindSpore/PyTorch 适配</td></tr>
-        <tr><td><strong>昇腾 310</strong></td><td>推理，低功耗</td><td>边缘/推理卡</td></tr>
-        <tr><td><strong>摩尔线程</strong></td><td>推理</td><td>MUSA 生态</td></tr>
-        <tr><td><strong>海光 DCU</strong></td><td>训练/推理</td><td>兼容 CUDA-like</td></tr>
-      </tbody>
-    </table>
-    <p>国产芯片在<strong>推理侧已基本可用</strong>，训练侧昇腾已跑通 GLM-5.2（第 33 章）。选型注意软件栈成熟度。</p>
-
-    <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>按场景选：微调用 4090，推理看模型大小，训练要集群；</li><li>显存公式：参数×精度+KV+激活；</li><li>云 vs 自建看利用率和隐私；</li><li>国产替代推理已可用，训练昇腾跑通。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 硬件选型与采购指南</h1><p class="lead">GPU/NPU/内存/存储——AI 工程的硬件决策</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>硬件是 AI 的地基</h2>
+    <p>AI 工程的很多"软件问题"本质是硬件问题——推理慢可能是显存带宽不够，OOM 是显存太小，训练慢是 GPU 算力不足。理解硬件，才能做对工程决策。本章梳理 GPU/NPU/内存/存储的选型逻辑。</p>
+    <h2><span class="idx"></span>GPU 选型：三大维度</h2>
+    <table class="data-table"><thead><tr><th>维度</th><th>为什么重要</th><th>选型建议</th></tr></thead><tbody><tr><td>显存</td><td>决定能跑多大的模型</td><td>70B INT4 需 40GB+，建议 A100 80GB</td></tr><tr><td>算力(TFLOPS)</td><td>决定推理/训练多快</td><td>训练选 H100/A100，推理可选 4090</td></tr><tr><td>显存带宽</td><td>决定推理瓶颈（KV Cache读写）</td><td>HBM3 &gt; HBM2e，越高越好</td></tr></tbody></table>
+    <div class="callout"><strong>💡 要点</strong><br>GPU 选购最常见的错误：**只看显存，不看带宽**。LLM 推理是"显存带宽瓶颈"而非"算力瓶颈"——生成每个 token 要读全量 KV Cache，带宽不够算力再高也白搭。这就是为什么 A100（带宽 2TB/s）比 3090（带宽 0.9TB/s）快不止 2 倍，尽管显存差不多。</div>
+    <h2><span class="idx"></span>主流 GPU 对比</h2>
+    <table class="data-table"><thead><tr><th>GPU</th><th>显存</th><th>带宽</th><th>适合</th><th>参考价</th></tr></thead><tbody><tr><td>RTX 4090</td><td>24 GB</td><td>1.0 TB/s</td><td>7B 推理/微调</td><td>~$1500</td></tr><tr><td>A100 80GB</td><td>80 GB</td><td>2.0 TB/s</td><td>70B 推理/训练</td><td>~$15000</td></tr><tr><td>H100 80GB</td><td>80 GB</td><td>3.4 TB/s</td><td>大规模训练</td><td>~$30000</td></tr><tr><td>L40S</td><td>48 GB</td><td>0.9 TB/s</td><td>推理性价比</td><td>~$8000</td></tr></tbody></table>
+    <h2><span class="idx"></span>非 GPU 方案：NPU/TPU/CPU</h2>
+    <table class="data-table"><thead><tr><th>方案</th><th>适合</th><th>优势</th><th>劣势</th></tr></thead><tbody><tr><td>NPU（华为昇腾）</td><td>国产替代</td><td>不依赖NVIDIA</td><td>生态弱</td></tr><tr><td>TPU（Google）</td><td>Google Cloud</td><td>训练快</td><td>绑定GCP</td></tr><tr><td>CPU推理(llama.cpp)</td><td>端侧/低并发</td><td>零硬件门槛</td><td>慢</td></tr><tr><td>Mac M系列</td><td>本地开发</td><td>统一内存大</td><td>不支持CUDA</td></tr></tbody></table>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>GPU 选型三大维度：显存（决定模型大小）、算力（决定速度）、带宽（决定推理瓶颈，最易被忽略）。推理是带宽瓶颈——A100 比 3090 快不止 2 倍因为带宽差 2 倍。4090 适合 7B，A100/H100 适合 70B+。非 GPU 方案：NPU（国产）、TPU（GCP）、CPU（端侧）、Mac M（本地开发）。</p>
     <div class="chapter-nav">
-      <a href="58-llm-ops.html"><div class="lbl">← 上一章</div><div class="ttl">58 · LLM 运维</div></a>
-      <a href="60-more-projects.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">60 · 更多项目</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 59 章 · AI 硬件选型与采购指南</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="58-llm-ops.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 59 章 · AI 硬件选型与采购指南</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

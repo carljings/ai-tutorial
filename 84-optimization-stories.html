@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>84 · LLM 优化案例集 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 优化案例集 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" class="active" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,94 +295,16 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 84 · 专题深度</span>
-      <h1>LLM 优化案例集<br>10 个真实优化故事</h1>
-      <p class="lead">每个案例都是真实的优化经历——从「有问题」到「解决」的完整过程。包含：初始状态、诊断、优化措施、效果数据、经验教训。</p>
-      <div class="meta"><span class="chip">阅读约 40 分钟</span><span class="chip">难度 ★★★★</span><span class="chip">前置：第 67、79、83 章</span></div>
-    </section>
-
-    <h2 class="section" id="case1"><span class="idx">01</span> 案例 1：客服 RAG 检索准确率从 60% 提升到 92%</h2>
-    <table>
-      <thead><tr><th>阶段</th><th>措施</th><th>准确率</th></tr></thead>
-      <tbody>
-        <tr><td>初始</td><td>朴素向量检索，固定 512 分块</td><td>60%</td></tr>
-        <tr><td>+递归分块+overlap</td><td>按段落/句子自然边界切</td><td>70%</td></tr>
-        <tr><td>+BM25 混合检索</td><td>向量+关键词双路 RRF 融合</td><td>78%</td></tr>
-        <tr><td>+Rerank（Cross-Encoder）</td><td>召回 50→精排 5</td><td>88%</td></tr>
-        <tr><td>+查询改写（HyDE）</td><td>先生成假想答案再检索</td><td>92%</td></tr>
-      </tbody>
-    </table>
-    <p><strong>教训</strong>：RAG 优化是<strong>系统性工程</strong>，不是调一个参数。分块→检索→Rerank→查询改写，每一步都能提升。</p>
-
-    <h2 class="section" id="case2"><span class="idx">02</span> 案例 2：Agent 任务完成率从 40% 提升到 85%</h2>
-    <table>
-      <thead><tr><th>阶段</th><th>措施</th><th>完成率</th></tr></thead>
-      <tbody>
-        <tr><td>初始</td><td>裸 ReAct Loop</td><td>40%</td></tr>
-        <tr><td>+PEV（写完跑测试）</td><td>自动验证+错误修正</td><td>60%</td></tr>
-        <tr><td>+错误喂回+重试</td><td>失败不放弃，分析后重试</td><td>70%</td></tr>
-        <tr><td>+子 Agent 隔离</td><td>复杂子任务独立上下文</td><td>78%</td></tr>
-        <tr><td>+Plan-Execute+Reflection</td><td>先规划+事后反思</td><td>85%</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="case3"><span class="idx">03</span> 案例 3：推理成本降低 80%</h2>
-    <table>
-      <thead><tr><th>措施</th><th>月成本</th><th>降幅</th></tr></thead>
-      <tbody>
-        <tr><td>初始（全用大模型 API）</td><td>$10,000</td><td>—</td></tr>
-        <tr><td>+意图路由（70% 走小模型）</td><td>$4,500</td><td>-55%</td></tr>
-        <tr><td>+Prompt Caching</td><td>$3,200</td><td>-68%</td></tr>
-        <tr><td>+结果缓存（Redis）</td><td>$2,500</td><td>-75%</td></tr>
-        <tr><td>+高频用户私有化部署</td><td>$2,000</td><td>-80%</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="case4"><span class="idx">04</span> 案例 4：延迟从 12 秒降到 1.2 秒</h2>
-    <table>
-      <thead><tr><th>措施</th><th>P99 延迟</th></tr></thead>
-      <tbody>
-        <tr><td>初始</td><td>12s</td></tr>
-        <tr><td>+流式输出</td><td>体感 2s（TTFT 0.5s）</td></tr>
-        <tr><td>+prompt 精简（2000→600 token）</td><td>7s</td></tr>
-        <tr><td>+vLLM（PagedAttention+连续批处理）</td><td>3s</td></tr>
-        <tr><td>+INT4 量化</td><td>1.8s</td></tr>
-        <tr><td>+Prefix Caching</td><td>1.2s</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="case5-10"><span class="idx">05</span> 案例 5-10 速览</h2>
-    <table>
-      <thead><tr><th>#</th><th>优化目标</th><th>关键措施</th><th>效果</th></tr></thead>
-      <tbody>
-        <tr><td>5</td><td>幻觉率降低</td><td>RAG 引用+事实核查+置信度阈值</td><td>15%→3%</td></tr>
-        <tr><td>6</td><td>多语言检索</td><td>换 BGE-m3+跨语言查询改写</td><td>英文 query 查中文 40%→85%</td></tr>
-        <tr><td>7</td><td>上下文爆炸</td><td>滚动摘要+子 Agent+选择性保留</td><td>窗口占用降 60%</td></tr>
-        <tr><td>8</td><td>格式一致性</td><td>JSON schema 强制+few-shot+低温</td><td>格式错误率 30%→1%</td></tr>
-        <tr><td>9</td><td>安全（越狱率）</td><td>对抗训练+系统提示加固+输出过滤</td><td>越狱率 8%→0.5%</td></tr>
-        <tr><td>10</td><td>用户满意度</td><td>评估集驱动迭代+bad case 优化</td><td>满意度 65%→90%</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="meta-lessons"><span class="idx">06</span> 跨案例元教训</h2>
-    <div class="grid cols-2">
-      <div class="callout tip"><div class="head">✅ 成功模式</div><ul style="margin:6px 0;"><li><strong>系统性优化</strong>：不是调一个参数，是每层都改</li><li><strong>量化驱动</strong>：先测基线，每步量化效果</li><li><strong>迭代渐进</strong>：一次改一个，测了再下一个</li><li><strong>组合拳</strong>：多种技术叠加效果倍增</li></ul></div>
-      <div class="callout pit"><div class="head">⚠️ 失败模式</div><ul style="margin:6px 0;"><li><strong>盲目调参</strong>：不测基线就改</li><li><strong>一次全改</strong>：不知道哪个有效</li><li><strong>只优化一层</strong>：忽视其他瓶颈</li><li><strong>不建评估集</strong>：改完不知道好没好</li></ul></div>
-    </div>
-
-    <h2 class="section" id="summary"><span class="idx">07</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>10 个真实优化案例覆盖：RAG/Agent/成本/延迟/幻觉/安全；</li><li>优化是系统性工程：每层都改，量化驱动，迭代渐进；</li><li>组合拳效果倍增：分块+混合检索+Rerank+查询改写 = 32% 提升。</li></ul></div>
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 优化案例集</h1><p class="lead">10 个真实优化故事——从 60% 到 95% 的提升之路</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>真实优化故事比理论更有价值</h2>
+    <p>理论告诉你"加 reranker 能提升召回率"，但真实故事告诉你"加了 reranker 后延迟从 200ms 涨到 800ms，用户抱怨，最终换了更快的 reranker 模型"。这些实战中的 trade-off、踩坑、妥协，是纯理论学习学不到的。本章 10 个真实优化案例。</p>
+    <h2><span class="idx"></span>10 个优化故事</h2>
+    <table class="data-table"><thead><tr><th>案例</th><th>问题</th><th>解法</th><th>效果</th></tr></thead><tbody><tr><td>RAG 召回率 60%→92%</td><td>固定切块切断语义</td><td>语义切块+父子切块+rerank</td><td>+32%</td></tr><tr><td>成本降 80%</td><td>所有请求用 GPT-4</td><td>模型路由+语义缓存</td><td>-80%</td></tr><tr><td>延迟 12s→1.2s</td><td>串行调用多个API</td><td>并行化+流式+缓存</td><td>-90%</td></tr><tr><td>幻觉率 30%→5%</td><td>模型编造</td><td>RAG+置信度门槛+校验</td><td>-83%</td></tr><tr><td>并发 OOM</td><td>KV Cache 碎片</td><td>vLLM PagedAttention</td><td>5× 并发</td></tr><tr><td>中文效果差</td><td>英文模型+翻译</td><td>换 Qwen 中文模型</td><td>+25%</td></tr><tr><td>安全绕过</td><td>prompt injection</td><td>语义防火墙+结构化分离</td><td>风险-90%</td></tr><tr><td>标注一致性低</td><td>IAA 只有 55%</td><td>培训+黄金集+3人标注</td><td>IAA→78%</td></tr><tr><td>冷启动慢</td><td>每次加载模型30s</td><td>常驻服务+预热</td><td>30s→&lt;1s</td></tr><tr><td>用户留存差</td><td>新鲜感消退</td><td>个性化+持续学习</td><td>+40%留存</td></tr></tbody></table>
+    <h3>案例详解：RAG 召回率 60%→92%</h3>
+    <p>这是最常见的优化场景。原始 RAG（固定 512 切块+单向量检索）召回率只有 60%。优化路径：① 换语义切块（按标题/段落切，+10%）；② 加 BM25 混合检索（关键词精确匹配，+8%）；③ 加 cross-encoder reranker（精排，+9%）；④ query 改写（多轮上下文压缩，+5%）。四步叠加 60%→92%。关键：每步都要量化（用 RAGAS），否则不知道哪步有效。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>10 个真实优化故事：RAG召回(60→92%,切块+rerank)、成本(-80%,路由+缓存)、延迟(-90%,并行+流式)、幻觉(-83%,RAG+校验)、并发(5×,vLLM)、中文(+25%,换模型)、安全(-90%,防火墙)、标注(IAA 55→78%)、冷启动(30s→&lt;1s)、留存(+40%,个性化)。核心：每步量化，否则不知效果。</p>
     <div class="chapter-nav">
-      <a href="83-best-practices.html"><div class="lbl">← 上一章</div><div class="ttl">83 · 最佳实践</div></a>
-      <a href="85-product-ux-patterns.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">85 · 产品设计模式</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 84 章 · LLM 优化案例集</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="83-best-practices.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 84 章 · LLM 优化案例集</p></footer>  </main></div><script src="assets/main.js"></script></body></html>

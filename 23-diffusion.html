@@ -1,14 +1,7 @@
 <!DOCTYPE html>
-<html lang="zh-CN">
-<head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>23 · 扩散模型与图像生成 · AI 全栈实战教学</title>
-<link rel="stylesheet" href="assets/style.css">
-</head>
-<body>
-<div class="layout">
-                                                            <aside class="sidebar">
+<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>扩散模型与图像生成 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
+<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -77,7 +70,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" title="LLM 历史与里程碑"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -88,25 +81,25 @@
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
-      <a href="67-performance-tuning.html" title="LLM 应用性能调优实战"><span class="num">67</span>LLM 应用性能调优</a>
+      <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
-      <a href="69-adversarial-testing.html" title="LLM 对抗性测试完整案例库"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排与工作流引擎"><span class="num">70</span>AI Agent 高</a>
+      <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" title="全书知识图谱与复习指南"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" title="全书总结与 AI 未来展望"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" title="LLM 常见错误与调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
-      <a href="83-best-practices.html" title="LLM 最佳实践合集"><span class="num">83</span>LLM 最佳实践合集</a>
+      <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
@@ -114,7 +107,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" title="AI 伦理深度案例集"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -237,7 +230,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -302,121 +295,22 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>
-
-  <main class="content">
-    <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 23 · 专题深度</span>
-      <h1>扩散模型与图像生成<br>从噪声里「雕刻」出图像</h1>
-      <p class="lead">文生图（DALL-E、Stable Diffusion、Midjourney）背后的核心技术是<strong>扩散模型（Diffusion Model）</strong>。它和 Transformer 是两条完全不同的技术路线。本章讲清前向加噪、反向去噪、潜在扩散（Latent Diffusion）、Stable Diffusion 架构，以及 2026 的统一多模态生成趋势。</p>
-      <div class="meta"><span class="chip">阅读约 35 分钟</span><span class="chip">难度 ★★★★</span><span class="chip">前置：第 14 章</span></div>
-    </section>
-
-    <h2 class="section" id="idea"><span class="idx">★</span> 核心直觉：从噪声中逐步去噪</h2>
-    <p>扩散模型的灵感来自热力学。想象一滴墨水滴进水里：它会逐渐扩散成均匀的浑浊（加噪）。扩散模型<strong>学会反过来</strong>：从纯噪声开始，一步步「雕刻」出清晰图像（去噪）。</p>
-    <div class="diagram">
-      <div class="flow">
-        <div class="node">🎲 纯噪声</div>
-        <span class="arrow">▶</span>
-        <div class="node violet">去噪步骤 1</div>
-        <span class="arrow">▶</span>
-        <div class="node violet">去噪步骤 2</div>
-        <span class="arrow">▶</span>
-        <div class="node violet">... 多步 ...</div>
-        <span class="arrow">▶</span>
-        <div class="node accent">🖼️ 清晰图像</div>
-      </div>
-      <div class="cap">图 23-1 · 扩散模型：从纯噪声逐步去噪生成图像</div>
-    </div>
-
-    <h2 class="section" id="math"><span class="idx">01</span> 数学：前向与反向过程</h2>
-    <h3>前向过程（加噪）</h3>
-    <p>逐步给图像加高斯噪声，T 步后变成纯噪声。这是个<strong>固定的马尔可夫链</strong>（不需要学习）：</p>
-    <div class="diagram">
-      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
-        q(x<sub>t</sub> | x<sub>t-1</sub>) = N(x<sub>t</sub>; √(1-β<sub>t</sub>)·x<sub>t-1</sub>, β<sub>t</sub>·I)<br>
-        <span style="color:var(--text-faint);">每步加一点噪声 β<sub>t</sub>，T 步后 x<sub>T</sub> ≈ 纯噪声</span>
-      </div>
-    </div>
-    <p>有个漂亮的封闭形式：可以从 x₀ 直接跳到任意 x<sub>t</sub>（不需逐步）：</p>
-    <div class="diagram">
-      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
-        x<sub>t</sub> = √(ᾱ<sub>t</sub>)·x₀ + √(1-ᾱ<sub>t</sub>)·ε,  ε ~ N(0, I)<br>
-        <span style="color:var(--text-faint);">这极大简化了训练——可以随机采样任意 t 来训练</span>
-      </div>
-    </div>
-
-    <h3>反向过程（去噪，这是要学的）</h3>
-    <p>训练一个神经网络 ε<sub>θ</sub>，学会<strong>预测每一步加的噪声</strong>，然后减去它：</p>
-    <div class="diagram">
-      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);">
-        训练目标：L = E[ || ε - ε<sub>θ</sub>(x<sub>t</sub>, t) ||² ]<br>
-        <span style="color:var(--text-faint);">让网络预测的噪声 ε<sub>θ</sub> 逼近真实噪声 ε</span>
-      </div>
-    </div>
-    <p>推理时：从 x<sub>T</sub>（纯噪声）开始，用 ε<sub>θ</sub> 逐步去噪到 x₀。<strong>关键是这个网络以文本为条件</strong>——输入「一只猫」时，它去噪的方向就会朝「猫」靠拢。</p>
-
-    <h2 class="section" id="latent"><span class="idx">02</span> Latent Diffusion：Stable Diffusion 的关键创新</h2>
-    <p>直接在像素空间做扩散太慢（一张 512×512 图有 786432 个像素）。<strong>Latent Diffusion</strong> 的洞察：先用 VAE 把图像压缩到低维<strong>潜在空间</strong>（如 64×64×4），在潜在空间做扩散，最后解码回像素。</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">512×512 像素图（786432 维）</div>
-        <div style="color:var(--text-faint);">▼ VAE 编码（压缩 48×）</div>
-        <div class="node violet">64×64×4 潜在表示（16384 维）</div>
-        <div style="color:var(--text-faint);">▼ 在这里做扩散（快 48 倍）</div>
-        <div class="node sky">去噪 → 生成潜在表示</div>
-        <div style="color:var(--text-faint);">▼ VAE 解码</div>
-        <div class="node accent">512×512 生成图</div>
-      </div>
-      <div class="cap">图 23-2 · Latent Diffusion：在压缩的潜在空间做扩散，速度提升数十倍</div>
-    </div>
-    <p>这是 Stable Diffusion 能在消费级显卡上跑的关键。<strong>文本条件</strong>通过 CLIP 文本编码器注入 U-Net（去噪网络）的交叉注意力层。</p>
-
-    <h2 class="section" id="architecture"><span class="idx">03</span> 架构三件套</h2>
-    <table>
-      <thead><tr><th>组件</th><th>作用</th></tr></thead>
-      <tbody>
-        <tr><td><strong>VAE</strong></td><td>图像↔潜在空间的编解码器</td></tr>
-        <tr><td><strong>U-Net</strong></td><td>去噪网络，预测噪声。带文本交叉注意力</td></tr>
-        <tr><td><strong>CLIP 文本编码器</strong></td><td>把文本 prompt 编码成条件向量</td></tr>
-      </tbody>
-    </table>
-
-    <h2 class="section" id="code"><span class="idx">04</span> 代码实战：调用文生图</h2>
-    <div class="code-title">text2img.py —— 用智谱 CogView 文生图</div>
-    <pre><code><span class="c">"""text2img.py —— 文生图（智谱 CogView）"""</span>
-<span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
-client = ZhipuAI()
-
-resp = client.images.generations.create(
-    model=<span class="s">"cogview-3-plus"</span>,
-    prompt=<span class="s">"一只戴着眼镜的柴犬坐在书桌前看电脑，赛博朋克风格，霓虹灯光"</span>,
-    size=<span class="s">"1440x720"</span>,
-)
-print(resp.data[<span class="n">0</span>].url)   <span class="c"># 生成图片的 URL</span></code></pre>
-
-    <h2 class="section" id="trends"><span class="idx">05</span> 2026 趋势：自回归生图与统一模型</h2>
-    <p>扩散模型是生图主流，但 2024-2026 出现了<strong>自回归生图</strong>（如将图像 token 化，像文本一样预测下一个 token）和<strong>统一多模态模型</strong>（一个模型既能理解又能生成文/图/音）。代表：DALL-E 3、GPT-4o 的图像能力。未来方向是<strong>扩散与自回归的融合</strong>。</p>
-
-    <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
-    <div class="callout note">
-      <div class="head">📌 核心要点</div>
-      <ul style="margin:6px 0;">
-        <li>扩散模型：前向加噪（固定）+ 反向去噪（学习）；</li>
-        <li>训练目标：让网络预测每步的噪声；</li>
-        <li><strong>Latent Diffusion</strong>在压缩空间做扩散，是 SD 能用的关键；</li>
-        <li>三件套：VAE + U-Net + CLIP 文本编码器；</li>
-        <li>趋势：自回归生图 + 统一多模态生成。</li>
-      </ul>
-    </div>
-
+  </aside>  <main class="content">
+    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>扩散模型与图像生成</h1><p class="lead">从噪声中生成图像——扩散模型的数学与工程</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
+    <h2><span class="idx"></span>扩散模型：当前最好的生成模型</h2>
+    <p>扩散模型（Diffusion Model）是当前图像生成的统治者——Midjourney、Stable Diffusion、DALL-E 3 都基于它。它的核心思想极其优雅：生成 = "逐步去噪"。训练时学习怎么给图片加噪，生成时反向操作——从纯噪声逐步"雕刻"出图像。</p>
+    <div class="callout"><strong>💡 要点</strong><br>扩散模型的直觉：想象一块大理石（纯噪声），雕塑家（模型）一刀一刀去掉多余部分（去噪），最终露出雕像（清晰图像）。文本条件是"设计图"——告诉雕塑家要雕什么。</div>
+    <h2><span class="idx"></span>前向过程：加噪</h2>
+    <p>训练时，给一张清晰图片逐步加高斯噪声，经过 T 步后变成纯噪声。这个过程是固定的（不需要学习），它定义了"从清晰到噪声"的路径。</p>
+    <h2><span class="idx"></span>反向过程：去噪（生成的核心）</h2>
+    <p>模型学习的是"反向过程"——给定一个噪声图，预测噪声是什么，然后减去它。重复 T 步，从纯噪声逐步还原出清晰图像。关键：文本条件通过 cross-attention 注入去噪过程，控制"生成什么"。</p>
+    <table class="data-table"><thead><tr><th>组件</th><th>作用</th><th>代表实现</th></tr></thead><tbody><tr><td>U-Net</td><td>去噪网络（预测+去除噪声）</td><td>Stable Diffusion 的 U-Net</td></tr><tr><td>文本编码器(CLIP)</td><td>把文字描述编码成条件向量</td><td>CLIP/OpenCLIP</td></tr><tr><td>VAE</td><td>在潜空间（压缩域）做扩散，省算力</td><td>Latent Diffusion</td></tr><tr><td>调度器</td><td>控制去噪步数和策略</td><td>DDIM/DPM++ /Euler</td></tr></tbody></table>
+    <h2><span class="idx"></span>Latent Diffusion：在压缩空间做扩散</h2>
+    <p>直接在像素空间做扩散太慢（512×512 图片有 78万个像素）。Stable Diffusion 的创新是 Latent Diffusion——先用 VAE 把图片压缩到 64×64 的潜空间（压缩 64 倍），在潜空间做扩散（快 64 倍），最后用 VAE 解码回像素。这让消费级 GPU 也能跑图像生成。</p>
+    <h2><span class="idx"></span>可控生成：ControlNet / LoRA</h2>
+    <p>基础扩散模型只接受文本条件。要让生成更可控（指定构图/姿势/边缘），用 ControlNet（加一个控制分支）；要让生成模仿特定风格/人物，用 LoRA（微调少量参数）。这两个技术让扩散模型从"随机生成"变成"精确可控"。</p>
+    <h2><span class="idx"></span>本章小结</h2>
+    <p>扩散模型=逐步去噪生成图像。前向加噪（训练目标），反向去噪（生成过程），文本条件控制内容。Latent Diffusion 在压缩潜空间做扩散（快64倍）。可控生成：ControlNet（构图/姿势控制）+ LoRA（风格/人物定制）。扩散赢了 GAN 因为训练稳定+多样性好+可控性强。</p>
     <div class="chapter-nav">
-      <a href="22-interpretability.html"><div class="lbl">← 上一章</div><div class="ttl">22 · 可解释性与机理</div></a>
-      <a href="24-evaluation.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">24 · AI 评估方法论</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 23 章 · 扩散模型与图像生成</p><p>参考：DDPM · Latent Diffusion · Stable Diffusion · DALL-E 3</p></footer>
-  </main>
-</div>
-<script src="assets/main.js"></script>
-</body>
-</html>
+      <a href="22-interpretability.html"><div class="lbl">← 上一章</div>
+    <footer><p>AI 全栈实战教学 · 第 23 章 · 扩散模型与图像生成</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
