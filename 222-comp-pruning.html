@@ -305,74 +305,124 @@
   </aside>
 <main class="content">
     <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 222 · 模型剪枝</span>
-      <h1>模型剪枝<br>用更少的参数逼近原始性能</h1>
-      <p class="lead">大模型越来越大，但推理算力是有限的。剪枝（Pruning）是压缩模型最经典也最有效的方法之一——把"不重要"的参数直接置零或删掉，从而减少计算量。本文从非结构化与结构化两条技术路线讲起，深入Lottery Ticket假说为什么成立，再拆解2024年最前沿的Wanda和SparseGPT，最后给出可落地的PyTorch剪枝代码。</p>
+      <span class="eyebrow">◆ CHAPTER 222 · 模型压缩</span>
+      <h1>模型剪枝<br>用更少的权重做同样的推理</h1>
+      <p class="lead">大模型越训越大，但推理成本也随之飙升。剪枝（Pruning）的核心洞察是：训练好的网络里有大量权重对输出贡献极小，把它们置零可以在几乎不损失精度的前提下大幅减少计算与存储。本文从非结构化与结构化两条技术路线讲起，深入 Lottery Ticket 假说为什么成立，拆解 2023 年最前沿的 Wanda 与 SparseGPT，并给出可落地的 PyTorch magnitude pruning 实现与 Wana 伪代码。</p>
       <div class="meta">
-        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">阅读约 20 分钟</span>
         <span class="chip">难度 ★★★★</span>
       </div>
     </section>
-    <h2 class="section" id="unstructured-vs-structured"><span class="idx">★</span> 非结构化 vs 结构化：剪枝的两大路线</h2>
-    <p>非结构化剪枝（unstructured pruning）是最直觉的做法：逐个参数看它"重不重要"，把不重要的直接设为0。判断重要性的最经典指标是 magnitude（幅值）——权重的绝对值越小，对输出的贡献越小，置零后对loss的影响也越小。这种方法实现极简，理论上能把参数量砍到原来的10%甚至1%，还几乎不掉点。但它有个致命缺陷：稀疏矩阵在现有硬件上没有加速。GPU是围绕稠密矩阵乘法设计的，一个90%是0的矩阵，跑起来和稠密矩阵一样慢，甚至更慢（因为多了零值判断）。所以非结构化剪枝更适合"省内存"而非"省算力"的场景。</p>
-    <p>结构化剪枝（structured pruning）则把"删单个参数"升级为"删一整组参数"。最常见的是通道剪枝（channel pruning）——把卷积的整个输出通道或全连接的一整行直接删掉，这样权重矩阵物理上变小，稠密矩阵乘法就能真正加速。还有注意力头剪枝、层剪枝（直接删整个Transformer层，DistilBERT就是删了6层中的2层）。结构化剪枝的好处是硬件友好、部署简单，坏处是相同稀疏率下精度损失更大——因为你不能精确挑"最该删的那个参数"，只能按块删。</p>
-    <p>两者的取舍本质上是"理论压缩率 vs 实际加速比"的权衡。非结构化给你更漂亮的稀疏率数字，结构化给你更真实的延迟下降。生产环境几乎都选结构化，或者用2:4这种半结构化稀疏（NVIDIA Ampere及之后硬件原生支持，每4个连续权重里恰好2个非零），在稀疏率和加速之间取得平衡。</p>
-    <p>无论哪种路线，剪枝都遵循一个通用三段式流程：训练一个稠密模型 → 按某种准则标记并删除不重要的参数/结构 → 对剪枝后的模型做微调（fine-tune）恢复精度。第三步至关重要——剪完直接用往往掉点严重，必须用原数据集再训几个epoch让剩余参数补偿被删的部分。这就是为什么剪枝的成本不低：它需要一次完整的额外训练。</p>
-    <h2 class="section" id="lottery-ticket"><span class="idx">★</span> Lottery Ticket假说：稠密网络里藏着一个瘦子</h2>
-    <p>2018年Frankle和Carbin提出的Lottery Ticket Hypothesis（彩票假说）是剪枝领域最深刻的思想之一。它的核心论断是：一个训练好的稠密网络内部，存在一个子网络（用最初的初始化权重），如果单独训练它能达到和原网络几乎一样的精度。换句话说，大网络之所以有效，是因为它"初始化得足够多次"恰好买中了一张能训练好的子网络彩票，而剩下的大部分参数其实是冗余的。</p>
-    <p>这个假说的工程意义巨大。它意味着剪枝不应该是"训完再删"，而可以是"迭代式识别中奖彩票"——先训一遍，找出最重要的子网络mask，把这个mask应用到原始初始化上重新训练，再找更稀疏的mask，循环往复（Iterative Magnitude Pruning, IMP）。Frankle的实验显示，在MNIST和CIFAR上，IMP能找到只有原网络10-20%参数的子网络，精度几乎无损。</p>
-    <p>但彩票假说在大模型上遇到了挑战。后续研究发现，当模型规模上去、训练时间变长后，"重置到原始初始化"这个步骤反而会让性能下降——因为长时间训练后网络已经远离了初始点，原始初始化不再是"中奖号码"。折中方案是"重置到训练中某个早期检查点"（warm restart），而不是第0步。这催生了一大批改进工作。尽管细节在演进，彩票假说的核心洞察始终成立：大模型里确实藏着高效的小模型，问题只是怎么找到它。这也是后续Wanda、SparseGPT这些"训练后一次性剪枝"方法能成功的理论基础。</p>
-    <pre><code class="language-python"># PyTorch 官方 prune 模块：非结构化 + 结构化剪枝对比
+    <h2 class="section" id="two-routes"><span class="idx">★</span> 非结构化 vs 结构化：剪枝的两大路线</h2>
+    <p>非结构化剪枝（unstructured pruning）是最直觉的做法：逐个参数看它"重不重要"，把不重要的直接置零。判断重要性的最经典指标是 magnitude（幅度）——权重的绝对值越小，对输出的贡献越小，置零后对 loss 的影响也越小。这种方法实现极简，理论上能把参数量砍到原来的 10% 甚至 1%，还几乎不掉点。但它有个致命的工程缺陷：稀疏矩阵在现有通用硬件上没有加速。GPU 是围绕稠密矩阵乘法设计的，一个 90% 是 0 的矩阵，跑起来和稠密矩阵一样慢，甚至更慢（因为多了零值判断和不确定的内存访问）。所以非结构化剪枝更适合"省内存、省存储"而非"省算力"的场景。</p>
+    <p>结构化剪枝（structured pruning）则把"删单个参数"升级为"删一整组参数"。最常见的是通道剪枝（channel pruning）——把卷积的整个输出通道或全连接的一整行一整列直接删掉，这样权重矩阵物理上变小，稠密矩阵乘法就能真正加速。还有注意力头剪枝、层剪枝（直接删整个 Transformer 层，DistilBERT 就是删了 6 层中的 2 层）。结构化剪枝的好处是硬件友好、部署简单、延迟真实下降，坏处是相同稀疏率下精度损失更大——因为你不能精确挑"最该删的那个参数"，只能按块删，误删一个关键通道的代价远大于误删一个权重。</p>
+    <p>两者的取舍本质上是"理论压缩率 vs 实际加速比"的权衡。非结构化给你更漂亮的稀疏率数字，结构化给你更真实的延迟下降。生产环境几乎都选结构化，或者用 2:4 这种半结构化稀疏（NVIDIA Ampere 及之后硬件原生支持，每 4 个连续权重里恰好 2 个非零），在稀疏率和加速之间取得平衡——2:4 稀疏能带来约 1.5x 的真实矩阵乘法加速，且精度损失可控，是当前 LLM 部署里"既要又要"的甜点方案。</p>
+    <p>无论哪种路线，传统剪枝都遵循一个通用三段式流程：训练一个稠密模型 → 按某种准则标记并删除不重要的参数/结构 → 对剪枝后的模型做微调（fine-tune）恢复精度。第三步至关重要——剪完直接用往往掉点严重，必须用原数据集再训几个 epoch 让剩余参数补偿被删的部分。这就是为什么传统剪枝的成本不低：它需要一次完整的额外训练。对 LLM 来说这几乎是不可接受的开销，这也是后面 Wanda、SparseGPT 这类"无需重训"方法出现的根本动机。</p>
+    <h2 class="section" id="lottery-ticket"><span class="idx">★</span> Lottery Ticket 假说：稠密网络里藏着一注中奖彩票</h2>
+    <p>2018 年 Frankle 和 Carbin 提出的 Lottery Ticket Hypothesis（彩票假说）是剪枝领域最深刻的思想之一。它的核心论断是：一个训练好的稠密网络内部，存在一个稀疏的子网络（"中奖彩票"），只要用<strong>最初的初始化权重</strong>重新训练它，就能达到和原网络几乎一样的精度。换句话说，大网络之所以有效，是因为它"初始化得足够多次"恰好买中了一张能训练好的子网络彩票，而剩下的大部分参数其实是冗余的。</p>
+    <p>这个假说的实验过程非常优雅，称为 Iterative Magnitude Pruning（IMP）：训练一个网络到收敛 → 找出最重要的子网络掩码（通常用 magnitude pruning）→ 把这个掩码应用到<strong>原始初始化</strong>上（不是训练后的权重）→ 用同样的优化器从头训练这个被掩码限制的子网络 → 重复找更稀疏的 mask。Frankle 的实验显示，在 MNIST 和 CIFAR 上，IMP 能找到只有原网络 10-20% 参数的子网络，精度几乎无损。这种"中奖彩票"不仅存在，而且可以高效地被发现，颠覆了人们对稀疏性的传统认知。</p>
+    <p>彩票假说在大模型上遇到了挑战。后续研究发现，当模型规模上去、训练时间变长后，"重置到原始初始化"这个步骤反而会让性能下降——因为长时间训练后网络已经远离了初始点，原始初始化不再是"中奖号码"。折中方案是"重置到训练中某个早期检查点"（warm restart），而不是第 0 步。尽管细节在演进，彩票假说的核心洞察始终成立：<strong>大模型里确实藏着高效的小模型，问题只是怎么找到它</strong>。这个思想深刻影响了后续稀疏预训练，以及 Wanda、SparseGPT 这些"训练后一次性剪枝"方法的设计理念——它们都在用更低成本去逼近那张中奖彩票。</p>
+    <h2 class="section" id="magnitude-pruning"><span class="idx">★</span> Magnitude Pruning：最朴素也最稳健的基线</h2>
+    <p>幅度剪枝的算法极其简单：对每一层权重，计算绝对值，按目标稀疏度取一个阈值，小于阈值的置零。它假设"小权重不重要"，这个假设在大多数情况下成立——接近零的权重对激活值贡献微乎其微。但全局统一阈值不如按层分别设阈值：不同层的权重尺度差异很大，统一阈值会导致某些重要层被剪秃。实践中通常按层独立计算阈值，让每层的稀疏度更均衡。</p>
+    <p>幅度剪枝最关键的环节不是剪本身，而是<strong>剪后微调</strong>。一次性剪掉大量权重必然引入误差，模型需要用原训练数据、用更小的学习率重新训练几个 epoch，让剩余权重"补偿"被剪掉的部分。经典的"迭代剪枝"流程是：剪一点 → 微调 → 再剪一点 → 再微调，反复若干轮直到目标稀疏度。这种渐进式剪枝比一次性剪到目标稀疏度的最终精度高得多。</p>
+    <pre><code class="language-python"># PyTorch 实现 magnitude pruning（含按层独立阈值 + 迭代剪枝）
 import torch
-import torch.nn.utils.prune as prune
 import torch.nn as nn
 
-model = nn.Sequential(
-    nn.Linear(768, 1024), nn.ReLU(),
-    nn.Linear(1024, 1024), nn.ReLU(),
-    nn.Linear(1024, 10),
-)
+def magnitude_prune_tensor(weight: torch.Tensor, sparsity: float) -> torch.Tensor:
+    """对单层权重做幅度剪枝：保留 (1-sparsity) 比例的大权重。"""
+    w = weight.detach().clone()
+    flat = w.abs().flatten()
+    k = int(sparsity * flat.numel())          # 需要置零的元素个数
+    if k == 0:
+        return w
+    threshold = torch.kthvalue(flat, k).values  # 第 k 小的绝对值作为阈值
+    mask = (w.abs() &gt; threshold).float()
+    return w * mask
 
-# === 非结构化剪枝：按 magnitude 删除 30% 最小权重 ===
-module = model[0]
-prune.l1_unstructured(module, name="weight", amount=0.3)
-# 现在 module.weight 有 30% 是 0，且多了 weight_mask buffer
-print("非零比例:", (module.weight != 0).float().mean().item())  # ≈ 0.7
-# 固化：把 mask 应用到 weight，删掉 hook
-prune.remove(module, "weight")
+def iterative_prune_and_finetune(model: nn.Module, target_sparsity: float,
+                                 steps: int, train_loader, epochs_per_step: int):
+    """迭代剪枝：分 steps 轮逐步逼近目标稀疏度，每轮剪完微调。"""
+    cur = 0.0
+    for step in range(1, steps + 1):
+        # 几何级数增长：本轮相对当前剩余权重的剪枝比例
+        ratio = 1 - (1 - target_sparsity) ** (1 / steps)
+        for layer in model.modules():
+            if isinstance(layer, nn.Linear):
+                with torch.no_grad():
+                    layer.weight.copy_(magnitude_prune_tensor(layer.weight, ratio))
+        cur = 1 - (1 - cur) * (1 - ratio)
+        print(f"step {step}: 当前累计稀疏度 {cur:.3f}, 本轮剪 {ratio:.3f}")
+        finetune(model, train_loader, epochs_per_step)
+    return model
 
-# === 结构化剪枝：按通道删除整个输出神经元 ===
-# custom_pruned_modules 需要自己实现重要性评分
-def prune_layer_structured(layer, amount=0.3):
-    # 用各通道权重的 L2 范数作为重要性
-    importance = layer.weight.norm(p=2, dim=0)  # 按输出列算范数
-    num_prune = int(layer.out_features * amount)
-    idx = torch.argsort(importance)[:num_prune]  # 最不重要的通道
-    mask = torch.ones(layer.out_features)
-    mask[idx] = 0
-    prune.custom_from_mask(layer, name="weight", mask=mask.unsqueeze(0).expand_as(layer.weight))
+def finetune(model, loader, epochs):
+    opt = torch.optim.Adam(model.parameters(), lr=1e-5)
+    model.train()
+    for _ in range(epochs):
+        for x, y in loader:
+            loss = nn.functional.mse_loss(model(x), y)
+            opt.zero_grad(); loss.backward(); opt.step()
 
-# === 迭代式剪枝（IMP）：训→剪→重置→重训 ===
-def iterative_magnitude_prune(model, train_fn, rounds=5, amount=0.2):
-    # 保存"中奖彩票"的初始权重
-    init_state = {k: v.clone() for k, v in model.state_dict().items()}
-    for r in range(rounds):
-        train_fn(model, epochs=5)            # 1. 训练
-        for m in model.modules():
-            if isinstance(m, nn.Linear):
-                prune.l1_unstructured(m, "weight", amount)  # 2. 剪枝
-        # 3. 重置到初始权重（保留 mask），重新训练
-        with torch.no_grad():
-            for k, v in model.state_dict().items():
-                if "weight" in k and "mask" not in k:
-                    v.copy_(init_state[k])
-        print(f"round {r}: 已剪 {(amount)*(r+1)*100:.0f}%")
+# 用法：在 3 轮内把所有 Linear 层剪到 50% 稀疏度
+# iterative_prune_and_finetune(model, target_sparsity=0.5, steps=3,
+#                              train_loader=loader, epochs_per_step=2)
 </code></pre>
     <h2 class="section" id="wanda-sparsegpt"><span class="idx">★</span> Wanda 与 SparseGPT：训练后一次性剪枝的革命</h2>
-    <p>传统剪枝最大的痛点是"必须重训练"，对动辄几百亿参数的LLM来说，重训练一次的成本可能几十万美元。2023年出现了一批"训练后剪枝"（post-training pruning）方法，能在不重训的前提下把LLM剪到50%甚至更高稀疏率，几乎不掉点，这是范式级的变化。</p>
-    <p>SparseGPT是其中的代表。它的关键洞察是：剪枝不是简单置零，而是要把被删权重的影响"分摊"到剩余权重上。具体做法是把剪枝建模成一个稀疏回归问题——对每一层，用少量校准数据计算Hessian矩阵，然后用近似求解器（基于Cholesky分解）找到最优的稀疏权重，使得这层的输出和剪枝前尽量一致。结果是：OPT-175B剪到50%稀疏率，zero-shot任务几乎无掉点，整个过程在一块GPU上几小时完成。</p>
-    <p>Wanda（Pruning by Weights and Activations）则更简单粗暴。它不求解任何优化问题，只是改进了重要性评分——传统magnitude只看权重大小，Wava把权重和对应输入激活的幅值相乘作为重要性分数。直觉是：一个很大的权重如果对应的输入总是接近0，它对输出的实际贡献也很小，应该被剪。Wanda不需要反向传播，不需要权重更新，只要在校准数据上跑一次前向拿到激活，然后按这个新分数剪枝即可。它和SparseGPT精度接近，但实现简单一个数量级。</p>
-    <p>这两类方法的共同价值是把剪枝的门槛从"需要一个训练集群"降到"一块GPU跑半天"。这让中小团队也能定制自己的稀疏LLM。但要注意，它们目前主要针对权重稀疏（非结构化或2:4），想真正加速推理还得配合专门的稀疏kernel或推理框架（如NVIDIA的TensorRT-LLM对2:4稀疏有原生支持）。剪枝不是孤立的优化，它必须和量化、推理引擎一起规划，才能把纸面上的稀疏率换成真实的tokens/秒。</p>
+    <p>传统剪枝最大的痛点是"必须重训练"，对动辄几百亿参数的 LLM 来说，重训练一次的成本可能几十万美元。2023 年出现了一批"训练后剪枝"（post-training pruning）方法，能在不重训的前提下把 LLM 剪到 50% 甚至更高稀疏率，几乎不掉点，这是范式级的变化。</p>
+    <p><strong>Wanda（Pruning by Weights and Activations）</strong>更简单粗暴。它不求解任何优化问题，只是改进了重要性评分——传统 magnitude 只看权重大小，Wana 把权重和对应输入激活值的幅值相乘作为重要性分数：score = |W[i,j]| * ||X[:,j]||_2。直觉是：一个很大的权重如果对应的输入总是接近 0，它对输出的实际贡献也很小，应该被剪。Wana 不需要反向传播，不需要权重更新，只要在校准数据上跑一次前向拿到激活范数，然后按这个新分数剪枝即可。它和 SparseGPT 精度接近，但实现简单一个数量级，几分钟就能剪完一个几十亿参数的模型，是当前 LLM 剪枝的事实基线。</p>
+    <p><strong>SparseGPT</strong>更进一步，能把 LLM 一次性剪到 50% 甚至更高稀疏度（部分层到 70%），精度损失极小。它的思路不是简单的"按分数置零"，而是把剪枝建模成一个<strong>逐权重的最小二乘问题</strong>：每剪掉一个权重，就用 Hessian 近似（来自校准数据的 X^T X）计算剩余权重应该取什么值来补偿被剪掉部分造成的误差。这是一个闭式可解的回归问题，按特定列顺序（从重要到次要）依次处理，结果是剩余权重被"重新校准"过，所以即使砍掉一半，输出仍贴合原始稠密网络。OPT-175B 剪到 50% 稀疏率，zero-shot 任务几乎无掉点，整个过程在一块 GPU 上几小时完成。</p>
+    <p>这两类方法的共同价值是把剪枝的门槛从"需要一个训练集群"降到"一块 GPU 跑半天"，让中小团队也能定制自己的稀疏 LLM。实践中它们经常被组合使用，并与<strong>量化</strong>叠加：先用 SparseGPT 剪到 50%，再用 GPTQ 量化到 4-bit，能把模型体积压到原来的 1/8 且几乎不掉点。这种"剪枝 + 量化"组合是当前 LLM 端侧部署的标准压缩配方。</p>
+    <pre><code class="language-python"># Wanda 伪代码：按 |W| * ||激活|| 评分，无需重训练
+import torch
+
+def wanda_prune_linear(layer, X_calib, sparsity):
+    """
+    layer: nn.Linear，权重 shape [out, in]
+    X_calib: 校准集输入激活值，shape [n_samples, in]
+    sparsity: 目标稀疏度（要置零的比例）
+    """
+    W = layer.weight.data                      # [out, in]
+    # 每个输入维度 j 的激活值 L2 范数（在校准集上统计）
+    act_norm = X_calib.norm(dim=0)             # [in]
+    # 重要性分数 = |W| * ||X_j||   （广播到 [out, in]）
+    score = W.abs() * act_norm.unsqueeze(0)
+    flat = score.flatten()
+    k = int(sparsity * flat.numel())
+    if k == 0:
+        return
+    threshold = torch.kthvalue(flat, k).values
+    mask = (score &gt; threshold).float()
+    layer.weight.data = W * mask
+
+@torch.no_grad()
+def wanda_prune_model(model, calibration_samples, sparsity=0.5):
+    """对模型所有 Linear 层做 Wanda 剪枝。"""
+    activations = {}
+    def make_hook(name):
+        def hook(module, inp, out):
+            # 记录该层输入激活：摊平成 [n_tokens, in_dim]
+            activations[name] = inp[0].reshape(-1, inp[0].shape[-1])
+        return hook
+    hooks, names, idx = [], [], 0
+    for layer in model.modules():
+        if isinstance(layer, torch.nn.Linear):
+            n = f"linear_{idx}"; names.append(n); idx += 1
+            hooks.append(layer.register_forward_hook(make_hook(n)))
+    model(calibration_samples)              # 一次前向，收集所有层激活
+    idx = 0
+    for layer in model.modules():
+        if isinstance(layer, torch.nn.Linear):
+            wanda_prune_linear(layer, activations[names[idx]], sparsity); idx += 1
+    for h in hooks:
+        h.remove()
+
+# 用法：128 条校准文本，把模型剪到 50% 稀疏度
+# wanda_prune_model(model, calibration_samples=c128, sparsity=0.5)
+</code></pre>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>剪枝按粒度分两路：非结构化在任意位置置零，理论上能压到极高稀疏度但需要稀疏硬件才能变现算力；结构化剪整行整列整通道，保稠密矩阵能直接加速，但可剪比例较低。生产环境优先结构化或 2:4 半结构化稀疏，在压缩率和真实加速之间取得平衡。Lottery Ticket 假说揭示了"稀疏结构在初始化时就已存在"，IMP 实验证明了子网络可以重训达到稠密网络精度，深刻影响了后续稀疏训练方法。</p>
+    <p>LLM 时代的主流是无需重训练的方法：Wana 用 <code>|W| * ||激活||</code> 评分，几十条校准样本几分钟就能剪完；SparseGPT 把剪枝建模成逐行最小二乘补偿，能一次剪到 50% 以上且几乎不掉点。两者与量化叠加，构成"剪枝 + 量化"的标准压缩配方，能把模型压到原大小的 1/8。选型上：研究或追求极致压缩选非结构化 + SparseGPT；生产部署选结构化或 2:4 稀疏 + 量化，确保稀疏度能变现为真实加速。剪枝不是孤立的优化，必须和量化、推理引擎一起规划，才能把纸面上的稀疏率换成真实的 tokens/秒。</p>
 
 </main>
 

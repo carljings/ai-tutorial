@@ -305,113 +305,143 @@
   </aside>
 <main class="content">
     <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 225 · 模型压缩部署系列</span>
-      <h1>端侧部署<br>把 LLM 塞进手机和边缘设备</h1>
-      <p class="lead">手机跑 LLM 不再是科幻。MLC-LLM 在 iPhone 15 Pro 上跑 Llama-3-8B 达到 10 tokens/s，Apple CoreML 让 3B 模型在 Mac 上丝滑运行。本章讲清端侧部署的三大框架、量化策略和功耗优化。</p>
+      <span class="eyebrow">◆ CHAPTER 225 · 模型压缩部署</span>
+      <h1>端侧部署实战<br>手机、嵌入式与量化+蒸馏+剪枝组合拳</h1>
+      <p class="lead">不是所有 AI 都跑在云端 GPU 上。手机拍照里的场景识别、智能手表上的心率异常检测、汽车座舱里的离线语音助手、工厂流水线上的视觉质检——这些场景要么对延迟敏感、要么对隐私敏感、要么网络不可靠，必须把模型塞进手机或嵌入式设备。端侧部署是一场"在毫瓦级功耗和兆字节存储里榨性能"的极限工程。本章带你穿越主流端侧框架，并掌握量化、蒸馏、剪枝的组合优化策略。</p>
       <div class="meta">
-        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">阅读约 33 分钟</span>
         <span class="chip">难度 ★★★★</span>
-        <span class="chip">前置：第 115 章量化</span>
       </div>
     </section>
-
-    <h2 class="section" id="challenge"><span class="idx">★</span> 端侧部署的核心挑战</h2>
-    <p>在手机/平板/嵌入式设备上跑 LLM，面临三重约束：</p>
-    <table>
-      <tr><th>约束</th><th>手机典型值</th><th>服务器典型值</th><th>差距</th></tr>
-      <tr><td>内存</td><td>8-16 GB（系统占一半）</td><td>80-640 GB</td><td>10-40倍</td></tr>
-      <tr><td>算力(TFLOPS)</td><td>5-35（NPU/GPU）</td><td>300-2000</td><td>20-60倍</td></tr>
-      <tr><td>功耗</td><td>3-5W（必须不发热）</td><td>300-700W</td><td>100倍</td></tr>
-    </table>
-
-    <h2 class="section" id="mlc"><span class="idx">★</span> MLC-LLM：通用端侧框架</h2>
-    <p>MLC-LLM 是目前最成熟的端侧 LLM 部署框架，支持 iOS/Android/macOS/Windows/Linux 全平台。它的核心思路是把模型编译成各平台的 GPU 代码（Metal/Vulkan/OpenCL），实现跨平台高性能推理。</p>
-
-    <pre><code class="language-python"># MLC-LLM 模型转换（在开发机上操作）
-# 安装
-# pip install mlc-llm mlc-ai
-
-from mlc_llm import MLCEngine
-
-# 加载预量化的模型（自动下载）
-engine = MLCEngine(
-    model="Llama-3-8B-Instruct-q4f16_1-MLC",  # INT4量化
-    model_lib_path="/path/to/compiled/lib.so",
-    device="metal",  # macOS/iOS用Metal，Android用Vulkan
-)
-
-# 推理（API与OpenAI兼容）
-for chunk in engine.chat.completions.create(
-    messages=[{"role": "user", "content": "解释量子计算"}],
-    model="Llama-3-8B",
-    stream=True,
-    max_tokens=256,
-):
-    print(chunk.choices[0].delta.content, end="")
-
-# 编译到 Android/iOS
-# python -m mlc_llm compile ./model-config.json \
-#   --device android --target adreno   # 高通GPU
-# python -m mlc_llm compile ./model-config.json \
-#   --device iphone --target apple-a17  # A17 Pro
-    </code></pre>
-
-    <h2 class="section" id="coreml"><span class="idx">★</span> Apple CoreML 部署</h2>
-    <p>Apple 生态有 CoreML + MLX 两条路线。CoreML 适合将小模型集成到 App 中（如 3B 模型），MLX 适合在 Mac 上进行模型推理和微调。</p>
-
-    <pre><code class="language-python"># CoreML 路线：PyTorch → CoreML
+    <h2 class="section" id="why-edge"><span class="idx">★</span> 为什么要把模型放到端侧</h2>
+    <p>端侧部署（On-Device / Edge Deployment）指模型直接在用户的手机、手表、汽车、IoT 设备上推理，不依赖云端服务器。这种部署方式在三类场景下不可替代。第一是<strong>延迟敏感</strong>：增强现实（AR）滤镜要 30ms 内出结果，往返云端根本来不及；自动驾驶感知要在毫秒级响应，网络抖动就是事故。第二是<strong>隐私敏感</strong>：医疗影像、人脸识别、个人语音，用户不愿也不能上传到服务器。第三是<strong>离线与成本</strong>：偏远地区、飞行模式、无网络设备仍要能用，且每次推理都走云端会带来高昂的带宽和算力账单。</p>
+    <p>但端侧部署的约束极其严苛，与云端部署是两个世界。一张手机 NPU（如苹果 A17、高通骁龙 8 Gen 3）的算力大约 30-50 TOPS，而一张 H100 是 2000 TOPS 级别，差了 40 倍以上。内存方面，旗舰手机能给模型用的 RAM 通常只有几百 MB，且还要和应用本身、操作系统共享。功耗方面，手机电池持续大电流放电会快速发热降频，模型必须在几百毫瓦内完成推理。存储方面，应用商店对单个 App 的体积有上限，模型文件动辄上百 MB 会让用户望而却步。这些约束倒逼出"极小、极快、极省"的模型设计哲学。</p>
+    <p>端侧模型的典型规模有一个经验区间：视觉模型（MobileNet、EfficientNet-Lite 系列）大约 5-20 MB、几十毫秒推理；语音唤醒模型（KWS）小于 1 MB、几毫秒推理；端侧 NLP 模型（MobileBERT、distilled BERT）大约 30-100 MB、上百毫秒；端侧 LLM（通过 INT4 量化的 1B-3B 模型）大约 1-3 GB、每秒十几到几十 token。理解这些量级，是做端侧项目可行性评估的起点。</p>
+    <h2 class="section" id="frameworks"><span class="idx">★</span> 三大端侧框架：TFLite / Core ML / MLC-LLM</h2>
+    <p>端侧框架的核心职责是把训练好的模型转换成设备原生格式，并调用硬件加速器（NPU/DSP/GPU）高效推理。三大主流框架各有所长：TensorFlow Lite 覆盖最广，Core ML 是苹果生态的唯一选择，MLC-LLM 则是端侧跑大模型的黑马。</p>
+    <p><strong>TensorFlow Lite（TFLite）</strong>是 Google 推出的跨平台端侧推理框架，支持 Android、iOS、嵌入式 Linux、微控制器（TFLite Micro）。它的生态最完善——从算子覆盖、硬件委托（GPU/NNAPI/Core ML delegate）、量化工具（TFLite Converter）到模型分析器一应俱全。Android 设备尤其推荐 TFLite，因为能通过 NNAPI 直接调用各厂商 NPU。痛点是对动态形状、控制流的支持不如静态模型好，跑大语言模型较吃力。</p>
+    <p><strong>Core ML</strong>是苹果的端侧框架，是 iOS/macOS 应用的唯一原生选择。它的优势是深度集成苹果 Neural Engine（ANE）——苹果自研 NPU，能效比远超 GPU。把模型转成 Core ML 格式（.mlmodelc）后，框架会自动在 CPU/GPU/ANE 间选最优后端。Core ML 还原生支持对模型做 INT8/FP16 量化、层融合、内存优化。下面这段代码演示用 coremltools 把 PyTorch 模型转到 Core ML 并量化。</p>
+    <pre><code class="language-python"># pip install coremltools torch torchvision numpy
 import coremltools as ct
-import torch
+import torch, torchvision
+import numpy as np
 
-# 加载并量化模型
-model = MyLLM.load_quantized("model-q4f16")  # INT4量化
+# 1) 加载一个训练好的 PyTorch 模型（以 MobileNetV3 为例）
+model = torchvision.models.mobilenet_v3_small(weights="DEFAULT").eval()
 
-# 转换为 CoreML 格式
-traced = torch.jit.trace(model, dummy_input)
-mlmodel = ct.convert(
+# 2) 用 example input 做 trace（Core ML 需要静态形状）
+example = torch.rand(1, 3, 224, 224)
+traced = torch.jit.trace(model, example)
+
+# 3) 转换为 Core ML 中间格式（ML Program）
+mlp = ct.convert(
     traced,
-    inputs=[ct.TensorType(name="input", shape=dummy_input.shape)],
-    compute_units=ct.ComputeUnit.ALL,  # CPU+GPU+Neural Engine
-    minimum_deployment_target=ct.target.iOS17,
+    inputs=[ct.TensorType(shape=example.shape, name="image")],
+    compute_precision=ct.precision.FLOAT16,   # 全 FP16，省一半内存
+    minimum_deployment_target=ct.target.iOS15,
 )
-mlmodel.save("LLM.mlpackage")
 
-# 在 Swift App 中使用
-# let model = try LLM(configuration: MLModelConfiguration())
-# let prediction = try model.prediction(input: input)
+# 4) 进一步做权重量化到 INT8（激活仍 FP16，精度损失极小）
+mlp_int8 = ct.optimize.coreml.quantize_weights(
+    mlp, mode="linear_symmetric", dtype=np.int8
+)
 
-# MLX 路线（更灵活，适合Mac）
-import mlx.core as mx
-from mlx_lm import load, generate
+# 5) 保存为 .mlpackage，Xcode 直接集成进 App
+mlp_int8.save("MobileNetV3.mlpackage")
 
-model, tokenizer = load("mlx-community/glm-4-9b-chat-4bit")
-response = generate(model, tokenizer, prompt="你好", max_tokens=200)
-    </code></pre>
+# 输出模型大小对比：
+#   PyTorch FP32:  ~21 MB
+#   Core ML FP16:  ~11 MB
+#   Core ML INT8:  ~6 MB   （且在 ANE 上推理速度可能反而更快）
+</code></pre>
+    <p><strong>MLC-LLM</strong>是基于 Apache TVM 编译器栈的通用大模型部署框架，最大特点是能在手机、笔记本、甚至浏览器（WebGPU）上跑大语言模型。它通过 TVM 的统一中间表示，把 LLaMA、Phi、Qwen 等模型编译成针对 iPhone A 系列、安卓骁龙、苹果 Silicon、Intel/AMD 各类后端的原生代码，并支持 INT4 量化。MLC-LLM 让"手机本地跑 LLM"从口号变成现实——一台 iPhone 15 Pro 能以每秒约 20 token 跑一个 3B 的 INT4 模型。</p>
+    <h2 class="section" id="compression-combo"><span class="idx">★</span> 量化、蒸馏、剪枝的组合策略</h2>
+    <p>单靠某一种技术很难把模型压到端侧可承受的体积和速度，工业界通行做法是把量化、蒸馏、剪枝三种技术组合使用，称为"压缩三件套"。理解三者的作用机制和最佳组合顺序，是端侧优化的核心。先看三者的定位：<strong>剪枝</strong>减少参数数量（让模型变稀疏或变窄）、<strong>蒸馏</strong>用大模型教小模型（让小模型在更少参数下达到接近的效果）、<strong>量化</strong>降低每个参数的位宽（让每个参数占的存储和算力更少）。三者作用在模型的不同维度，因此可以叠加。</p>
+    <p>典型的组合流程是"蒸馏优先，剪枝其次，量化最后"。第一步，用知识蒸馏训练一个结构上就适合端侧的小模型（比如从 BERT-base 蒸馏到 6 层的 TinyBERT，或从 LLaMA-7B 蒸馏到 1.3B）。第二步，对小模型做剪枝进一步压缩（比如 magnitude pruning 剪掉 30% 权重）。第三步，对剪枝后模型做量化（权重 INT4/INT8，激活 INT8 或 FP16）。这个顺序的原因是：蒸馏改变模型结构，应该在最前面；剪枝改变权重拓扑，需要在量化前完成以避免稀疏模式被量化干扰；量化是最后一步，因为它对精度的影响需要直接在目标硬件上验证，且量化后通常不再做重训练。下面这段代码演示蒸馏 + 量化的组合实现。</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
 
-    <h2 class="section" id="strategy"><span class="idx">★</span> 量化+剪枝+蒸馏组合策略</h2>
-    <p>端侧部署不是单一技术能搞定的，需要组合拳：</p>
-    <ol>
-      <li><strong>蒸馏</strong>：13B → 3B，保持 90% 能力（教师模型→学生模型）</li>
-      <li><strong>量化</strong>：FP16 → INT4，显存降低 4 倍</li>
-      <li><strong>剪枝</strong>：去除 20-30% 冗余权重，进一步缩小模型</li>
-      <li><strong>Speculative Decoding</strong>：用 0.5B 草稿模型预测，3B 主模型验证，速度提升 2 倍</li>
-    </ol>
+# === 第一步：知识蒸馏（大模型 teacher 教小模型 student）===
+class TinyStudent(nn.Module):
+    def __init__(self, num_classes=10):
+        super().__init__()
+        self.encoder = nn.TransformerEncoder(
+            nn.TransformerEncoderLayer(d_model=256, nhead=4, dim_feedforward=1024),
+            num_layers=4,   # 远小于 BERT 的 12 层
+        )
+        self.head = nn.Linear(256, num_classes)
+    def forward(self, x):
+        return self.head(self.encoder(x).mean(dim=1))
 
-    <table>
-      <tr><th>模型</th><th>原始大小</th><th>INT4量化</th><th>iPhone 15 Pro速度</th></tr>
-      <tr><td>Qwen2-0.5B</td><td>1.0 GB</td><td>0.3 GB</td><td>50+ tok/s</td></tr>
-      <tr><td>Phi-3-mini(3.8B)</td><td>7.6 GB</td><td>2.2 GB</td><td>20 tok/s</td></tr>
-      <tr><td>Llama-3-8B</td><td>16 GB</td><td>4.5 GB</td><td>10 tok/s</td></tr>
-    </table>
+def distill(teacher, student, train_loader, epochs=5, T=4.0, alpha=0.5):
+    """teacher 输出软标签，student 同时学硬标签和软标签。"""
+    opt = torch.optim.AdamW(student.parameters(), lr=5e-5)
+    for epoch in range(epochs):
+        for x, y in train_loader:
+            with torch.no_grad():
+                t_logits = teacher(x)
+            s_logits = student(x)
+            # 蒸馏 loss = alpha * KL(软标签) + (1-alpha) * CE(硬标签)
+            kl = F.kl_div(
+                F.log_softmax(s_logits / T, dim=-1),
+                F.softmax(t_logits / T, dim=-1), reduction="batchmean"
+            ) * (T * T)
+            ce = F.cross_entropy(s_logits, y)
+            loss = alpha * kl + (1 - alpha) * ce
+            opt.zero_grad(); loss.backward(); opt.step()
 
+# === 第二步：对蒸馏后的小模型做量化（PyTorch 动态量化，最简单）===
+student = TinyStudent().eval()
+distill(teacher, student, train_loader)
+
+quantized = torch.quantization.quantize_dynamic(
+    student,
+    {nn.Linear, nn.TransformerEncoderLayer},   # 对这两类层做权重 INT8 量化
+    dtype=torch.qint8,
+)
+# 体积对比：FP32 ~80MB → INT8 ~25MB → 再叠加 TFLite INT8 部署约 ~12MB
+# 精度通常保留 95%+，推理速度在支持 INT8 的 NPU 上提升 2-3 倍。
+</code></pre>
+    <p>组合策略的关键经验是"每一步都要验证精度"。不要一口气把蒸馏+剪枝+量化全做完才评测——那样一旦精度掉了，你都不知道是哪一步的锅。正确做法是每做一步就在验证集上评测，记录精度-体积-速度三角的 trade-off，逐步逼近帕累托最优。</p>
+    <h2 class="section" id="deployment-tips"><span class="idx">★</span> 端侧部署的工程实战要点</h2>
+    <p>端侧部署的坑远不止模型压缩本身，还涉及硬件适配套、内存管理、功耗控制、模型分发等多个工程问题。这些细节往往决定一个端侧项目能不能真正落地。</p>
+    <p>第一是<strong>硬件适配套（hardware adaptation kit）</strong>。同一份模型在不同手机的 NPU 上表现差异巨大——高通骁龙、联发科天玑、华为麒麟、苹果 ANE 的算子支持、精度支持、内存模型都不同。生产环境通常要为不同芯片准备不同优化版本的模型，或在运行时根据设备能力（如 Android 的 <code>DeviceUtils</code>、iOS 的 <code>MLModel</code> 配置）动态选择。第二是<strong>内存峰值控制</strong>。端侧推理的峰值内存比模型文件大小更重要，因为峰值超了就会被系统杀进程。常见优化手段是分块推理、流式激活、复用中间 buffer。第三是<strong>功耗与热设计</strong>。持续高频推理会让手机发热降频，体验崩坏。建议把推理任务批量化、避开长时间连续运行，并利用系统的低功耗核（如 Android 的 LITTLE 核）处理轻量任务。</p>
+    <p>第四是<strong>模型分发与更新</strong>。几十 MB 的模型塞进 App 包会让下载量暴跌，业界做法是首次启动时按需下载模型、做差分更新、用 Play Asset Delivery / iOS On-Demand Resources 等机制分阶段下发。第五是<strong>版本兼容</strong>。端侧模型一旦下发到用户设备，就很难强制更新，必须考虑模型版本与 App 版本、OS 版本、硬件代际的兼容矩阵，做好降级策略——NPU 不可用时回退到 CPU 推理，新模型加载失败时回退到上一版。下面这段伪代码展示运行时硬件适配的典型逻辑。</p>
+    <pre><code class="language-kotlin">// Android (Kotlin) 运行时硬件适配伪代码
+fun loadOptimizedModel(context: Context): Interpreter {
+    val options = Interpreter.Options()
+    // 1) 检测设备 NPU 能力
+    val nnapiAvailable = NnApiDelegate.isNnApiAvailable(context)
+    val devicePerf = readDevicePerfClass()   // OEM 通过 PowerStats 暴露
+
+    when {
+        nnapiAvailable && devicePerf >= PERF_HIGH -> {
+            // 旗舰机：用完整 INT8 模型 + NNAPI delegate 跑 NPU
+            val nnApi = NnApiDelegate(
+                NnApiDelegate.Options().setAllowFp16(false)
+            )
+            options.addDelegate(nnApi)
+            return Interpreter(loadModelFile("model_v3_int8.tflite"), options)
+        }
+        devicePerf >= PERF_MEDIUM -> {
+            // 中端机：用 INT8 模型但跑 GPU delegate
+            val gpu = GpuDelegate()
+            options.addDelegate(gpu)
+            return Interpreter(loadModelFile("model_v3_int8.tflite"), options)
+        }
+        else -> {
+            // 低端机：用更小的 INT8 模型，CPU 4 线程
+            options.setNumThreads(4)
+            return Interpreter(loadModelFile("model_v3_small_int8.tflite"), options)
+        }
+    }
+    // 配合 try/catch：任何 delegate 加载失败都回退到纯 CPU + 上一版模型
+}
+</code></pre>
+    <p>这种"按设备能力分发不同模型"的策略是头部 App（相机、相册、翻译）的标配。它把"一个模型适配所有设备"的难题，转化为"按性能分档准备多个模型"的工程问题，虽然增加了模型维护成本，但能保证从旗舰机到低端机都有可用体验。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <ul>
-      <li>端侧三大约束：内存、算力、功耗，决定了只能跑 INT4 量化的小模型</li>
-      <li>MLC-LLM 是跨平台首选，支持 iOS/Android/Linux 全平台</li>
-      <li>Apple 生态用 CoreML（App集成）或 MLX（Mac推理）</li>
-      <li>蒸馏→量化→剪枝→投机解码的组合策略可将 8B 模型塞进手机</li>
-      <li>选型：0.5-1B 用 TFLite/CoreML，3-8B 用 MLC-LLM，Mac 上用 MLX</li>
-    </ul>
+    <p>端侧部署是把 AI 推理从云端推向用户设备的关键工程，本章覆盖了从框架选型到压缩组合再到工程落地的完整链条。首先我们厘清了端侧部署不可替代的三类场景——延迟敏感、隐私敏感、离线与成本，以及端侧严苛的算力、内存、功耗、存储约束，这倒逼出"极小、极快、极省"的模型设计哲学，并给出了视觉/语音/NLP/LLM 各类端侧模型的典型规模量级。其次，三大框架各有所长：TFLite 覆盖最广、Android 上能通过 NNAPI 调用各厂商 NPU；Core ML 是苹果生态唯一选择、深度集成 ANE 能效比极佳；MLC-LLM 基于 TVM 能在手机甚至浏览器上跑 INT4 大模型。第三，量化+蒸馏+剪枝的"压缩三件套"作用在模型的不同维度可叠加使用，最佳顺序是"蒸馏优先（定结构）、剪枝其次（改拓扑）、量化最后（降位宽）"，且每一步都要独立验证精度。第四，端侧部署的工程实战要点包括硬件适配套（按芯片准备多版本模型）、内存峰值控制、功耗与热设计、按需模型分发、版本兼容与降级策略，运行时按设备能力分档选择模型是头部 App 的标配。掌握这套端到端的端侧部署方法论，你就能把模型塞进手机、手表、汽车等任何受限设备，让 AI 真正贴近用户、随取随用。</p>
 
 </main>
 

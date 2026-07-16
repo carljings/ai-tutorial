@@ -305,134 +305,114 @@
   </aside>
 <main class="content">
     <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 224 · 模型压缩部署系列</span>
-      <h1>TensorRT-LLM 部署<br>把推理速度推到极限</h1>
-      <p class="lead">TensorRT-LLM 是 NVIDIA 推出的高性能 LLM 推理引擎，通过 kernel 融合、连续批处理和 INT8/FP8 量化，将推理吞吐量提升 3-8 倍。本章从 ONNX 转换到生产部署，讲清每一步的原理和踩坑点。</p>
+      <span class="eyebrow">◆ CHAPTER 224 · 模型压缩部署</span>
+      <h1>TensorRT-LLM部署实战<br>引擎构建、kernel fusion与INT8/FP8量化</h1>
+      <p class="lead">把一个百亿参数的大模型从"能在 PyTorch 里跑"变成"能高并发、低延迟地服务上万 QPS"，中间隔着一整套推理优化工程。TensorRT-LLM 是 NVIDIA 官方的 LLM 推理加速框架，通过引擎编译、算子融合、连续批处理和低比特量化，把 LLM 推理速度提升数倍。本章带你从零构建一个 TensorRT-LLM 推理引擎，理解 kernel fusion 的原理，并落地 INT8/FP8 量化部署。</p>
       <div class="meta">
-        <span class="chip">阅读约 25 分钟</span>
-        <span class="chip">难度 ★★★★</span>
-        <span class="chip">前置：第 115 章量化</span>
+        <span class="chip">阅读约 34 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
       </div>
     </section>
+    <h2 class="section" id="why-trt-llm"><span class="idx">★</span> 为什么需要 TensorRT-LLM</h2>
+    <p>直接用 PyTorch 或 HuggingFace Transformers 跑大模型推理，在单请求场景下看似没问题，但一旦放到生产环境就会暴露三大瓶颈。第一是<strong>吞吐量低</strong>：PyTorch 默认是逐请求串行处理，多个用户同时请求时 GPU 利用率极低。第二是<strong>算子开销大</strong>：PyTorch 的 eager 模式每个算子独立调度，存在大量 kernel 启动开销和中间结果显存读写。第三是<strong>显存占用高</strong>：KV cache、激活值都以全精度存储，长上下文场景下显存吃紧，限制了 batch size。</p>
+    <p>TensorRT-LLM 正是为解决这三个问题而生。它是 NVIDIA 基于 TensorRT 推出的 LLM 专用优化引擎，核心能力有四点。<strong>引擎编译</strong>：把模型从动态图编译为静态优化引擎，针对具体 GPU 架构选择最优 kernel。<strong>算子融合（kernel fusion）</strong>：把多个小算子合并成一个大 kernel，减少显存读写和启动开销。<strong>连续批处理（inflight batching / continuous batching）</strong>：动态把新到达的请求并入正在执行的 batch，几乎消除排队延迟。<strong>低比特量化</strong>：原生支持 INT8 Weight-Only、INT8 KV cache、FP8 等多种量化方案，把显存和带宽需求降低数倍。综合下来，相同硬件上 TensorRT-LLM 通常比 PyTorch 快 3-8 倍。</p>
+    <p>需要说明的是，TensorRT-LLM 与底层硬件强绑定——编译出的引擎只能在编译时指定的 GPU 架构（如 Ampere、Hopper）上运行，换一张不同架构的卡就要重新编译。这是它高性能的代价。如果你需要跨硬件部署，vLLM 或 SGLang 这类方案可能更灵活，但单卡极致性能上 TensorRT-LLM 仍是标杆。</p>
+    <h2 class="section" id="engine-build"><span class="idx">★</span> 引擎构建：从 HF 模型到 TensorRT 引擎</h2>
+    <p>TensorRT-LLM 部署的标准流程是：HuggingFace 模型权重 → 转换为 TensorRT-LLM 的 checkpoint 格式 → 编译为 .engine 文件 → 用 Triton Inference Server 或自带的 Python runtime 加载服务。其中"转换"这一步由 <code>convert_checkpoint.py</code> 完成，它会读取 HF 权重并改写为 TensorRT-LLM 期望的命名和布局；"编译"由 <code>trtllm-build</code> 完成，它会根据你指定的精度、batch size、序列长度等参数生成优化引擎。</p>
+    <p>构建引擎时有几个关键参数必须想清楚。第一是<strong>精度</strong>：<code>--use_fp8</code>、<code>--int8</code>、<code>--use_weight_only</code>（权重 INT8 但激活 FP16）等，不同精度对显存和精度的影响差异巨大。第二是<strong>batch size 和序列长度范围</strong>：引擎会针对你指定的 min/opt/max 范围优化，超出 max 的请求会被截断或拒绝。第三是<strong>插件（plugin）</strong>：像 GEMM、Attention、RMSNorm 这些都需要对应的插件支持，不同模型（LLaMA、Qwen、ChatGLM）插件路径不同。下面这段脚本演示从 LLaMA HF 权重构建 FP8 引擎的完整命令。</p>
+    <pre><code class="language-bash"># 第一步：把 HF 权重转换为 TensorRT-LLM checkpoint
+python /opt/TensorRT-LLM/examples/llama/convert_checkpoint.py \
+    --model_dir ./meta-llama/Llama-2-7b-hf \
+    --output_dir ./llama-7b-ckpt \
+    --dtype float16
 
-    <h2 class="section" id="why"><span class="idx">★</span> 为什么需要 TensorRT-LLM</h2>
-    <p>直接用 PyTorch + HuggingFace 跑 LLM 推理，GPU 利用率通常只有 30-50%。大量时间花在 kernel 启动开销、显存搬运和 Python 解释器上。TensorRT-LLM 通过三个核心优化解决这些问题：</p>
-    <ul>
-      <li><strong>Kernel 融合</strong>：把矩阵乘 + LayerNorm + GELU 等连续操作合并为单个 CUDA kernel，减少中间结果的显存读写</li>
-      <li><strong>连续批处理（Continuous Batching）</strong>：不同于 static batching 等所有请求到齐才批处理，Inflight Batching 在每个 iteration 级别动态组批，已完成生成的请求立即让位给新请求</li>
-      <li><strong>量化感知</strong>：INT8 SmoothQuant 和 FP8 量化在保持精度的同时将显存占用减半、计算速度翻倍</li>
-    </ul>
+# 第二步：编译为 TensorRT 引擎（FP8 量化）
+trtllm-build \
+    --checkpoint_dir ./llama-7b-ckpt \
+    --output_dir ./llama-7b-engine \
+    --gemm_plugin float8 \
+    --attention_plugin float8 \
+    --max_batch_size 32 \
+    --max_input_len 2048 \
+    --max_output_len 512 \
+    --use_fp8 \
+    --log_level info
 
-    <h2 class="section" id="pipeline"><span class="idx">★</span> 完整转换流程</h2>
-    <p>从 HuggingFace 模型到 TensorRT 引擎，经过四步：</p>
+# 第三步（可选）：用 HF 的校准数据做 FP8 校准，提升量化精度
+# convert_checkpoint.py 已支持 --use_fp8 并自动量化权重；
+# 激活量化的 scale 可通过 --calib 阶段统计。
+</code></pre>
+    <p>一个高频踩坑点：编译参数里的 max_input_len、max_output_len 直接决定 KV cache 的最大显存预留。如果你把它们设得过大，单卡能并发的 batch 数就会减少，反而降低吞吐。生产环境建议根据真实业务的 P99 上下文长度来设，留 20% 余量即可，而不是一味设大。另外，<code>--gemm_plugin</code> 和 <code>--attention_plugin</code> 必须和模型权重精度一致，否则编译会报错。</p>
+    <h2 class="section" id="kernel-fusion"><span class="idx">★</span> Kernel Fusion：为什么算子融合能大幅加速</h2>
+    <p>理解 kernel fusion 是理解 TensorRT-LLM 性能优势的关键。在 PyTorch eager 模式下，一段像 <code>y = (x @ W).bias_add().gelu().dropout()</code> 的计算会被拆成 4 个独立算子，每个算子都要"从显存读输入 → 启动 kernel 计算 → 把输出写回显存"。四次显存读写和四次 kernel 启动，开销远超计算本身——这类 workload 叫做"显存带宽受限"，是 LLM 推理的典型特征。</p>
+    <p>kernel fusion 的做法是把这 4 个算子合并成 1 个自定义 kernel：输入只从显存读一次，中间结果全部留在寄存器或 L1 cache，最后一次写回。这样显存读写次数从 4 次降到 1 次，kernel 启动开销也降到 1 次，整体速度可能提升数倍。Transformer 里能融合的算子组合非常多：QKV 的三个 GEMM 融合为一个、Attention 内部的 softmax 和 scale 融合、RMSNorm + 量化融合、MLP 里 GELU/SiLU 和前一层的 GEMM 融合等等。下面这段伪代码展示融合前后的差异。</p>
+    <pre><code class="language-python"># === PyTorch eager 模式：每个算子独立（无融合）===
+def mlp_eager(x, w1, b1, w2, b2):
+    h = x @ w1.T + b1          # 算子1：GEMM + bias，读 x,w1 写 h
+    a = torch.nn.functional.gelu(h)  # 算子2：读 h 写 a
+    out = a @ w2.T + b2        # 算子3：GEMM + bias，读 a,w2 写 out
+    return out
+# 显存读写：x,w1,h,a,w2,out ≈ 6 次大块显存访问
 
-    <pre><code class="language-python"># Step 1: 安装 TensorRT-LLM
-# git clone https://github.com/NVIDIA/TensorRT-LLM.git
-# cd TensorRT-LLM && pip install -e .
-
-# Step 2: 转换 HuggingFace 模型 → TensorRT 引擎
-from tensorrt_llm.models import LLaMAForCausalLM
-from tensorrt_llm.builder import build, BuilderConfig
-
-# 加载 HuggingFace 权重并转换为 TRT-LLM 格式
-model = LLaMAForCausalLM.from_hugging_face(
-    model_dir="/models/glm-5-9b-chat",
-    dtype="float16",
-    gpus=1,
-)
-
-# 配置引擎参数
-builder_config = BuilderConfig(
-    max_batch_size=32,
-    max_input_len=4096,
-    max_output_len=2048,
-    max_num_tokens=8192,  # PagedAttention 的 KV cache 槽位数
-    use_gpt_attention_plugin=True,
-    use_gemm_plugin=True,
-    use_rmsnorm_plugin=True,
-)
-engine = build(model, builder_config)
-engine.save("/models/glm-5-9b-chat/trt-engine/")
-
-# Step 3: 部署推理服务
+# === TensorRT-LLM 融合后：两个 fused kernel ===
+#  kernel A: GEMM(x,w1) + bias + gelu 在一个 kernel 内完成
+#            h 只留在寄存器/L1，gelu 在 GEMM 输出上原地算
+#  kernel B: GEMM(a,w2) + bias 在一个 kernel 内完成
+# 显存读写：x,w1 进 kernel A → a（只写一次）→ w2,out
+# 总访问 ≈ 4 次，且 a 的写入是融合输出，开销更小
+#
+# 在 LLM 这种显存带宽受限的 workload 上，融合带来的提升往往是 2-4 倍。
+# 这也是为什么 TensorRT-LLM 能比 PyTorch 快这么多——
+# 它为每种模型结构手写了高度融合的 CUDA kernel。
+</code></pre>
+    <p>除了算子融合，TensorRT-LLM 还用了<strong>PagedAttention 的变体</strong>来管理 KV cache（把 KV cache 切成分页块，按需分配，避免显存碎片）、<strong>Flash Attention</strong> 来减少 attention 的显存读写、<strong>连续批处理</strong>来最大化 GPU 利用率。这些技术叠在一起，让单张 H100 能跑到每秒数千 token 的吞吐。理解这些优化原理，能帮你判断"什么时候该用 TensorRT-LLM、什么时候用别的方案更划算"。</p>
+    <h2 class="section" id="quantization"><span class="idx">★</span> INT8 与 FP8 量化部署</h2>
+    <p>量化是 TensorRT-LLM 提速的另一大利器。LLM 推理的瓶颈是显存带宽，把权重和激活从 FP16 压到 INT8 或 FP8，能让同样大小的显存带宽搬运 2-4 倍的参数，直接提升访存受限场景的吞吐。但量化有精度风险——简单地把 FP16 截断到 INT8 会让模型效果大幅下降。TensorRT-LLM 提供了几种精度-效果权衡不同的方案，理解它们的差异是做好量化部署的前提。</p>
+    <p>第一是 <strong>INT8 Weight-Only</strong>：只把权重存成 INT8（推理时实时反量化回 FP16 参与计算），激活仍是 FP16。这种方式精度损失极小，主要节省显存和权重加载带宽，适合对精度敏感但对计算速度要求中等的场景。第二是 <strong>INT8 激活+权重</strong>：权重和激活都量化到 INT8，能用 INT8 Tensor Core 加速计算，速度最快，但需要校准数据来统计激活分布，精度损失需仔细评估。第三是 <strong>FP8</strong>：Hopper 架构（H100）原生支持的 8-bit 浮点格式，动态范围比 INT8 大得多，精度损失几乎可忽略，是当前最推荐的低比特方案。第四是 <strong>INT8 KV cache</strong>：把 KV cache 量化到 INT8，能显著增大可并发的 batch 数和上下文长度，精度损失通常也很小。下面这段代码演示如何用 TensorRT-LLM 的 Python API 做量化推理。</p>
+    <pre><code class="language-python"># pip install tensorrt-llm
+import tensorrt_llm
 from tensorrt_llm.runtime import ModelRunner
-runner = ModelRunner.from_dir("/models/glm-5-9b-chat/trt-engine/")
+import torch
 
-# Step 4: 推理
-output = runner.generate(
-    input_ids=[1, 2024, 3258, 998],  # tokenized prompt
-    max_new_tokens=512,
-    temperature=0.7,
-    top_p=0.9,
-)
-print(output)
-    </code></pre>
-
-    <h2 class="section" id="quant"><span class="idx">★</span> INT8 SmoothQuant 量化</h2>
-    <p>SmoothQuant 是 TensorRT-LLM 的招牌量化技术。它观察到：激活值的不同通道存在"离群值"（outlier），导致 INT8 量化误差大。SmoothQuant 的思路是把激活值的难度"迁移"到权重上——用平滑因子缩小激活值范围，同时放大对应权重，使两者都落在 INT8 可表示范围内。</p>
-
-    <pre><code class="language-python"># SmoothQuant 量化配置
-builder_config = BuilderConfig(
-    # ... 其他参数 ...
-    quant_mode="int8",          # INT8 量化
-    smoothquant_value=0.5,      # 平滑因子（0-1，0.5 是经验最优值）
+# 1) 加载已编译好的 FP8 引擎（由 trtllm-build 生成）
+runner = ModelRunner.from_dir(
+    engine_dir="./llama-7b-engine",
+    rank=0,
+    runtime_rank=0,
 )
 
-# FP8 量化（H100 专用，精度更高）
-builder_config = BuilderConfig(
-    quant_mode="fp8",
-    use_fp8=True,
+# 2) 准备输入（用配套的 tokenizer 编码）
+tokenizer = load_tokenizer("./meta-llama/Llama-2-7b-hf")
+input_text = "用三句话解释什么是 kernel fusion。"
+input_ids = tokenizer(input_text, return_tensors="pt").input_ids.cuda()
+input_lengths = torch.tensor([input_ids.size(1)], dtype=torch.int32).cuda()
+
+# 3) 执行生成（FP8 引擎内部已做量化，对外接口透明）
+output_ids = runner.generate(
+    input_ids,
+    input_lengths,
+    max_new_tokens=128,
+    top_k=1,            # 贪心解码
+    temperature=1.0,
+    eos_token_id=tokenizer.eos_token_id,
+    pad_token_id=tokenizer.pad_token_id,
 )
-# FP8 在 H100 上比 FP16 快 2x，比 INT8 精度损失更小
 
-# 对比测试
-# FP16:  延迟 45ms/tok, 显存 18GB, BLEU 27.3
-# INT8:  延迟 22ms/tok, 显存 10GB, BLEU 26.8 (-0.5)
-# FP8:   延迟 28ms/tok, 显存 10GB, BLEU 27.1 (-0.2)
-    </code></pre>
+# 4) 解码输出
+output_text = tokenizer.decode(output_ids[0], skip_special_tokens=True)
+print(output_text)
 
-    <h2 class="section" id="bench"><span class="idx">★</span> 性能基准对比</h2>
-    <table>
-      <tr><th>引擎</th><th>吞吐(tokens/s)</th><th>延迟(ms/tok)</th><th>显存(GB)</th></tr>
-      <tr><td>PyTorch (FP16)</td><td>1,200</td><td>45</td><td>18</td></tr>
-      <tr><td>vLLM (FP16)</td><td>3,500</td><td>20</td><td>15</td></tr>
-      <tr><td>TRT-LLM (FP16)</td><td>5,800</td><td>15</td><td>14</td></tr>
-      <tr><td>TRT-LLM (INT8)</td><td>9,200</td><td>9</td><td>8</td></tr>
-      <tr><td>TRT-LLM (FP8)</td><td>11,000</td><td>7</td><td>8</td></tr>
-    </table>
-    <p>TRT-LLM INT8 相比原始 PyTorch，吞吐提升 7.7 倍，延迟降低 5 倍。</p>
-
-    <h2 class="section" id="prod"><span class="idx">★</span> 生产部署：Triton Inference Server</h2>
-    <pre><code class="language-python"># 用 Triton 部署 TRT-LLM，获得负载均衡、模型版本管理、A/B 测试等能力
-# 启动命令：
-# tritonserver --model-repository=/models/ \
-#   --http-port=8000 --grpc-port=8001
-
-# Python 客户端
-import tritonclient.http as httpclient
-
-client = httpclient.InferenceServerClient(url="localhost:8000")
-
-# 构造请求
-inputs = [httpclient.InferInput("input_ids", [1, 128], "INT32")]
-inputs[0].set_data_from_numpy(tokenized_prompt)
-
-outputs = [httpclient.InferRequestedOutput("output_ids")]
-
-# 发送请求（支持流式输出）
-result = client.infer("glm_trt_llm", inputs=inputs, outputs=outputs)
-print(result.as_numpy("output_ids"))
-    </code></pre>
-
-    <blockquote><strong>选型建议：</strong>如果你有 NVIDIA GPU 且追求极致吞吐 → TRT-LLM；如果需要跨硬件（CPU/AMD/Apple Silicon）→ vLLM 或 llama.cpp；如果模型较小且注重延迟 → MLC-LLM。</blockquote>
-
+# 性能对比（同模型同卡）：
+#   PyTorch FP16:       ~800 tokens/s
+#   TRT-LLM FP16:       ~2400 tokens/s  (3x，主要来自 fusion + 连续批处理)
+#   TRT-LLM FP8:        ~3800 tokens/s  (再 1.5x，主要来自 FP8 带宽翻倍)
+#   显存占用：FP16 14GB → FP8 约 8GB（权重）+ 更小的 KV cache
+</code></pre>
+    <p>一个关键的工程经验：FP8 量化的精度严重依赖校准数据。如果校准数据和真实业务分布不一致，量化后精度可能掉很多。建议从生产流量里采样几千条作为校准集，并在上线前用业务评测集做"FP16 vs FP8"的对比测试，确认精度损失在可接受范围（通常 PPL 上升不超过 2%）。另外，FP8 只在 Hopper 及以上架构有效，Ampere 及更早的卡只能用 INT8 方案。</p>
+    <p>实际部署中，TRT-LLM 通常不单独暴露给业务，而是包在 NVIDIA Triton Inference Server 里。Triton 提供了模型版本管理、动态 batching、多模型调度、HTTP/gRPC 接口、监控指标等生产级特性，TRT-LLM 作为它的一个 backend 存在。这种组合的好处是：业务侧用统一的推理协议，底层可以混用 TRT-LLM（高性能 LLM）、TensorRT（CNN）、PyTorch（自定义模型）等多种 backend，运维侧用统一的指标和日志体系。一个典型的在线服务架构是：流量入口做负载均衡，分发到多个 Triton 实例，每个实例挂载若干 GPU 运行 TRT-LLM 引擎，前面再加一层请求路由（按模型、按优先级、按租户调度）。这种架构能支撑上千 QPS 的 LLM 推理服务，是头部 AI 公司的标准配置。</p>
+    <p>演进路径上有个务实建议：原型阶段直接用 vLLM，它部署门槛低、开箱即用、支持绝大多数开源模型，且同样实现了 PagedAttention 和连续批处理，性能已经能打到 TRT-LLM 的七八成。等流量起来、GPU 账单大到值得专人优化时，再评估迁移到 TRT-LLM 压榨最后 20-30% 的性能。这个决策点在于：性能提升带来的 GPU 成本节省，是否能覆盖 TRT-LLM 额外的工程维护成本（引擎编译、硬件绑定、调试难度）。小团队往往停留在 vLLM 就够了，盲目追求 TRT-LLM 的极限性能反而会被工程负担拖累。此外，推理框架迭代很快，定期重新评测 vLLM、TRT-LLM、SGLang 这些方案的最新版本基准，避免基于过时数据做技术选型。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <ul>
-      <li>TensorRT-LLM 的三把斧：kernel 融合 + 连续批处理 + INT8/FP8 量化</li>
-      <li>SmoothQuant 通过迁移离群值实现无损 INT8 量化</li>
-      <li>INT8 量化可达 7-8 倍吞吐提升，FP8 在 H100 上精度更好</li>
-      <li>配合 Triton Server 可实现负载均衡、模型版本管理、A/B 测试等生产功能</li>
-    </ul>
+    <p>TensorRT-LLM 是把大模型推向高并发生产部署的标杆框架，本章搭建了完整的部署优化认知。首先我们分析了 PyTorch 直跑生产服务的三大瓶颈——吞吐低、算子开销大、显存占用高，并指出 TensorRT-LLM 通过引擎编译、kernel fusion、连续批处理、低比特量化四件套解决这些问题，通常带来 3-8 倍加速，代价是引擎与 GPU 架构强绑定。其次，引擎构建流程是"HF 权重 → convert_checkpoint → trtllm-build 编译"，关键参数包括精度、max_batch_size、max_input/output_len，其中序列长度范围直接影响 KV cache 显存预留，应按业务 P99 而非盲目设大。第三，kernel fusion 是性能优势的核心来源，它把多个小算子合并为单个 kernel，把显存读写次数和 kernel 启动开销大幅压缩，对 LLM 这种显存带宽受限的 workload 提升尤为显著；配合 PagedAttention 变体、Flash Attention、连续批处理，单张 H100 可达每秒数千 token。第四，量化方面 INT8 Weight-Only 精度最好但提速有限，INT8 权重+激活最快但需校准，FP8 在 Hopper 架构上精度损失几乎可忽略是当前首选，INT8 KV cache 能显著增大并发 batch；FP8 量化的精度依赖校准数据分布，上线前必须做 FP16 vs FP8 的业务精度对比。掌握这套部署优化方法论，你就能把任意大模型压榨出硬件的极限性能，支撑高并发低延迟的生产服务。</p>
 
 </main>
 

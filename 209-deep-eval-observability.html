@@ -306,98 +306,186 @@
 <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 209 · Agent可观测性</span>
-      <h1>Agent可观测性<br>让黑盒LLM调用链变得可追溯可监控</h1>
-      <p class="lead">当一个 Agent 调用了 7 次大模型、3 个工具、做了 2 轮反思才给出最终答案，你能否说清楚每一环花了多少 token、哪一步超时、为什么用户得到了错误结果？可观测性不是"日志打得多"，而是把 LLM 调用链、token 成本、错误率三个维度连成一条可追踪的线。本文拆解 OpenTelemetry、LangSmith、Phoenix 三套主流方案，给你一套生产级 Agent 监控的落地蓝图。</p>
+      <h1>Agent可观测性实战<br>追踪、成本、告警与LangSmith集成</h1>
+      <p class="lead">一个 Agent 系统在跑起来之后，最让工程师头疼的不是"它会不会出错"，而是"它为什么出错"。一次失败可能涉及提示词、工具调用、检索召回、模型回退——任何一环都可能是元凶。可观测性（Observability）就是给黑盒系统装上仪表盘和行车记录仪：每一次 LLM 调用都被追踪，每一分 token 成本都被记账，每一次异常都会触发告警。本章带你搭建一套覆盖追踪、成本、告警、调试的可观测性体系。</p>
       <div class="meta">
-        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">阅读约 32 分钟</span>
         <span class="chip">难度 ★★★★</span>
       </div>
     </section>
-    <h2 class="section" id="why-observability"><span class="idx">★</span> 为什么 Agent 比传统服务更需要可观测性</h2>
-    <p>传统微服务一次请求最多调用十几个下游接口，链路是静态、确定的。而 Agent 不一样：同一个用户输入，可能因为模型采样的随机性走完全不同的路径，可能因为工具返回结果不同而多调用一轮，可能因为 prompt 略长一点就触发 token 限制。这意味着仅靠业务日志几乎无法定位问题——你必须能看到"这次回答到底走了哪条调用树"。</p>
-    <p>可观测性的三大支柱——traces、metrics、logs——在 Agent 场景下都需要重新定义。Trace 不再只是 HTTP span，而要包含 prompt、completion、token 数、模型名、temperature 这些 LLM 特有字段。Metric 也不能只看 QPS 和延迟，还要监控每次请求的 token 成本（按输入/输出分别计）、工具调用成功率、反思轮数分布。Log 则必须能和 trace 关联，这样你才能从"某次回答幻觉了"一路下钻到"第 3 次工具调用返回的数据就是脏的"。</p>
-    <p>OpenTelemetry 之所以成为事实标准，是因为它提供了语言/厂商中立的语义约定（Semantic Conventions）。GenAI 工作组已经定义了一套 LLM 专用 span 属性，比如 gen_ai.system、gen_ai.request.model、gen_ai.usage.input_tokens。这意味着只要你按规范埋点，数据可以同时发给 Jaeger、Datadog、Honeycomb、Azure Monitor，不被任何一家厂商锁定——这对生产系统是极重要的属性。</p>
-    <pre><code class="language-python"># 用 OpenTelemetry 手动埋点，记录一次 LLM 调用的完整 span
+    <h2 class="section" id="why-observability"><span class="idx">★</span> 为什么 Agent 比普通服务更需要可观测性</h2>
+    <p>传统微服务的可观测性聚焦于"请求耗时、错误率、资源占用"这三板斧，因为服务的逻辑是确定的——同样的输入几乎一定走同样的代码路径。但 Agent 完全不同：它是模型驱动的，每一次执行可能走完全不同的工具调用序列，模型输出本身具有随机性，错误既可能是代码异常，也可能是模型生成了不合规的内容或陷入了无限循环。这种"非确定性 + 多步组合"让传统监控手段力不从心。</p>
+    <p>举个具体场景：一个客服 Agent 在某次对话中给用户报了错误订单号。要定位根因，你需要回看完整的调用链——它先调用了 <code>search_user</code>，再调了 <code>get_order</code>，最后调了 <code>reply</code>。是 <code>search_user</code> 返回了错误的用户？是 <code>get_order</code> 取错了订单？还是模型在 <code>reply</code> 里编造了号？没有完整的 trace，你只能靠日志一行行翻，而生产环境的日志量让你绝望。</p>
+    <p>Agent 可观测性的三大支柱因此被重新定义：第一是<strong>调用追踪（Tracing）</strong>，记录每次 LLM 调用、工具调用、子 Agent 调用的输入输出和耗时，组织成树状的执行轨迹；第二是<strong>成本监控（Cost）</strong>，按用户、按租户、按场景统计 token 消耗和折算金额；第三是<strong>质量监控（Quality）</strong>，追踪幻觉率、拒答率、人工反馈分布等业务指标。下面我们逐个展开。</p>
+    <h2 class="section" id="tracing"><span class="idx">★</span> LLM 调用追踪与 OpenTelemetry</h2>
+    <p>追踪的基础协议是 OpenTelemetry（OTel），它是 CNCF 旗下的可观测性标准，已成为云原生监控的事实规范。OTel 的核心概念是 <strong>Span</strong>：一个有起止时间、带属性（attributes）和事件（events）的工作单元。多个 Span 通过 parent-child 关系组成 <strong>Trace</strong>。把这套模型套用到 Agent 上：一次用户对话是一个 Trace，里面的每次 LLM 调用、工具调用、检索调用都是子 Span，层层嵌套形成树。</p>
+    <p>OTel 为生成式 AI 定义了一套<strong>语义约定（Semantic Conventions for GenAI）</strong>，规定了应该记录哪些标准字段：<code>gen_ai.system</code>（模型供应商）、<code>gen_ai.request.model</code>（模型名）、<code>gen_ai.usage.prompt_tokens</code>（输入 token）、<code>gen_ai.usage.completion_tokens</code>（输出 token）、<code>gen_ai.response.finish_reason</code>（结束原因）等。遵循这套约定，意味着你的 trace 可以被任何兼容 OTel 的后端（Jaeger、Tempo、Datadog、Honeycomb）正确解析。下面这段代码演示如何用 OpenLLMetry 库自动给 LLM 调用打 span。</p>
+    <pre><code class="language-python"># pip install opentelemetry-sdk opentelemetry-exporter-otlp openllmetry
 from opentelemetry import trace
 from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
-from opentelemetry.semconv.attributes import gen_ai_attributes as GenAi
+from opentelemetry.sdk.trace.export import BatchSpanProcessor
+from opentelemetry.exporter.otlp.proto.grpc.trace_exporter import OTLPSpanExporter
+from openllmetry import auto_instrument  # 自动 patch openai/anthropic/llama-index 等
 
-trace.set_tracer_provider(TracerProvider())
-trace.get_tracer_provider().add_span_processor(
-    BatchSpanProcessor(ConsoleSpanExporter())
-)
-tracer = trace.get_tracer(__name__)
-
-def chat_with_llm(model: str, prompt: str, max_tokens: int = 512):
-    """封装一次 LLM 调用，自动产生符合 GenAI 语义约定的 span"""
-    with tracer.start_as_current_span("chat.completion") as span:
-        span.set_attribute(GenAi.GEN_AI_SYSTEM, "openai")
-        span.set_attribute(GenAi.GEN_AI_REQUEST_MODEL, model)
-        span.set_attribute(GenAi.GEN_AI_REQUEST_MAX_TOKENS, max_tokens)
-        span.set_attribute("gen_ai.prompt", prompt[:500])  # 截断防超大
-
-        resp = openai.chat.completions.create(
-            model=model, messages=[{"role": "user", "content": prompt}],
-            max_tokens=max_tokens,
-        )
-        usage = resp.usage
-        # 关键：把 token 用量也写进 span，做成本归因
-        span.set_attribute("gen_ai.usage.input_tokens", usage.prompt_tokens)
-        span.set_attribute("gen_ai.usage.output_tokens", usage.completion_tokens)
-        span.set_attribute("gen_ai.usage.total_tokens", usage.total_tokens)
-        return resp.choices[0].message.content
-
-# 一个完整的 Agent 步骤会被组织成嵌套 span：
-# trace_root
-#   └─ agent.step
-#        ├─ chat.completion       (LLM 决策)
-#        ├─ tool.search           (工具调用)
-#        └─ chat.completion       (总结输出)
-</code></pre>
-    <h2 class="section" id="langsmith-phoenix"><span class="idx">★</span> LangSmith 与 Phoenix：开箱即用的 Agent 调试台</h2>
-    <p>如果说 OpenTelemetry 是"自己搭观测体系"，那 LangSmith 和 Arize Phoenix 就是"开箱即用的观测产品"。LangSmith 由 LangChain 团队开发，最大的优势是和 LangChain/LangGraph 深度集成——你只要在环境变量里设一个 LANGSMITH_API_KEY，LangChain 内部的所有 chain、tool、retriever 调用就会自动上报，trace 树直接在网页上可视化。它还提供"数据集 + 评测"能力，可以把你跑过的 trace 一键转成测试用例，对回归非常有用。</p>
-    <p>Phoenix 则走开源路线，可以本地部署，对数据隐私敏感的场景（金融、医疗）更友好。它的强项是 embedding 分析——可以把你所有文档的向量做 UMAP 降维可视化，直接看到检索器召回的文档聚在哪个区域、有没有把无关文档拉进来。这对调试 RAG 系统特别有用，因为 RAG 的很多 bug 不在 LLM 而在检索质量。</p>
-    <p>两者的集成方式都很轻。LangSmith 是纯环境变量驱动，零代码改动；Phoenix 提供 OpenTelemetry endpoint，你只要把 OTLP exporter 指向 Phoenix 服务地址即可。生产环境的一个常见架构是：用 LangSmith 做 Agent 调试和评测回放，用 Phoenix 做 RAG 检索质量监控，再用 OpenTelemetry 把关键 span 同步到公司的统一可观测平台（Datadog/Grafana），这样 SRE 团队也能看到 Agent 的健康度。</p>
-    <pre><code class="language-python"># 方案 A：LangSmith —— 零代码侵入，纯环境变量
-# export LANGSMITH_TRACING=true
-# export LANGSMITH_API_KEY=lsv2_...
-# export LANGSMITH_PROJECT=prod-agent
-from langchain_openai import ChatOpenAI
-from langchain_core.messages import HumanMessage
-
-# 之后所有 LangChain 调用自动上报到 LangSmith
-llm = ChatOpenAI(model="gpt-4o")
-llm.invoke([HumanMessage(content="解释一下Transformer")])
-
-# 方案 B：Phoenix —— 开源自托管 + OpenLLMetry 自动埋点
-import phoenix as px
-from openinference.instrumentation.openai import OpenAIInstrumentor
-from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
-from opentelemetry.sdk.trace import TracerProvider
-from opentelemetry.sdk.trace.export import SimpleSpanProcessor
-from opentelemetry import trace
-
-px.launch_app()  # 启动本地 Phoenix UI (http://localhost:6006)
+# 1) 初始化 Tracer，把 span 推到 OTLP 收集器（如 Jaeger / Tempo）
 provider = TracerProvider()
 provider.add_span_processor(
-    SimpleSpanProcessor(OTLPSpanExporter("http://localhost:6006/v1/traces"))
+    BatchSpanProcessor(
+        OTLPSpanExporter(endpoint="http://otel-collector:4317", insecure=True)
+    )
 )
 trace.set_tracer_provider(provider)
-OpenAIInstrumentor().instrument()  # 自动给 openai 库所有调用加 span
 
-# 现在 openai.chat.completions.create 会被自动追踪
+# 2) 自动给主流 LLM SDK 装上 instrumentation
+auto_instrument()
+
+# 3) 业务代码无需改动，每次调用都会自动生成符合 GenAI 语义约定的 span
 import openai
-openai.chat.completions.create(
-    model="gpt-4o",
-    messages=[{"role": "user", "content": "hi"}],
+resp = openai.chat.completions.create(
+    model="gpt-4o-mini",
+    messages=[{"role": "user", "content": "用一句话解释什么是 Agent"}],
 )
+print(resp.choices[0].message.content)
+# 在 Jaeger 里你会看到一条 trace，包含 model、token usage、latency 等字段
 </code></pre>
-    <h2 class="section" id="cost-error-monitoring"><span class="idx">★</span> token 成本与错误率：两个最容易失控的指标</h2>
-    <p>Agent 系统上线后最容易爆的两个洞就是 token 成本和错误率。成本爆炸往往来自两个原因：一是反思循环失控，模型反复"我不确定，再来一次"把上下文越堆越长；二是 prompt 模板冗余，每次调用都把大段系统提示词、示例、检索文档重新发一遍。一份好的成本监控必须按"调用层级 × 用户 × 业务功能"三维切片，能回答"今天哪个 API 的成本突然涨了 3 倍"这种问题。</p>
-    <p>错误率监控要区分"硬错误"和"软错误"。硬错误是 API 返回 429/500、工具抛异常这种可观测的系统故障，传统 APM 就能抓。软错误则是模型正常返回了内容，但内容是幻觉、格式错误、答非所问——这才是 Agent 系统的大头，而且 APM 抓不到。软错误要么靠用户反馈（点踩/重试）间接度量，要么靠在 trace 末尾加一个轻量的"自我评审" LLM 判断输出是否合理。后者成本要控制，常见做法是按 1% 采样。</p>
-    <p>告警阈值的设计有个反直觉的经验：Agent 的延迟分布是重尾的（P99 可能是 P50 的 20 倍），所以不能像传统服务那样用固定阈值告警，否则天天误报。更稳的做法是用滑动窗口的中位数 + 倍数作为动态阈值，或者直接监控"超长 trace 占比"（比如 token 数 > 5000 的请求比例），这种指标对异常更敏感也更稳定。</p>
-    <p>把上面三块组装起来：OpenTelemetry 负责把 LLM 调用结构化成标准 span，LangSmith/Phoenix 提供可视化与回放，自建的 metrics pipeline 负责 token 成本和错误率告警。三者职责清晰、互为补充，是一个能从原型撑到生产规模的可观测架构。记住，Agent 系统的可观测性不是"上线后再加"的奢侈品，而是"不上就没法上线"的必需品——因为 LLM 的不确定性，注定让传统"日志够了"的调试方式彻底失效。</p>
+    <p>OTel 的强大之处在于它跨语言、跨后端、跨框架通用。你用 Python 写 Agent、用 Go 写中间件、用 Node 写前端 BFF，所有 span 都能汇到同一条 trace 里。这种"全链路追踪"在排查"为什么这一笔请求慢了 3 秒"时极其关键——可能是 Python 端的 LLM 调用慢，也可能是 Go 端的鉴权慢，没有统一 trace 你永远定位不到。</p>
+    <h2 class="section" id="cost"><span class="idx">★</span> Token 成本监控：从计费到预算控制</h2>
+    <p>Token 就是钱。一次 GPT-4o 调用，1000 输入 token 大约 0.0025 美元，1000 输出 token 约 0.01 美元。一个日活 10 万的产品，每个用户平均 5 轮对话、每轮 2000 token，一天的 LLM 成本可能就是数千美元。没有精细的成本监控，你的产品可能"做得很火但越做越亏"。成本监控的目标有三个：知道钱花在哪、知道谁在花钱、能在超预算时及时止损。</p>
+    <p>实现上分三层。第一层是<strong>调用级记账</strong>：每次 LLM 调用从 response 里取出 <code>usage.prompt_tokens</code> 和 <code>usage.completion_tokens</code>，按当前模型价目表折算金额，写入 trace 的 span 属性里。第二层是<strong>聚合统计</strong>：把调用级数据按用户、租户、场景、模型维度聚合，每小时/每天滚动，存到时序数据库（如 Prometheus、ClickHouse）。第三层是<strong>预算控制</strong>：给每个租户或用户设置月度预算，剩余额度低于阈值时降级（改用便宜模型）、为负时拒绝服务。下面是一段实现骨架。</p>
+    <pre><code class="language-python">from dataclasses import dataclass
+from datetime import datetime
+from opentelemetry import trace
+
+# 模型价目表：美元 / 1K token，生产环境应从配置中心动态加载
+PRICE_TABLE = {
+    "gpt-4o":        {"input": 0.0025, "output": 0.010},
+    "gpt-4o-mini":   {"input": 0.00015, "output": 0.0006},
+    "claude-3.5-sonnet": {"input": 0.003, "output": 0.015},
+}
+
+@dataclass
+class CostRecord:
+    user_id: str
+    model: str
+    input_tokens: int
+    output_tokens: int
+    cost_usd: float
+    ts: datetime
+
+async def chat_with_cost(user_id: str, messages, model="gpt-4o-mini"):
+    # 1) 预算预检：剩余额度低于阈值则降级到更便宜的模型
+    remaining = await budget_repo.remaining(user_id)
+    if remaining &lt; 0.5:   # 低于 0.5 美元
+        model = "gpt-4o-mini"   # 降级
+
+    # 2) 调用并记账
+    resp = await llm_client.chat(model=model, messages=messages)
+    price = PRICE_TABLE[model]
+    cost = (resp.usage.prompt_tokens * price["input"]
+            + resp.usage.completion_tokens * price["output"]) / 1000
+
+    await cost_repo.append(CostRecord(
+        user_id=user_id, model=model,
+        input_tokens=resp.usage.prompt_tokens,
+        output_tokens=resp.usage.completion_tokens,
+        cost_usd=cost, ts=datetime.utcnow(),
+    ))
+    # 3) 把 cost 写到当前 OTel span 上，便于在 trace 里直接看
+    span = trace.get_current_span()
+    span.set_attribute("gen_ai.cost.usd", cost)
+    return resp
+
+# 定时任务：每小时把 cost_repo 数据推到 Prometheus / Grafana 做大盘
+</code></pre>
+    <p>一个实战经验：成本异常往往比错误更隐蔽。某个用户的 prompt 模板里不小心塞了 5 万 token 的文档，单次调用成本就可能翻 50 倍。建议在聚合层加一个"单次调用成本突增告警"——当某次调用成本超过历史 P99 的 5 倍时立刻告警，能帮你抓住这类隐性浪费。</p>
+    <h2 class="section" id="alerts"><span class="idx">★</span> 错误率告警：把被动救火变成主动响应</h2>
+    <p>可观测性的价值不在于"事后能查"，而在于"事前能防"。告警就是把监控指标转化为主动响应的关键环节。Agent 系统需要监控的错误类型比传统服务丰富得多，至少包括四类：调用异常（HTTP 5xx、超时、限流）、模型异常（输出为空、触发内容过滤、finish_reason 为 length/content_filter）、业务异常（工具调用失败、Agent 陷入循环、人审拒绝率升高）、成本异常（单位时间成本突增）。每一类都要配独立的告警规则。</p>
+    <p>告警设计的核心原则是"信噪比优先"。一条好的告警应该是可操作的——收到的人知道该干什么；反之，每天响 100 次却没人响应的告警，等于没有告警，只会导致告警疲劳。实践中通常用"多级阈值"：P95 延迟超过 2 秒发 Warning 通知到值班群，超过 5 秒发 Critical 并触发 PagerDuty 电话告警。错误率从 1% 涨到 3% 发 Warning，涨到 10% 立刻 Critical。</p>
+    <pre><code class="language-yaml"># Prometheus 告警规则示例（alertmanager.yml 配套使用）
+# 保存为 agent_alerts.yml，由 prometheus 加载
+groups:
+- name: agent_errors
+  rules:
+  - alert: LLMErrorRateHigh
+    # 过去 5 分钟 LLM 调用错误率
+    expr: |
+      sum(rate(llm_calls_total{status="error"}[5m]))
+      / sum(rate(llm_calls_total[5m])) > 0.05
+    for: 2m              # 持续 2 分钟才告警，避免抖动
+    labels:
+      severity: critical
+    annotations:
+      summary: "LLM 错误率超过 5%"
+      description: "模型 {{ $labels.model }} 错误率达 {{ $value }}，请检查供应商状态。"
+
+  - alert: AgentCostSpike
+    # 过去 1 小时成本相比昨天同期涨 3 倍
+    expr: |
+      sum(rate(llm_cost_usd_total[1h]))
+      / sum(rate(llm_cost_usd_total[1h] offset 1d)) > 3
+    for: 10m
+    labels:
+      severity: warning
+    annotations:
+      summary: "LLM 成本异常上涨"
+
+  - alert: AgentLoopDetected
+    # 同一个 trace 内工具调用次数超过 15，疑似死循环
+    expr: trace_tool_call_count > 15
+    for: 0m
+    labels:
+      severity: warning
+    annotations:
+      summary: "Agent 可能陷入循环，trace={{ $labels.trace_id }}"
+</code></pre>
+    <p>这三条规则覆盖了成本、错误率、循环三个最典型的 Agent 故障模式。部署后建议先用"混沌测试"验证告警是否真的会响——人为注入一次高错误率或死循环，看告警链路是否完整打通。很多团队的告警在出事时才发现"规则没生效"或"通知渠道配错了"，根因都是缺乏演练。</p>
+    <h2 class="section" id="langsmith"><span class="idx">★</span> LangSmith 集成：调试与评测一体化</h2>
+    <p>OpenTelemetry 解决了"通用追踪"，但在 LLM 专项调试上略显单薄——它不会帮你做提示词版本对比、不会自动给 trace 打质量分、不会让你在 UI 里直接重放某次失败调用并改 prompt 重跑。这些正是 LangSmith 这类 LLM 专属可观测平台的强项。LangSmith 是 LangChain 团队推出的产品，深度集成 LangGraph / LangChain，能可视化 Agent 的执行图、支持 trace 级别的标注和评测，是当下 Agent 开发调试的事实首选。</p>
+    <p>LangSmith 的工作流是：你在代码里设置环境变量启用追踪，所有 LangChain / LangGraph 的执行都会自动上报到 LangSmith 后台；在后台你可以按用户、按场景筛选 trace，展开看每一步的输入输出；对失败 trace 可以直接点"Playground"修改 prompt 后重跑，定位是不是 prompt 的问题；还可以把一批 trace 标注成数据集，用它们做回归评测，衡量 prompt 修改是否带来整体提升。下面这段代码演示一个带 LangSmith 追踪的 LangGraph Agent。</p>
+    <pre><code class="language-python"># pip install langgraph langchain-openai langsmith
+# 环境变量（也可写在 .env）：
+#   export LANGSMITH_TRACING=true
+#   export LANGSMITH_API_KEY=lsv2_***
+#   export LANGSMITH_PROJECT=agent-prod
+import os
+os.environ["LANGSMITH_TRACING"] = "true"
+
+from langgraph.prebuilt import create_react_agent
+from langchain_openai import ChatOpenAI
+from langchain_core.tools import tool
+
+@tool
+def search_order(order_id: str) -> str:
+    """根据订单号查询订单状态。"""
+    # 真实实现会查数据库
+    return f"订单 {order_id} 已发货，预计明日送达。"
+
+@tool
+def refund_order(order_id: str) -> str:
+    """为指定订单发起退款。"""
+    return f"订单 {order_id} 退款已受理，3-5 工作日到账。"
+
+model = ChatOpenAI(model="gpt-4o-mini")
+agent = create_react_agent(model, [search_order, refund_order])
+
+# 这次调用会自动在 LangSmith 后台生成一条 trace，
+# 包含每一步的 thought / action / observation，便于回放调试。
+result = agent.invoke({
+    "messages": [{"role": "user", "content": "我的订单 A123 状态怎样？如果没到就退款。"}]
+})
+print(result["messages"][-1].content)
+
+# 把失败 trace 转成评测数据集，做 prompt 迭代后的回归测试
+from langsmith import Client
+client = Client()
+# 在 UI 里勾选若干失败 trace，导出为 dataset "agent-regression"
+# 之后每次改 prompt 都跑一遍：
+# for ex in client.list_examples(dataset_name="agent-regression"):
+#     ...
+</code></pre>
+    <p>LangSmith 的真正威力在于把"调试、评测、监控"三件事拧成一股绳：线上 trace 可以一键变成评测样本，评测样本可以驱动 prompt 迭代，迭代结果又通过 trace 验证。这种闭环让 Agent 系统的演进有了量化依据，而不是靠"感觉这个 prompt 更好"。如果你在做严肃的 Agent 产品，LangSmith（或开源替代如 Langfuse、Arize Phoenix）几乎是必备基建。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>可观测性是 Agent 系统从 demo 走向生产的分水岭，本章搭建了完整的可观测性体系。首先我们解释了 Agent 因"非确定性 + 多步组合"而比普通服务更需要可观测性，重新定义了三大支柱：调用追踪、成本监控、质量监控。其次，LLM 调用追踪基于 OpenTelemetry 标准，通过 OpenLLMetry 自动 instrumentation 给所有主流 SDK 装上符合 GenAI 语义约定的 span，实现跨语言、跨后端的全链路追踪。第三，Token 成本监控分调用级记账、聚合统计、预算控制三层，价目表应从配置中心动态加载，并在单次调用成本突增时告警以抓住隐性浪费。第四，错误率告警遵循"信噪比优先"原则，用多级阈值覆盖调用异常、模型异常、业务异常、成本异常四类，部署后必须用混沌测试验证告警链路。最后，LangSmith 在通用追踪之上补齐了 LLM 专项的调试与评测能力，能把线上 trace 一键转为评测样本，形成"调试-评测-监控"闭环。把这些组件组合起来，你的 Agent 系统就有了"行车记录仪 + 仪表盘 + 自动刹车"，足以支撑 7x24 小时稳定运行与持续迭代。</p>
 
 </main>
 
