@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -105,7 +105,7 @@
       <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
-      <a href="82-tdd-practice.html" class="active" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
+      <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
       <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 82 · 专题深度 · 全书终章</span>
       <h1>LLM 测试驱动开发实践<br>给不确定性带来确定性</h1>
@@ -397,8 +397,131 @@ jobs:
       - run: pytest tests/eval/ -v --tb=short
       <span class="c"># 评估不通过 → CI 红 → 不让合并</span></code></pre>
 
+    <h2 class="section" id="ai-tdd-flow"><span class="idx">07</span> AI 辅助 TDD 完整流程</h2>
+    <p>前三节讲了「为什么测」「测什么」「怎么放进 CI」，但都默认<strong>测试是人写的</strong>。实际上 2026 年的 TDD 已经是「AI 写测试、人评审」的双人舞。这里给出一套完整的 AI 辅助 TDD 工作流：从一个需求描述出发，到产出可运行的测试和实现，全程可复现。</p>
+    <p>关键原则只有一条：<strong>红 → 绿 → 重构</strong>的顺序不变，但每一步都用 AI 加速。AI 写的测试，人必须读懂、必须能跑红；AI 写的实现，必须先跑过测试才能合并。</p>
+    <div class="code-title">ai_tdd.py —— AI 辅助 TDD 的端到端循环</div>
+    <pre><code><span class="c">"""
+ai_tdd.py —— 从需求到通过测试的自动化 TDD 循环
+步骤：生成测试 → 跑红 → 生成实现 → 跑绿 → 重构
+"""</span>
+<span class="k">import</span> subprocess, json, textwrap
+<span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
+client = ZhipuAI()
+
+<span class="k">def</span> <span class="f">gen_tests</span>(spec, target_file, test_file):
+    <span class="s">"""① 用 AI 从需求生成 pytest 测试，强制失败断言"""</span>
+    prompt = textwrap.dedent(<span class="f">f"""\
+        需求：{spec}
+        目标函数文件：{target_file}
+        请按以下规则生成 pytest 测试文件 {test_file}：
+        1) 只写测试，不要写实现；
+        2) import 来自 {target_file} 的函数；
+        3) 至少覆盖：正常值、边界值、异常值各一；
+        4) 数值断言用 pytest.approx 容忍浮点误差；
+        5) 直接输出代码，不要解释。"""</span>)
+    code = client.chat.completions.create(
+        model=<span class="s">"glm-5.2"</span>,
+        messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>,<span class="s">"content"</span>:prompt}]).choices[<span class="n">0</span>].message.content
+    <span class="c"># 去掉可能包裹的 ```python 围栏</span>
+    code = code.replace(<span class="s">"```python"</span>, <span class="s">""</span>).replace(<span class="s">"```"</span>, <span class="s">""</span>)
+    open(test_file, <span class="s">"w"</span>).write(code)
+
+<span class="k">def</span> <span class="f">run_pytest</span>(test_file):
+    <span class="s">"""跑测试，返回 (passed, 失败摘要)"""</span>
+    r = subprocess.run([<span class="s">"pytest"</span>, test_file, <span class="s">"-q"</span>, <span class="s">"--tb=line"</span>],
+                      capture_output=<span class="k">True</span>, text=<span class="k">True</span>)
+    passed = r.returncode == <span class="n">0</span>
+    <span class="k">return</span> passed, r.stdout + r.stderr
+
+<span class="k">def</span> <span class="f">gen_impl</span>(spec, target_file, test_file, failure_msg):
+    <span class="s">"""② 看到失败后，用 AI 写最小实现去通过测试"""</span>
+    prompt = textwrap.dedent(<span class="f">f"""\
+        需求：{spec}
+        测试文件内容：
+        {open(test_file).read()}
+        当前失败信息：
+        {failure_msg}
+        请写 {target_file} 的最小实现，要求：
+        1) 只写让测试通过的代码，不要过度设计；
+        2) 不要修改测试文件；
+        3) 直接输出代码。"""</span>)
+    code = client.chat.completions.create(
+        model=<span class="s">"glm-5.2"</span>,
+        messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>,<span class="s">"content"</span>:prompt}]).choices[<span class="n">0</span>].message.content
+    code = code.replace(<span class="s">"```python"</span>, <span class="s">""</span>).replace(<span class="s">"```"</span>, <span class="s">""</span>)
+    open(target_file, <span class="s">"w"</span>).write(code)
+
+<span class="k">def</span> <span class="f">ai_tdd</span>(spec, target_file, test_file, max_attempts=<span class="n">3</span>):
+    <span class="s">"""主循环：红→绿→（绿则结束）"""</span>
+    gen_tests(spec, target_file, test_file)
+    <span class="k">for</span> attempt <span class="k">in</span> <span class="f">range</span>(<span class="n">1</span>, max_attempts + <span class="n">1</span>):
+        ok, msg = run_pytest(test_file)
+        <span class="k">if</span> ok:
+            print(<span class="f">f</span><span class="s">"✅ 全部通过（第 {attempt} 轮）"</span>)
+            <span class="k">return</span> <span class="k">True</span>
+        print(<span class="f">f</span><span class="s">"🔴 仍有失败（第 {attempt}/{max_attempts} 轮），让 AI 修实现..."</span>)
+        gen_impl(spec, target_file, test_file, msg)
+    print(<span class="s">"⚠ 达到最大尝试次数仍未通过，需人工介入"</span>)
+    <span class="k">return</span> <span class="k">False</span></code></pre>
+    <div class="callout warn"><div class="head">⚠ AI 生成测试的反模式</div><p style="margin:6px 0;">AI 经常会「顺手」把实现也写进测试文件里，或者为了让测试好看而<strong>降低断言强度</strong>（例如把精确值改成 <code>assert result is not None</code>）。必须在 prompt 里硬性禁止这两点，否则 TDD 就退化成了「AI 自己出题自己答」，红绿循环失去意义。</p></div>
+
+    <h2 class="section" id="test-gen-prompts"><span class="idx">08</span> 测试生成 Prompt 模板库</h2>
+    <p>第 07 节的 <code>gen_tests</code> 是通用模板。实际工程里不同类型的代码需要<strong>不同的测试模板</strong>。下面这张表给出六类常见代码的测试生成 prompt 骨架，每个都针对该类代码最常被忽略的测试维度。</p>
+    <table>
+      <thead><tr><th>代码类型</th><th>prompt 关键约束</th><th>常被漏掉的维度</th></tr></thead>
+      <tbody>
+        <tr><td>纯函数（数学/转换）</td><td>「覆盖 0、负数、极大值、NaN」</td><td>边界值、精度</td></tr>
+        <tr><td>LLM 调用封装</td><td>「mock 模型，断言调用次数与异常分支」</td><td>异常、超时</td></tr>
+        <tr><td>RAG 检索</td><td>「构造可控语料，断言召回顺序」</td><td>空结果、多语言</td></tr>
+        <tr><td>Prompt 模板</td><td>「断言变量替换、特殊字符转义」</td><td>注入字符串</td></tr>
+        <tr><td>结构化输出</td><td>「用 jsonschema 校验所有必填字段」</td><td>缺字段、类型错</td></tr>
+        <tr><td>Agent 工具</td><td>「断言权限检查、超时降级」</td><td>越权、资源耗尽</td></tr>
+      </tbody>
+    </table>
+    <div class="code-title">test_prompts.py —— 三类高频模板</div>
+    <pre><code><span class="c"># 模板 1：LLM 调用封装 —— 必须 mock 模型，不能真调</span>
+PROMPT_LLM_WRAPPER = <span class="s">"""
+你正在为函数 {fn_name} 写 pytest 测试。
+这个函数内部会调用 LLM。请：
+1) 用 unittest.mock.patch 把 LLM 调用 mock 掉；
+2) 构造三种返回：正常文本、空字符串、抛 TimeoutError；
+3) 断言每种情况下函数的行为符合预期；
+4) 不要真的发起网络请求。直接输出测试代码。
+"""</span>
+
+<span class="c"># 模板 2：结构化输出 —— 强制 schema 校验</span>
+PROMPT_STRUCT = <span class="s">"""
+为函数 {fn_name} 写测试，该函数返回一个 dict。
+schema：{schema_json}
+请：
+1) 用 jsonschema.Draft7Validator 校验返回值；
+2) 至少 2 个 case 应该是合法返回；
+3) 至少 1 个 case 构造非法输入（缺字段/类型错），断言函数内部抛出明确异常。
+直接输出代码。
+"""</span>
+
+<span class="c"># 模板 3：Agent 工具 —— 权限与降级是核心</span>
+PROMPT_AGENT_TOOL = <span class="s">"""
+为工具函数 {fn_name} 写测试。该工具会被 Agent 调用。
+请覆盖：
+1) 权限：未授权用户调用应抛 PermissionError；
+2) 超时：模拟工具执行超过 3 秒，断言走降级分支；
+3) 滥用：连续调用超过 10 次，断言被限流；
+4) 参数：缺少必填参数应抛 ValueError。
+不要写实际业务逻辑的测试，只测这些守卫逻辑。直接输出代码。
+"""</span>
+
+<span class="k">def</span> <span class="f">pick_template</span>(code_kind):
+    <span class="k">return</span> {
+        <span class="s">"llm_wrapper"</span>: PROMPT_LLM_WRAPPER,
+        <span class="s">"structured"</span>: PROMPT_STRUCT,
+        <span class="s">"agent_tool"</span>: PROMPT_AGENT_TOOL,
+    }[code_kind]</code></pre>
+    <p>用模板库的好处是<strong>一致性</strong>：同一个团队生成的测试都覆盖相同维度，review 时只需要看「是否漏了 schema 校验」「是否真调了模型」这种清单项，而不是逐行读懂 AI 写的测试逻辑。</p>
+
     <h2 class="section" id="summary"><span class="idx">06</span> 全书最终结语</h2>
-    <div class="callout note"><div class="head">📌 本章+全书核心</div><ul style="margin:6px 0;"><li>LLM 测试六策略：包含/格式/数值/Judge/人工/评估集；</li><li>TDD：先建评估集→开发→每次回归测试；</li><li>评估集要多样/分层/持续更新/量化；</li><li>把评估放进 CI/CD，自动防退化。</li></ul></div>
+    <div class="callout note"><div class="head">📌 本章+全书核心</div><ul style="margin:6px 0;"><li>LLM 测试六策略：包含/格式/数值/Judge/人工/评估集；</li><li>TDD：先建评估集→开发→每次回归测试；</li><li>评估集要多样/分层/持续更新/量化；</li><li>把评估放进 CI/CD，自动防退化；</li><li>AI 辅助 TDD 守住「红→绿→重构」顺序，AI 写测试人必须读懂；</li><li>六类代码各有测试生成模板，review 用清单而非逐行。</li></ul></div>
 
     <blockquote>
       全册 82 章完。<br><br>
@@ -419,6 +542,8 @@ jobs:
       <p>全册 82 章完结 · 从 Token 到无限未来 · 感谢一路同行 · 2026.06</p>
     </footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

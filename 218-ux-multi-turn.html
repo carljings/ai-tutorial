@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -261,7 +259,7 @@
     <div class="nav-group"><h3>★Agent交互设计</h3>
       <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
       <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
-      <a href="218-ux-multi-turn.html" class="active" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
+      <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
       <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
       <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
     </div>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★Agent交互设计</span>
     <h1>多轮对话状态管理</h1><p class="lead">让 AI 记住你 10 轮前说的话——对话状态工程</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -371,12 +370,119 @@ if not missing:
     <h2><span class="idx"></span>长期记忆：跨会话的用户画像</h2>
     <p>最高级的记忆是跨会话的——助手记住"你是谁、你喜欢什么、你之前问过什么"。这需要把历史对话存成向量库或知识库，新对话开始时检索相关信息。代表产品：ChatGPT 的 Memory 功能（记住你的偏好和事实）。实现上，每轮对话后提取"值得记住的事实"（如"用户是 Python 开发者""用户偏好简洁回答"），存到长期记忆库。</p>
     <div class="callout"><strong>💡 要点</strong><br>记忆管理的艺术：**记太多 = token 爆炸 + 隐私风险；记太少 = 用户重复自己**。好的平衡是：短期记忆用摘要压缩（省 token），工作记忆显式提取（精准），长期记忆只存"高价值事实"（如用户画像/偏好）。</div>
+
+    <h2><span class="idx"></span>对话状态机：把闲聊和任务流分开</h2>
+    <p>前面给的订机票状态只解决了"提取字段"，但真实对话里还有一个更难的问题：<strong>用户会在任务中途切换话题</strong>。比如订机票到一半，用户突然问"上海明天天气怎样？"——这是闲聊，不应该污染订单状态。生产级助手需要一个明确的<strong>对话状态机</strong>：每个意图有自己的状态，切换意图时自动挂起前一个任务。</p>
+    <div class="code-title">dialog_state_machine.py —— 多意图状态机</div>
+    <pre><code><span class="k">from</span> enum <span class="k">import</span> Enum
+<span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
+<span class="k">from</span> typing <span class="k">import</span> Optional
+
+<span class="k">class</span> <span class="t">Intent</span>(Enum):
+    BOOK_FLIGHT = <span class="s">"book_flight"</span>
+    CHITCHAT = <span class="s">"chitchat"</span>
+    QA = <span class="s">"qa"</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="t">TaskFrame</span>:
+    <span class="s">"""单个任务上下文，挂起时可被恢复"""</span>
+    intent: Intent
+    slots: dict = field(default_factory=dict)
+    step: str = <span class="s">"init"</span>
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="t">DialogState</span>:
+    active: TaskFrame                  <span class="c"># 当前活跃任务</span>
+    parked: list = field(default_factory=list)  <span class="c"># 被挂起的任务</span>
+    history: list = field(default_factory=list) <span class="c"># 最近 N 轮原文</span>
+
+    <span class="k">def</span> <span class="f">classify</span>(self, user_input, classifier_llm):
+        <span class="s">"""用小模型快速判意图，避免大模型成本"""</span>
+        <span class="k">return</span> Intent(classifier_llm(user_input))
+
+    <span class="k">def</span> <span class="f">switch</span>(self, new_intent):
+        <span class="s">"""切到新意图：旧的挂起，旧的若已结清则丢弃"""</span>
+        <span class="k">if</span> self.active.intent != new_intent:
+            <span class="k">if</span> self.active.step != <span class="s">"done"</span>:
+                self.parked.append(self.active)
+            self.active = TaskFrame(intent=new_intent)
+
+    <span class="k">def</span> <span class="f">resume</span>(self):
+        <span class="s">"""用户回到旧话题时，从 parked 恢复"""</span>
+        <span class="k">if</span> self.parked:
+            self.active = self.parked.pop()
+
+<span class="c"># 用法：每轮先分类，再决定挂起/恢复/继续</span>
+<span class="k">def</span> <span class="f">on_turn</span>(state, user_input, llm):
+    intent = state.classify(user_input, llm)
+    <span class="k">if</span> intent == Intent.CHITCHAT:
+        <span class="k">return</span> llm.chitchat(user_input)   <span class="c"># 不动订单状态</span>
+    <span class="k">if</span> intent != state.active.intent:
+        state.switch(intent)
+    <span class="c"># ... 继续推进当前任务</span></code></pre>
+    <p>这种设计的关键 trade-off：<strong>意图分类必须快</strong>。如果每次都调大模型分类，延迟会显著拖累体验。实际生产里通常用一个小模型（或一个微调过的分类器）专门做意图判断，主模型只负责生成回复。</p>
+
+    <h2><span class="idx"></span>上下文窗口压缩策略：四种压缩的取舍</h2>
+    <p>当对话很长，token 预算吃紧时，怎么压缩历史是工程上的高频决策点。四种主流策略各有明显的代价，下表给出取舍清单：</p>
+    <table>
+      <thead><tr><th>策略</th><th>做法</th><th>token 节省</th><th>信息损失</th><th>额外延迟</th></tr></thead>
+      <tbody>
+        <tr><td><strong>朴素截断</strong></td><td>只留最近 N 轮</td><td>高</td><td>极高（早期全丢）</td><td>零</td></tr>
+        <tr><td><strong>整段摘要</strong></td><td>旧对话一次性摘要成一段</td><td>高</td><td>中（细节模糊）</td><td>1 次 LLM 调用</td></tr>
+        <tr><td><strong>滚动摘要</strong></td><td>每 N 轮摘要一次，摘要再递归摘要</td><td>中</td><td>低（结构保留）</td><td>分摊，低</td></tr>
+        <tr><td><strong>选择性保留</strong></td><td>只留含「事实/决策/待办」的轮次</td><td>中</td><td>最低</td><td>每轮 1 次轻量判断</td></tr>
+      </tbody>
+    </table>
+    <p>下面给出滚动摘要的实现。它最大的好处是<strong>边界清晰</strong>：每次只在超出预算时压缩最旧的一个「块」，避免一次性摘要整段历史时的精度下降。</p>
+    <div class="code-title">rolling_summary.py —— 滚动摘要 + token 预算控制</div>
+    <pre><code><span class="k">import</span> tiktoken
+
+<span class="k">def</span> <span class="f">num_tokens</span>(text, model=<span class="s">"gpt-4o-mini"</span>):
+    <span class="k">return</span> <span class="f">len</span>(tiktoken.encoding_for_model(model).encode(text))
+
+<span class="k">class</span> <span class="t">RollingMemory</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, llm, token_budget=<span class="n">6000</span>, chunk_size=<span class="n">8</span>):
+        self.llm = llm
+        self.budget = token_budget
+        self.chunk_size = chunk_size         <span class="c"># 每 chunk_size 轮摘要一次</span>
+        self.summary = <span class="s">""</span>                   <span class="c"># 已压缩的旧摘要</span>
+        self.recent = []                     <span class="c"># 未压缩的近期待处理轮次</span>
+
+    <span class="k">def</span> <span class="f">add_turn</span>(self, role, text):
+        self.recent.append(<span class="f">f</span><span class="s">"{role}: {text}"</span>)
+        <span class="c"># 攒够一个 chunk 或超出预算时触发压缩</span>
+        used = num_tokens(self.summary) + <span class="f">sum</span>(num_tokens(t) <span class="k">for</span> t <span class="k">in</span> self.recent)
+        <span class="k">if</span> <span class="f">len</span>(self.recent) &gt;= self.chunk_size <span class="k">or</span> used &gt; self.budget:
+            self._compress()
+
+    <span class="k">def</span> <span class="f">_compress</span>(self):
+        <span class="s">"""把 recent 摘要并并入 summary"""</span>
+        chunk = <span class="s">"\n"</span>.join(self.recent)
+        prompt = (<span class="s">"把以下对话合并进既有摘要，"</span>
+                  <span class="s">"保留所有事实、决策、待办，删除客套。既有摘要：\n"</span>
+                  + self.summary + <span class="s">"\n新对话：\n"</span> + chunk)
+        self.summary = self.llm(prompt)
+        self.recent = []
+
+    <span class="k">def</span> <span class="f">context</span>(self):
+        <span class="s">"""组装最终发给 LLM 的上下文"""</span>
+        <span class="k">return</span> (<span class="s">"[历史摘要]\n"</span> + self.summary +
+                <span class="s">"\n[最近对话]\n"</span> + <span class="s">"\n"</span>.join(self.recent))
+
+<span class="c"># 关键参数调优：
+# - token_budget 设为模型上限的 60%，留 40% 给回复
+# - chunk_size 过小 → 摘要频繁、细节丢得多
+# - chunk_size 过大 → 单次摘要 token 多、延迟尖刺</span></code></pre>
+    <div class="callout warn"><div class="head">⚠ 压缩的隐性陷阱</div><p style="margin:6px 0;">摘要本身是 LLM 生成的，<strong>它会继承 LLM 的幻觉</strong>。常见 bug 是摘要把用户没说过的事实「补全」进去了。防御办法：在 prompt 里强制要求「只复述出现过的内容，禁止推断」，并在摘要里保留关键数字/实体的原文（用引号包裹），方便后续核对。</p></div>
+
     <h2><span class="idx"></span>本章小结</h2>
-    <p>多轮对话状态管理分三层：短期记忆（滑动窗口+摘要压缩）、工作记忆（显式状态追踪，提取关键变量）、长期记忆（向量化历史，跨会话用户画像）。核心原则：不是"记住所有"，而是"记住重要的、遗忘琐碎的"。对话状态追踪（DST）是任务型助手的基础——每轮更新结构化 state，针对性追问缺失字段。记忆管理是 AI 助手体验的分水岭。</p>
+    <p>多轮对话状态管理分三层：短期记忆（滑动窗口+摘要压缩）、工作记忆（显式状态追踪，提取关键变量）、长期记忆（向量化历史，跨会话用户画像）。核心原则：不是"记住所有"，而是"记住重要的、遗忘琐碎的"。对话状态追踪（DST）是任务型助手的基础——每轮更新结构化 state，针对性追问缺失字段。生产级助手还需要对话状态机，把闲聊与任务流隔离，避免话题切换污染任务状态。上下文压缩四种策略中，滚动摘要兼顾精度与延迟，是默认首选；但要注意摘要会继承 LLM 幻觉，必须强制「只复述、不推断」。记忆管理是 AI 助手体验的分水岭。</p>
     <div class="chapter-nav">
     <a href="217-ux-streaming-design.html"><div class="lbl">← 上一章</div>
     <footer><p>AI 全栈实战教学 · 第 218 章 · 多轮对话状态管理</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

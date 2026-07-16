@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -48,7 +48,7 @@
       <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
       <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
       <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
-      <a href="29-memory-systems.html" class="active" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
+      <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
       <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
       <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
       <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 29 · 专题深度</span>
       <h1>LLM 记忆系统深度<br>让 AI 拥有持久记忆</h1>
@@ -398,15 +398,180 @@ memory_system.py —— 带重要性判断、去重、检索的记忆系统
       <li><strong>用户控制</strong>：用户可以查看、删除自己的记忆（隐私权）。</li>
     </ul>
 
+    <h2 class="section" id="persistent-store"><span class="idx">06</span> 持久化长期记忆：从内存到向量库</h2>
+    <p>前面的 <code>SmartMemory</code> 把记忆存在进程内的列表里，进程一退出就全没了。生产环境必须把长期记忆落到<strong>独立存储</strong>。常见三种方案各有取舍：</p>
+    <table>
+      <thead><tr><th>存储后端</th><th>写入</th><th>语义检索</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>Redis（带 RediSearch）</td><td>极快</td><td>支持向量 + 全文</td><td>高并发会话记忆、在线 Agent</td></tr>
+        <tr><td>PostgreSQL + pgvector</td><td>快</td><td>向量 + 结构化过滤</td><td>需要事务、要 join 用户表</td></tr>
+        <tr><td>Milvus / Qdrant</td><td>中</td><td>亿级向量专用</td><td>全局共享记忆、大规模召回</td></tr>
+      </tbody>
+    </table>
+    <p>下面给出一份基于 <strong>pgvector</strong> 的可落地的长期记忆存储抽象，把上一节的「相关性×重要性×时效」直接写进 SQL 检索，由数据库一次性算分。</p>
+    <div class="code-title">long_term_memory.py —— 基于 pgvector 的持久化记忆</div>
+    <pre><code><span class="k">import</span> time, json, asyncio
+<span class="k">import</span> asyncpg            <span class="c"># pip install asyncpg</span>
+
+CREATE_SQL = <span class="s">"""
+CREATE EXTENSION IF NOT EXISTS vector;
+CREATE TABLE IF NOT EXISTS memory (
+    id          BIGSERIAL PRIMARY KEY,
+    user_id     TEXT NOT NULL,
+    content     TEXT NOT NULL,
+    embedding   vector(1024) NOT NULL,
+    importance  REAL DEFAULT 0.5,
+    confidence  REAL DEFAULT 0.5,       -- 置信度，解决冲突用
+    created_at  TIMESTAMPTZ DEFAULT now(),
+    last_used   TIMESTAMPTZ DEFAULT now(),
+    hit_count   INT DEFAULT 0,
+    ttl_days    INT                     -- 为 NULL 表示永久
+);
+CREATE INDEX ON memory USING hnsw (embedding vector_cosine_ops);
+CREATE INDEX ON memory (user_id, importance DESC);
+"""</span>
+
+<span class="k">class</span> <span class="t">PgVectorMemory</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, dsn, embedder):
+        self.dsn = dsn
+        self.embedder = embedder
+        self.pool = <span class="k">None</span>
+
+    <span class="k">async</span> <span class="k">def</span> <span class="f">init</span>(self):
+        self.pool = <span class="k">await</span> asyncpg.create_pool(self.dsn)
+        <span class="k">async</span> <span class="k">with</span> self.pool.acquire() <span class="k">as</span> conn:
+            <span class="k">await</span> conn.execute(CREATE_SQL)
+
+    <span class="k">async</span> <span class="k">def</span> <span class="f">write</span>(self, user_id, content, importance=<span class="n">0.5</span>, confidence=<span class="n">0.5</span>):
+        <span class="s">"""写一条记忆。语义相近且置信度更高的旧记忆会被更新而非新建"""</span>
+        emb = self.embedder.encode([content])[<span class="n">0</span>].tolist()
+        <span class="k">async</span> <span class="k">with</span> self.pool.acquire() <span class="k">as</span> conn:
+            <span class="c"># 检查近似重复（cosine 距离 &lt; 0.15）</span>
+            dup = <span class="k">await</span> conn.fetchval(<span class="s">"""
+                SELECT id FROM memory
+                WHERE user_id=$1 AND embedding &lt;&gt; $2 &lt; 0.15
+                ORDER BY embedding &lt;&gt; $2 LIMIT 1
+            """</span>, user_id, str(emb))
+            <span class="k">if</span> dup:
+                <span class="k">await</span> conn.execute(<span class="s">"""
+                    UPDATE memory SET content=$1, embedding=$2,
+                        importance=GREATEST(importance,$3),
+                        confidence=GREATEST(confidence,$4),
+                        created_at=now()
+                    WHERE id=$5
+                """</span>, content, str(emb), importance, confidence, dup)
+                <span class="k">return</span> dup
+            <span class="k">return</span> <span class="k">await</span> conn.fetchval(<span class="s">"""
+                INSERT INTO memory(user_id, content, embedding, importance, confidence)
+                VALUES ($1,$2,$3,$4,$5) RETURNING id
+            """</span>, user_id, content, str(emb), importance, confidence)
+
+    <span class="k">async</span> <span class="k">def</span> <span class="f">retrieve</span>(self, user_id, query, top_k=<span class="n">5</span>):
+        <span class="s">"""相关性×重要性×时效性，一次 SQL 搞定"""</span>
+        q = self.embedder.encode([query])[<span class="n">0</span>].tolist()
+        rows = <span class="k">await</span> self.pool.fetch(<span class="s">"""
+            SELECT content,
+                   (1 - (embedding &lt;&gt; $1)) * 0.5                  AS rel,
+                   importance * 0.3                                AS imp,
+                   (1.0 / (1 + EXTRACT(EPOCH FROM now()-created_at)/86400.0)) * 0.2 AS rec
+            FROM memory
+            WHERE user_id=$2
+              AND (ttl_days IS NULL OR created_at &gt; now() - (ttl_days||' days')::INTERVAL)
+            ORDER BY (rel + imp + rec) DESC
+            LIMIT $3
+        """</span>, str(q), user_id, top_k)
+        <span class="c"># 顺手更新 last_used / hit_count</span>
+        <span class="k">return</span> [r[<span class="s">"content"</span>] <span class="k">for</span> r <span class="k">in</span> rows]</code></pre>
+    <p>注意 <code>&lt;&gt;</code> 是 pgvector 的余弦距离算符；我们用 <code>1 - 距离</code> 把它转成相似度。<code>GREATEST(importance, $3)</code> 保证了「同一事实被多次提及，重要性只升不降」，这是 Generative Agents 论文里采用的策略。</p>
+
+    <h2 class="section" id="retrieval-strategy"><span class="idx">07</span> 检索策略：不止是 top-k</h2>
+    <p>「记忆爆炸」之所以难治，是因为<strong>检索的难点不在于召回多少条，而在于召回后怎么用</strong>。三种进阶策略，按复杂度从低到高：</p>
+    <table>
+      <thead><tr><th>策略</th><th>做法</th><th>适用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>分数阈值</strong></td><td>只保留得分 &gt; 0.6 的记忆</td><td>记忆量小、噪音少</td></tr>
+        <tr><td><strong>重排（rerank）</strong></td><td>向量召回 50 条，用 cross-encoder 精排到 5 条</td><td>记忆量大、对精度敏感</td></tr>
+        <tr><td><strong>分层检索</strong></td><td>先查语义记忆（事实），再查情景记忆（事件），最后合并</td><td>结构化记忆系统</td></tr>
+      </tbody>
+    </table>
+    <p>下面是分层检索的一个典型陷阱：用户问「上次提到的那个项目怎么样了」，<strong>事实层（语义记忆）查不到，必须去情景层找历史事件</strong>。把两类记忆混在一个表里、用同一套 embedding 检索，恰恰是新手最常踩的坑。</p>
+    <div class="code-title">hybrid_retrieval.py —— 语义 + 情景双通道</div>
+    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">hybrid_recall</span>(memory, user_id, query, llm, top_k=<span class="n">5</span>):
+    <span class="s">"""先做意图分类，决定从哪个通道召回，再合并"""</span>
+    intent = llm(<span class="s">"判断查询属于 fact（问事实/偏好）还是 event（问上次/那次发生的事），"</span>
+                 <span class="s">"只回 fact 或 event："</span> + query).strip().lower()
+
+    <span class="c"># 通道 1：语义记忆 —— 高置信度、稳定的事实</span>
+    facts = []
+    <span class="k">if</span> intent == <span class="s">"fact"</span>:
+        facts = <span class="k">await</span> memory.retrieve(user_id, query, top_k=top_k,
+                                       table=<span class="s">"semantic_memory"</span>)
+
+    <span class="c"># 通道 2：情景记忆 —— 带时间戳的事件日志</span>
+    events = []
+    <span class="k">if</span> intent == <span class="s">"event"</span>:
+        <span class="c"># 事件检索要重排时间，越近越优先</span>
+        events = <span class="k">await</span> memory.fetch_recent_events(user_id, query, limit=<span class="n">10</span>)
+
+    <span class="c"># 通道 3：兜底 —— 两个通道都空，做一次宽松检索避免「失忆」</span>
+    <span class="k">if</span> not facts and not events:
+        facts = <span class="k">await</span> memory.retrieve(user_id, query, top_k=top_k)
+
+    <span class="k">return</span> {<span class="s">"facts"</span>: facts, <span class="s">"events"</span>: events}</code></pre>
+
+    <h2 class="section" id="forget-mechanism"><span class="idx">08</span> 主动遗忘机制</h2>
+    <p>第 04 节讲了「为什么要遗忘」，这里讲「<strong>怎么具体实现</strong>」。生产系统通常同时跑三种遗忘：被动衰减、定期压缩、显式 TTL。压缩这一步尤其关键——它不是简单删除，而是把 N 条旧记忆用 LLM 摘成 1 条，把信息密度提上去。</p>
+    <div class="code-title">forget.py —— 衰减 + 压缩 + TTL 三重遗忘</div>
+    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">passive_decay</span>(memory):
+    <span class="s">"""每周跑一次：长期未命中的记忆 importance 衰减"""</span>
+    <span class="k">await</span> memory.pool.execute(<span class="s">"""
+        UPDATE memory SET importance = importance * 0.85
+        WHERE last_used &lt; now() - INTERVAL '7 days'
+    """</span>)
+    <span class="c"># importance 太低就清理，但保留永久标记的</span>
+    <span class="k">await</span> memory.pool.execute(<span class="s">"""
+        DELETE FROM memory
+        WHERE importance &lt; 0.05 AND ttl_days IS NULL
+    """</span>)
+
+<span class="k">async</span> <span class="k">def</span> <span class="f">compress_old_memories</span>(memory, user_id, llm, batch=<span class="n">30</span>):
+    <span class="s">"""把同一用户的老旧记忆批量摘要合并，降低条目数"""</span>
+    rows = <span class="k">await</span> memory.pool.fetch(<span class="s">"""
+        SELECT id, content FROM memory
+        WHERE user_id=$1 AND created_at &lt; now() - INTERVAL '30 days'
+        ORDER BY created_at LIMIT $2
+    """</span>, user_id, batch)
+    <span class="k">if</span> <span class="f">len</span>(rows) &lt; <span class="n">5</span>:
+        <span class="k">return</span> 0
+    joined = <span class="s">"\n- "</span>.join(r[<span class="s">"content"</span>] <span class="k">for</span> r <span class="k">in</span> rows)
+    summary = llm(<span class="s">"把以下记忆条目合并为一条不超过 200 字的高密度摘要，保留所有事实和偏好：\n- "</span>
+                  + joined)
+    <span class="c"># 写入新摘要，删掉旧条目</span>
+    <span class="k">await</span> memory.write(user_id, summary, importance=<span class="n">0.8</span>)
+    ids = <span class="s">","</span>.join(<span class="f">str</span>(r[<span class="s">"id"</span>]) <span class="k">for</span> r <span class="k">in</span> rows)
+    <span class="k">await</span> memory.pool.execute(<span class="f">f</span><span class="s">"DELETE FROM memory WHERE id IN ({ids})"</span>)
+    <span class="k">return</span> <span class="f">len</span>(rows)
+
+<span class="c"># 主动遗忘的 cron 作业</span>
+<span class="k">async</span> <span class="k">def</span> <span class="f">nightly_forget_job</span>(memory, llm):
+    <span class="k">await</span> memory.pool.execute(<span class="s">"DELETE FROM memory WHERE ttl_days IS NOT NULL "</span>
+                              <span class="s">"AND created_at &lt; now() - (ttl_days||' days')::INTERVAL"</span>)
+    <span class="k">await</span> passive_decay(memory)
+    <span class="k">for</span> uid <span class="k">in</span> <span class="k">await</span> memory.active_users():
+        <span class="k">await</span> compress_old_memories(memory, uid, llm)</code></pre>
+    <p>这三种机制互为补充：<strong>TTL</strong> 处理显式声明的临时记忆（如「这个会议纪要保留 7 天」）；<strong>衰减</strong> 处理自然老化；<strong>压缩</strong> 把历史细节降维成高密度摘要，既节省存储又提升检索精度。三者都默认跳过 <code>ttl_days IS NULL</code> 的永久记忆，保证用户设定的核心偏好不会被误删——这是隐私合规的红线。</p>
+
     <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
     <div class="callout note">
       <div class="head">📌 核心要点</div>
       <ul style="margin:6px 0;">
         <li>记忆分六类（工作/短期/长期/情景/语义/程序），借鉴认知科学；</li>
         <li>MemGPT/Letta 的分层记忆 + 自主管理是主流架构；</li>
-        <li>检索综合<strong>相关性×重要性×时效性</strong>；</li>
+        <li>检索综合<strong>相关性×重要性×时效性</strong>，可下沉到数据库一次算分；</li>
         <li>四大挑战：爆炸/冲突/时效/隐私；</li>
-        <li><strong>遗忘</strong>和记忆同样重要。</li>
+        <li>持久化首选 pgvector / Redis，按规模选型；</li>
+        <li>分层检索避免「事实层查不到事件」的失忆；</li>
+        <li><strong>遗忘</strong>和记忆同样重要：TTL + 衰减 + 压缩三管齐下。</li>
       </ul>
     </div>
     <div class="chapter-nav">
@@ -415,6 +580,8 @@ memory_system.py —— 带重要性判断、去重、检索的记忆系统
     </div>
     <footer><p>AI 全栈实战教学 · 第 29 章 · LLM 记忆系统深度</p><p>参考：MemGPT / Letta · Generative Agents · 认知科学</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

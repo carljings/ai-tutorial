@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -45,7 +43,7 @@
     <div class="nav-group"><h3>原理</h3>
       <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
       <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
-      <a href="24-evaluation.html" class="active" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
+      <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
       <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
       <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
       <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 原理深挖</span>
     <h1>AI 评估方法论</h1><p class="lead">怎么知道你的模型真的变好了——评估比训练更难</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -357,14 +356,157 @@ JUDGE_PROMPT = """你是一个严格的评估员。
 关键：golden set 是你的"回归测试集"，
       每次改动都跑，确保不退步。</code></pre>
     <div class="callout"><strong>💡 要点</strong><br>评估的终极建议：**建立一个固定的 golden set（100-500 条精选问题+期望特征），每次模型/prompt 改动都跑一遍**。这不是为了得到一个绝对分数，而是为了做"回归检测"——确保你的改动没有引入退步。没有 golden set 回归检测的迭代，就是盲人摸象。</div>
+
+    <h2><span class="idx"></span>RAGAS 完整评估代码实战</h2>
+    <p>前面讲了 RAGAS 的三个维度，但没有给可运行代码。这里给出一份能直接接到现有 RAG 管线上的完整实现，并且补上第四个常被忽略的维度 <strong>Context Recall（召回率）</strong>——衡量「该召回的相关内容是否都召回了」。四个维度齐全后，RAG 调优才真正做到可定位。</p>
+    <div class="code-title">ragas_eval.py —— 完整的 RAG 四维评估</div>
+    <pre><code><span class="c">"""
+ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
+依赖：pip install ragas datasets
+四个维度：faithfulness / answer_relevancy / context_precision / context_recall
+"""</span>
+<span class="k">from</span> datasets <span class="k">import</span> Dataset
+<span class="k">from</span> ragas <span class="k">import</span> evaluate
+<span class="k">from</span> ragas.metrics <span class="k">import</span> (
+    faithfulness, answer_relevancy, context_precision, context_recall
+)
+
+<span class="k">def</span> <span class="f">build_eval_dataset</span>(rag_pipeline, golden_qa):
+    <span class="s">"""golden_qa: [(question, reference_answer), ...]
+    用 RAG 跑出答案和检索上下文，组装成 RAGAS 需要的格式"""</span>
+    rows = []
+    <span class="k">for</span> q, ref <span class="k">in</span> golden_qa:
+        answer, contexts = rag_pipeline.query(q)   <span class="c"># contexts 是检索到的 chunk 列表</span>
+        rows.append({
+            <span class="s">"question"</span>: q,
+            <span class="s">"answer"</span>: answer,
+            <span class="s">"contexts"</span>: contexts,
+            <span class="s">"ground_truth"</span>: ref,            <span class="c"># reference_answer 用于 context_recall</span>
+        })
+    <span class="k">return</span> Dataset.from_list(rows)
+
+<span class="k">def</span> <span class="f">run_ragas</span>(dataset, llm=<span class="k">None</span>, embeddings=<span class="k">None</span>):
+    <span class="s">"""跑四个指标，返回 dict。judge 模型建议用最强模型"""</span>
+    <span class="k">return</span> evaluate(
+        dataset,
+        metrics=[faithfulness, answer_relevancy,
+                 context_precision, context_recall],
+        llm=llm, embeddings=embeddings,
+    )
+
+<span class="c"># 把分数映射到「该改哪一环」，方便定位</span>
+<span class="k">def</span> <span class="f">diagnose</span>(scores):
+    <span class="k">issues</span> = []
+    <span class="k">if</span> scores[<span class="s">"faithfulness"</span>] &lt; <span class="n">0.8</span>:
+        issues.append((<span class="s">"生成环节在编造"</span>, <span class="s">"加强 prompt 里的『只基于上下文回答』约束，或加 citation"</span>))
+    <span class="k">if</span> scores[<span class="s">"context_precision"</span>] &lt; <span class="n">0.7</span>:
+        issues.append((<span class="s">"检索噪音多"</span>, <span class="s">"调 top_k、加 rerank、缩小 chunk"</span>))
+    <span class="k">if</span> scores[<span class="s">"context_recall"</span>] &lt; <span class="n">0.7</span>:
+        issues.append((<span class="s">"该召回的没召回"</span>, <span class="s">"换更大 embedding 模型、改善分块、补语料"</span>))
+    <span class="k">if</span> scores[<span class="s">"answer_relevancy"</span>] &lt; <span class="n">0.8</span>:
+        issues.append((<span class="s">"答非所问"</span>, <span class="s">"加 query 改写、检查系统 prompt 是否偏题"</span>))
+    <span class="k">return</span> issues <span class="k">or</span> [(<span class="s">"各维度均达标"</span>, <span class="s">"可继续扩 golden set 找坏 case"</span>)]</code></pre>
+    <p>注意 RAGAS 的指标本身要调 LLM，成本不低——<strong>评估 100 条通常要花几十次 LLM 调用</strong>。生产里一般把 golden set 控制在 100-200 条，并在 CI 里只在 RAG 相关改动时才跑全量。</p>
+
+    <h2><span class="idx"></span>A/B 测试框架：线上才是终极裁判</h2>
+    <p>离线评估再准，也无法覆盖线上真实用户问法。当一个版本离线指标持平甚至略低，但产品直觉觉得更好时，只有 <strong>A/B 测试</strong>能给出答案。下面是一个最小可用的 A/B 测试框架，包含流量分配、指标收集和统计显著性判断。</p>
+    <div class="code-title">ab_test.py —— 线上 A/B 测试骨架</div>
+    <pre><code><span class="k">import</span> hashlib, time
+<span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
+<span class="k">from</span> typing <span class="k">import</span> Callable
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="t">Variant</span>:
+    name: str
+    run: Callable                 <span class="c"># 实际推理函数</span>
+    impressions: int = <span class="n">0</span>
+    thumbs_up: int = <span class="n">0</span>            <span class="c"># 用户点赞/复制/继续追问等正向信号</span>
+    thumbs_down: int = <span class="n">0</span>
+
+<span class="k">class</span> <span class="t">ABTest</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, control: Variant, treatment: Variant,
+                 traffic=<span class="n">0.5</span>, min_sample=<span class="n">500</span>):
+        self.control = control
+        self.treatment = treatment
+        self.traffic = traffic              <span class="c"># treatment 流量占比</span>
+        self.min_sample = min_sample
+
+    <span class="k">def</span> <span class="f">assign</span>(self, user_id):
+        <span class="s">"""用 user_id 哈希做稳定分流，同一用户始终进同一组"""</span>
+        h = <span class="f">int</span>(hashlib.md5(user_id.encode()).hexdigest(), <span class="n">16</span>) % <span class="n">1000</span> / <span class="n">1000</span>
+        <span class="k">return</span> self.treatment <span class="k">if</span> h &lt; self.traffic <span class="k">else</span> self.control
+
+    <span class="k">def</span> <span class="f">record</span>(self, variant, positive: bool):
+        variant.impressions += <span class="n">1</span>
+        <span class="k">if</span> positive:
+            variant.thumbs_up += <span class="n">1</span>
+        <span class="k">else</span>:
+            variant.thumbs_down += <span class="n">1</span>
+
+    <span class="k">def</span> <span class="f">significant</span>(self):
+        <span class="s">"""简化版 Z 检验：两组好评率差异是否显著。样本不足返回 None"""</span>
+        <span class="k">if</span> self.control.impressions &lt; self.min_sample <span class="k">or</span> \
+           self.treatment.impressions &lt; self.min_sample:
+            <span class="k">return</span> <span class="k">None</span>
+        <span class="k">def</span> <span class="f">rate</span>(v): <span class="k">return</span> v.thumbs_up / max(v.impressions, <span class="n">1</span>)
+        p1, p2 = rate(self.control), rate(self.treatment)
+        n1, n2 = self.control.impressions, self.treatment.impressions
+        pooled = (self.control.thumbs_up + self.treatment.thumbs_up) / (n1 + n2)
+        se = (pooled * (<span class="n">1</span> - pooled) * (<span class="n">1</span>/n1 + <span class="n">1</span>/n2)) ** <span class="n">0.5</span>
+        z = (p2 - p1) / se <span class="k">if</span> se &gt; <span class="n">0</span> <span class="k">else</span> <span class="n">0</span>
+        <span class="k">return</span> {<span class="s">"control_rate"</span>: p1, <span class="s">"treatment_rate"</span>: p2,
+                <span class="s">"z"</span>: z, <span class="s">"significant"</span>: <span class="f">abs</span>(z) &gt; <span class="n">1.96</span>}</code></pre>
+    <p>关键设计点：① 用 <code>user_id</code> 哈希做<strong>稳定分流</strong>，避免同一用户在两组间反复横跳污染数据；② 设 <code>min_sample</code> 下限，样本不足时不算显著性，避免小样本噪声误导决策；③ 正向信号优先用「用户复制回答」「继续追问」这类<strong>隐式反馈</strong>，比显式点赞覆盖率高得多。</p>
+
+    <h2><span class="idx"></span>Golden Set 构建：从 0 到 500 条</h2>
+    <p>golden set 是评估的基石，但「怎么挑这 500 条」决定了回归检测的有效性。下面是经验证有效的构成配比，以及一条不可省的「毒丸」策略。</p>
+    <table>
+      <thead><tr><th>类别</th><th>占比</th><th>来源</th><th>作用</th></tr></thead>
+      <tbody>
+        <tr><td>核心功能 case</td><td>40%</td><td>产品 PRD / 主流程</td><td>保证主链路不退化</td></tr>
+        <tr><td>历史 bad case</td><td>30%</td><td>线上工单 / 用户反馈</td><td>防止已修问题复发</td></tr>
+        <tr><td>边界与异常</td><td>20%</td><td>红队 + 长尾输入</td><td>覆盖空输入、超长、注入</td></tr>
+        <tr><td>对抗毒丸</td><td>10%</td><td>故意构造的陷阱题</td><td>检测模型是否「死记」答案</td></tr>
+      </tbody>
+    </table>
+    <p>「毒丸」是常被忽略的一环：在 golden set 里放几条<strong>表述相近但答案相反</strong>的题，能发现模型是不是在背答案而不是真懂。如果版本升级后毒丸答对率反而下降，说明模型在过拟合 golden set，必须立刻扩集。</p>
+    <div class="code-title">golden_set.py —— golden set 的版本化与回归</div>
+    <pre><code><span class="k">import</span> json, hashlib
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+
+<span class="k">class</span> <span class="t">GoldenSet</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, path=<span class="s">"golden_set.jsonl"</span>):
+        self.path = Path(path)
+        self.cases = [json.loads(l) <span class="k">for</span> l <span class="k">in</span> self.path.read_text().splitlines()]
+        <span class="c"># 记录内容指纹，CI 里用来检测 golden set 是否被悄悄改过</span>
+        self.fingerprint = hashlib.md5(
+            self.path.read_bytes()).hexdigest()[:<span class="n">8</span>]
+
+    <span class="k">def</span> <span class="f">regress_against</span>(self, runner, last_scores, tolerance=<span class="n">0.02</span>):
+        <span class="s">"""跑全量 case，与上次分数对比，任一指标降幅 &gt; tolerance 即报回归"""</span>
+        cur = {}
+        <span class="k">for</span> c <span class="k">in</span> self.cases:
+            <span class="k">for</span> metric, value <span class="k">in</span> runner(c).items():
+                cur.setdefault(metric, []).append(value)
+        cur_avg = {m: <span class="f">sum</span>(v)/<span class="f">len</span>(v) <span class="k">for</span> m, v <span class="k">in</span> cur.items()}
+        regressions = []
+        <span class="k">for</span> m, score <span class="k">in</span> cur_avg.items():
+            <span class="k">if</span> m <span class="k">in</span> last_scores <span class="k">and</span> last_scores[m] - score &gt; tolerance:
+                regressions.append((m, last_scores[m], score))
+        <span class="k">return</span> {<span class="s">"scores"</span>: cur_avg, <span class="s">"regressions"</span>: regressions,
+                <span class="s">"fingerprint"</span>: self.fingerprint}</code></pre>
+    <div class="callout warn"><div class="head">⚠ golden set 的两个纪律</div><p style="margin:6px 0;">第一，<strong>golden set 必须版本化</strong>——内容变了指纹就变，CI 要拒绝指纹与代码 commit 不匹配的运行。第二，<strong>禁止为了「让分涨」而删 bad case</strong>，这是最常见的自欺欺人，会让回归检测彻底失效。正确做法是 bad case 永久保留，新增 case 才允许扩。</p></div>
+
     <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM 评估是最难的工程问题，因为输出是开放的、主观的。三大范式：标准基准（快但易过拟合）、LLM-as-judge（灵活但有偏差，注意位置/长度/自我偏好偏差）、人工评估（最准但贵）。RAG 专项用 RAGAS 拆成忠实度/相关性/检索精度三个可定位维度。工程化核心是建立 golden set 做持续回归检测——没有评估就没有可靠迭代。</p>
+    <p>LLM 评估是最难的工程问题，因为输出是开放的、主观的。三大范式：标准基准（快但易过拟合）、LLM-as-judge（灵活但有偏差，注意位置/长度/自我偏好偏差）、人工评估（最准但贵）。RAG 专项用 RAGAS 拆成忠实度/相关性/检索精度（再加召回率）四个可定位维度，本章给出了完整可运行的 RAGAS 评估代码。线上评估用 A/B 测试框架，靠稳定分流与隐式反馈拿真实裁判。工程化核心是建立版本化的 golden set 做持续回归检测——没有评估就没有可靠迭代。</p>
     <div class="chapter-nav">
     <a href="23-diffusion.html"><div class="lbl">← 上一章</div><div class="ttl">23 · 扩散模型与图像生成</div></a>
     <a href="25-inference-optimization.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">25 · LLM 推理优化深度</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 24 章 · AI 评估方法论</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

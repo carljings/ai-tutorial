@@ -18,14 +18,14 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
       <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
       <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
       <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
-      <a href="10-resources.html" class="active" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
+      <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
     </div>
     <div class="nav-group"><h3>工程</h3>
       <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 10 · 前沿与实战 · 终章</span>
       <h1>开源资源与精选<br>GitHub 实战仓库地图</h1>
@@ -412,6 +412,125 @@
       <div class="step"><h4>第 5 周起：造 Skill + 多 Agent</h4><p>把高频工作流封装成 Skill，尝试多智能体协作（第 5、8 章）。</p></div>
     </div>
 
+    <h2 class="section" id="entry-points"><span class="idx">08</span> clone 后先看什么：核心仓库入口指南</h2>
+    <p>新手最大的痛点不是「找不到仓库」，而是 clone 下来后<strong>面对几万行代码不知道从哪看起</strong>。下面这份「入口指南」为前面推荐的每个核心仓库，指定一个<strong>具体到文件</strong>的起点。每个仓库只挑一个最小入口，看完它就足以理解整个项目的骨架。</p>
+    <table>
+      <thead><tr><th>仓库</th><th>clone 后先看</th><th>为什么是这个</th></tr></thead>
+      <tbody>
+        <tr><td>karpathy/nanoGPT</td><td><code>model.py</code>（约 300 行）</td><td>整个 GPT 架构浓缩在一个文件，从 Embedding 到生成全流程，配合 <code>train.py</code> 一晚就能读完</td></tr>
+        <tr><td>langchain-ai/langgraph</td><td><code>examples/chat_bot.ipynb</code></td><td>用一个聊天机器人把图结构、状态、节点全讲透，比读 SDK 源码快十倍</td></tr>
+        <tr><td>microsoft/autogen</td><td><code>autogen/agentchat/conversable_agent.py</code></td><td>多智能体通信的核心抽象全在这个类，<code>generate_reply</code> 是关键方法</td></tr>
+        <tr><td>chroma-core/chroma</td><td><code>examples/basic_function.py</code></td><td>三行代码建库、插入、检索，是理解所有向量库 API 共性的最快路径</td></tr>
+        <tr><td>FlagOpen/FlagEmbedding</td><td><code>examples/finetune/embedder/</code></td><td>中文 Embedding 微调的官方范例，数据格式和训练脚本可直接复用</td></tr>
+        <tr><td>modelcontextprotocol</td><td><code>docs/quickstart/server.md</code></td><td>30 分钟手写一个 MCP Server，比读规范文档直观</td></tr>
+        <tr><td>letta-ai/letta</td><td><code>letta/main.py</code> + <code>schemas/memory.py</code></td><td>前者是分层记忆的总调度，后者定义了记忆的数据结构，对照看就懂 MemGPT</td></tr>
+        <tr><td>explodinggradients/ragas</td><td><code>src/ragas/metrics/_faithfulness.py</code></td><td>看最核心的「忠实度」指标怎么用 LLM 实现，其它指标套路一样</td></tr>
+      </tbody>
+    </table>
+    <p>读源码的一个通用心法：<strong>先读 tests/examples，再读 src</strong>。tests 和 examples 是作者写给自己的「最小用法」，从它们入手能立刻看清 API 形状，而直接啃 src 容易陷入实现细节。下面这段脚本可以帮你快速定位任意仓库的「最小入口」。</p>
+    <div class="code-title">find_entry.py —— 自动定位仓库的最小入口文件</div>
+    <pre><code><span class="c">"""
+find_entry.py —— clone 一个仓库后，快速找到值得先读的入口文件
+思路：优先找 tests/examples/docs 下的最小文件，其次找 src 下带 __main__ 的文件
+"""</span>
+<span class="k">import</span> os, re
+<span class="k">from</span> pathlib <span class="k">import</span> Path
+
+PRIORITY_DIRS = [
+    <span class="s">"examples"</span>, <span class="s">"example"</span>, <span class="s">"docs"</span>,
+    <span class="s">"tests"</span>, <span class="s">"test"</span>, <span class="s">"notebooks"</span>,
+]
+SKIP = {<span class="s">"node_modules"</span>, <span class="s">".git"</span>, <span class="s">"dist"</span>, <span class="s">"build"</span>, <span class="s">"__pycache__"</span>}
+
+<span class="k">def</span> <span class="f">score</span>(path):
+    <span class="s">"""文件越小、目录优先级越高，分数越低（越值得先读）"""</span>
+    size = path.stat().st_size
+    <span class="k">for</span> i, d <span class="k">in</span> <span class="f">enumerate</span>(PRIORITY_DIRS):
+        <span class="k">if</span> <span class="f">f</span><span class="s">"/{d}/"</span> <span class="k">in</span> <span class="f">str</span>(path):
+            <span class="k">return</span> i * <span class="n">1000</span> + size
+    <span class="c"># src 里有 __main__ 的优先</span>
+    text = path.read_text(errors=<span class="s">"ignore"</span>)
+    <span class="k">return</span> (<span class="n">9999</span> * <span class="n">1000</span> + size) - (<span class="n">100000</span> <span class="k">if</span> <span class="s">"__main__"</span> <span class="k">in</span> text <span class="k">else</span> <span class="n">0</span>)
+
+<span class="k">def</span> <span class="f">find_entry</span>(repo_dir, top_n=<span class="n">5</span>, max_size=<span class="n">20000</span>):
+    files = []
+    <span class="k">for</span> root, dirs, fs <span class="k">in</span> os.walk(repo_dir):
+        dirs[:] = [d <span class="k">for</span> d <span class="k">in</span> dirs <span class="k">if</span> d <span class="k">not in</span> SKIP]
+        <span class="k">for</span> f <span class="k">in</span> fs:
+            <span class="k">if</span> <span class="k">not</span> f.endswith((<span class="s">".py"</span>, <span class="s">".ipynb"</span>, <span class="s">".md"</span>)):
+                <span class="k">continue</span>
+            p = Path(root) / f
+            <span class="k">if</span> p.stat().st_size &lt;= max_size:
+                files.append(p)
+    files.<span class="k">sort</span>(key=score)
+    <span class="k">return</span> [str(p.relative_to(repo_dir)) <span class="k">for</span> p <span class="k">in</span> files[:top_n]]
+
+<span class="c"># 用法：
+# &gt;&gt;&gt; find_entry("./nanoGPT")
+# ['model.py', 'train.py', 'configurator.py', 'sample.py', 'README.md']</code></pre>
+
+    <h2 class="section" id="five-week-plan"><span class="idx">09</span> 5 周学习计划：从 API 调用到多 Agent 系统</h2>
+    <p>第 07 节给了五步路径，但只有标题没有可执行细节。这里把它扩成一份<strong>带代码任务和验收标准</strong>的 5 周计划，每周一个 milestone，做完一个再进下一个。这份计划本身可以用下面的脚本跟踪进度。</p>
+    <div class="code-title">five_week_plan.py —— 可跟踪的学习计划</div>
+    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+<span class="k">from</span> datetime <span class="k">import</span> date, timedelta
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="t">WeekPlan</span>:
+    week: int
+    theme: str
+    tasks: list
+    acceptance: str          <span class="c"># 验收标准：达到什么算过关</span>
+    chapters: list           <span class="c"># 对应教程章节</span>
+
+PLAN = [
+    WeekPlan(<span class="n">1</span>, <span class="s">"跑通一个模型"</span>, [
+        <span class="s">"注册智谱开放平台，用 GLM API 完成 1 次对话 + 1 次工具调用"</span>,
+        <span class="s">"用 tiktoken 数 token，理解上下文窗口"</span>,
+        <span class="s">"读 nanoGPT 的 model.py，对照本教程第 1 章"</span>,
+    ], acceptance=<span class="s">"能独立写 20 行代码调通 GLM API 并解析 JSON 输出"</span>,
+       chapters=[<span class="s">"01-llm-fundamentals"</span>, <span class="s">"02-glm-training"</span>]),
+
+    WeekPlan(<span class="n">2</span>, <span class="s">"手写 Agent Loop"</span>, [
+        <span class="s">"照第 4 章从零写一个 ReAct Agent，跑通 Plan-Execute-Verify"</span>,
+        <span class="s">"给它接 2 个工具：search、calc"</span>,
+        <span class="s">"读 langgraph 的 chat_bot.ipynb 对比官方实现"</span>,
+    ], acceptance=<span class="s">"Agent 能自主决定调哪个工具，并完成 3 步以上的任务"</span>,
+       chapters=[<span class="s">"04-agent-loop"</span>, <span class="s">"05-agents"</span>]),
+
+    WeekPlan(<span class="n">3</span>, <span class="s">"搭一个 RAG"</span>, [
+        <span class="s">"用自己的 10 篇文档搭问答系统"</span>,
+        <span class="s">"调分块大小、换 BGE Embedding、加 Rerank"</span>,
+        <span class="s">"跑 RAGAS 评估，记下三维度分数"</span>,
+    ], acceptance=<span class="s">"faithfulness &gt; 0.8，且能定位到至少 1 个可改进维度"</span>,
+       chapters=[<span class="s">"06-rag"</span>, <span class="s">"20-vector-database"</span>]),
+
+    WeekPlan(<span class="n">4</span>, <span class="s">"加 Harness 防护"</span>, [
+        <span class="s">"给 Agent 加权限检查、工具白名单"</span>,
+        <span class="s">"加错误恢复（重试 + 降级）"</span>,
+        <span class="s">"跑一次 prompt injection 自测（第 61 章 payload）"</span>,
+    ], acceptance=<span class="s">"能挡住 80% 的注入 payload，且正常请求不被误拒"</span>,
+       chapters=[<span class="s">"03-harness"</span>, <span class="s">"61-redteam-handbook"</span>]),
+
+    WeekPlan(<span class="n">5</span>, <span class="s">"造 Skill + 多 Agent"</span>, [
+        <span class="s">"把高频工作流封装成 1 个 SKILL.md（第 184 章模板）"</span>,
+        <span class="s">"用 CrewAI 或 LangGraph 搭一个 2-Agent 协作"</span>,
+        <span class="s">"上线 + 接入反馈收集（第 231 章飞轮）"</span>,
+    ], acceptance=<span class="s">"有一个能跑、能收集 bad case、能迭代的最小闭环系统"</span>,
+       chapters=[<span class="s">"08-skills"</span>, <span class="s">"231-br-data-closedloop"</span>]),
+]
+
+<span class="k">def</span> <span class="f">print_schedule</span>(start_date=date.today()):
+    <span class="k">for</span> i, p <span class="k">in</span> <span class="f">enumerate</span>(PLAN):
+        wk_start = start_date + timedelta(weeks=i)
+        print(<span class="f">f</span><span class="s">"\n=== 第 {p.week} 周（{wk_start}）｜{p.theme} ==="</span>)
+        <span class="k">for</span> t <span class="k">in</span> p.tasks:
+            print(<span class="f">f</span><span class="s">"  - [ ] {t}"</span>)
+        print(<span class="f">f</span><span class="s">"  验收：{p.acceptance}"</span>)
+        print(<span class="f">f</span><span class="s">"  对应章节：{', '.join(p.chapters)}"</span>)</code></pre>
+    <p>这份计划的关键设计：每周都有<strong>可量化的验收标准</strong>，而不是「学一下」「了解一下」这种无法判断完成度的目标。这是从「看教程」到「真学会」的最大分水岭——能跑出验收标准里那个数字，才算这一周过关。</p>
+    <div class="callout warn"><div class="head">⚠ 学习计划的两个纪律</div><p style="margin:6px 0;">第一，<strong>每周只做一个 milestone</strong>，不要并行。AI 工程的知识是强依赖的（Agent 依赖 API，RAG 依赖 Agent），并行只会让你每样都半懂。第二，<strong>第 5 周的「上线」必须真上线</strong>，哪怕是只给自己用的内部服务——只有真用户用了，飞轮才会开始转，你才会遇到真实 bad case，这才是进阶的开始。</p></div>
+
     <h2 class="section" id="closing"><span class="idx">★</span> 结语</h2>
     <blockquote>
       我们正处在软件工程范式又一次大迁移的起点——从「人写代码」到「人 + AI 协作构建系统」。<strong>模型是新的算力，Harness 是新的操作系统，Agent 是新的应用，Skill 是新的可执行文件，RAG/Wiki 是新的文件系统。</strong> 这套类比未必精确，但它勾勒出了未来的形状。<br><br>
@@ -441,6 +560,8 @@
       <p>感谢阅读 · 愿这份地图陪你走得更远 · 2026.06</p>
     </footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

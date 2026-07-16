@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -222,7 +220,7 @@
       <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
     </div>
     <div class="nav-group"><h3>★Agent设计模式</h3>
-      <a href="187-pat-react.html" class="active" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
+      <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
       <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
       <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
       <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 211 章 · Agent 设计模式</span>
     <h1>ReAct 模式</h1><p class="lead">Thought → Action → Observation 的经典循环</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -391,6 +390,145 @@ Question: {question}
     <h2><span class="idx"></span>ReAct 的优势与局限</h2>
     <p>优势：可解释（每步都有 Thought 可审查）、可纠错（看到 Observation 能调整策略）、接地（用真实工具结果而非凭空想象）。这三点让 ReAct agent 比"一次性回答"的 LLM 可靠得多。</p>
     <p>局限：步数多了 token 消耗大（每步都累积进上下文）、依赖模型遵守格式（弱模型可能格式漂移）、串行执行慢（无法并行）。后续的 Plan-Execute（先规划再执行）、Reflection（自我批判）都是针对这些局限的改进。</p>
+    <h2><span class="idx"></span>一个完整的 Thought/Action/Observation 循环实例</h2>
+    <p>光看骨架代码还不够直观。下面跑一个真实问题——「上海和北京今天哪个更热，热多少度」——把 Agent 每一步的 Thought、Action、Observation 完整打印出来。你会看到 Agent 如何自主决定「先查两个城市、再比较」，遇到工具失败如何换路子，最后如何综合出答案。这条 trace 是理解 ReAct「为什么比一次性回答强」的最佳教材。</p>
+    <pre class="code"><code class="language-text">Question: 上海和北京今天哪个更热，热多少度？
+
+Thought 1: 我需要知道两个城市今天的气温才能比较。先查上海。
+Action 1: get_weather
+Action Input 1: {"city": "上海"}
+Observation 1: 上海 28°C，多云
+
+Thought 2: 上海 28°C。现在查北京。
+Action 2: get_weather
+Action Input 2: {"city": "北京"}
+Observation 2: ERROR: 查询超时
+
+Thought 3: 北京查询失败了。我换个方式，用通用天气 API 重试一次。
+Action 3: search_web
+Action Input 3: {"query": "北京今天气温"}
+Observation 3: 北京今日最高气温 33°C，晴
+
+Thought 4: 上海 28°C，北京 33°C。33 - 28 = 5。北京更热，热 5°C。
+Final Answer: 北京更热，比上海高 5°C（北京 33°C，上海 28°C）。</code></pre>
+    <p>这条 trace 展示了 ReAct 三个无可替代的能力：<strong>多步规划</strong>（自动拆成两次查询）、<strong>错误恢复</strong>（Observation 2 失败后，Thought 3 主动换工具）、<strong>接地推理</strong>（Final Answer 基于真实数据 28 和 33，而非编造）。如果是纯一次性回答，模型大概率会幻觉一个数字。注意 Thought 4 做的减法——这种「把工具结果代入计算」的小推理，正是 CoT 思想在 agent 里的自然延续。</p>
+
+    <h2><span class="idx"></span>生产级错误处理与健壮性增强</h2>
+    <p>前面最小实现里的错误处理只有一句 <code>try/except</code>，真上线远远不够。生产级 ReAct agent 至少要处理五类异常：<strong>工具超时、格式漂移、参数非法、循环卡死、上下文爆炸</strong>。下面这个增强版给原始循环套上一层「防护壳」——每类异常都有对应的恢复策略，保证 agent 不会因为一个工具挂了就整个崩掉。</p>
+    <pre class="code"><code class="language-python">import json, re, time
+from functools import wraps
+
+def timeout(t):
+    def deco(fn):
+        @wraps(fn)
+        def wrap(*a, **k):
+            import threading
+            box = [None, None]
+            def run(): 
+                try: box[0] = fn(*a, **k)
+                except Exception as e: box[1] = e
+            th = threading.Thread(target=run, daemon=True); th.start(); th.join(t)
+            if th.is_alive(): raise TimeoutError(f"{fn.__name__} 超时 {t}s")
+            if box[1]: raise box[1]
+            return box[0]
+        return wrap
+    return deco
+
+def react_loop_robust(question, tools, llm, max_steps=10, max_tokens=8000):
+    tool_map = {t["name"]: t for t in tools}
+    trajectory, repeat_check = "", []
+
+    for step in range(max_steps):
+        # 防护 1：上下文爆炸 → 摘要压缩历史轨迹
+        if len(trajectory) > max_tokens:
+            trajectory = llm(f"请把以下轨迹压缩成要点摘要：\n{trajectory}") + "\n"
+        output = llm(PROMPT.format(question=question) + trajectory)
+        trajectory += output
+
+        if "Final Answer:" in output:
+            return output.split("Final Answer:")[-1].strip()
+
+        # 防护 2：格式漂移 → 提示模型纠正，而非直接崩
+        am = re.search(r"Action: (.+)", output)
+        im = re.search(r"Action Input: (\{.*\})", output)
+        if not am or not im:
+            trajectory += "\nObservation: 格式错误，请严格用 'Action: xxx' 和 'Action Input: {json}'\n"
+            continue
+
+        name = am.group(1).strip()
+        if name not in tool_map:                      # 防护 3：非法工具名
+            trajectory += f"\nObservation: 无此工具 {name}，可选：{list(tool_map)}\n"
+            continue
+
+        try:
+            args = json.loads(im.group(1))            # 防护 4：非法 JSON
+        except json.JSONDecodeError:
+            trajectory += "\nObservation: Action Input 不是合法 JSON，请修正\n"
+            continue
+
+        # 防护 5：重复调用同一工具同一参数 = 卡死，强制跳出
+        sig = (name, json.dumps(args, sort_keys=True))
+        if sig in repeat_check:
+            trajectory += "\nObservation: 已重复此操作，请换思路或给出 Final Answer\n"
+            continue
+        repeat_check.append(sig)
+
+        try:
+            result = timeout(30)(tool_map[name]["fn"])(**args)   # 防护 6：超时
+        except TimeoutError:
+            result = "工具超时，请改用其他工具或重试"
+        except Exception as e:
+            result = f"工具出错: {type(e).__name__}: {e}"
+
+        result = str(result)[:1500]                   # 防护 7：Observation 截断
+        trajectory += f"\nObservation: {result}\n"
+
+    return "达到最大步数，未能完成（建议缩小问题范围）"</code></pre>
+    <p>这七层防护里，最容易被忽视也最致命的是<strong>重复调用检测</strong>——弱模型常陷入「查一次失败→再查一次同样的」死循环，烧光 token 还出不来。用 <code>repeat_check</code> 记下调用签名，第三次同样调用就强制换路。其次是<strong>上下文压缩</strong>：长任务的轨迹会线性增长，超过模型窗口就崩；定期让 LLM 把旧轨迹摘要成要点，是兼顾「记忆」和「上下文预算」的标准做法。把这些防护补上，你的 ReAct agent 才算从「demo」走向「能扛事的生产系统」。</p>
+
+    <h2><span class="idx"></span>用原生 Function Calling 实现 ReAct</h2>
+    <p>前面为了讲清原理，用了「正则解析 prompt」的老派实现。但生产环境几乎都用<strong>原生 Function Calling</strong>——模型直接输出结构化的工具调用，不用再正则抠文本，格式漂移问题从根本上消失。下面这段代码用智谱 SDK 的 tool_calls 实现同一个天气比较任务，你会发现 Thought/Action/Observation 的灵魂还在，只是 Action 变成了 <code>tool_calls</code>、Observation 变成了 <code>tool</code> 角色消息。这才是 2026 年 ReAct 的标准形态。</p>
+    <pre class="code"><code class="language-python">from zhipuai import ZhipuAI
+import json
+
+client = ZhipuAI()
+TOOLS = [{
+    "type": "function",
+    "function": {
+        "name": "get_weather",
+        "description": "查询某城市当前天气",
+        "parameters": {
+            "type": "object",
+            "properties": {"city": {"type": "string", "description": "城市名"}},
+            "required": ["city"],
+        },
+    },
+}]
+
+def react_with_fc(question, max_steps=8):
+    messages = [
+        {"role": "system", "content": "你是天气助手。需要多个城市数据时逐个查询，再比较。"},
+        {"role": "user", "content": question},
+    ]
+    for _ in range(max_steps):
+        resp = client.chat.completions.create(
+            model="glm-5.2", messages=messages, tools=TOOLS)
+        msg = resp.choices[0].message
+        messages.append(msg.model_dump())
+        if not msg.tool_calls:                 # 没有工具调用 = 给出最终答案
+            return msg.content
+        for call in msg.tool_calls:            # 执行每个工具调用
+            args = json.loads(call.function.arguments)
+            obs = get_weather(**args)          # 真实工具：返回 "上海 28°C"
+            messages.append({                  # Observation：用 tool 角色回传结果
+                "role": "tool", "tool_call_id": call.id,
+                "content": json.dumps(obs, ensure_ascii=False),
+            })
+    return "步数耗尽，未能完成"
+
+print(react_with_fc("上海和北京今天哪个更热，热多少度？"))</code></pre>
+    <p>对比两个版本能看清 ReAct 的演进：<strong>老版把「推理+行动」都揉在文本里靠正则切，新版让模型用结构化字段表达行动</strong>。后者更可靠、更易加防护（工具 schema 本身就限定了参数类型和取值），也更省 token（不用重复打印 Thought 文本）。但两者共享同一个内核——<strong>「思考-行动-观察」的循环</strong>。后续的 Plan-Execute 模式（下一章）把这个循环改成「先一次性规划所有步骤，再批量执行」，减少串行等待；Reflection 模式在每个循环末尾加一步「自我批判」。它们都是 ReAct 这棵树长出的枝——掌握了 ReAct，再学其他模式就只是「加规则」而已。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>ReAct 是 agent 的基石范式：Thought（推理）→ Action（行动）→ Observation（观察）的循环。它把 LLM 从"一次性回答"升级为"持续交互"。理解了 ReAct，你就理解了所有 agent 的内核——后续的模式都是 ReAct 的扩展或改良。</p>
     <div class="chapter-nav">
@@ -399,6 +537,8 @@ Question: {question}
     </div>
     <footer><p>AI 全栈实战教学 · 第 211 章 · ReAct 模式：思考与行动交织的经典循环</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

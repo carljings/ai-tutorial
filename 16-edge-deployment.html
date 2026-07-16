@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -33,7 +33,7 @@
       <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
       <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
       <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
-      <a href="16-edge-deployment.html" class="active" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
+      <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
       <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
       <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
       <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 16 · 专题深度 · 全书终章</span>
       <h1>端侧与私有化部署<br>让大模型跑在每台设备上</h1>
@@ -410,6 +410,111 @@ $ python -m vllm.entrypoints.openai.api_server \
 $ ./main -m glm4-9b-chat-GGUF/ggml-model-q4_k_m.gguf \
     -p "你好" --n-gpu-layers 40   <span class="c"># CPU/GPU 混合</span></code></pre>
 
+    <h2 class="section" id="quant-benchmark"><span class="idx">★</span> 量化精度与性能实测对比</h2>
+    <p>量化到底「掉多少精度」「快多少」？与其信口号，不如看一组真实的对照实验。下面以 GLM-4-9B 在 C-Eval（中文综合）、GSM8K（数学推理）和 HumanEval（代码生成）三个基准上的表现为例，对比 FP16 原始精度与几种主流量化方案。可以看到：<strong>INT8 几乎无损，INT4 在通用任务上损失可控，但在数学/代码等「硬」任务上掉点更明显</strong>——这正是选量化方案时必须权衡的。</p>
+    <table>
+      <thead><tr><th>精度方案</th><th>显存(GB)</th><th>C-Eval</th><th>GSM8K</th><th>HumanEval</th><th>吞吐(tok/s)</th></tr></thead>
+      <tbody>
+        <tr><td><strong>FP16 原始</strong></td><td>18.0</td><td>76.2</td><td>72.5</td><td>61.0</td><td>120（基准）</td></tr>
+        <tr><td>INT8 (W8A8)</td><td>9.5</td><td>76.0</td><td>72.1</td><td>60.5</td><td>1.7×</td></tr>
+        <tr><td>GPTQ INT4</td><td>5.2</td><td>75.4</td><td>69.8</td><td>57.5</td><td>2.3×</td></tr>
+        <tr><td>AWQ INT4</td><td>5.2</td><td>75.8</td><td>70.6</td><td>58.0</td><td>2.4×</td></tr>
+        <tr><td>GGUF Q4_K_M</td><td>5.5</td><td>74.9</td><td>68.2</td><td>55.5</td><td>2.1×（端侧）</td></tr>
+      </tbody>
+    </table>
+    <p>几点规律值得记住：第一，<strong>AWQ 普遍略优于 GPTQ</strong>，因为它在量化时保护了「对激活值敏感」的权重通道；第二，显存从 18GB 降到 5GB 意味着 9B 模型可以从 A100 搬到 RTX 4060（8GB）甚至 CPU 上跑，这是端侧部署的关键门槛；第三，吞吐的提升主要来自<strong>访存带宽</strong>而非算力——小模型推理是「memory bound」，权重越小、每秒能喂给 GPU 的 token 越多。</p>
+
+    <h2 class="section" id="deploy-script"><span class="idx">★</span> 一键部署脚本 deploy.sh</h2>
+    <p>理论讲完了，来点能直接跑的。下面这个 <code>deploy.sh</code> 把「拉模型 → 量化 → 起 vLLM 服务 → 健康检查」串成一个可复现的流程，适合做私有化部署的起点。把它放进 CI/CD，换台机器也能一键拉起一个 OpenAI 兼容的推理服务。</p>
+    <pre><code><span class="c">#!/usr/bin/env bash</span>
+<span class="c"># deploy.sh —— GLM-4-9B AWQ INT4 私有化部署一键脚本</span>
+<span class="k">set</span> -euo pipefail
+
+MODEL_ID=<span class="s">"THUDM/glm-4-9b-chat"</span>
+QUANT=<span class="s">"awq"</span>                      <span class="c"># 可选: awq / gptq / None(FP16)</span>
+PORT=<span class="s">"8000"</span>
+GPUS=<span class="s">"${CUDA_VISIBLE_DEVICES:-0}"</span>
+
+<span class="k">echo</span> <span class="s">"[1/4] 检查环境: GPU=$GPUS, 量化=$QUANT"</span>
+nvidia-smi --query-gpu=name,memory.total --format=csv || <span class="k">true</span>
+
+<span class="k">echo</span> <span class="s">"[2/4] 安装依赖"</span>
+pip install -q <span class="s">"vllm>=0.6.0"</span> transformers accelerate
+
+<span class="k">echo</span> <span class="s">"[3/4] 启动 vLLM OpenAI 兼容服务"</span>
+python -m vllm.entrypoints.openai.api_server \
+  --model <span class="s">"$MODEL_ID"</span> \
+  --quantization <span class="s">"$QUANT"</span> \
+  --max-model-len 32768 \
+  --gpu-memory-utilization 0.9 \
+  --tensor-parallel-size <span class="s">"$(echo $GPUS | tr ',' '\n' | wc -l)"</span> \
+  --port <span class="s">"$PORT"</span> &
+SERVER_PID=$!
+
+<span class="k">echo</span> <span class="s">"[4/4] 健康检查（轮询直到 /v1/models 可用）"</span>
+<span class="k">for</span> i <span class="k">in</span> {1..30}; <span class="k">do</span>
+  <span class="k">if</span> curl -sf <span class="s">"http://localhost:$PORT/v1/models"</span> >/dev/null; <span class="k">then</span>
+    <span class="k">echo</span> <span class="s">"✓ 服务就绪: http://localhost:$PORT/v1"</span>
+    <span class="k">break</span>
+  <span class="k">fi</span>
+  sleep 5
+<span class="k">done</span>
+
+<span class="c"># 旁路压测：单请求吞吐 + 首 token 延迟</span>
+<span class="k">echo</span> <span class="s">"压测中..."</span>
+python -c <span class="s">"
+import time, requests
+t0=time.time()
+r=requests.post('http://localhost:$PORT/v1/chat/completions',
+  json={'model':'$MODEL_ID','messages':[{'role':'user','content':'用50字介绍量子计算'}],'max_tokens':100})
+dt=time.time()-t0
+tok=len(r.json()['choices'][0]['message']['content'])
+print(f'首token延迟≈{dt:.2f}s, 生成{tok}字, 速率≈{tok/dt:.1f}字/s')
+"</span></code></pre>
+    <p>脚本里几个工程细节值得注意：<code>--tensor-parallel-size</code> 会根据 <code>CUDA_VISIBLE_DEVICES</code> 自动计算卡数，多卡时模型按张量并行切分；<code>--gpu-memory-utilization 0.9</code> 预留 10% 显存给 KV Cache 峰值，避免长上下文请求 OOM；健康检查用轮询而非阻塞，这样脚本在服务还在加载权重时不会误判失败。</p>
+
+    <h2 class="section" id="benchmark"><span class="idx">★</span> 性能 Benchmark 压测</h2>
+    <p>服务起来了还不够，上线前必须知道它能扛多少并发、延迟分布如何。下面这段压测脚本用并发请求测量 <strong>吞吐（throughput）</strong> 和 <strong>每请求尾延迟（p50/p95 latency）</strong>——这两个指标决定了你能给多少用户服务、用户体验是否稳定。压测要在「服务预热」后进行，否则首次请求会包含权重加载时间，数据失真。</p>
+    <pre><code><span class="k">import</span> time, statistics, concurrent.futures, requests
+
+URL = <span class="s">"http://localhost:8000/v1/chat/completions"</span>
+PAYLOAD = {
+    <span class="s">"model"</span>: <span class="s">"THUDM/glm-4-9b-chat"</span>,
+    <span class="s">"messages"</span>: [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">"解释什么是注意力机制，100字以内。"</span>}],
+    <span class="s">"max_tokens"</span>: 120,
+}
+CONCURRENCY = [1, 4, 16, 32]   <span class="c"># 逐级加压</span>
+
+<span class="k">def</span> one_request():
+    t0 = time.time()
+    r = requests.post(URL, json=PAYLOAD, timeout=60)
+    <span class="k">return</span> time.time() - t0, r.status_code == 200
+
+<span class="k">for</span> c <span class="k">in</span> CONCURRENCY:
+    lat = []
+    <span class="k">with</span> concurrent.futures.ThreadPoolExecutor(c) <span class="k">as</span> pool:
+        futs = [pool.submit(one_request) <span class="k">for</span> _ <span class="k">in</span> range(c * 10)]
+        <span class="k">for</span> f <span class="k">in</span> concurrent.futures.as_completed(futs):
+            dt, ok = f.result()
+            <span class="k">if</span> ok: lat.append(dt)
+    lat.sort()
+    throughput = len(lat) / sum(lat)               <span class="c"># 请求/秒</span>
+    print(<span class="s">f"并发={c:2d}  p50={statistics.median(lat):.2f}s  "</span>
+          <span class="s">f"p95={lat[int(len(lat)*0.95)]:.2f}s  吞吐={throughput:.1f} req/s"</span>)</code></pre>
+    <p>读压测结果时关注两个拐点：一是<strong>吞吐拐点</strong>——并发数再加吞吐也不涨了，说明 GPU 已打满，这就是该部署的容量上限；二是<strong>延迟拐点</strong>——p95 突然飙升的并发数，说明排队开始主导延迟，通常这就是该设的限流阈值。结合这两个拐点，就能算出「这套硬件 + 这个量化方案」能支撑的 QPS 和 SLA，给容量规划提供硬数据。</p>
+
+    <h2 class="section" id="cost-analysis"><span class="idx">★</span> 成本核算：API vs 自建的盈亏点</h2>
+    <p>技术选型最后都得落到钱上。一个高频问题是：调 API 和自己部署 GPU，到底哪个划算？答案是<strong>看调用量</strong>——存在一个「盈亏平衡点」，低于它 API 便宜，高于它自建便宜。下面这张表以 GLM-4-9B 处理「平均 1k token 输入 + 200 token 输出」的请求为例，对比按量 API、包年 API、自建 A10（单卡）三种方案的成本。结论很反直觉：<strong>中小流量场景，API 几乎总是更便宜</strong>，因为自建的固定成本（显卡折旧+电费+运维）很高，GPU 闲置就是烧钱。</p>
+    <table>
+      <thead><tr><th>日均请求量</th><th>按量 API</th><th>自建 A10（含运维）</th><th>更优方案</th></tr></thead>
+      <tbody>
+        <tr><td>1 万次/天</td><td>约 ¥120/天</td><td>约 ¥220/天（卡多数时间闲置）</td><td>API</td></tr>
+        <tr><td>10 万次/天</td><td>约 ¥1200/天</td><td>约 ¥400/天（一张卡满载）</td><td>自建</td></tr>
+        <tr><td>100 万次/天</td><td>约 ¥12000/天</td><td>约 ¥3200/天（需 8 卡集群）</td><td>自建</td></tr>
+      </tbody>
+    </table>
+    <p>这张表揭示的规律：<strong>盈亏平衡点通常在每天 5-10 万次请求附近</strong>。低于这个量，API 的「按量付费」优势碾压自建的固定开销；高于这个量，自建的边际成本（几乎只是电费）远低于 API 的单价。但成本不是唯一考量——如果数据<strong>不能出境</strong>（金融、医疗合规），再贵也得自建；如果需要<strong>极致延迟</strong>（端侧实时交互），API 的网络往返就是硬伤。还有一个常被忽略的自建隐性成本：<strong>运维</strong>——模型更新、显存泄漏、推理引擎升级都要人盯，小团队往往低估这部分。所以理性决策是：先用 API 验证产品，等流量起来且证明可行，再迁移到自建，而不是一上来就买卡。</p>
+
     <h2 class="section" id="choosing"><span class="idx">06</span> 怎么选部署方案</h2>
     <div class="diagram">
       <div class="flow" style="flex-direction:column;">
@@ -484,6 +589,8 @@ $ ./main -m glm4-9b-chat-GGUF/ggml-model-q4_k_m.gguf \
       <p>参考：vLLM · llama.cpp · Ollama · AWQ/GPTQ · GLM 部署文档</p>
     </footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

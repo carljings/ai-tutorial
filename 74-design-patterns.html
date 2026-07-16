@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -95,7 +95,7 @@
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
-      <a href="74-design-patterns.html" class="active" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
+      <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 74 · 专题深度</span>
       <h1>AI 设计模式与最佳实践<br>20 个经过验证的工程模式</h1>
@@ -403,14 +403,180 @@
       </tbody>
     </table>
 
+    <h2 class="section" id="deep-5-patterns"><span class="idx">07</span> 5 个高价值模式的完整实现</h2>
+    <p>前面速览了 20 个模式，但只给了 Router/Cascade 和 Guardrail 的代码。本节挑出<strong>使用频率最高、却最容易被实现错</strong>的 5 个，给出可落地的完整代码与 trade-off 说明。其余模式在各专题章已有展开，这里不再重复。</p>
+
+    <h3>模式 A · Evaluator-Optimizer（带预算的生成-评估循环）</h3>
+    <p>它的核心不是「生成→评估→重来」，而是<strong>「为重试设置预算，避免无限循环」</strong>。新手实现最大的坑就是不设上限，结果一次坏答案烧光 token 预算。下面是一个生产可用的版本，包含预算、早停、和评分日志。</p>
+    <div class="code-title">evaluator_optimizer.py</div>
+    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="f">GenResult</span>:
+    text: str
+    score: float
+    rounds: int
+
+<span class="k">def</span> <span class="f">eval_optimize</span>(task, generator, evaluator,
+               threshold=<span class="n">0.85</span>, max_rounds=<span class="n">3</span>, token_budget=<span class="n">8000</span>):
+    <span class="s">"""生成→评估→优化，达到阈值或耗尽预算即返回最优解"""</span>
+    best = <span class="k">None</span>
+    used_tokens = <span class="n">0</span>
+    <span class="k">for</span> r <span class="k">in</span> <span class="f">range</span>(<span class="n">1</span>, max_rounds + <span class="n">1</span>):
+        <span class="c"># 生成：第 2 轮起带上上一次的批评</span>
+        critique = best.text <span class="k">if</span> best <span class="k">else</span> <span class="s">""</span>
+        draft, n1 = generator(task, critique=critique,
+                             max_tokens=token_budget - used_tokens)
+        <span class="c"># 评估</span>
+        score, n2 = evaluator(task, draft)
+        used_tokens += n1 + n2
+
+        <span class="k">if</span> best <span class="k">is</span> <span class="k">None</span> <span class="k">or</span> score &gt; best.score:
+            best = GenResult(draft, score, r)
+
+        <span class="c"># 早停：达标或预算耗尽</span>
+        <span class="k">if</span> score &gt;= threshold:
+            <span class="k">break</span>
+        <span class="k">if</span> used_tokens &gt;= token_budget:
+            best.text += <span class="s">"\n[注：已达 token 预算，提前停止]"</span>
+            <span class="k">break</span>
+    <span class="k">return</span> best
+
+<span class="c"># 评估器示例：返回 (分数, 消耗 token)</span>
+<span class="k">def</span> <span class="f">make_evaluator</span>(llm):
+    <span class="k">def</span> <span class="f">_eval</span>(task, draft):
+        resp = llm(<span class="s">f"任务：{task}\n待评：{draft}\n"</span>
+                   <span class="s">"按 0-1 打分并给一句话批评，格式：分数|批评。"</span>)
+        score_str, critique = resp.split(<span class="s">"|"</span>, <span class="n">1</span>)
+        <span class="k">return</span> <span class="f">float</span>(score_str), <span class="f">len</span>(resp) // <span class="n">4</span>
+    <span class="k">return</span> _eval</code></pre>
+    <p>关键 trade-off：<code>threshold</code> 设太高会反复重试（典型表现是延迟翻倍但分数不涨），设太低又失去优化意义。经验值是<strong>基线分数 + 0.1</strong>——先跑 50 个样本拿平均分，再据此设阈值。</p>
+
+    <h3>模式 B · Self-Consistency（带早停的多采样投票）</h3>
+    <p>直接采样 N 次再多数投票，token 成本是单次的 N 倍。但研究显示：<strong>多数答案通常在前 3-5 次采样内出现</strong>。只要做早停，成本就能压到 2-3 倍。</p>
+    <div class="code-title">self_consistency.py</div>
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> Counter
+
+<span class="k">def</span> <span class="f">self_consistent_answer</span>(question, llm,
+                            n=<span class="n">8</span>, temperature=<span class="n">0.7</span>,
+                            stop_when_majority=<span class="n">2</span>):
+    <span class="s">"""多次采样并投票；当某答案领先 ≥stop_when_majority 票即停"""</span>
+    votes = Counter()
+    samples = []
+    <span class="k">for</span> i <span class="k">in</span> <span class="f">range</span>(n):
+        ans = llm(question, temperature=temperature)
+        <span class="c"># 用归一化字符串做投票 key，去掉空白和大小写</span>
+        key = <span class="s">" "</span>.join(ans.lower().split())
+        samples.append(ans)
+        votes[key] += <span class="n">1</span>
+        top, cnt = votes.most_common(<span class="n">1</span>)[<span class="n">0</span>]
+        <span class="k">if</span> cnt &gt;= stop_when_majority <span class="k">and</span> i &gt;= <span class="n">2</span>:
+            <span class="k">return</span> {<span class="s">"answer"</span>: top, <span class="s">"rounds"</span>: i + <span class="n">1</span>}
+    <span class="c"># 没有早停命中，返回最高票</span>
+    top, _ = votes.most_common(<span class="n">1</span>)[<span class="n">0</span>]
+    <span class="k">return</span> {<span class="s">"answer"</span>: top, <span class="s">"rounds"</span>: n}</code></pre>
+    <p>注意 <code>stop_when_majority</code> 必须<strong>配合最少轮数</strong>（这里 <code>i &gt;= 2</code>），否则前两次都采样到同一个错答案就直接返回了。</p>
+
+    <h3>模式 C · Structured Output（带 schema 自愈的 JSON 强约束）</h3>
+    <p>单纯用 <code>response_format={"type":"json_object"}</code> 只保证语法合法，不保证字段对。生产代码必须做 schema 校验，并在失败时<strong>让 LLM 自己修</strong>。</p>
+    <div class="code-title">structured.py</div>
+    <pre><code><span class="k">import</span> json, jsonschema
+<span class="k">from</span> functools <span class="k">import</span> lru_cache
+
+<span class="nd">@lru_cache</span>(maxsize=<span class="k">None</span>)
+<span class="k">def</span> <span class="f">_validator</span>(schema_json):
+    <span class="k">return</span> jsonschema.Draft7Validator(json.loads(schema_json))
+
+<span class="k">def</span> <span class="f">call_json</span>(llm, prompt, schema, retries=<span class="n">2</span>):
+    <span class="s">"""调用 LLM 返回符合 schema 的 dict，失败时让模型自我修复"""</span>
+    schema_str = json.dumps(schema, ensure_ascii=<span class="k">False</span>)
+    last_err = <span class="s">""</span>
+    <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(retries + <span class="n">1</span>):
+        full = (<span class="f">f</span><span class="s">"{prompt}\n严格输出 JSON，schema 如下：\n{schema_str}\n"</span>
+                + (last_err <span class="k">and</span> <span class="f">f</span><span class="s">"上次的错误：{last_err}，请修复。"</span>))
+        raw = llm(full)
+        <span class="k">try</span>:
+            obj = json.loads(raw)
+            _validator(json.dumps(schema)).validate(obj)
+            <span class="k">return</span> obj
+        <span class="k">except</span> (json.JSONDecodeError, jsonschema.ValidationError) <span class="k">as</span> e:
+            last_err = <span class="f">f</span><span class="s">"{type(e).__name__}: {e}"</span>
+    <span class="k">raise</span> ValueError(<span class="f">f</span><span class="s">"结构化输出失败 {retries+1} 次：{last_err}"</span>)</code></pre>
+
+    <h3>模式 D · Memory Store（分层 + 容量控制）</h3>
+    <p>第 29 章深入讲了记忆，这里只补一个常被忽略的工程细节：<strong>工作记忆必须显式控制容量，超出时自动「晋升」到长期记忆</strong>，否则上下文会无声地溢出。</p>
+    <div class="code-title">memory_store.py</div>
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> deque
+
+<span class="k">class</span> <span class="t">TieredMemory</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, working_capacity=<span class="n">8</span>, long_term_store=<span class="k">None</span>):
+        self.working = deque(maxlen=working_capacity)   <span class="c"># 工作记忆</span>
+        self.long_term = long_term_store <span class="k">or</span> []           <span class="c"># 长期记忆</span>
+
+    <span class="k">def</span> <span class="f">add</span>(self, item):
+        <span class="s">"""加入工作记忆；deque 满时，被挤出的旧项晋升到长期记忆"""</span>
+        <span class="k">if</span> <span class="f">len</span>(self.working) == self.working.maxlen:
+            evicted = self.working[<span class="n">0</span>]
+            self.long_term.append(evicted)
+        self.working.append(item)
+
+    <span class="k">def</span> <span class="f">context</span>(self):
+        <span class="s">"""组装给 LLM 的上下文：工作记忆全文 + 长期记忆的摘要"""</span>
+        summary = <span class="s">"[历史摘要] "</span> + <span class="s">"; "</span>.join(self.long_term[-<span class="n">3</span>:])
+        recent = <span class="s">"\n"</span>.join(<span class="f">f</span><span class="s">"- {x}"</span> <span class="k">for</span> x <span class="k">in</span> self.working)
+        <span class="k">return</span> <span class="f">f</span><span class="s">"{summary}\n[最近交互]\n{recent}"</span></code></pre>
+
+    <h3>模式 E · Tool Registry（MCP 风格的工具发现）</h3>
+    <p>第 8 章的 MCP 是平台级方案，这里给一个<strong>进程内的最小实现</strong>：用装饰器自动注册、按描述做语义匹配。Agent 在每轮决定用哪个工具时，只需要一句话描述需求。</p>
+    <div class="code-title">tool_registry.py</div>
+    <pre><code><span class="k">import</span> inspect
+REGISTRY = []
+
+<span class="k">def</span> <span class="f">tool</span>(description):
+    <span class="s">"""装饰器：自动提取签名，生成 schema 注册进 REGISTRY"""</span>
+    <span class="k">def</span> <span class="f">wrap</span>(fn):
+        sig = inspect.signature(fn)
+        params = [{
+            <span class="s">"name"</span>: p.name,
+            <span class="s">"type"</span>: <span class="f">str</span>(p.annotation) <span class="k">if</span> p.annotation <span class="k">else</span> <span class="s">"any"</span>,
+            <span class="s">"required"</span>: p.default <span class="k">is</span> inspect._empty,
+        } <span class="k">for</span> p <span class="k">in</span> sig.parameters.values()]
+        REGISTRY.append({
+            <span class="s">"name"</span>: fn.__name__,
+            <span class="s">"description"</span>: description,
+            <span class="s">"params"</span>: params,
+            <span class="s">"fn"</span>: fn,
+        })
+        <span class="k">return</span> fn
+    <span class="k">return</span> wrap
+
+<span class="nd">@tool</span>(<span class="s">"搜索代码库，返回最相关的文件路径列表"</span>)
+<span class="k">def</span> <span class="f">search_code</span>(query: str, top_k: int = <span class="n">5</span>):
+    <span class="k">return</span> [<span class="s">"app/main.py"</span>, <span class="s">"app/utils.py"</span>][:top_k]
+
+<span class="nd">@tool</span>(<span class="s">"读取指定文件的内容"</span>)
+<span class="k">def</span> <span class="f">read_file</span>(path: str):
+    <span class="k">return</span> open(path).read()
+
+<span class="k">def</span> <span class="f">match_tools</span>(need: str, embedder, top_k=<span class="n">3</span>):
+    <span class="s">"""用语义相似度把『需求』匹配到合适的工具"""</span>
+    q = embedder.encode([need])[<span class="n">0</span>]
+    scored = <span class="k">sorted</span>(REGISTRY,
+                 key=lambda t: cosine(q, embedder.encode([t[<span class="s">"description"</span>]])[<span class="n">0</span>]),
+                 reverse=<span class="k">True</span>)
+    <span class="k">return</span> scored[:top_k]</code></pre>
+    <p>这五种模式的共同点是：它们都把 LLM 的「不确定性」框进了<strong>可观测、可预算、可降级</strong>的工程边界内。这就是 AI 设计模式的本质——不是消除幻觉，而是<strong>让幻觉的代价可控</strong>。</p>
+
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
-    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>20 个 AI 设计模式，覆盖路由/级联/链式/Map-Reduce/防护/缓存/记忆/评估等；</li><li>组合使用（如 Router+Cascade+Guardrail）解决复杂问题；</li><li>避免反模式：God Agent/Naked Call/Prompt Soup。</li></ul></div>
+    <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>20 个 AI 设计模式，覆盖路由/级联/链式/Map-Reduce/防护/缓存/记忆/评估等；</li><li>组合使用（如 Router+Cascade+Guardrail）解决复杂问题；</li><li>避免反模式：God Agent/Naked Call/Prompt Soup；</li><li>5 个高频模式（Evaluator-Optimizer / Self-Consistency / Structured Output / Memory Store / Tool Registry）的核心是<strong>把不确定性框进可预算、可降级的工程边界</strong>。</li></ul></div>
     <div class="chapter-nav">
       <a href="73-interview-questions.html"><div class="lbl">← 上一章</div><div class="ttl">73 · 面试题</div></a>
       <a href="75-coding-cases-3.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">75 · 编程案例三</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 74 章 · AI 设计模式与最佳实践</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

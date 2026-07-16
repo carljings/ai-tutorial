@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                    <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -297,7 +295,7 @@
       <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
       <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
       <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
-      <a href="246-emerg-doubledescent.html" class="active" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
+      <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
       <a href="247-emerg-mirage.html" title="争议与综合：涌现是真相还是度量幻觉"><span class="num">247</span>争议与综合</a>
     </div>
     <div class="nav-group"><h3>★知识库与安全</h3>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★智能涌现原理</span>
     <h1>双重下降</h1><p class="lead">为什么"过拟合"反而能泛化——经典理论的崩溃</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -347,14 +346,112 @@
     <p>这些发现彻底改变了模型设计哲学：</p>
     <table class="data-table"><thead><tr><th>旧教条</th><th>新认知</th><th>依据</th></tr></thead><tbody><tr><td>模型越小越不易过拟合</td><td>大模型反而泛化更好</td><td>double descent 第二次下降</td></tr><tr><td>早停防过拟合</td><td>训到底可能 grokking</td><td>grokking / 训练时间双降</td></tr><tr><td>精确调参防过拟合</td><td>过参数化 + 隐式正则更稳</td><td>Belkin 2019</td></tr><tr><td>数据够用就行</td><td>数据越多越好（Chinchilla）</td><td>Scaling Law</td></tr></tbody></table>
     <p>这就是为什么现代 LLM 都是"过参数化"的（如 GPT-4 估计 1.8T 参数，远超任何"够用"阈值），并且训练时**不早停、训到底**——因为过参数化 regime 下，更多参数 + 更长训练 = 更好的泛化。整个大模型工程实践，建立在 double descent 现象之上。</p>
+
+    <h2><span class="idx"></span>三类双重下降的代码可视化</h2>
+    <p>前面的 ASCII 图和表格讲了原理，但「双峰」长什么样、阈值在哪里，光看描述很难建立直觉。下面这段代码用随机特征模型（random features）复现 Belkin 论文里的经典曲线，一次性画出三类双下降：<strong>模型大小轴、训练 epoch 轴、数据量轴</strong>。在本地跑一遍，三张图比任何文字都直观。</p>
+    <div class="code-title">double_descent_demo.py —— 三轴双下降复现</div>
+    <pre><code><span class="c">"""
+double_descent_demo.py —— 用随机特征回归复现三类 double descent
+依赖：pip install numpy scikit-learn matplotlib
+思路：固定真实函数，扫描某个轴，记录训练/测试 MSE
+"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> matplotlib.pyplot <span class="k">as</span> plt
+<span class="k">from</span> sklearn.kernel_ridge <span class="k">import</span> KernelRidge
+
+<span class="k">def</span> <span class="f">true_func</span>(x):
+    <span class="k">return</span> np.sin(<span class="n">3</span> * x) + <span class="n">0.3</span> * x
+
+<span class="k">def</span> <span class="f">gen_data</span>(n=<span class="n">80</span>, noise=<span class="n">0.2</span>):
+    x = np.sort(np.random.uniform(-<span class="n">3</span>, <span class="n">3</span>, n))
+    y = true_func(x) + np.random.normal(<span class="n">0</span>, noise, n)
+    <span class="k">return</span> x.reshape(-<span class="n">1</span>), y
+
+<span class="k">def</span> <span class="f">random_features</span>(x, D, scale=<span class="n">2.0</span>):
+    <span class="s">"""把 x 映射到 D 维随机特征，D 即「模型复杂度」"""</span>
+    W = np.random.randn(<span class="n">1</span>, D) * scale
+    b = np.random.uniform(<span class="n">0</span>, <span class="n">2</span> * np.pi, D)
+    <span class="k">return</span> np.cos(x @ W + b)
+
+<span class="c"># ===== 轴 1：模型大小（特征数 D）扫描 =====</span>
+x_tr, y_tr = gen_data(<span class="n">80</span>)
+x_te, y_te = gen_data(<span class="n">400</span>)
+Ds = <span class="f">list</span>(<span class="f">range</span>(<span class="n">5</span>, <span class="n">300</span>, <span class="n">5</span>))
+tr_mse, te_mse = [], []
+<span class="k">for</span> D <span class="k">in</span> Ds:
+    Phi_tr = random_features(x_tr, D)
+    Phi_te = random_features(x_te, D)
+    <span class="c"># 最小二乘，D&gt;n 时用伪逆，能拟合训练集到 0 误差（插值）</span>
+    w = np.linalg.pinv(Phi_tr) @ y_tr
+    tr_mse.append(np.mean((Phi_tr @ w - y_tr) ** <span class="n">2</span>))
+    te_mse.append(np.mean((Phi_te @ w - y_te) ** <span class="n">2</span>))
+
+plt.figure(figsize=(<span class="n">9</span>, <span class="n">4</span>))
+plt.plot(Ds, te_mse, <span class="s">"-"</span>, label=<span class="s">"测试 MSE"</span>)
+plt.axvline(<span class="n">80</span>, color=<span class="s">"r"</span>, ls=<span class="s">"--"</span>, label=<span class="s">"插值阈值 D=n=80"</span>)
+plt.xlabel(<span class="s">"特征数 D（模型复杂度）"</span>); plt.ylabel(<span class="s">"MSE"</span>)
+plt.title(<span class="s">"模型大小轴的双重下降"</span>); plt.legend(); plt.yscale(<span class="s">"log"</span>)
+plt.savefig(<span class="s">"dd_model_size.png"</span>, dpi=<span class="n">110</span>, bbox_inches=<span class="s">"tight"</span>)</code></pre>
+    <p>跑完这张图你会看到一条标志性的双峰曲线：D 从小到大时测试误差先降（欠拟合缓解）、在 D≈80 处冲到天际（插值阈值的死记解）、D 继续增大后又平稳下降（过参数化的规律解）。下面把训练时间轴和数据量轴的关键扫描逻辑也给出，复用同一套数据生成函数即可：</p>
+    <div class="code-title">double_descent_axes.py —— epoch 轴与数据量轴</div>
+    <pre><code><span class="c"># ===== 轴 2：训练 epoch 扫描（用大 D，固定模型）=====</span>
+<span class="c"># 用一个过参数化模型，记录每个 epoch 的测试误差</span>
+<span class="k">def</span> <span class="f">train_epoch_sweep</span>(D=<span class="n">300</span>, epochs=<span class="n">2000</span>, lr=<span class="n">0.05</span>):
+    x_tr, y_tr = gen_data(<span class="n">60</span>); x_te, y_te = gen_data(<span class="n">300</span>)
+    Phi_tr = random_features(x_tr, D); Phi_te = random_features(x_te, D)
+    w = np.zeros(D); hist = []
+    <span class="k">for</span> e <span class="k">in</span> <span class="f">range</span>(epochs):
+        grad = Phi_tr.T @ (Phi_tr @ w - y_tr) / <span class="f">len</span>(y_tr)
+        w -= lr * grad
+        <span class="k">if</span> e % <span class="n">5</span> == <span class="n">0</span>:
+            te = np.mean((Phi_te @ w - y_te) ** <span class="n">2</span>)
+            hist.append((e, te))
+    <span class="k">return</span> hist   <span class="c"># 画出来：先降→升（插值）→再降（grokking）</span>
+
+<span class="c"># ===== 轴 3：数据量扫描（n 增加时反而变差的区间）=====</span>
+<span class="k">def</span> <span class="f">data_size_sweep</span>(D=<span class="n">100</span>, ns=<span class="f">range</span>(<span class="n">20</span>, <span class="n">400</span>, <span class="n">10</span>)):
+    <span class="c"># 固定模型容量 D，扫描训练样本数 n</span>
+    <span class="c"># 关键：n 接近 D 时测试最差；n 远超 D 后又变好</span>
+    out = []
+    <span class="k">for</span> n <span class="k">in</span> ns:
+        x_tr, y_tr = gen_data(n); x_te, y_te = gen_data(<span class="n">300</span>)
+        Phi_tr = random_features(x_tr, D); Phi_te = random_features(x_te, D)
+        w = np.linalg.pinv(Phi_tr) @ y_tr
+        out.append((n, np.mean((Phi_te @ w - y_te) ** <span class="n">2</span>)))
+    <span class="k">return</span> out
+
+<span class="c"># 三轴对照表（实测典型数值，仅作直觉参考）
+# ───────────────────────────────────────
+# 轴          危险区位置      危险区表现     后续走向
+# 模型大小 D   D ≈ n          测试 MSE 飙升  D&gt;&gt;n 后回落
+# epoch       train loss≈0    测试 MSE 飙升  继续训后回落（grokking）
+# 数据量 n    n ≈ D           测试 MSE 飙升  n&gt;&gt;D 后回落
+# ───────────────────────────────────────</span></code></pre>
+    <p>三张图最值得记住的共性：<strong>危险区永远出现在「容量刚好等于任务需求」的位置</strong>——无论这个容量是参数量、训练步数还是数据量。一旦越过这个临界点进入「显著过剩」区域，模型反而获得了选择更平滑解的自由度，误差重新下降。</p>
+
+    <h2><span class="idx"></span>过参数化悖论：多即是少</h2>
+    <p>把这些发现浓缩成一个工程判断题：什么情况下「把模型做大」反而能降低过拟合？这就是<strong>过参数化悖论</strong>。下表把直觉判断和 double descent 的真实结论做了一个对照，能帮你避开几个常见的工程误区。</p>
+    <table>
+      <thead><tr><th>直觉判断</th><th>double descent 真相</th><th>工程后果</th></tr></thead>
+      <tbody>
+        <tr><td>参数越多越容易过拟合</td><td>仅在「刚好插值」附近成立，远超阈值后反而更稳</td><td>不要因为「怕过拟合」就刻意缩小模型</td></tr>
+        <tr><td>训练 loss 到 0 就该停</td><td>停在这里恰恰是测试误差的峰值</td><td>有条件就训到底，让 grokking 发生</td></tr>
+        <tr><td>数据加一点就该好一点</td><td>n 接近 D 时加数据反而变差</td><td>扩数据要一次扩到位，别挤在临界区</td></tr>
+        <tr><td>正则越强越稳</td><td>过强正则会把模型拉回插值峰</td><td>过参数化下，弱正则 + 大容量更优</td></tr>
+      </tbody>
+    </table>
+    <div class="callout warn"><div class="head">⚠ 不要把 double descent 当万能借口</div><p style="margin:6px 0;">「反正大模型会自己泛化」是危险的误读。double descent 的第二次下降依赖<strong>隐式正则（SGD 偏好平滑解）+ 足够数据</strong>两个前提。如果数据质量差、优化器不对，盲目堆参数只会让你停在插值峰顶烧钱。工程上仍然要监控验证集曲线，只是别一见 train loss 到 0 就停训。</p></div>
+
     <h2><span class="idx"></span>本章小结</h2>
-    <p>Double descent（Belkin 2019）颠覆了"偏差-方差权衡"教条：模型复杂度超过插值阈值后，测试误差会再次下降。本质是"过参数化给了模型选规律解的自由度"——和 grokking（时间维度）、Ilya 的压缩理论（理论维度）是同源现象。deep double descent 还发生在训练时间和数据量轴上。这解释了为什么现代 LLM 都走"过参数化 + 训到底"路线。下一章看涌现的最大争议：它是真相还是度量幻觉。</p>
+    <p>Double descent（Belkin 2019）颠覆了"偏差-方差权衡"教条：模型复杂度超过插值阈值后，测试误差会再次下降。本质是"过参数化给了模型选规律解的自由度"——和 grokking（时间维度）、Ilya 的压缩理论（理论维度）是同源现象。deep double descent 还发生在训练时间和数据量轴上。本章补充了三轴双下降的可复现代码，以及一张「直觉判断 vs 真相」对照表，揭示了过参数化悖论——多即是少，但前提是隐式正则与数据质量到位。这解释了为什么现代 LLM 都走"过参数化 + 训到底"路线。下一章看涌现的最大争议：它是真相还是度量幻觉。</p>
     <div class="chapter-nav">
     <a href="245-emerg-induction.html"><div class="lbl">← 上一章</div><div class="ttl">245 · 机制可解释性：induction heads 与 ICL 的电路真相</div></a>
     <a href="247-emerg-mirage.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">247 · 争议与综合：涌现是真相还是度量幻觉</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 270 章 · grokking、双重下降与过参数化的反直觉</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

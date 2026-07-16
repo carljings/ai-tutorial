@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -43,7 +41,7 @@
       <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
     </div>
     <div class="nav-group"><h3>原理</h3>
-      <a href="22-interpretability.html" class="active" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
+      <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
       <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
       <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
       <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 原理深挖</span>
     <h1>LLM 可解释性与机理</h1><p class="lead">打开黑箱：大模型的"思想"长什么样</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -347,6 +346,107 @@ print(f"探测准确率: {probe.score(test_act, test_labels):.2%}")
     <h2><span class="idx"></span>实用可解释性：给用户一个解释</h2>
     <p>机理可解释性还在研究阶段，但实用可解释性已经能用了。生产中最常见的三种"给用户解释"的方法：</p>
     <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>用户体验</th></tr></thead><tbody><tr><td>引用来源</td><td>RAG 检索到的原文片段</td><td>"这个答案来自第3段，点击查看"</td></tr><tr><td>注意力高亮</td><td>高亮模型重点关注的输入</td><td>标记关键词</td></tr><tr><td>Chain-of-Thought</td><td>让模型显式输出推理过程</td><td>展示"我先算...再算..."</td></tr><tr><td>反事实解释</td><td>"如果输入改一点，结果会怎样"</td><td>"如果你的分数高10分，建议会变成..."</td></tr></tbody></table>
+    <h2><span class="idx"></span>注意力可视化：把模型"看的"画出来</h2>
+    <p>前面用表格描述了注意力模式的含义，现在用代码把它落地。下面这段脚本用 HuggingFace 的模型导出每一层的注意力权重，挑一个 head，画成「输入词 × 输出词」的热力图。你会直观看到对角线、斜线、长距离连线长什么样——这是理解模型行为最快的方式。注意要取<strong>正确解码出的那一步</strong>的注意力，而不是所有步的平均，否则模式会被糊掉。</p>
+    <pre class="code"><code class="language-python">import torch
+import matplotlib.pyplot as plt
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model = AutoModelForCausalLM.from_pretrained("THUDM/glm-4-9b",
+                                             output_attentions=True,
+                                             torch_dtype=torch.float16).cuda()
+tok = AutoTokenizer.from_pretrained("THUDM/glm-4-9b")
+
+text = "The cat sat on the mat because it was tired."
+inputs = tok(text, return_tensors="pt").to("cuda")
+with torch.no_grad():
+    out = model(**inputs)
+
+# out.attentions: tuple，每层一个 (1, num_heads, seq, seq)
+tokens = tok.convert_ids_to_tokens(inputs["input_ids"][0])
+layer, head = 5, 3          # 挑第 5 层第 3 个 head
+attn = out.attentions[layer][0, head].float().cpu().numpy()
+
+fig, ax = plt.subplots(figsize=(8, 7))
+im = ax.imshow(attn, cmap="viridis")
+ax.set_xticks(range(len(tokens))); ax.set_yticks(range(len(tokens)))
+ax.set_xticklabels(tokens, rotation=90); ax.set_yticklabels(tokens)
+ax.set_title(f"Layer {layer} Head {head} 注意力")
+plt.colorbar(im)
+plt.savefig("attention_heatmap.png", dpi=100, bbox_inches="tight")
+# 关键看点：找"it"这一行——它是否强烈关注"cat"？
+# 如果是，说明这个 head 学会了指代消解（pronoun resolution）</code></pre>
+    <p>做注意力可视化时有个常见误区：直接看原始权重，但 softmax 会把权重「摊薄」。更可读的做法是<strong>只看 top-k 个最高的连接</strong>，或者在画图前对每行做 min-max 归一化。另一个进阶技巧是「注意力滚动」——把多层多 head 的注意力按残差流加权求和，得到一个综合的「输入 token 对输出的贡献」，这比单看一个 head 更接近真实归因。</p>
+
+    <h2><span class="idx"></span>探针实验：验证 LLM 的「知识分层」</h2>
+    <p>前面的探针示例检测了情感。更有意思的是做一个<strong>系统性探针扫描</strong>：把每一层都接上探针，看哪种信息在「哪一层」变得可线性分离。这能直接画出 LLM 的「知识处理流水线」。下面这段代码扫描所有层，对「词性（POS）」「情感」「 entailment（蕴含）」三个任务分别训练探针，输出每层的探测准确率曲线——你会清楚看到语法信息在低层达峰、语义在中层、推理在高层。</p>
+    <pre class="code"><code class="language-python">"""probing_scan.py —— 扫描 LLM 每一层的可探测信息"""
+import torch, numpy as np
+from sklearn.linear_model import LogisticRegression
+
+def collect_layer_acts(model, tok, sentences, device="cuda"):
+    """返回 acts[layer] = np.array([n_sentences, hidden_dim])"""
+    all_acts = None
+    for s in sentences:
+        inp = tok(s, return_tensors="pt").to(device)
+        with torch.no_grad():
+            hs = model(**inp, output_hidden_states=True).hidden_states
+        # 对每个 token 取 mean pooling 作为该句的表示
+        per_layer = [h.mean(dim=1).squeeze(0).cpu().float().numpy() for h in hs]
+        all_acts = per_layer if all_acts is None else [
+            np.vstack([all_acts[i], per_layer[i]]) for i in range(len(per_layer))]
+    return all_acts   # list[np.ndarray]，长度=层数
+
+def scan(acts_per_layer, labels, label_name):
+    print(f"\n=== 探测任务: {label_name} ===")
+    split = int(len(labels) * 0.8)
+    for layer, acts in enumerate(acts_per_layer):
+        clf = LogisticRegression(max_iter=500)
+        clf.fit(acts[:split], labels[:split])
+        acc = clf.score(acts[split:], labels[split:])
+        bar = "█" * int(acc * 40)
+        print(f"Layer {layer:2d}: {acc:.2%} {bar}")
+
+# 假设已有 sentences, pos_labels, sent_labels
+acts = collect_layer_acts(model, tok, sentences)
+scan(acts, pos_labels,  "词性 POS")    # 预期：低层(5~10)达峰
+scan(acts, sent_labels, "情感")        # 预期：中层(15~25)达峰
+scan(acts, nli_labels,  "蕴含 NLI")    # 预期：高层(28+)达峰</code></pre>
+    <p>这条曲线就是 LLM 的「CT 扫描图」。一个稳健的发现：探针准确率在某个层陡升后保持高位，说明该信息被「写入」了表示；如果某层后又下降，说明模型在为最终任务做信息「丢弃/压缩」。这种扫描能帮你判断「该从哪一层取 embedding 做下游任务」——通常取探针准确率刚达峰的那层，信息最丰富且未被任务特化污染。</p>
+
+    <h2><span class="idx"></span>亲手找 Induction Heads：前缀匹配分数</h2>
+    <p>前面提到 induction heads 是 in-context learning 的核心电路。怎么在自己的模型里找到它们？Anthropic 给出了一个巧妙的度量：<strong>前缀匹配分数（Prefix Matching Score）</strong>。做法是构造形如 <code>A B ... A</code> 的序列，看某个 head 在最后的 <code>A</code> 位置是否强烈关注上一个 <code>A</code> 之后的 <code>B</code>——如果是，它就是在做「复制模式」。下面是检测代码。</p>
+    <pre class="code"><code class="language-python">"""find_induction_heads.py —— 用前缀匹配分数定位归纳头"""
+import torch, numpy as np
+
+def prefix_matching_score(model, tok, n_trials=200, device="cuda"):
+    """返回 score[layer, head]，越高越像 induction head"""
+    layer_attns = None
+    for _ in range(n_trials):
+        a, b = tok.tokenize("猫"), tok.tokenize("狗")     # 两个随机 token
+        seq = a + b + a + [tok.tokenize(",")[0]] + a      # A B A _ A
+        inp = tok(tok.decode(seq), return_tensors="pt").to(device)
+        with torch.no_grad():
+            attns = model(**inp, output_attentions=True).attentions
+        # attns[layer]: (1, heads, seq, seq)，取最后一个 A 位置对各 token 的关注
+        last = len(seq) - 1
+        # 关注的是「上一个 A 后面的 B」吗？
+        if layer_attns is None:
+            layer_attns = [[0.0]*attns[0].shape[1] for _ in attns]
+        for li, a_l in enumerate(attns):
+            for h in range(a_l.shape[1]):
+                # 简化：检查最后一个 token 对 B 位置的关注度
+                layer_attns[li][h] += a_l[0, h, last, 1].item()
+    score = np.array(layer_attns) / n_trials
+    return score
+
+score = prefix_matching_score(model, tok)
+top = np.dstack(np.unravel_index(np.argsort(score.ravel())[::-10], score.shape))[0]
+print("最像 induction heads 的 (layer, head):", top[:5].tolist())
+# 经验：中等深度(30~50%深度)的某些 head 分数会显著高于其他
+# 它们的出现时刻，往往对应模型 few-shot 能力的相变点</code></pre>
+    <p>这个实验的价值在于：它让你<strong>亲眼</strong>看到一个抽象概念（induction head）对应到模型里的具体 head。更进一步，你可以做「消融」——把这些 head 的输出置零，再跑 few-shot 任务，准确率会明显下降——这就构成了「这条电路确实在做这件事」的因果证据。这种「定位 → 消融 → 验证」的闭环，正是 mechanistic interpretability 的标准研究范式，也是从「相关性」走向「因果性」的关键一步。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>可解释性分两层：事后解释（实用，给用户理由）和机理理解（根本，理解黑箱）。核心技术：探针（检测中间层编码了什么）、注意力可视化（看模型关注哪里）、电路分析（定位功能电路，如 induction heads）、稀疏自编码器（分解出"概念原子"）。Anthropic 的 Transformer Circuits 工作是里程碑——第一次在真实模型里定位了具体电路，证明"黑箱可以被打开"。可解释性是 AI 安全的终极武器：如果我们能完全读懂模型内部，就能预警危险、精确修改行为、证明理解。</p>
     <div class="chapter-nav">
@@ -355,6 +455,8 @@ print(f"探测准确率: {probe.score(test_act, test_labels):.2%}")
     </div>
     <footer><p>AI 全栈实战教学 · 第 22 章 · LLM 可解释性与机理</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

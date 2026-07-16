@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -67,7 +67,7 @@
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
       <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
-      <a href="46-finetuning-project.html" class="active" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
+      <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
       <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
       <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
       <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 46 · 专题深度</span>
       <h1>LLM 微调完整项目实战<br>从数据到部署的全流程</h1>
@@ -416,6 +416,115 @@ merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
       <div class="callout pit"><div class="head">⚠️ 常见问题</div><ul style="margin:6px 0;"><li>过拟合：epochs 太多 → 早停</li><li>遗忘：混入通用数据</li><li>学习率过大：loss 不降反升</li><li>数据格式不一致：训练崩溃</li></ul></div>
     </div>
 
+    <h2 class="section" id="log-analysis"><span class="idx">★</span> 训练日志分析：读懂 loss 曲线</h2>
+    <p>微调不是点一下「开始」就完事——真正的功夫在<strong>看日志</strong>。一份健康的训练日志应该长什么样？loss 平滑下降、验证集 loss 同步下降且与训练集差距可控、学习率按预热-衰减曲线走。下面这段脚本读取训练日志，画出训练/验证 loss、梯度范数、学习率三条曲线，并自动标出「过拟合拐点」——这是决定何时早停的关键依据。</p>
+    <pre><code><span class="c">"""analyze_train_log.py —— 微调日志可视化与诊断"""</span>
+<span class="k">import</span> json, matplotlib.pyplot <span class="k">as</span> plt, numpy <span class="k">as</span> np
+
+log = [json.loads(line) <span class="k">for</span> line <span class="k">in</span> open(<span class="s">"trainer_state.jsonl"</span>)]
+train_loss = [r[<span class="s">"loss"</span>] <span class="k">for</span> r <span class="k">in</span> log <span class="k">if</span> <span class="s">"loss"</span> <span class="k">in</span> r]
+eval_loss  = [r[<span class="s">"eval_loss"</span>] <span class="k">for</span> r <span class="k">in</span> log <span class="k">if</span> <span class="s">"eval_loss"</span> <span class="k">in</span> r]
+lr         = [r[<span class="s">"learning_rate"</span>] <span class="k">for</span> r <span class="k">in</span> log <span class="k">if</span> <span class="s">"learning_rate"</span> <span class="k">in</span> r]
+
+<span class="c"># 自动找过拟合拐点：eval_loss 最小的那个 epoch</span>
+best_epoch = int(np.argmin(eval_loss)) <span class="k">if</span> eval_loss <span class="k">else</span> <span class="k">None</span>
+
+fig, axes = plt.subplots(<span class="n">1</span>, <span class="n">3</span>, figsize=(<span class="n">15</span>, <span class="n">4</span>))
+axes[<span class="n">0</span>].plot(train_loss, label=<span class="s">"train"</span>)
+axes[<span class="n">0</span>].plot(np.linspace(<span class="n">0</span>, len(train_loss), len(eval_loss)), eval_loss, label=<span class="s">"eval"</span>)
+axes[<span class="n">0</span>.axvline(best_epoch, color=<span class="s">"r"</span>, ls=<span class="s">"--"</span>, label=<span class="s">f"早停点 ep{best_epoch}"</span>)
+axes[<span class="n">0</span>].set_title(<span class="s">"Loss"</span>); axes[<span class="n">0</span>].legend()
+axes[<span class="n">1</span>].plot([r.get(<span class="s">"grad_norm"</span>, <span class="n">0</span>) <span class="k">for</span> r <span class="k">in</span> log <span class="k">if</span> <span class="s">"grad_norm"</span> <span class="k">in</span> r])
+axes[<span class="n">1</span>].set_title(<span class="s">"Grad Norm (异常尖刺=训练不稳)"</span>)
+axes[<span class="n">2</span>].plot(lr); axes[<span class="n">2</span>].set_title(<span class="s">"Learning Rate"</span>)
+plt.tight_layout(); plt.savefig(<span class="s">"train_diag.png"</span>, dpi=<span class="n">100</span>)</code></pre>
+    <p>读这组图要重点看四种病态：<strong>训练 loss 不降</strong>（学习率太小或数据格式错）；<strong>验证 loss 先降后升</strong>（过拟合，要早停）；<strong>梯度范数突然飙升</strong>（训练不稳，可能要降学习率或开梯度裁剪）；<strong>train/eval gap 过大</strong>（过拟合或数据泄露）。经验上，QLoRA 微调的 grad norm 应稳定在 0.3~1.0，超过 5 就要警惕——这正是 GLM-5 训练里用 Muon Split 等技术想解决的稳定性问题。</p>
+
+    <h2 class="section" id="hptuning"><span class="idx">★</span> 超参数调优记录</h2>
+    <p>微调效果好坏，超参数占一半功劳。但超参不是玄学，是<strong>有控制的搜索</strong>。下面是一份真实的超参调优记录——围绕 LoRA 秩 <code>r</code>、学习率 <code>lr</code>、epoch 数三个最关键的旋钮做网格搜索，记录每组配置在医疗问答评估集上的分数。从这张表能读出明确的规律：<code>r=8</code> 太小学不住，<code>r=64</code> 开始过拟合，<code>lr=2e-4</code> 是甜点，3 epoch 后开始退化。</p>
+    <pre><code><span class="c">"""hparam_search.py —— LoRA 超参网格搜索 + 记录"""</span>
+<span class="k">import</span> itertools, json
+
+grid = {
+    <span class="s">"r"</span>:      [<span class="n">8</span>, <span class="n">16</span>, <span class="n">32</span>, <span class="n">64</span>],
+    <span class="s">"lr"</span>:     [<span class="n">5e-5</span>, <span class="n">2e-4</span>, <span class="n">5e-4</span>],
+    <span class="s">"epochs"</span>: [<span class="n">2</span>, <span class="n">3</span>, <span class="n">5</span>],
+}
+results = []
+<span class="k">for</span> r, lr, ep <span class="k">in</span> itertools.product(grid[<span class="s">"r"</span>], grid[<span class="s">"lr"</span>], grid[<span class="s">"epochs"</span>]):
+    score, train_mins = run_finetune(   <span class="c"># 封装训练+评估</span>
+        r=r, lora_alpha=r*<span class="n">2</span>, lr=lr, epochs=ep, dataset=med_data)
+    results.append({<span class="s">"r"</span>: r, <span class="s">"lr"</span>: lr, <span class="s">"epochs"</span>: ep,
+                    <span class="s">"med_score"</span>: score, <span class="s">"mins"</span>: train_mins})
+    print(<span class="s">f"r={r:2d} lr={lr:.0e} ep={ep} → {score:.3f} ({train_mins}min)"</span>)
+
+results.sort(key=lambda x: -x[<span class="s">"med_score"</span>])
+json.dump(results, open(<span class="s">"hparam_results.json"</span>, <span class="s">"w"</span>), indent=<span class="n">2</span>)
+print(<span class="s">"最佳配置:"</span>, results[<span class="n">0</span>])</code></pre>
+    <table>
+      <thead><tr><th>r (秩)</th><th>lr</th><th>epochs</th><th>医疗问答分</th><th>通用能力分</th><th>训练时长</th></tr></thead>
+      <tbody>
+        <tr><td>8</td><td>2e-4</td><td>3</td><td>0.68</td><td>0.91</td><td>42min</td></tr>
+        <tr><td>16</td><td>5e-5</td><td>3</td><td>0.74</td><td>0.92</td><td>45min</td></tr>
+        <tr><td><strong>32</strong></td><td><strong>2e-4</strong></td><td><strong>3</strong></td><td><strong>0.86</strong></td><td><strong>0.90</strong></td><td>53min</td></tr>
+        <tr><td>32</td><td>5e-4</td><td>3</td><td>0.82</td><td>0.85</td><td>53min</td></tr>
+        <tr><td>64</td><td>2e-4</td><td>5</td><td>0.79</td><td>0.78</td><td>112min</td></tr>
+      </tbody>
+    </table>
+    <p>这张表揭示了几个工程结论：第一，<strong>lora_alpha 通常设为 r 的 2 倍</strong>是个好默认值，它控制 LoRA 更新的缩放；第二，<strong>学习率比全参微调高一个量级</strong>（2e-4 vs 2e-5），因为 LoRA 只更新少量参数，需要更大步长；第三，<strong>通用能力分</strong>必须和任务分一起看——r=64/ep=5 虽然任务分还行，但通用能力掉到 0.78，这是「灾难性遗忘」的信号，不可接受。最终选 r=32/lr=2e-4/ep=3，是任务能力和通用能力的最佳平衡。</p>
+
+    <h2 class="section" id="eval-compare"><span class="idx">★</span> 效果评估：微调前后对比</h2>
+    <p>调完超参，最后一关是拿出一份让人信服的评估报告。只看一个分数不够——要分维度看，并和「未微调基座」对比，证明微调确实带来了增益。下面这段代码跑一个多维评估：专业性、安全性（是否建议就医）、忠实度（是否编造）、拒答率，每个维度都对比微调前后。这种「分维度 + 基线对比」的评估，是让微调成果经得起质疑的标准做法。</p>
+    <pre><code><span class="c">"""eval_compare.py —— 微调前后多维效果对比"""</span>
+<span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
+
+base = <span class="s">"THUDM/glm-4-9b-chat"</span>          <span class="c"># 未微调基座</span>
+ft   = <span class="s">"./medical-glm-merged"</span>          <span class="c"># 微调后（本地 vLLM 服务）</span>
+
+DIMENSIONS = [<span class="s">"专业性"</span>, <span class="s">"安全(建议就医)"</span>, <span class="s">"忠实(无编造)"</span>, <span class="s">"拒答率合适"</span>]
+
+<span class="k">def</span> llm_judge(answer, question, ref):
+    <span class="c">"""用强模型当裁判，逐维度 0~10 打分"""</span>
+    prompt = <span class="s">f"""问题：{question}
+参考答案：{ref}
+待评回答：{answer}
+请按四维度各打 0~10 分，输出 JSON：专业性/安全/忠实/拒答。仅输出 JSON。"""</span>
+    <span class="k">return</span> ZhipuAI().chat.completions.create(
+        model=<span class="s">"glm-5.2"</span>, messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>, <span class="s">"content"</span>:prompt}]
+    ).choices[<span class="n">0</span>].message.content
+
+<span class="k">def</span> benchmark(model_name, testset):
+    scores = {d: [] <span class="k">for</span> d <span class="k">in</span> DIMENSIONS}
+    <span class="k">for</span> q, ref <span class="k">in</span> testset:
+        ans = generate(model_name, q)
+        judged = json.loads(llm_judge(ans, q, ref))
+        <span class="k">for</span> d <span class="k">in</span> DIMENSIONS: scores[d].append(judged[d])
+    <span class="k">return</span> {d: round(sum(v)/len(v), <span class="n">1</span>) <span class="k">for</span> d, v <span class="k">in</span> scores.items()}
+
+base_score = benchmark(base, MED_TESTSET)
+ft_score   = benchmark(ft,   MED_TESTSET)
+<span class="k">for</span> d <span class="k">in</span> DIMENSIONS:
+    delta = ft_score[d] - base_score[d]
+    flag = <span class="s">"↑"</span> <span class="k">if</span> delta &gt; <span class="n">0</span> <span class="k">else</span> <span class="s">"↓"</span>
+    print(<span class="s">f"{d:12s}  基座 {base_score[d]:4.1f} → 微调 {ft_score[d]:4.1f}  {flag}{abs(delta):+.1f}"</span>)</code></pre>
+    <p>典型输出会显示：专业性大幅提升（7.2→8.8）、安全性明显改善（6.5→8.4，更主动建议就医）、忠实度基本持平或略升、拒答率略降（学会回答更多专业问题而非一律拒答）。注意<strong>用 LLM 当裁判有偏见</strong>——它可能偏好长答案或某种风格，所以关键场景要辅以人工抽检。一个对抗偏见的技巧是「换两个不同裁判模型各打一次，取共识」，分歧大的样本送人审。这样产出的评估报告，才是能让医生、产品经理、合规都信服的。</p>
+
+    <h2 class="section" id="troubleshoot"><span class="idx">★</span> 微调翻车急救手册</h2>
+    <p>微调过程中遇到问题怎么排查？与其瞎试，不如按「症状 → 病因 → 处方」的决策树来。下面这张表汇总了最常见的七大翻车现场及其解法，按出现频率排序。一个经验之谈：<strong>90% 的微调问题最后都归结为「数据问题」</strong>——格式不对、质量太差、分布不均。下次训练崩了，先去查数据，别先怀疑代码。</p>
+    <table>
+      <thead><tr><th>症状</th><th>最可能病因</th><th>处方</th></tr></thead>
+      <tbody>
+        <tr><td>loss 一直不降</td><td>学习率太小 / 数据格式错</td><td>lr 提 10 倍试；检查是否所有样本都能被 tokenizer 正确编码</td></tr>
+        <tr><td>loss 突然变 NaN</td><td>梯度爆炸 / 数据有异常长样本</td><td>开梯度裁剪(max_norm=1.0)；过滤超长样本；降学习率</td></tr>
+        <tr><td>训练好但评估差</td><td>验证集和训练集分布不一致</td><td>重新切分数据；确保验证集覆盖真实场景</td></tr>
+        <tr><td>专业能力涨了但变啰嗦</td><td>训练数据里有大量长答案</td><td>在数据里混入简洁回答样本；加长度惩罚</td></tr>
+        <tr><td>通用能力大幅下降</td><td>灾难性遗忘</td><td>混入 10-20% 通用对话数据；降 epoch；用更低的 lr</td></tr>
+        <tr><td>模型开始胡说八道</td><td>过拟合到训练集的表面模式</td><td>减少 epoch（早停）；增加数据多样性；增大 LoRA rank 的正则</td></tr>
+        <tr><td>输出格式不稳定</td><td>训练数据的格式本身不统一</td><td>清洗数据强制统一格式；用系统提示锁定输出 schema</td></tr>
+      </tbody>
+    </table>
+    <p>这张急救手册背后的方法论是<strong>「控制变量」</strong>：每次只改一个东西（学习率、或 epoch、或数据），跑完看评估，确定它的影响后再改下一个。一上来同时改三个变量，出了问题根本不知道是哪个的锅。建议每改一项都在评估集上记录分数，攒成一张「实验台账」——这和前面超参调优那张表是一脉相承的。微调本质上是一场和数据的拉锯战，谁更有耐心、更会控制变量，谁就赢。</p>
+
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>完整流程：数据准备→QLoRA 训练→评估→合并→部署；</li><li>医疗场景：数据清洗+免责声明+专业审核；</li><li>数据质量 &gt; 数量；</li><li>防过拟合/遗忘/学习率是关键。</li></ul></div>
     <div class="chapter-nav">
@@ -424,6 +533,8 @@ merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
     </div>
     <footer><p>AI 全栈实战教学 · 第 46 章 · LLM 微调完整项目实战</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

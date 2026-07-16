@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -278,7 +276,7 @@
       <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
       <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
       <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
-      <a href="231-br-data-closedloop.html" class="active" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
+      <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
       <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
       <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
       <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
     <h1>AI 项目的数据闭环与持续改进</h1><p class="lead">从线上 bad case 到模型迭代：让系统越用越聪明的飞轮</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -360,12 +359,134 @@ lora_config = LoraConfig(
 model = get_peft_model(base_model, lora_config)
 trainer.train(train_data, epochs=3)
 # 一个迭代周期：发现→分析→标注→LoRA→验证→上线，目标 &lt;24h</code></pre>
+
+    <h2><span class="idx"></span>飞轮五环节的串联实现</h2>
+    <p>前面把五个环节拆开讲了，但生产中它们是<strong>一条会自动流转的管线</strong>：监控告警触发 → 自动归类 → 进标注队列 → 触发 LoRA 训练 → 自动 A/B 验证。下面这段代码把五环节串成一个可运行的 pipeline 类，每一步都有明确的输入输出和质量门禁，避免「收集了一堆 bad case 却没人处理」的常见窘境。</p>
+    <div class="code-title">data_flywheel.py —— 五环节串联的飞轮引擎</div>
+    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
+<span class="k">from</span> typing <span class="k">import</span> Optional
+<span class="k">import</span> time, json
+
+<span class="nd">@dataclass</span>
+<span class="k">class</span> <span class="t">BadCase</span>:
+    case_id: str
+    query: str
+    response: str
+    signals: list               <span class="c"># detect_bad_cases 的输出</span>
+    root_cause: Optional[str] = <span class="k">None</span>   <span class="c"># knowledge/retrieval/prompt/model/safety</span>
+    fixed: bool = <span class="k">False</span>
+    created_at: float = field(default_factory=time.time)
+
+<span class="k">class</span> <span class="t">DataFlywheel</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(self, rag, llm_judge, label_queue, trainer):
+        self.rag = rag
+        self.judge = llm_judge        <span class="c"># 用于根因分类的 LLM</span>
+        self.queue = label_queue      <span class="c"># 标注队列（可接 Label Studio）</span>
+        self.trainer = trainer        <span class="c"># LoRA 训练器</span>
+        self.cases = []
+
+    <span class="c"># 环节 1+2：收集 + 根因分析（自动）</span>
+    <span class="k">def</span> <span class="f">ingest</span>(self, query, response, user_behavior):
+        signals = detect_bad_cases(query, response, user_behavior)
+        <span class="k">if</span> not signals:
+            <span class="k">return</span> <span class="k">None</span>
+        cause = self._classify_root_cause(query, response, signals)
+        case = BadCase(case_id=<span class="f">f</span><span class="s">"c{int(time.time()*1000)}"</span>,
+                       query=query, response=response,
+                       signals=signals, root_cause=cause)
+        self.cases.append(case)
+        <span class="c"># 数据/检索类问题直接走快速修复，不进训练队列</span>
+        <span class="k">if</span> cause <span class="k">in</span> (<span class="s">"knowledge"</span>, <span class="s">"retrieval"</span>, <span class="s">"prompt"</span>):
+            self._fast_fix(case)
+        <span class="k">else</span>:
+            self.queue.push(case)     <span class="c"># model 类问题进标注队列</span>
+        <span class="k">return</span> case
+
+    <span class="k">def</span> <span class="f">_classify_root_cause</span>(self, query, response, signals):
+        <span class="s">"""用 LLM 把 case 归到五个根因之一，附判断依据"""</span>
+        prompt = (<span class="s">"把以下 bad case 归类到 knowledge/retrieval/prompt/model/safety "</span>
+                  <span class="s">"之一，并给一句话理由。查询：{q}\n回复：{r}\n信号：{s}"</span>
+                  .format(q=query, r=response, s=signals))
+        <span class="k">return</span> self.judge(prompt).split(<span class="s">"|"</span>)[<span class="n">0</span>].strip().lower()
+
+    <span class="c"># 环节 3：快速修复（非模型问题）</span>
+    <span class="k">def</span> <span class="f">_fast_fix</span>(self, case):
+        <span class="k">if</span> case.root_cause == <span class="s">"knowledge"</span>:
+            self.rag.add_documents([<span class="f">f</span><span class="s">"补充：{case.query} → ..."</span>])
+        case.fixed = <span class="k">True</span>
+
+    <span class="c"># 环节 4+5：批量训练 + 验证（攒够 N 条触发一次）</span>
+    <span class="k">def</span> <span class="f">maybe_retrain</span>(self, min_cases=<span class="n">50</span>):
+        pending = [c <span class="k">for</span> c <span class="k">in</span> self.queue.drain() <span class="k">if</span> not c.fixed]
+        <span class="k">if</span> <span class="f">len</span>(pending) &lt; min_cases:
+            <span class="k">return</span> {<span class="s">"status"</span>: <span class="s">"waiting"</span>, <span class="s">"collected"</span>: <span class="f">len</span>(pending)}
+        sft_data = self._to_sft(pending)
+        new_model = self.trainer.lora_train(sft_data)
+        report = self.trainer.ab_test(new_model, golden_set=<span class="n">200</span>)
+        <span class="k">if</span> report[<span class="s">"significant"</span>] <span class="k">and</span> report[<span class="s">"treatment_rate"</span>] &gt; report[<span class="s">"control_rate"</span>]:
+            self.trainer.promote(new_model)
+            <span class="k">return</span> {<span class="s">"status"</span>: <span class="s">"promoted"</span>, <span class="s">**report}</span>}
+        <span class="k">return</span> {<span class="s">"status"</span>: <span class="s">"rejected"</span>, <span class="s">**report}</span>}</code></pre>
+    <p>这段代码里有两个反直觉的设计值得注意：① <strong>非模型问题走「快速修复」旁路</strong>，不进训练队列——因为补一条文档或改一句 prompt 的成本远低于跑 LoRA，没必要等攒够 50 条；② <strong>A/B 不显著就拒绝上线</strong>，哪怕新模型在 golden set 上分数略高。这是为了避免「噪声驱动的无效迭代」——飞轮转得快不等于乱转。</p>
+
+    <h2><span class="idx"></span>数据质量监控：飞轮防卡死</h2>
+    <p>飞轮最大的失败模式不是「转得慢」，而是<strong>「转进了死循环」</strong>——bad case 越收越多，但模型死活不进步。根因往往是数据质量问题：标注不一致、合成数据有偏、bad case 重复。下面这套监控指标能提前发现飞轮卡死的征兆。</p>
+    <table>
+      <thead><tr><th>监控指标</th><th>健康区间</th><th>异常含义</th></tr></thead>
+      <tbody>
+        <tr><td>bad case 去重率</td><td>&gt; 60%</td><td>低于 30% 说明在重复收集同类问题</td></tr>
+        <tr><td>根因分布</td><td>五类均衡</td><td>某一类 &gt; 70% 说明排查框架有偏</td></tr>
+        <tr><td>标注 IAA（一致性）</td><td>&gt; 0.7</td><td>低于 0.6 说明标注规范不清</td></tr>
+        <tr><td>迭代有效率</td><td>&gt; 50%</td><td>低于 30% 说明数据质量问题严重</td></tr>
+        <tr><td>线上 bad case 率</td><td>持续下降</td><td>横盘或上升说明飞轮已卡死</td></tr>
+      </tbody>
+    </table>
+    <div class="code-title">flywheel_health.py —— 飞轮健康度监控</div>
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> Counter
+<span class="k">import</span> numpy <span class="k">as</span> np
+
+<span class="k">def</span> <span class="f">flywheel_health_report</span>(cases, iterations, window_days=<span class="n">7</span>):
+    <span class="s">"""汇总近 window_days 天的飞轮健康度"""</span>
+    recent = [c <span class="k">for</span> c <span class="k">in</span> cases <span class="k">if</span> c.created_at &gt; time.time() - window_days*<span class="n">86400</span>]
+
+    <span class="c"># ① 去重率：用 query 归一化后统计独特比例</span>
+    uniq_queries = <span class="f">set</span>(<span class="s">" "</span>.join(c.query.lower().split()) <span class="k">for</span> c <span class="k">in</span> recent)
+    dedup_rate = <span class="f">len</span>(uniq_queries) / <span class="f">max</span>(<span class="f">len</span>(recent), <span class="n">1</span>)
+
+    <span class="c"># ② 根因分布</span>
+    cause_dist = Counter(c.root_cause <span class="k">for</span> c <span class="k">in</span> recent)
+    top_cause_share = <span class="f">max</span>(cause_dist.values()) / <span class="f">max</span>(<span class="f">sum</span>(cause_dist.values()), <span class="n">1</span>)
+
+    <span class="c"># ③ 迭代有效率：最近 N 次迭代里被 promote 的比例</span>
+    recent_iters = iterations[-<span class="n">10</span>:]
+    promote_rate = <span class="f">sum</span>(<span class="n">1</span> <span class="k">for</span> i <span class="k">in</span> recent_iters
+                       <span class="k">if</span> i[<span class="s">"status"</span>] == <span class="s">"promoted"</span>) / <span class="f">max</span>(<span class="f">len</span>(recent_iters), <span class="n">1</span>)
+
+    alerts = []
+    <span class="k">if</span> dedup_rate &lt; <span class="n">0.3</span>:
+        alerts.append(<span class="s">"⚠ 去重率低，可能重复收集同类 bad case"</span>)
+    <span class="k">if</span> top_cause_share &gt; <span class="n">0.7</span>:
+        alerts.append(<span class="f">f</span><span class="s">"⚠ 根因集中在 {cause_dist.most_common(1)}，排查框架可能有偏"</span>)
+    <span class="k">if</span> promote_rate &lt; <span class="n">0.3</span> <span class="k">and</span> <span class="f">len</span>(recent_iters) &gt;= <span class="n">5</span>:
+        alerts.append(<span class="s">"⚠ 迭代有效率低，数据质量或标注规范可能有问题"</span>)
+
+    <span class="k">return</span> {
+        <span class="s">"dedup_rate"</span>: <span class="f">round</span>(dedup_rate, <span class="n">2</span>),
+        <span class="s">"cause_dist"</span>: <span class="f">dict</span>(cause_dist),
+        <span class="s">"promote_rate"</span>: <span class="f">round</span>(promote_rate, <span class="n">2</span>),
+        <span class="s">"alerts"</span>: alerts,
+        <span class="s">"healthy"</span>: <span class="f">len</span>(alerts) == <span class="n">0</span>,
+    }</code></pre>
+    <div class="callout warn"><div class="head">⚠ 合成数据的隐性偏差</div><p style="margin:6px 0;">用 LLM 合成 bad case 的训练数据是飞轮提速的常用手段，但它会引入<strong>自我强化偏差</strong>——合成数据倾向于反映 LLM 自己的偏好，反而强化了原有缺陷。健康做法：合成数据必须混入一定比例（建议 &gt;30%）的真实人工标注数据，并定期用 flywheel_health 检查根因分布是否失衡。</p></div>
+
     <h2><span class="idx"></span>本章小结</h2>
-    <p>数据闭环是 AI 项目持续改进的核心方法论，五个环节（收集→分析→补充→训练→验证）。Bad case 收集要建立多层体系（被动+主动+自动监控）。根因分析要系统化排查——80% 的 bad case 是数据/检索/prompt 问题，不是模型不行。增量训练用 LoRA 实现天级周转。闭环转得快，就是核心竞争力——这是 AI 产品最深的护城河。</p>
+    <p>数据闭环是 AI 项目持续改进的核心方法论，五个环节（收集→分析→补充→训练→验证）。Bad case 收集要建立多层体系（被动+主动+自动监控）。根因分析要系统化排查——80% 的 bad case 是数据/检索/prompt 问题，不是模型不行。增量训练用 LoRA 实现天级周转。本章进一步给出了把五环节串成自动管线的 DataFlywheel 引擎，以及一套防飞轮卡死的健康度监控指标。闭环转得快且健康，就是核心竞争力——这是 AI 产品最深的护城河。</p>
     <div class="chapter-nav">
     <a href="230-br-speech-pipeline.html"><div class="lbl">← 上一章</div>
     <footer><p>AI 全栈实战教学 · 第 231 章 · AI 项目的数据闭环与持续改进</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

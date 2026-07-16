@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -217,7 +215,7 @@
       <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
       <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
       <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
-      <a href="184-skills-writing-guide.html" class="active" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
+      <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
       <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
       <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
     </div>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 206 章 · Skills 技能体系</span>
     <h1>动手写一个技能</h1>
     <p class="lead">动手写一个技能</p>
@@ -375,14 +374,100 @@ description: &gt;
     <p>技能写完要测。拿几段真实代码（包含各种典型问题）让 agent 用这个技能审查，看它的意见是否准确、分级是否合理、格式是否规范。根据测试结果迭代 description（让匹配更准）和正文（让审查更到位）。</p>
     <p>一个常见的迭代点：发现 agent 对某类问题总是漏报或误报，就在 SKILL.md 里加强那条规则的表述（加例子、加判断条件）。技能开发是一个"写规则→测→补规则"的循环，和写测试驱动开发很像。</p>
     <div class="callout"><strong>💡 要点</strong><br>写技能的心法：description 决定"用不用"，正文决定"准不准"，辅助文件决定"全不全"。三层都要打磨，但优先级是 description &gt; 正文 &gt; 辅助文件——因为 description 不对，后面写得再好也没机会执行。</div>
+
+    <h2><span class="idx"></span>完整 SKILL.md 实战：commit-message 技能</h2>
+    <p>前面的代码审查技能介绍了结构，但缺少一份<strong>能直接拷贝就用的完整 SKILL.md</strong>。下面是一个更小但更完整的例子——「生成团队规范 commit message」技能。它的好处是行为足够简单（输入 diff，输出一行 message），适合用来验证 SKILL.md 的每一部分是否真的被 agent 正确读取。</p>
+    <div class="code-title">commit-message/SKILL.md —— 可直接使用的完整技能</div>
+    <pre><code>---
+name: commit-message
+description: &gt;
+  根据代码 diff 生成符合团队规范的 Git commit message。
+  当用户说"写 commit""生成提交信息""帮我写 commit message"
+  "这个改动怎么描述"时使用。输出单行 conventional commits 格式。
+---
+
+# Commit Message 生成技能
+
+## 决策规则（不可违反）
+
+1. 格式必须是 `<type>(<scope>): <subject>`，type 只能是：
+   feat / fix / refactor / perf / test / docs / chore / build / ci
+2. subject 用中文，不超过 30 字，动词开头，不加句号
+3. 如果 diff 同时包含多个不相关改动，只生成主改动的 message，
+   并在结尾追加 `[注: 含 N 个无关改动，建议拆分提交]`
+4. 破坏性变更：subject 前加 `!`，并在正文说明迁移方式
+
+## 流程
+
+1. 读 git diff --staged，按文件归类（源码/测试/配置/文档）
+2. 判断主改动类型 → 选 type
+3. 找改动影响的模块 → 作 scope（如 auth、api、ui）
+4. 用一句话概括意图 → 作 subject（不要罗列文件）
+5. 如有破坏性变更，补 BREAKING CHANGE 段落
+
+## 输出格式（严格遵守，禁止额外解释）
+
+只输出一行（或带 BREAKING CHANGE 段落），不要任何前后缀文字。
+错误示范："这是为您生成的 commit message：\nfeat(api): xxx"
+正确示范："feat(api): 新增分页查询接口"
+
+## 例子（仅作参考，禁止照抄到无关 diff）
+
+- `feat(auth): 支持手机号一键登录`
+- `fix(ui): 修复移动端弹窗无法关闭`
+- `refactor(api)!: 统一错误码格式`</code></pre>
+    <p>这份文件的关键设计有三处：① <strong>「不可违反」标签</strong>让 agent 把它当成硬约束；② <strong>「错误示范/正确示范」对照</strong>比单纯描述规则有效得多，这是 prompt 工程里反复验证过的技巧；③ <strong>「禁止额外解释」</strong>避免了 agent 啰嗦，省 token 也省下游解析。</p>
+
+    <h2><span class="idx"></span>技能调试技巧：当 agent 不按规则来</h2>
+    <p>写完技能不代表结束。生产中最常见的反馈是「规则明明写了，agent 就是不遵守」。下面这张排查表按出现频率排序，覆盖了 90% 以上的调试场景：</p>
+    <table>
+      <thead><tr><th>症状</th><th>根因</th><th>修复</th></tr></thead>
+      <tbody>
+        <tr><td>用户提了相关需求，但 agent 没选这个技能</td><td>description 没覆盖用户的真实表述</td><td>收集线上真实问法，补进 description</td></tr>
+        <tr><td>选对了技能，但规则被无视</td><td>规则写得太软（"应该""建议"），或被正文淹没</td><td>改用"必须/禁止"，提到正文开头</td></tr>
+        <tr><td>输出格式不对</td><td>没有正反例对照</td><td>加「错误示范/正确示范」</td></tr>
+        <tr><td>细节规则时灵时不灵</td><td>细节写在辅助文件，但没被加载</td><td>在 SKILL.md 显式写「见 xx.md」并描述触发条件</td></tr>
+        <tr><td>规则之间冲突</td><td>不同章节给了矛盾的指引</td><td>合并章节，标明优先级</td></tr>
+      </tbody>
+    </table>
+    <p>调试时有一招特别好用：<strong>让 agent 自己解释它读了什么</strong>。在测试模式下，加一句「在执行前，先复述你从 SKILL.md 读到的三条最重要的规则」。如果它复述不出来，说明那条规则被 agent 的注意力机制忽略了，必须改写法或挪位置。</p>
+    <div class="code-title">skill_debug.py —— 自动化回归测试脚本</div>
+    <pre><code><span class="c">"""
+skill_debug.py —— 给技能建一个回归测试集
+每个 case = (用户输入, 期望触发的技能名, 至少应包含的关键词)
+"""</span>
+CASES = [
+    (<span class="s">"帮我看看这个 PR 有没有问题"</span>, <span class="s">"team-code-review"</span>, [<span class="s">"阻断"</span>, <span class="s">"建议"</span>]),
+    (<span class="s">"这个 commit 怎么写"</span>, <span class="s">"commit-message"</span>, [<span class="s">"feat"</span>, <span class="s">"fix"</span>]),
+    (<span class="s">"review 一下我刚才改的代码"</span>, <span class="s">"team-code-review"</span>, []),
+]
+
+<span class="k">def</span> <span class="f">run_skill_regression</span>(agent, cases):
+    <span class="s">"""跑全部 case，报告触发命中率与规则遵循率"""</span>
+    triggered_ok = rule_ok = total = <span class="n">0</span>
+    <span class="k">for</span> user_input, expected_skill, keywords <span class="k">in</span> cases:
+        total += <span class="n">1</span>
+        chosen = agent.match_skill(user_input)
+        <span class="k">if</span> chosen == expected_skill:
+            triggered_ok += <span class="n">1</span>
+            out = agent.run(user_input)
+            <span class="k">if</span> <span class="f">all</span>(k <span class="k">in</span> out <span class="k">for</span> k <span class="k">in</span> keywords):
+                rule_ok += <span class="n">1</span>
+        <span class="k">else</span>:
+            print(<span class="f">f</span><span class="s">"⚠ 触发错误：'{user_input}' 应触发 {expected_skill}，实触发 {chosen}"</span>)
+    print(<span class="f">f</span><span class="s">"触发命中率 {triggered_ok}/{total}，规则遵循率 {rule_ok}/{triggered_ok}"</span>)</code></pre>
+    <div class="callout warn"><div class="head">⚠ 改 description 的副作用</div><p style="margin:6px 0;">为了让某个 case 触发，往 description 里堆关键词，会带来副作用——<strong>其它技能的触发率下降</strong>。技能之间在抢「用户意图」，每加一个关键词都要重跑全部 case 的回归。这就是为什么上面的脚本一次性跑全部 case，而不是只跑被改的那一个。</p></div>
+
     <h2><span class="idx"></span>本章小结</h2>
-    <p>通过"代码审查"技能的完整设计，我们走过了技能开发的全流程：需求分析（触发/输入输出/规则）→ description 设计（精准触发器）→ 正文编写（决策+流程）→ 辅助文件拆分（细节外置）→ 测试迭代。掌握了这套方法，你就能为自己的工作流定制任何技能，让 agent 真正按你的规范工作。</p>
+    <p>通过"代码审查"技能的完整设计，我们走过了技能开发的全流程：需求分析（触发/输入输出/规则）→ description 设计（精准触发器）→ 正文编写（决策+流程）→ 辅助文件拆分（细节外置）→ 测试迭代。本章还补充了一份可直接使用的 commit-message 技能完整 SKILL.md，以及一张覆盖 90% 调试场景的排查表。掌握这套方法后，你就能为自己的工作流定制任何技能，并通过回归脚本保证迭代不退化。技能开发的心法始终是：description 决定用不用，正文决定准不准，辅助文件决定全不全。</p>
     <div class="chapter-nav">
     <a href="183-skills-lifecycle-management.html"><div class="lbl">← 上一章</div><div class="ttl">183 · 技能生命周期管理：安装、更新、版本、权限</div></a>
     <a href="185-skills-plugin-ecosystem.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">185 · 技能生态与插件市场：从个人到平台</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 206 章 · 动手写一个技能：从需求到 SKILL.md</p><p>Skills 技能体系深度系列 · 覆盖 SKILL.md 契约 · 渐进式披露 · MCP 对比 · 技能生态</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

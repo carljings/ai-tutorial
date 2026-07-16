@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -31,7 +31,7 @@
       <a href="11-project-coding-agent.html" title="实战项目：企业级 AI 编程助手"><span class="num">11</span>实战项目</a>
       <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
       <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
-      <a href="14-multimodal.html" class="active" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
+      <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
       <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
       <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
       <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 14 · 专题深度</span>
       <h1>多模态大模型深度<br>从「只读文字」到「看懂世界」</h1>
@@ -429,6 +429,66 @@
     </ul>
     <blockquote>统一多模态是通往 <strong>AGI（通用人工智能）</strong> 的必经之路——一个真正智能的系统，必须能像人一样用多种感官感知世界。</blockquote>
 
+    <h2 class="section" id="vit-impl"><span class="idx">★</span> ViT patch 化的最小实现</h2>
+    <p>前面讲了 ViT 把图像切成 patch。但「切 patch」到底在代码里是什么操作？其实就三步：<strong>把图像切成网格 → 每个小块展平成向量 → 加位置编码</strong>。下面这段 PyTorch 代码用十几行实现了 ViT 的 PatchEmbed 模块——它是一切视觉 Transformer 的入口。跑一遍你就会发现，「图像变成 token 序列」没有任何黑魔法，本质就是一个 reshape + 线性投影。</p>
+    <pre><code><span class="k">import</span> torch
+<span class="k">import</span> torch.nn <span class="k">as</span> nn
+
+<span class="k">class</span> <span class="t">PatchEmbed</span>(nn.Module):
+    <span class="s">"""把图像切成 patch 并嵌入成 token 序列——ViT 的入口"""</span>
+    <span class="k">def</span> <span class="f">__init__</span>(self, img_size=<span class="n">224</span>, patch_size=<span class="n">16</span>, in_chans=<span class="n">3</span>, embed_dim=<span class="n">768</span>):
+        <span class="k">super</span>().__init__()
+        self.num_patches = (img_size // patch_size) ** <span class="n">2</span>   <span class="c"># 224/16=14 → 196 个 patch</span>
+        <span class="c"># 一个卷积等价于“切 patch + 线性投影”两步合一</span>
+        self.proj = nn.Conv2d(in_chans, embed_dim,
+                              kernel_size=patch_size, stride=patch_size)
+        <span class="c"># 可学习的位置编码：告诉模型每个 patch 在图里的位置</span>
+        self.pos_embed = nn.Parameter(torch.randn(<span class="n">1</span>, self.num_patches + <span class="n">1</span>, embed_dim) * <span class="n">0.02</span>)
+
+    <span class="k">def</span> <span class="f">forward</span>(self, x):                  <span class="c"># x: (B, 3, 224, 224)</span>
+        x = self.proj(x)                     <span class="c"># → (B, 768, 14, 14)</span>
+        x = x.flatten(<span class="n">2</span>).transpose(<span class="n">1</span>, <span class="n">2</span>)  <span class="c"># → (B, 196, 768) 就是 196 个视觉 token</span>
+        cls = torch.zeros(x.size(<span class="n">0</span>), <span class="n">1</span>, x.size(<span class="n">2</span>))  <span class="c"># [CLS] token，用于汇总全图</span>
+        x = torch.cat([cls, x], dim=<span class="n">1</span>)      <span class="c"># → (B, 197, 768)</span>
+        <span class="k">return</span> x + self.pos_embed            <span class="c"># 加位置编码后送进 Transformer</span>
+
+<span class="c"># 验证：一张 224×224 的图，变成 197 个 768 维 token</span>
+patch_embed = PatchEmbed()
+dummy_img = torch.randn(<span class="n">1</span>, <span class="n">3</span>, <span class="n">224</span>, <span class="n">224</span>)
+tokens = patch_embed(dummy_img)
+print(tokens.shape)   <span class="c"># torch.Size([1, 197, 768])</span>
+<span class="c"># 至此图像已经和一段 197 词的文本在数据结构上没有区别——都可以喂进 Transformer</span></code></pre>
+    <p>这里有个极其精妙的点：<code>Conv2d(kernel=16, stride=16)</code> 这一个卷积层，数学上完全等价于「把图切成 16×16 的小块、每块展平成 768 维向量、再做线性变换」三件事。深度学习框架用卷积来实现只是因为更快。<code>patch_size</code> 是个关键超参——越小（如 8×8）token 越多、细节越丰富但计算量平方级增长；越大（如 32×32）越省算力但丢细节。GLM-4V 等高分辨率模型会用「动态 patch」策略：对高清图先切大块，对感兴趣区域再切小块，兼顾效率和精度。</p>
+
+    <h2 class="section" id="llava-connector"><span class="idx">★</span> LLaVA 式跨模态连接器实现</h2>
+    <p>有了视觉 token，还差最后一步——把它们「翻译」成 LLM 能懂的语言。LLaVA 用了一个极其简单却出奇有效的方案：一个<strong>单层线性投影（MLP）</strong>，把 ViT 输出的视觉向量映射到 LLM 的嵌入空间，然后直接当作「特殊的文本 token」拼到 prompt 前面。就这么朴素，LLaVA 却成了开源多模态的事实基线。下面是它的核心实现。</p>
+    <pre><code><span class="k">import</span> torch.nn <span class="k">as</span> nn
+
+<span class="k">class</span> <span class="t">LLaVAConnector</span>(nn.Module):
+    <span class="s">"""LLaVA 式连接器：把视觉编码器输出投影到 LLM 词嵌入空间"""</span>
+    <span class="k">def</span> <span="f">__init__</span>(self, vision_dim=<span class="n">1024</span>, llm_dim=<span class="n">4096</span>):
+        <span class="k">super</span>().__init__()
+        <span class="c"># 核心就这一个 MLP——LLaVA-1.5 升级成两层，效果更好</span>
+        self.mlp = nn.Sequential(
+            nn.Linear(vision_dim, llm_dim),
+            nn.GELU(),
+            nn.Linear(llm_dim, llm_dim),
+        )
+
+    <span class="k">def</span> <span class="f">forward</span>(self, image_features):       <span class="c"># (B, num_patch, vision_dim)</span>
+        <span class="k">return</span> self.mlp(image_features)         <span class="c"># (B, num_patch, llm_dim)</span>
+
+<span class="k">def</span> build_llava_prompt(text, image_tokens, llm_embed, connector):
+    <span class="c"># 1. 文本照常分词、嵌入</span>
+    text_emb = llm_embed.tokenize(text)         <span class="c"># (1, T_text, llm_dim)</span>
+    <span class="c"># 2. 图像经连接器投影成“视觉词”</span>
+    vis_emb = connector(image_tokens)           <span class="c"># (1, T_img, llm_dim)</span>
+    <span class="c"># 3. 直接拼接——视觉词像普通词一样参与注意力</span>
+    seq = torch.cat([vis_emb, text_emb], dim=<span class="n">1</span>)  <span class="c"># (1, T_img+T_text, llm_dim)</span>
+    <span class="k">return</span> seq
+    <span class="c"># 之后这个序列送进 LLM，LLM 的自注意力天然能让文本 token “看到”图像 token</span></code></pre>
+    <p>这段代码揭示了多模态对齐的本质：<strong>所谓「让模型看懂图」，就是把图像变成一串和文本「同维度、同空间」的向量，然后让 Transformer 的注意力机制自己去学怎么关联</strong>。LLaVA 的训练也极简——第一阶段用「图像-描述」对只冻住其他参数、单独训练这个 MLP 做对齐；第二阶段用指令微调数据训练整体遵循指令。这种「轻连接器 + 重利用已有 LLM」的思路，是为什么开源社区能用很小的算力训出不错多模态模型的原因。相比之下，Q-Former（BLIP-2 用的）更复杂——它用一组可学习的 query 主动从图像特征里「抽取」固定数量的 token，能压缩冗余视觉信息，但训练更难收敛。工程上，LLaVA 的简单方案往往是最先该试的基线。</p>
+
     <h2 class="section" id="code"><span class="idx">06</span> 代码实战：调用多模态模型</h2>
     <div class="code-title">multimodal_demo.py —— 用 GLM-4V 理解图像</div>
     <pre><code><span class="c">"""
@@ -491,6 +551,8 @@ print(resp.choices[<span class="n">0</span>].message.content)
       <p>参考：LLaVA · BLIP-2 · ViT · CLIP · GLM-4V · GPT-4o</p>
     </footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

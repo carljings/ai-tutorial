@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -227,7 +225,7 @@
       <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
       <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
       <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
-      <a href="192-pat-memory.html" class="active" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
+      <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
       <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
       <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
       <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 216 章 · Agent 设计模式</span>
     <h1>Agent 记忆架构</h1><p class="lead">让 agent 记住过去、影响未来</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -372,6 +371,111 @@
             hits = self.archival.search(self._embed(query), k=5)
             relevant.extend(hits)
         return relevant</code></pre>
+    <h2><span class="idx"></span>向量记忆检索：从原理到生产实现</h2>
+    <p>前面的 <code>retrieve_memory</code> 给出了三因子打分的骨架，但真要上线还有几个工程问题：记忆条目如何结构化存储、embedding 怎么缓存、相似度怎么算得快。下面是一个更完整的向量记忆模块实现，它把每条记忆存成带元数据的对象，用 numpy 做批量余弦相似度（比逐条算快几十倍），并支持按记忆类型过滤。这是 Generative Agents 思路落地到生产的最小可用形态。</p>
+    <pre class="code"><code class="language-python">import numpy as np
+from dataclasses import dataclass, field
+from datetime import datetime, timedelta
+
+@dataclass
+class Memory:
+    text: str
+    embedding: np.ndarray
+    timestamp: datetime
+    importance: float          # 0~1，LLM 打分归一化
+    mtype: str = "episodic"    # episodic / semantic / preference
+
+class VectorMemoryStore:
+    def __init__(self, embed_fn, alpha=1.0, beta=1.0, gamma=1.0):
+        self.embed = embed_fn
+        self.items: list[Memory] = []
+        self.matrix = None      # 缓存所有 embedding，批量相似度
+        self.alpha, self.beta, self.gamma = alpha, beta, gamma
+
+    def add(self, text, importance=0.5, mtype="episodic"):
+        m = Memory(text, self.embed(text), datetime.now(), importance, mtype)
+        self.items.append(m)
+        self.matrix = None      # 失效缓存，下次检索重建
+
+    def _ensure_matrix(self):
+        if self.matrix is None and self.items:
+            self.matrix = np.vstack([m.embedding for m in self.items])
+
+    def retrieve(self, query, k=5, mtype=None, decay=0.99):
+        q = self.embed(query)
+        self._ensure_matrix()
+        if self.matrix is None:
+            return []
+        # 批量余弦相似度（向量化，比逐条循环快得多）
+        relevance = self.matrix @ q / (
+            np.linalg.norm(self.matrix, axis=1) * np.linalg.norm(q) + 1e-8)
+        now = datetime.now()
+        scored = []
+        for i, m in enumerate(self.items):
+            if mtype and m.mtype != mtype:
+                continue
+            hours = (now - m.timestamp).total_seconds() / 3600
+            recency = decay ** hours
+            score = self.alpha*recency + self.beta*relevance[i] + self.gamma*m.importance
+            scored.append((score, m))
+        scored.sort(key=lambda x: -x[0])
+        return [m for _, m in scored[:k]]
+
+# 用法：偏好类记忆单独检索，避免被海量情景记忆淹没
+store = VectorMemoryStore(embed_fn=my_embedder)
+store.add("用户喜欢简洁回答，讨厌冗长", importance=0.9, mtype="preference")
+store.add("刚帮用户调试了 RAG 的分块问题", importance=0.6, mtype="episodic")
+prefs = store.retrieve("用户希望怎么回复", k=3, mtype="preference")</code></pre>
+    <p>几个实战要点：<strong>把 embedding 缓存成矩阵</strong>（<code>_ensure_matrix</code>）是性能关键，10 万条记忆逐条算余弦要好几秒，矩阵乘法只要几毫秒；<strong>按 <code>mtype</code> 过滤</strong>能避免「用户偏好」被淹没在「日常对话」里——不同类型记忆应当走不同的检索通道；<strong>三个权重 α/β/γ 要按场景调</strong>，客服场景 relevance 权重高，长期助理场景 recency 权重低（老偏好也有价值）。</p>
+
+    <h2><span class="idx"></span>记忆衰减与遗忘：让 agent 记住该记的</h2>
+    <p>人的记忆会遗忘，这是优势不是缺陷——如果什么都记住，大脑会被噪音淹没，关键信息反而调不出来。agent 也一样：无限堆积的记忆会让向量库膨胀、检索变慢、还会引入过时信息（「用户上个月在上海，但这个月搬去深圳了」）。所以成熟 agent 都要设计<strong>记忆衰减与淘汰策略</strong>。下面这段代码实现了四种常见策略：指数时间衰减、访问频次强化（常被想起的记忆更不容易忘）、重要性阈值淘汰、以及定期的「反思压缩」——把一堆琐碎情景记忆合成一条高密度语义记忆。</p>
+    <pre class="code"><code class="language-python">def decay_and_forget(store, now, forget_days=30, min_importance=0.2,
+                     topk_keep=1000, llm_summarize=None):
+    """对记忆库做一次衰减 + 淘汰 + 压缩。"""
+    survivors, to_drop, to_merge = [], [], []
+    for m in store.items:
+        age_days = (now - m.timestamp).days
+        # 策略 1：指数时间衰减——越久越不重要
+        m.importance *= 0.995 ** age_days
+        # 策略 2：访问强化——每被检索一次，衰减打个折扣（"经常想起=长期记忆"）
+        m.importance *= (1 - 0.01) ** max(0, age_days - m.access_count)
+        # 策略 3：低重要性 + 老旧 → 直接丢弃
+        if m.importance &lt; min_importance and age_days &gt; forget_days:
+            to_drop.append(m)
+        elif age_days &gt; forget_days:
+            to_merge.append(m)   # 老 but 还有点重要的 → 候选压缩
+        else:
+            survivors.append(m)
+
+    # 策略 4：反思压缩——把同主题的旧情景记忆合成一条语义记忆
+    if llm_summarize and len(to_merge) &gt; 5:
+        merged = llm_summarize([m.text for m in to_merge])  # 返回一句提炼
+        survivors.append(Memory(merged, store.embed(merged), now,
+                                importance=0.8, mtype="semantic"))
+
+    # 策略 5：总量上限——超了就按当前重要性淘汰最末尾的
+    survivors.sort(key=lambda m: -m.importance)
+    store.items = survivors[:topk_keep]
+    store.matrix = None  # 失效缓存
+    print(f"淘汰 {len(to_drop)} 条，压缩 {len(to_merge)} 条，留存 {len(store.items)} 条")</code></pre>
+    <p>衰减策略的核心思想是<strong>「主动遗忘」</strong>：与其等向量库爆炸再清理，不如让记忆自然老化。其中「反思压缩」是最有价值的——它让 agent 从「记得我周三帮用户改了登录 bug、周五又改了支付 bug」进化到「用户最近在做后端 bug 修复工作」，这种抽象层级的跃迁，正是 agent 看起来「越来越懂你」的根本原因。配上前面三因子检索，就构成了一套完整的、会自我维护的记忆系统。</p>
+
+    <h2><span class="idx"></span>记忆架构选型：该用哪一套</h2>
+    <p>讲了好几种记忆机制，真做产品时该选哪个？答案是<strong>按任务的时间跨度和复杂度分层选</strong>。不是所有 agent 都需要全套记忆系统——简单客服用短期记忆就够，长期助理才需要向量记忆，只有需要「越用越懂你」的私人助手才值得上反思压缩。过度设计记忆系统，只会增加延迟和运维成本。下面这张选型表把主流记忆方案按「适用场景、实现复杂度、延迟、效果」对比，帮你按需取用。</p>
+    <table class="data-table">
+      <thead><tr><th>方案</th><th>适用场景</th><th>复杂度</th><th>额外延迟</th><th>记忆效果</th></tr></thead>
+      <tbody>
+        <tr><td>全量上下文（塞历史）</td><td>短对话、单任务</td><td>★（最低）</td><td>无</td><td>窗口内全记住，超窗即丢</td></tr>
+        <tr><td>滑动窗口 + 摘要</td><td>中等长度对话</td><td>★★</td><td>低</td><td>近期原文 + 远期摘要</td></tr>
+        <tr><td>向量记忆检索</td><td>跨会话知识、长期助理</td><td>★★★</td><td>中（一次检索）</td><td>按需召回相关历史</td></tr>
+        <tr><td>三因子检索 + 衰减</td><td>个性化助手、虚拟角色</td><td>★★★★</td><td>中</td><td>近/相关/重要优先，会遗忘</td></tr>
+        <tr><td>MemGPT 分层换页</td><td>超长任务、需突破窗口</td><td>★★★★</td><td>高（可能触发换页）</td><td>容量远超窗口，近实时</td></tr>
+        <tr><td>反思压缩</td><td>需「越来越懂你」的伙伴</td><td>★★★★★</td><td>高（周期性反思）</td><td>从流水账进化到认知结构</td></tr>
+      </tbody>
+    </table>
+    <p>选型的核心原则是<strong>「够用就好」</strong>：能用滑动窗口解决的，就别上向量库；能用单层向量记忆解决的，就别上 MemGPT 分层。一个常见误判是「记忆越多越聪明」——实际上记忆检索有噪声，塞太多无关历史反而会让模型分心、回答变差。正确做法是先从最简单的方案起步，用评估集量化「加记忆带来的增益」，只有增益明显时才升级到更复杂的架构。这和微调里的「控制变量」是一个道理。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>记忆是 agent 持续运作的基础：短期记忆（上下文窗口）管当前、长期记忆（向量库）管跨会话知识、情景记忆管过往经历。MemGPT 的分层换页思路让 agent 突破上下文窗口限制。设计 agent 时要想清楚"需要记什么、记多久、怎么找回"——好的记忆系统让 agent 越用越聪明，差的记忆系统让 agent 反复犯错。</p>
     <div class="chapter-nav">
@@ -380,6 +484,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 216 章 · Agent 记忆架构：短期、长期、情景记忆</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>
