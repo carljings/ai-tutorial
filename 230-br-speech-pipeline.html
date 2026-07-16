@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                            <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -277,7 +275,7 @@
       <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
       <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
       <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
-      <a href="230-br-speech-pipeline.html" class="active" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
+      <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
       <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
       <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
       <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
@@ -305,27 +303,10 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span>
-    <h1>语音 AI 全链路</h1><p class="lead">从听到说：语音交互的完整技术栈</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>语音 AI 的三段式架构</h2>
-    <p>一个完整的语音 Agent（如 GPT-4o 语音模式）由三段组成：ASR（语音识别，把用户说的话转成文字）→ LLM（理解+生成文字回答）→ TTS（语音合成，把文字回答转成语音）。这三段串起来就是"用户说话→AI 回话"的完整链路。每段都有独特的技术挑战。</p>
-    <h2><span class="idx"></span>ASR：语音识别</h2>
-    <p>Whisper 是 OpenAI 开源的最强 ASR 模型，支持 99 种语言。它的架构是 Encoder-Decoder Transformer：音频转成梅尔频谱图 → Encoder 提取声学特征 → Decoder 生成文本。Whisper 的优势是多语言、鲁棒性强（嘈杂环境也能识别）、可本地部署。挑战是实时性（流式 ASR 需要边说边识别）。</p>
-    <h2><span class="idx"></span>TTS：语音合成与声音克隆</h2>
-    <p>现代 TTS 能做到"几秒钟参考音频克隆任意人的声音"。技术路线从传统的拼接法/参数法，进化到基于深度学习的端到端模型（Tacotron/VITS/Bark）。声音克隆的核心是"零样本说话人自适应"——给几秒参考音频，模型就能用那个声音说任意内容。</p>
-    <h2><span class="idx"></span>端到端语音模型</h2>
-    <p>最新的趋势是"端到端语音模型"——不再分 ASR/LLM/TTS 三段，而是一个模型直接从音频到音频。GPT-4o 的语音模式就是端到端的——它能听懂语气、情绪，回答时也带有情感。这比"三段拼接"自然得多，但训练难度也高得多。</p>
-    <table class="data-table"><thead><tr><th>方案</th><th>架构</th><th>优缺点</th></tr></thead><tbody><tr><td>三段式（ASR→LLM→TTS）</td><td>三个模型串联</td><td>成熟、可分别优化，但损失情感/延迟高</td></tr><tr><td>端到端语音模型</td><td>一个模型处理音频</td><td>自然、低延迟，但训练难、计算重</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>语音 AI 有三段式架构（ASR→LLM→TTS）和端到端语音模型两种路线。三段式成熟可用（Whisper+LLM+Bark），端到端更自然但更难。语音 Agent 是 AI 交互的下一个大方向——从打字到说话。</p>
-    <div class="chapter-nav">
-    <a href="229-br-responsible-ai.html"><div class="lbl">← 上一章</div><div class="ttl">229 · 负责任 AI 文档：模型卡与数据卡</div></a>
-    <a href="231-br-data-closedloop.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">231 · AI 项目的数据闭环与持续改进</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 254 章 · 语音 AI 全链路：ASR → LLM → TTS</p></footer>
-  </main>
+<main class="content">
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

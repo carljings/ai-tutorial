@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>端侧部署实战：手机/嵌入式跑模型 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>端侧部署实战：手机/嵌入式跑模型 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -261,7 +268,7 @@
       <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
       <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
       <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
-      <a href="225-comp-edge.html" class="active" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
+      <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
     </div>
     <div class="nav-group"><h3>★AI知识拓宽</h3>
       <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
@@ -295,31 +302,12 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span><h1>端侧部署实战：手机/嵌入式跑模型</h1><p class="lead">让 LLM 跑在手机上——端侧部署的工程全景</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么要端侧：隐私、延迟、离线、成本</h2>
-    <p>云端 LLM 有四个痛点：① 隐私（数据必须发到服务器）；② 延迟（网络往返 200ms+）；③ 离线不可用；④ 成本（按 token 付费）。端侧部署直接解决这四个问题——模型跑在用户设备上，数据不出设备、零网络延迟、完全离线、零边际成本。代价是模型必须小（1-7B 量化后），能力远不如云端大模型。</p>
-    <table class="data-table"><thead><tr><th>端侧方案</th><th>模型大小</th><th>硬件要求</th><th>能力</th></tr></thead><tbody><tr><td>llama.cpp + GGUF INT4</td><td>2-4 GB</td><td>8GB 内存手机</td><td>7B 级别</td></tr><tr><td>MLC-LLM</td><td>1-3 GB</td><td>iPhone 12+</td><td>7B 量化</td></tr><tr><td>CoreML/NCNN</td><td>&lt;1 GB</td><td>中端手机</td><td>1-3B 小模型</td></tr><tr><td>zvec + 嵌入模型</td><td>&lt;200 MB</td><td>任何设备</td><td>RAG 检索(非生成)</td></tr></tbody></table>
-    <h2><span class="idx"></span>端侧 LLM 的典型架构</h2>
-    <pre class="code"><code class="language-text">端侧 AI 应用架构（RAG + 本地 LLM）
+  </aside>
+<main class="content">
 
-[用户输入]
-    │
-    ▼
-[嵌入模型] ← bge-small (90MB, 本地)
-    │
-    ▼
-[zvec 向量库] ← 本地知识库 (WAL 持久化)
-    │  召回 top-k chunks
-    ▼
-[本地 LLM] ← Qwen2.5-7B INT4 (4GB, llama.cpp)
-    │  基于检索结果生成
-    ▼
-[流式输出] ← UI 渲染
+</main>
 
-全链路本地完成：零网络、零云成本、完全隐私</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>端侧部署解决云端四大痛点（隐私/延迟/离线/成本）。典型架构：bge-small 嵌入 + zvec 向量库 + Qwen2.5-7B INT4 本地 LLM。工具链：llama.cpp（通用）、MLC-LLM（移动端）、zvec（端侧向量库）。能力受限但隐私和延迟优势明显，适合"数据不出设备"的场景。</p>
-    <div class="chapter-nav">
-    <a href="224-comp-tensorrt.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 225 章 · 端侧部署实战：手机/嵌入式跑模型</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

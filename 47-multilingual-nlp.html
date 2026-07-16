@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>多语言 NLP · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>多语言 NLP · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -61,7 +68,7 @@
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
       <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
       <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
-      <a href="47-multilingual-nlp.html" class="active" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
+      <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
       <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
       <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
       <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
@@ -295,18 +302,157 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>多语言 NLP</h1><p class="lead">中文、英文、低资源语言——LLM 的多语言能力</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>LLM 的语言能力极度不均衡</h2>
-    <p>主流 LLM（GPT-4/Claude/Llama）在英语上表现最好，因为训练数据里英文占比最大（CommonCrawl 里英文约 40-60%）。中文次之（约 10-15%），其他语言更少。这导致一个直接后果：同一个模型，英文任务的表现远好于低资源语言。一个斯瓦希里语用户得到的 AI 服务质量，可能只有英语用户的 60%。这就是"语言鸿沟"。</p>
-    <table class="data-table"><thead><tr><th>语言</th><th>训练数据占比</th><th>GPT-4 能力</th><th>代表模型</th></tr></thead><tbody><tr><td>英文</td><td>~50%</td><td>最强</td><td>所有主流模型</td></tr><tr><td>中文</td><td>~10-15%</td><td>良好（国产模型更好）</td><td>Qwen/GLM/DeepSeek</td></tr><tr><td>日韩</td><td>~3-5%</td><td>中等</td><td>特定微调模型</td></tr><tr><td>低资源语言</td><td>&lt;1%</td><td>弱/很差</td><td>需专门训练</td></tr></tbody></table>
-    <h2><span class="idx"></span>为什么中文 LLM 需要专门训练</h2>
-    <p>英文 LLM 直接用于中文有几个问题：① 分词器（tokenizer）对中文不友好——BPE 分词会把中文切成碎片，效率低；② 文化/知识偏差——英文模型不懂"春运""高考""公积金"；③ 指令遵循差异——中文用户习惯不同。国产模型（Qwen/GLM/DeepSeek）专门加了大规模中文预训练+中文指令微调，中文能力远超直接用英文模型。</p>
-    <div class="callout"><strong>💡 要点</strong><br>多语言 LLM 的选型：英文场景用 GPT-4/Claude；中文场景优先国产模型（Qwen/GLM）；低资源语言需要专门的语料收集+训练。不要指望一个英文模型做好所有语言——语言能力来自训练数据，数据少能力就弱，这是 Scaling Law 的直接推论。</div>
-    <h2><span class="idx"></span>低资源语言的解法</h2>
-    <p>对于训练数据极少的小语种，直接训模型不现实。几个变通方法：① 迁移学习（用多语言模型微调）；② 机器翻译管道（翻译成英文→英文模型处理→翻译回去）；③ 合成数据（用 LLM 生成小语种训练数据）。Google 的 NLLB（No Language Left Behind）支持 200+ 语言，就是用了大规模多语言预训练+翻译。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM 语言能力不均衡——英文最强（数据多）、中文良好（国产模型更好）、低资源语言弱。中文需要专门训练（分词器/文化/指令差异）。低资源语言用迁移学习/翻译管道/合成数据。语言能力来自训练数据量——这是 Scaling Law 在多语言上的体现。</p>
-    <div class="chapter-nav">
-      <a href="46-finetuning-project.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 47 章 · 多语言 NLP</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 47 · 多语言NLP</span>
+      <h1>多语言NLP实战<br>从中文分词到跨语言迁移学习</h1>
+      <p class="lead">当你的模型走出英语世界，会遇到汉语的"词界模糊"、阿拉伯语的"右向书写"、斯瓦希里语的"语料稀缺"。多语言NLP不是简单的"加一层语言开关"，而是一场从分词粒度到预训练范式的系统性重构。本章带你穿越中文分词的特殊性、XLM-R的跨语言迁移、低资源语言突围，以及mBERT的多面之争。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="cjk-challenge"><span class="idx">★</span> 中文分词的特殊性：没有空格的语言</h2>
+    <p>英语、法语、西班牙语这些以拉丁字母为基础的语言，天生用空格把词隔开——分词在工程上几乎等于"按空格切"。但中文、日文、韩文（CJK）这套思路立刻失效：中文句子里词与词之间没有显式分隔符，"结合成分子时"到底是"结合/成/分子时"还是"结/合成/分子/时"，完全依赖语境。这就是中文NLP的第一道门槛。</p>
+    <p>更麻烦的是歧义切分。经典例子"结婚的和尚未结婚的"，既可以切分为"结婚/的/和/尚未/结婚/的"，也可能被错误地切成"结婚/的/和尚/未/结婚/的"。一个优秀的分词器必须在概率图模型或神经网络的帮助下，结合上下文选择最合理的切分。这意味着中文分词本身就是一个独立的NLP子任务，而非预处理细节。</p>
+    <p>现代主流做法分两条路线。第一条是"传统词典+统计模型"，代表是 jieba、HanLP、THULAC，速度快、可控性强，适合对延迟敏感的线上服务。第二条是"预训练子词分词器"，如 BERT 的 WordPiece、SentencePiece 的 BPE/Unigram，它们不再追求"语言学意义上的词"，而是用数据驱动的方式学习高频子词单元，让分词与下游模型端到端协同。下面这段代码展示两种路线的对比。</p>
+    <pre><code class="language-python">import jieba
+from transformers import BertTokenizer
+
+# 路线一：传统统计分词（词典+HMM/Viterbi）
+text = "自然语言处理是人工智能皇冠上的明珠"
+seg_jieba = jieba.lcut(text)
+print("jieba 分词:", seg_jieba)
+# 输出: ['自然语言', '处理', '是', '人工智能', '皇冠', '上', '的', '明珠']
+
+# 路线二：BERT 中文 WordPiece（按字+少量词）
+bert_tok = BertTokenizer.from_pretrained("bert-base-chinese")
+seg_bert = bert_tok.tokenize(text)
+print("BERT WordPiece:", seg_bert)
+# 输出: ['自', '然', '语', '言', '处', '理', '是', '人', '工', '智', '能', ...]
+
+# 关键差异：BERT 中文实际上是"按字切分"，
+# 这避开了分词歧义，但也丢失了"词"级别的语义边界信息。
+# 实践中常常两者结合：用 jieba 做粗切分，再用 WordPiece 做子词归一化。
+ids = bert_tok.encode(text, add_special_tokens=True)
+print("Token IDs:", ids)
+print("词表大小:", bert_tok.vocab_size)  # 约 21128
+</code></pre>
+    <p>这里有一个容易被忽略的工程细节：BERT-base-Chinese 实际上是"字级别"模型，它的词表里每个汉字基本是一个 token，因此"分词歧义"问题被绕开了，但代价是序列长度变长、注意力计算开销增大。对于长文档任务，你可能需要回到词级别的分词，以压缩序列长度。理解这一权衡，是做好中文NLP的第一步。</p>
+    <h2 class="section" id="xlm-r"><span class="idx">★</span> 跨语言迁移学习：XLM-R 的工作原理</h2>
+    <p>假设你只有英文标注数据，却希望模型也能处理法文、日文、阿拉伯文。传统做法是为每种语言单独训练一个模型，标注成本高得吓人。跨语言迁移学习（Cross-lingual Transfer Learning）给出了另一条路：在一个巨大的多语言语料上预训练一个共享模型，使其在不同语言间共享语义表示，然后用任意一种语言（通常是英文）的标注做微调，模型即可"零样本"地迁移到其他语言。XLM-R（Cross-lingual Language Model - RoBERTa）就是这条路线的里程碑之作。</p>
+    <p>XLM-R 的核心有三点。第一，预训练语料是 CommonCrawl 上抓取的 100 种语言、共 2.5TB 文本，规模远超 mBERT 的 Wikipedia 语料。第二，分词器用 SentencePiece 训练了一个 25 万词表的多语言 Unigram 模型，能同时覆盖高低资源语言。第三，预训练任务是屏蔽语言模型（MLM），与 RoBERTa 一致，但屏蔽策略对多语言做了优化，保证低资源语言也被充分训练。</p>
+    <p>关键问题来了：为什么一个在英文上微调的分类器，能直接用在日文上？答案是 XLM-R 在高层语义空间里把不同语言的"等价概念"映射到了相近的向量。比如英文 "dog" 和日文 "犬" 在嵌入空间中距离很近，因为它们在预训练中经常出现在相似的上下文（动物、宠物、家庭）里。这种"语义对齐"使得分类头的线性边界能够跨语言泛化。下面这段代码演示如何用 XLM-R 做跨语言情感分类。</p>
+    <pre><code class="language-python">from transformers import AutoTokenizer, AutoModelForSequenceClassification
+import torch
+
+# 只用英文数据微调，模型即可迁移到 100+ 种语言
+MODEL = "xlm-roberta-large"
+tok = AutoTokenizer.from_pretrained(MODEL)
+model = AutoModelForSequenceClassification.from_pretrained(
+    MODEL, num_labels=3  # negative / neutral / positive
+).cuda().eval()
+
+# 假设我们已经在英文 SST 数据上微调过（这里用随机权重做演示）
+def predict(text: str):
+    enc = tok(text, return_tensors="pt", truncation=True, max_length=128)
+    enc = {k: v.cuda() for k, v in enc.items()}
+    with torch.no_grad():
+        logits = model(**enc).logits
+    label = ["neg", "neu", "pos"][logits.argmax(-1).item()]
+    return label
+
+# 同一个微调后的模型，直接预测多语言输入
+for sent in [
+    "This movie is absolutely wonderful.",   # 英文
+    "这部电影真是太精彩了。",                  # 中文
+    "Ce film est absolument merveilleux.",   # 法文
+    "この映画は本当に素晴らしい。",             # 日文
+]:
+    print(f"{predict(sent):4} | {sent}")
+</code></pre>
+    <p>一个重要提示：零样本跨语言迁移的效果并不是"均匀"的。XLM-R 在与英文形态接近的欧洲语言上表现最好，在形态差异大、语料稀缺的语言（如部分非洲、南亚语言）上会有明显掉点。如果你观察到某个语言表现差，下一节的策略就是救场方案。</p>
+    <h2 class="section" id="low-resource"><span class="idx">★</span> 低资源语言处理：四把突围利器</h2>
+    <p>全球大约 7000 种语言，但绝大多数 NLP 研究集中在排名前 20 的语言里。对于斯瓦希里语、约鲁巴语、藏语这类低资源语言，标注数据可能只有几千条，预训练语料也只有几十 MB。直接套用 XLM-R 往往效果不佳。低资源语言处理的工程实践，通常围绕以下四种策略展开。</p>
+    <p>第一是<strong>翻译增强（Translate-Train / Translate-Test）</strong>。把英文训练集机器翻译成目标语言再训练，或者反过来把目标语言测试集翻译成英文再推理。这是最简单粗暴但通常有效的方法，尤其当机器翻译质量不错时。第二是<strong>语料回译与伪标注</strong>，用大模型给无标注目标语言文本打弱标签，扩充训练集。第三是<strong>联合训练（Multi-task Co-training）</strong>，把目标语言和高资源语言混在一起训练，让模型在共享表示中互相借力。第四是<strong>自适应预训练（Adaptive Pretraining）</strong>，即在大规模多语言模型基础上，继续用目标语言的小语料做领域自适应 MLM 微调（domain-adaptive pretraining, DAPT），再在标注任务上微调。下面这段代码演示 DAPT 在小语料上的实现思路。</p>
+    <pre><code class="language-python">from transformers import (
+    AutoTokenizer, AutoModelForMaskedLM, DataCollatorForLanguageModeling,
+    Trainer, TrainingArguments
+)
+from datasets import load_dataset
+
+# 1) 在 XLM-R 基础上，用目标语言小语料继续做 MLM 自适应
+MODEL = "xlm-roberta-base"
+tok = AutoTokenizer.from_pretrained(MODEL)
+model = AutoModelForMaskedLM.from_pretrained(MODEL)
+
+# 2) 加载目标语言语料（这里以一份本地 txt 为例）
+ds = load_dataset("text", data_files={"train": "swahili_corpus.txt"})["train"]
+
+def tokenize(batch):
+    return tok(batch["text"], truncation=True, max_length=128)
+
+ds = ds.map(tokenize, batched=True, remove_columns=["text"])
+
+# 3) 15% 概率随机 mask（标准 MLM 设置）
+collator = DataCollatorForLanguageModeling(tokenizer=tok, mlm=True, mlm_probability=0.15)
+
+trainer = Trainer(
+    model=model,
+    args=TrainingArguments(
+        output_dir="./xlmr-swahili-dapt",
+        per_device_train_batch_size=32,
+        num_train_epochs=3,
+        learning_rate=5e-5,
+        save_strategy="epoch",
+    ),
+    train_dataset=ds,
+    data_collator=collator,
+)
+trainer.train()
+# 之后再在标注任务（分类/NER）上微调，通常比直接用 XLM-R 提升 3~8 个点
+</code></pre>
+    <p>需要强调的是，低资源场景下"数据质量"远比"数据数量"重要。1000 条人工校对的高质量样本，往往胜过 10 万条噪声机器标注。如果你只能投入有限的人力，优先把这些人力放在数据清洗和精标上，而不是堆数据量。</p>
+    <h2 class="section" id="mbert-vs-xlmr"><span class="idx">★</span> mBERT vs XLM-R：该选哪一个？</h2>
+    <p>mBERT（Multilingual BERT）和 XLM-R 是多语言预训练里被引用最多的两个模型，它们看起来都是"一个模型搞定一百种语言"，但内部差异决定了你的选择。下表把关键维度对比清楚。</p>
+    <p>第一，预训练语料规模。mBERT 训练于 104 种语言的 Wikipedia，总文本约 100GB，每个语言各取一份，高低资源语言大致均衡。XLM-R 训练于 100 种语言的 CommonCrawl，总文本 2.5TB，但分布很不均衡，英文占很大比例。这导致 XLM-R 在英文上更强，但在某些极低资源语言上未必比 mBERT 好。第二，分词器。mBERT 用 110k 词表的 WordPiece，按语言大致均分；XLM-R 用 250k 词表的 SentencePiece Unigram，对低资源语言覆盖更友好，相同文本的 token 数通常更少（推理更快）。第三，预训练目标。mBERT 是 MLM + NSP，XLM-R 是纯 MLM（去掉了 NSP，对齐 RoBERTa 的改进），训练步数更长。</p>
+    <p>实战中该怎么选？给你一个经验决策树：如果任务对延迟敏感、追求最快推理，优先 XLM-R base（token 数更少）；如果目标语言是欧洲主流语言或中文，XLM-R large 通常效果最好；如果目标语言是 mBERT 训练里覆盖、但 XLM-R 语料里稀缺的小语种，先试 mBERT，再考虑 DAPT 自适应；如果你需要做 NER、POS 这类 token 级任务，注意 mBERT 和 XLM-R 在某些语言上对"词"切分粒度不同，标签对齐时要小心。</p>
+    <p>最后还有一个常被忽视的陷阱：子词分词会让"词级别标注"的对齐变得复杂。比如英文 "unhappiness" 在 XLM-R 里可能被切成 "▁un + happ + iness" 三个 token，而你的人工标注是在整词上做的。这时候需要把标签按子词扩展（通常取首 token 的标签，其余标记为特殊标签或忽略），下面的工具函数是工业界常用做法。</p>
+    <pre><code class="language-python">def align_labels_to_subwords(words, tags, tokenizer, label2id, max_len=128):
+    """
+    将词级别标注对齐到子词 token。
+    words: ['I', 'love', 'Paris']
+    tags : ['O', 'O', 'B-LOC']
+    """
+    tokens, label_ids = [tokenizer.cls_token_id], [label2id["O"]]  # [CLS] 占位
+    for word, tag in zip(words, tags):
+        sub = tokenizer.tokenize(word)
+        if not sub:                       # 极端情况下 tokenize 返回空
+            continue
+        sub_ids = tokenizer.convert_tokens_to_ids(sub)
+        tokens.extend(sub_ids)
+        # 第一个子词使用真实标签，其余使用 -100 让 loss 忽略
+        label_ids.append(label2id[tag])
+        label_ids.extend([-100] * (len(sub_ids) - 1))
+        if len(tokens) >= max_len - 1:
+            break
+    tokens.append(tokenizer.sep_token_id)
+    label_ids.append(label2id["O"])
+    # 补 padding
+    pad_len = max_len - len(tokens)
+    attention = [1] * len(tokens) + [0] * pad_len
+    tokens += [tokenizer.pad_token_id] * pad_len
+    label_ids += [-100] * pad_len
+    return tokens, attention, label_ids
+</code></pre>
+    <p>这个对齐函数是跨语言 NER、POS 标注项目里绕不开的一环。很多新手在迁移到多语言时，模型怎么训都不收敛，根因就是忘了做这一步对齐。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>多语言 NLP 的复杂度远超单语言，本章覆盖了四个最关键的主题。首先，中文等 CJK 语言没有空格分隔，分词本身就是一道独立的工程门槛，需要根据任务在"传统词典+统计分词"和"预训练子词分词"之间取舍，BERT 中文按字切分是规避歧义的实用折中。其次，XLM-R 通过在 2.5TB 多语 CommonCrawl 上的大规模 MLM 预训练，把不同语言的等价概念对齐到相近的嵌入向量，使"英文微调、多语言推理"的跨语言迁移成为可能，但在形态差异大的低资源语言上仍会掉点。第三，低资源语言的突围依赖四把利器——翻译增强、伪标注回译、联合训练、自适应预训练 DAPT，其中 DAPT 在小语料上继续做 MLM 是性价比最高的选择，且数据质量比数量更关键。最后，mBERT 与 XLM-R 并非简单的"新旧替代"关系：mBERT 在某些 XLM-R 语料稀缺的语种上仍有优势，XLM-R 在主流语种和推理速度上更胜一筹，选择应基于任务、语种和延迟综合判断。无论选择哪个模型，子词分词与词级标注的对齐都是 token 级任务必须跨过的工程细节。掌握这些，你就具备了把任何 NLP 系统推向全球化多语言场景的工程基础。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

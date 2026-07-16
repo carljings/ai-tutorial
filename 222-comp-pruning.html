@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>剪枝：删掉模型里的冗余 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>剪枝：删掉模型里的冗余 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -258,7 +265,7 @@
     </div>
     <div class="nav-group"><h3>★模型压缩部署</h3>
       <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
-      <a href="222-comp-pruning.html" class="active" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
+      <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
       <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
       <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
       <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
@@ -295,31 +302,12 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span><h1>剪枝：删掉模型里的冗余</h1><p class="lead">从理论到实践——结构化剪枝让模型变瘦</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么能剪：大模型有很多"冗余"神经元</h2>
-    <p>研究表明，训练好的大模型里有大量"冗余"——很多神经元/注意力头对最终输出贡献极小，删掉它们对精度几乎无影响。这就是剪枝的理论基础：找到并删除这些冗余参数，让模型"瘦身"。</p>
-    <div class="callout"><strong>💡 要点</strong><br>剪枝的核心问题不是"能不能剪"（能），而是"怎么判断哪些参数冗余 + 怎么剪不伤精度"。差的剪枝策略删错了关键参数，精度暴跌；好的策略精准定位冗余，损失 &lt;1%。</div>
-    <h2><span class="idx"></span>结构化 vs 非结构化剪枝</h2>
-    <table class="data-table"><thead><tr><th>类型</th><th>剪什么</th><th>加速效果</th><th>实现难度</th></tr></thead><tbody><tr><td>非结构化</td><td>单个权重置零</td><td>理论好，实际无（稀疏矩阵慢）</td><td>低</td></tr><tr><td>结构化</td><td>整个神经元/头/层</td><td>真实加速（矩阵变小）</td><td>中</td></tr><tr><td>半结构化</td><td>N:M 稀疏（每4个留2个）</td><td>有硬件支持时加速</td><td>高</td></tr></tbody></table>
-    <p>非结构化剪枝虽然参数少了，但稀疏矩阵在现代 GPU 上跑得反而更慢（不规则访存）。所以实际部署中，**结构化剪枝**才有意义——删掉整个 attention head 或整个 FFN 中间维度，矩阵真正变小，加速真实。</p>
-    <h2><span class="idx"></span>剪枝的流程</h2>
-    <pre class="code"><code class="language-text">结构化剪枝流程
+  </aside>
+<main class="content">
 
-1. 训练完整模型（到收敛）
-2. 评估每个"结构单元"的重要性
-   - L1 范数：权重绝对值之和小的 → 不重要
-   - Taylor 展开：删除后 loss 变化小的 → 不重要
-3. 按比例删除最不重要的 X% 结构单元
-4. 微调（fine-tune）恢复精度 ← 关键步骤
-5. 重复 2-4（迭代剪枝）
+</main>
 
-经验：一次性剪 20% + 微调，比一次剪 50% 效果好。
-     迭代剪枝（剪10%→微调→剪10%→微调）最稳。</code></pre>
-    <h2><span class="idx"></span>LLM 剪枝的难点</h2>
-    <p>LLM 剪枝比 CNN 难——Transformer 的残差连接让"删一个层影响全局"，且 LLM 太大，微调成本高。当前 LLM 剪枝的前沿：SliceGPT（删整行/列，保持正交）、Wanda（用权重大小×激活值判断重要性，无需微调）。但总体来说，LLM 剪枝在工业界用得比量化少——量化的性价比更高。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>剪枝删除模型冗余参数。结构化剪枝（删整个头/层）才有真实加速，非结构化只是理论好看。流程：评估重要性→删除→微调→迭代。LLM 剪枝（SliceGPT/Wanda）比 CNN 难，且工业界用量化更多（性价比更高）。剪枝适合"需要固定结构变小"的场景（如端侧部署）。</p>
-    <div class="chapter-nav">
-    <a href="221-comp-overview.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 222 章 · 剪枝：删掉模型里的冗余</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -248,7 +246,7 @@
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
       <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
-      <a href="209-deep-eval-observability.html" class="active" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
+      <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
@@ -305,25 +303,104 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 233 章 · Deep Agent</span>
-    <h1>Agent 评估与可观测性</h1><p class="lead">你怎么知道 agent 好不好</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Agent 比模型难评估得多</h2>
-    <p>评估单个 LLM 相对简单——给输入看输出对不对。但 agent 是多步的、有工具调用的、有状态的——同样的输入，agent 可能走完全不同的路径到达（或没到达）答案。所以 agent 评估不只看"最终答案对不对"，还要看"走的路对不对"（轨迹评估）、"花了多少成本"（token/时间/钱）。</p>
-    <h2><span class="idx"></span>评估的三个维度</h2>
-    <table class="data-table"><thead><tr><th>维度</th><th>评估什么</th><th>怎么测</th></tr></thead><tbody><tr><td>任务成功率</td><td>最终结果对不对</td><td>人工/自动判定</td></tr><tr><td>轨迹质量</td><td>走的步骤合理吗</td><td>步数/冗余/错误</td></tr><tr><td>效率成本</td><td>花了多少资源</td><td>token/时间/调用次数</td></tr></tbody></table>
-    <h2><span class="idx"></span>可观测性工具：看见 agent 在干什么</h2>
-    <p>agent 是黑盒——你需要工具"看见"它内部的推理、工具调用、决策。这就是 agent 可观测性（observability）。LangSmith（LangChain 出品）、Langfuse（开源）、Phoenix（Arize）是主流工具。它们记录 agent 的每一步：调了什么工具、输入输出是什么、花了多少 token、哪步出错。这些 trace 是调试和优化 agent 的基础。</p>
-    <div class="callout"><strong>💡 要点</strong><br>没有可观测性的 agent 是没法优化的黑盒。上线 agent 前必装可观测性工具——它会暴露你看不到的问题：某个工具总失败、某类请求 agent 总走偏、某个步骤特别耗 token。这些洞察是优化的起点。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>Agent 评估要看三个维度（任务成功/轨迹质量/效率成本），可观测性工具（LangSmith/Langfuse/Phoenix）让你看见 agent 的内部。这是 agent 从"能跑"到"跑得好"的关键基础设施——没有评估和可观测性，你永远不知道你的 agent 哪里需要改进。</p>
-    <div class="chapter-nav">
-    <a href="208-deep-computer-use.html"><div class="lbl">← 上一章</div><div class="ttl">208 · Computer Use agent：能操作图形界面的 agent</div></a>
-    <a href="210-mlops-lifecycle.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">210 · LLMOps 全景</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 233 章 · Agent 评估与可观测性</p></footer>
-  </main>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 209 · Agent可观测性</span>
+      <h1>Agent可观测性<br>让黑盒LLM调用链变得可追溯可监控</h1>
+      <p class="lead">当一个 Agent 调用了 7 次大模型、3 个工具、做了 2 轮反思才给出最终答案，你能否说清楚每一环花了多少 token、哪一步超时、为什么用户得到了错误结果？可观测性不是"日志打得多"，而是把 LLM 调用链、token 成本、错误率三个维度连成一条可追踪的线。本文拆解 OpenTelemetry、LangSmith、Phoenix 三套主流方案，给你一套生产级 Agent 监控的落地蓝图。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-observability"><span class="idx">★</span> 为什么 Agent 比传统服务更需要可观测性</h2>
+    <p>传统微服务一次请求最多调用十几个下游接口，链路是静态、确定的。而 Agent 不一样：同一个用户输入，可能因为模型采样的随机性走完全不同的路径，可能因为工具返回结果不同而多调用一轮，可能因为 prompt 略长一点就触发 token 限制。这意味着仅靠业务日志几乎无法定位问题——你必须能看到"这次回答到底走了哪条调用树"。</p>
+    <p>可观测性的三大支柱——traces、metrics、logs——在 Agent 场景下都需要重新定义。Trace 不再只是 HTTP span，而要包含 prompt、completion、token 数、模型名、temperature 这些 LLM 特有字段。Metric 也不能只看 QPS 和延迟，还要监控每次请求的 token 成本（按输入/输出分别计）、工具调用成功率、反思轮数分布。Log 则必须能和 trace 关联，这样你才能从"某次回答幻觉了"一路下钻到"第 3 次工具调用返回的数据就是脏的"。</p>
+    <p>OpenTelemetry 之所以成为事实标准，是因为它提供了语言/厂商中立的语义约定（Semantic Conventions）。GenAI 工作组已经定义了一套 LLM 专用 span 属性，比如 gen_ai.system、gen_ai.request.model、gen_ai.usage.input_tokens。这意味着只要你按规范埋点，数据可以同时发给 Jaeger、Datadog、Honeycomb、Azure Monitor，不被任何一家厂商锁定——这对生产系统是极重要的属性。</p>
+    <pre><code class="language-python"># 用 OpenTelemetry 手动埋点，记录一次 LLM 调用的完整 span
+from opentelemetry import trace
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import ConsoleSpanExporter, BatchSpanProcessor
+from opentelemetry.semconv.attributes import gen_ai_attributes as GenAi
+
+trace.set_tracer_provider(TracerProvider())
+trace.get_tracer_provider().add_span_processor(
+    BatchSpanProcessor(ConsoleSpanExporter())
+)
+tracer = trace.get_tracer(__name__)
+
+def chat_with_llm(model: str, prompt: str, max_tokens: int = 512):
+    """封装一次 LLM 调用，自动产生符合 GenAI 语义约定的 span"""
+    with tracer.start_as_current_span("chat.completion") as span:
+        span.set_attribute(GenAi.GEN_AI_SYSTEM, "openai")
+        span.set_attribute(GenAi.GEN_AI_REQUEST_MODEL, model)
+        span.set_attribute(GenAi.GEN_AI_REQUEST_MAX_TOKENS, max_tokens)
+        span.set_attribute("gen_ai.prompt", prompt[:500])  # 截断防超大
+
+        resp = openai.chat.completions.create(
+            model=model, messages=[{"role": "user", "content": prompt}],
+            max_tokens=max_tokens,
+        )
+        usage = resp.usage
+        # 关键：把 token 用量也写进 span，做成本归因
+        span.set_attribute("gen_ai.usage.input_tokens", usage.prompt_tokens)
+        span.set_attribute("gen_ai.usage.output_tokens", usage.completion_tokens)
+        span.set_attribute("gen_ai.usage.total_tokens", usage.total_tokens)
+        return resp.choices[0].message.content
+
+# 一个完整的 Agent 步骤会被组织成嵌套 span：
+# trace_root
+#   └─ agent.step
+#        ├─ chat.completion       (LLM 决策)
+#        ├─ tool.search           (工具调用)
+#        └─ chat.completion       (总结输出)
+</code></pre>
+    <h2 class="section" id="langsmith-phoenix"><span class="idx">★</span> LangSmith 与 Phoenix：开箱即用的 Agent 调试台</h2>
+    <p>如果说 OpenTelemetry 是"自己搭观测体系"，那 LangSmith 和 Arize Phoenix 就是"开箱即用的观测产品"。LangSmith 由 LangChain 团队开发，最大的优势是和 LangChain/LangGraph 深度集成——你只要在环境变量里设一个 LANGSMITH_API_KEY，LangChain 内部的所有 chain、tool、retriever 调用就会自动上报，trace 树直接在网页上可视化。它还提供"数据集 + 评测"能力，可以把你跑过的 trace 一键转成测试用例，对回归非常有用。</p>
+    <p>Phoenix 则走开源路线，可以本地部署，对数据隐私敏感的场景（金融、医疗）更友好。它的强项是 embedding 分析——可以把你所有文档的向量做 UMAP 降维可视化，直接看到检索器召回的文档聚在哪个区域、有没有把无关文档拉进来。这对调试 RAG 系统特别有用，因为 RAG 的很多 bug 不在 LLM 而在检索质量。</p>
+    <p>两者的集成方式都很轻。LangSmith 是纯环境变量驱动，零代码改动；Phoenix 提供 OpenTelemetry endpoint，你只要把 OTLP exporter 指向 Phoenix 服务地址即可。生产环境的一个常见架构是：用 LangSmith 做 Agent 调试和评测回放，用 Phoenix 做 RAG 检索质量监控，再用 OpenTelemetry 把关键 span 同步到公司的统一可观测平台（Datadog/Grafana），这样 SRE 团队也能看到 Agent 的健康度。</p>
+    <pre><code class="language-python"># 方案 A：LangSmith —— 零代码侵入，纯环境变量
+# export LANGSMITH_TRACING=true
+# export LANGSMITH_API_KEY=lsv2_...
+# export LANGSMITH_PROJECT=prod-agent
+from langchain_openai import ChatOpenAI
+from langchain_core.messages import HumanMessage
+
+# 之后所有 LangChain 调用自动上报到 LangSmith
+llm = ChatOpenAI(model="gpt-4o")
+llm.invoke([HumanMessage(content="解释一下Transformer")])
+
+# 方案 B：Phoenix —— 开源自托管 + OpenLLMetry 自动埋点
+import phoenix as px
+from openinference.instrumentation.openai import OpenAIInstrumentor
+from opentelemetry.exporter.otlp.proto.http.trace_exporter import OTLPSpanExporter
+from opentelemetry.sdk.trace import TracerProvider
+from opentelemetry.sdk.trace.export import SimpleSpanProcessor
+from opentelemetry import trace
+
+px.launch_app()  # 启动本地 Phoenix UI (http://localhost:6006)
+provider = TracerProvider()
+provider.add_span_processor(
+    SimpleSpanProcessor(OTLPSpanExporter("http://localhost:6006/v1/traces"))
+)
+trace.set_tracer_provider(provider)
+OpenAIInstrumentor().instrument()  # 自动给 openai 库所有调用加 span
+
+# 现在 openai.chat.completions.create 会被自动追踪
+import openai
+openai.chat.completions.create(
+    model="gpt-4o",
+    messages=[{"role": "user", "content": "hi"}],
+)
+</code></pre>
+    <h2 class="section" id="cost-error-monitoring"><span class="idx">★</span> token 成本与错误率：两个最容易失控的指标</h2>
+    <p>Agent 系统上线后最容易爆的两个洞就是 token 成本和错误率。成本爆炸往往来自两个原因：一是反思循环失控，模型反复"我不确定，再来一次"把上下文越堆越长；二是 prompt 模板冗余，每次调用都把大段系统提示词、示例、检索文档重新发一遍。一份好的成本监控必须按"调用层级 × 用户 × 业务功能"三维切片，能回答"今天哪个 API 的成本突然涨了 3 倍"这种问题。</p>
+    <p>错误率监控要区分"硬错误"和"软错误"。硬错误是 API 返回 429/500、工具抛异常这种可观测的系统故障，传统 APM 就能抓。软错误则是模型正常返回了内容，但内容是幻觉、格式错误、答非所问——这才是 Agent 系统的大头，而且 APM 抓不到。软错误要么靠用户反馈（点踩/重试）间接度量，要么靠在 trace 末尾加一个轻量的"自我评审" LLM 判断输出是否合理。后者成本要控制，常见做法是按 1% 采样。</p>
+    <p>告警阈值的设计有个反直觉的经验：Agent 的延迟分布是重尾的（P99 可能是 P50 的 20 倍），所以不能像传统服务那样用固定阈值告警，否则天天误报。更稳的做法是用滑动窗口的中位数 + 倍数作为动态阈值，或者直接监控"超长 trace 占比"（比如 token 数 > 5000 的请求比例），这种指标对异常更敏感也更稳定。</p>
+    <p>把上面三块组装起来：OpenTelemetry 负责把 LLM 调用结构化成标准 span，LangSmith/Phoenix 提供可视化与回放，自建的 metrics pipeline 负责 token 成本和错误率告警。三者职责清晰、互为补充，是一个能从原型撑到生产规模的可观测架构。记住，Agent 系统的可观测性不是"上线后再加"的奢侈品，而是"不上就没法上线"的必需品——因为 LLM 的不确定性，注定让传统"日志够了"的调试方式彻底失效。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

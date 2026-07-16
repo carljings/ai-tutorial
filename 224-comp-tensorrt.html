@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -260,7 +267,7 @@
       <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
       <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
       <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
-      <a href="224-comp-tensorrt.html" class="active" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
+      <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
       <a href="225-comp-edge.html" title="端侧部署实战：手机/嵌入式跑模型"><span class="num">225</span>端侧部署实战</a>
     </div>
     <div class="nav-group"><h3>★AI知识拓宽</h3>
@@ -295,16 +302,12 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span><h1>编译优化：TensorRT / ONNX / vLLM</h1><p class="lead">无损加速——让推理引擎榨干硬件</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>编译优化：不改模型，只改"怎么算"</h2>
-    <p>量化/剪枝/蒸馏都改了模型本身，有精度损失风险。编译优化完全不同——它不改一个权重，只优化"模型怎么在硬件上跑"。算子融合、内存复用、内核调优——这些纯工程优化能带来 1.5-4× 加速，且精度零损失。所以编译优化应该是所有推理的基础，不需要犹豫。</p>
-    <h2><span class="idx"></span>三大推理引擎</h2>
-    <table class="data-table"><thead><tr><th>引擎</th><th>厂商</th><th>核心优化</th><th>适用</th></tr></thead><tbody><tr><td>vLLM</td><td>开源社区</td><td>PagedAttention+连续批处理</td><td>通用 LLM 服务</td></tr><tr><td>TensorRT-LLM</td><td>NVIDIA</td><td>算子融合+INT8/FP8 内核</td><td>NVIDIA GPU 极致</td></tr><tr><td>llama.cpp</td><td>开源</td><td>CPU/GPU 通用+量化</td><td>端侧/本地</td></tr><tr><td>ONNX Runtime</td><td>微软</td><td>跨平台算子优化</td><td>通用 ML 模型</td></tr></tbody></table>
-    <h3>vLLM：PagedAttention 的威力</h3>
-    <p>vLLM 的核心创新是 PagedAttention——把 KV Cache 像操作系统的虚拟内存一样分页管理，避免显存碎片。配合连续批处理（continuous batching），多个请求的 token 动态组批，GPU 利用率从 30% 提到 80%+。这让 vLLM 比 HuggingFace 原生推理快 2-4 倍。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>编译优化是零损失的推理加速，应作为所有部署的基础。三大引擎：vLLM（PagedAttention+连续批处理，通用首选）、TensorRT-LLM（NVIDIA 极致优化）、llama.cpp（端侧/CPU）。vLLM 的 PagedAttention 把 KV Cache 分页管理，GPU 利用率从 30%→80%。</p>
-    <div class="chapter-nav">
-    <a href="223-comp-distill.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 224 章 · 编译优化：TensorRT / ONNX / vLLM</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                            <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -262,7 +260,7 @@
       <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
       <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
       <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
-      <a href="219-ux-human-in-loop.html" class="active" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
       <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
     </div>
     <div class="nav-group"><h3>★模型压缩部署</h3>
@@ -305,27 +303,10 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★Agent交互设计</span>
-    <h1>人在回路（HITL）</h1><p class="lead">Agent 的安全阀与信任构建</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么 Agent 需要人参与</h2>
-    <p>完全自主的 Agent 听起来很酷，但生产环境几乎都需要"人在回路"（Human-in-the-Loop）。原因：Agent 可能犯错（误删文件、发错消息）、某些操作不可逆（付款、部署）、法规要求人工审批（金融/医疗）、建立用户信任（让用户感到可控）。HITL 不是"Agent 不够好"的妥协，而是负责任 AI 的标配。</p>
-    <h2><span class="idx"></span>HITL 的三种模式</h2>
-    <table class="data-table"><thead><tr><th>模式</th><th>触发时机</th><th>用户体验</th><th>适用场景</th></tr></thead><tbody><tr><td>审批门</td><td>危险操作前暂停</td><td>弹窗确认"允许/拒绝"</td><td>删除/付款/部署</td></tr><tr><td>确认编辑</td><td>Agent 产出后人工检查</td><td>展示 diff，可修改后确认</td><td>代码/文档生成</td></tr><tr><td>中断接管</td><td>用户主动暂停</td><td>"停止"按钮 + 手动修改</td><td>Agent 跑偏时</td></tr></tbody></table>
-    <h3>审批门设计</h3>
-    <p>审批门是最强的 HITL——Agent 要执行危险操作前，必须等用户确认。设计要点：清晰描述操作和后果（"即将删除 src/old 目录，含 23 个文件"）、提供"允许这次/允许以后/拒绝"选项、超时默认拒绝（安全侧倒）。审批门在 Codex、Cline 等 coding agent 里都有实现。</p>
-    <h3>确认编辑</h3>
-    <p>对于代码/文档类产出，"确认编辑"比"直接应用"更安全。Agent 给出修改建议 → UI 展示 diff（红绿对比）→ 用户审阅 → 接受/拒绝/修改 → 应用。这让用户始终掌控最终结果，Agent 只是"起草者"。Aider、Cline、Cursor 都用这个模式。</p>
-    <div class="callout"><strong>💡 要点</strong><br>HITL 的心理学：用户对"我能随时介入"的 Agent 信任度远高于"全自动"的。即使 99% 的情况不需要介入，"有阀门"这个事实就足以让用户放心使用。这是产品设计的智慧——赋予用户控制感。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>人在回路是负责任 Agent 的标配：审批门拦截危险操作、确认编辑让用户掌控产出、中断接管应对跑偏。HITL 不是能力不足的妥协，而是建立信任、保障安全的必要设计。</p>
-    <div class="chapter-nav">
-    <a href="218-ux-multi-turn.html"><div class="lbl">← 上一章</div><div class="ttl">218 · 多轮对话状态管理</div></a>
-    <a href="220-ux-error-states.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">220 · Agent 的错误状态与降级设计</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 243 章 · 人在回路（HITL）：让用户掌控 Agent</p></footer>
-  </main>
+<main class="content">
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>
