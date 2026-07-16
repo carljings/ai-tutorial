@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -189,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" class="active" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
 <section class="hero"><span class="eyebrow">◆ 第 158 章 · 开源 Agent 源码深挖</span>
 <h1>Codex 审批：sandbox_mode × approval_policy</h1><p class="lead">两条正交轴：sandbox_mode（物理允许什么）+ approval_policy（何时停下问）。read-only/workspace-write/danger 三档 × untrusted/on-failure/on-request/never。预设组合。</p>
 <div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
@@ -331,12 +330,200 @@ args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/me/project"]</c
 <div class="callout"><strong>💡 要点</strong><br>把"能做什么"和"何时问"分开，是这个权限模型的精髓。它让 Codex 既能安全自动跑（workspace-write + on-request），也能严格受控（read-only + untrusted）。</div>
 <h2><span class="idx"></span>设计启示</h2>
 <div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
+    <h2><span class="idx"></span>auto-approve 规则引擎：把审批策略变成代码</h2>
+    <p>approval_policy 的预设组合（on-failure / on-request / never）覆盖了大部分场景，但生产环境经常需要更细粒度的控制：读文件自动放行、改配置文件要确认、动 git 历史必须人工审批。这就需要一个<strong>规则引擎</strong>——把"哪些操作自动批准、哪些要问"写成可配置的规则。下面是一个最小但实用的规则引擎实现，它根据命令类型、路径、参数决定审批决策。</p>
+    <pre class="code"><code class="language-python"># auto-approve 规则引擎：根据命令特征决定 allow/ask/deny
+import re
+from dataclasses import dataclass
+from enum import Enum
+
+class Decision(Enum):
+    ALLOW = "allow"     # 自动批准，不打断
+    ASK = "ask"         # 弹出确认，等用户决定
+    DENY = "deny"       # 直接拒绝（危险操作）
+
+@dataclass
+class Rule:
+    name: str
+    pattern: str                    # 匹配命令的正则
+    action: Decision
+    reason: str = ""
+
+@dataclass
+class ToolCall:
+    command: str                    # 如 "rm -rf node_modules"
+    args: list                      # 参数列表
+    cwd: str                        # 工作目录
+
+class ApprovalEngine:
+    """规则引擎：按优先级匹配，首个命中即决断。"""
+    def __init__(self, rules: list[Rule]):
+        self.rules = rules  # 按顺序匹配，越靠前优先级越高
+
+    def decide(self, call: ToolCall) -> tuple[Decision, str]:
+        cmd_str = f"{call.command} {' '.join(call.args)}".strip()
+        for rule in self.rules:
+            if re.search(rule.pattern, cmd_str):
+                return rule.action, f"[{rule.name}] {rule.reason}"
+        return Decision.ASK, "无匹配规则，默认询问"  # 兜底：安全优先
+
+# 白名单规则集（从安全到危险排序）
+RULES = [
+    # 1. 只读操作：永远自动放行
+    Rule("read-only", r"^(cat|ls|grep|find|head|tail|wc|git status|git log|git diff)\b",
+         Decision.ALLOW, "只读操作，安全"),
+    Rule("read-config", r"^cat\s+([\w./]+\.(json|yaml|toml|md))$",
+         Decision.ALLOW, "读取配置文件"),
+
+    # 2. 常规写操作：自动放行（工作目录内）
+    Rule("write-workspace", r"^(mkdir|touch|cp|mv)\s+(?!/(etc|usr|var))",
+         Decision.ALLOW, "工作目录内写操作"),
+    Rule("git-safe", r"^git\s+(add|commit|checkout)\b",
+         Decision.ALLOW, "常规 git 操作"),
+
+    # 3. 中等风险：需要询问
+    Rule("install-pkg", r"^(npm install|pip install|apt install)\b",
+         Decision.ASK, "安装包可能改变环境"),
+    Rule("git-push", r"^git\s+push\b",
+         Decision.ASK, "推送到远程，影响他人"),
+    Rule("network-curl", r"^(curl|wget)\b",
+         Decision.ASK, "网络请求，确认目标"),
+
+    # 4. 高风险：直接拒绝
+    Rule("rm-rf-root", r"rm\s+-rf\s+(/|~|\*)",
+         Decision.DENY, "禁止递归删除根/家目录"),
+    Rule("force-push", r"git\s+push\s+.*--force",
+         Decision.DENY, "禁止 force push 覆盖历史"),
+    Rule("sudo", r"^sudo\b",
+         Decision.DENY, "禁止提权操作"),
+]
+
+engine = ApprovalEngine(RULES)
+
+# 测试
+for cmd in ["ls -la", "git push origin main", "rm -rf /", "npm install lodash"]:
+    call = ToolCall(cmd.split()[0], cmd.split()[1:], "/project")
+    decision, reason = engine.decide(call)
+    print(f"{cmd:30} → {decision.value:6} | {reason}")</code></pre>
+    <p>这个规则引擎的设计要点：① <strong>默认拒绝原则</strong>——没有匹配规则的命令一律 ASK（宁错杀不漏放）；② <strong>规则按优先级排序</strong>——高风险的 deny 规则放最前，确保危险操作不会被前面的 allow 误放（比如 `rm -rf /` 不会因为匹配"工作目录写操作"而被放行）；③ <strong>每条规则带 reason</strong>——审批时展示给用户"为什么这个操作被自动放行/拒绝"，可审计可调试。</p>
+    <h2><span class="idx"></span>白名单配置：用配置而非代码管理审批</h2>
+    <p>规则用代码写死不够灵活——不同项目、不同团队的安全策略不同。更好的做法是把白名单抽成配置文件，用户可以在项目的 <code>.codex/approval.toml</code> 里定制。这样审批策略随项目走（而不是全局一刀切），也方便版本管理和评审。</p>
+    <pre class="code"><code class="language-toml"># .codex/approval.toml —— 项目级审批白名单配置
+# 这个文件随项目提交，团队共享审批策略
+
+[auto_approve]
+# 自动批准的命令模式（正则）
+commands = [
+    "^ls\\b",
+    "^cat\\s+.*\\.(md|txt|py|js|ts)$",
+    "^python\\s+.*test.*\\.py$",      # 跑测试自动放行
+    "^npm\\s+(run|test)\\b",
+    "^git\\s+(status|log|diff|add|commit)\\b",
+]
+
+[auto_approve.paths]
+# 自动批准的路径模式
+read = ["src/**", "docs/**", "tests/**", "*.md"]
+write = ["src/**", "tests/**", "dist/**"]  # 只允许写这些目录
+
+[require_approval]
+# 必须人工确认的操作
+commands = [
+    "git\\s+push",          # 推送要确认
+    "docker\\s+build",      # 构建镜像要确认
+    "npm\\s+publish",       # 发布要确认
+]
+paths_write = [".env", "config/*", ".github/**"]  # 改这些路径要确认
+
+[deny]
+# 永远禁止（即使用户想批准也不行，硬限制）
+commands = [
+    "rm\\s+-rf\\s+/",       # 删根
+    "git\\s+push.*--force", # 强推
+    "curl.*|\\s*bash",      # 管道执行远程脚本
+]
+max_file_size_mb = 100     # 禁止读写 &gt;100MB 的文件（防 OOM）</code></pre>
+    <pre class="code"><code class="language-python"># 加载项目级白名单配置并合并到规则引擎
+import tomllib
+from pathlib import Path
+
+def load_project_rules(project_dir: str) -> ApprovalEngine:
+    cfg_path = Path(project_dir) / ".codex" / "approval.toml"
+    rules = []
+
+    if cfg_path.exists():
+        with open(cfg_path, "rb") as f:
+            cfg = tomllib.load(f)
+
+        # deny 规则优先级最高
+        for pat in cfg.get("deny", {}).get("commands", []):
+            rules.append(Rule("deny", pat, Decision.DENY, "项目禁止"))
+
+        # require_approval 次之
+        for pat in cfg.get("require_approval", {}).get("commands", []):
+            rules.append(Rule("ask", pat, Decision.ASK, "项目要求确认"))
+
+        # auto_approve 最后（优先级最低）
+        for pat in cfg.get("auto_approve", {}).get("commands", []):
+            rules.append(Rule("auto", pat, Decision.ALLOW, "项目白名单"))
+
+    # 兜底：无匹配规则时询问
+    return ApprovalEngine(rules)
+
+# 每个项目可以有不同的审批策略
+engine = load_project_rules("/project")
+decision, reason = engine.decide(ToolCall("git", ["push"], "/project"))
+print(decision)  # Decision.ASK —— 因为项目配置里 git push 要确认</code></pre>
+    <h2><span class="idx"></span>审批日志分析：从历史决策中优化策略</h2>
+    <p>规则引擎跑起来后，会沉淀大量审批决策日志。分析这些日志能发现两件有价值的事：① <strong>哪些命令频繁触发 ASK 却总被用户批准</strong>——说明规则太严，可以加入白名单减少打扰；② <strong>哪些 ASK 被用户拒绝</strong>——说明 agent 在做不该做的事，可能要调整 prompt 或加 deny 规则。这是一个数据驱动的闭环。</p>
+    <pre class="code"><code class="language-python"># 审批日志分析：发现可优化的规则
+import json
+from collections import Counter
+
+def analyze_approval_logs(log_path: str):
+    """分析审批日志，给出优化建议。"""
+    with open(log_path) as f:
+        logs = [json.loads(line) for l in f if l.strip()]
+
+    # 1. 统计：ASK 但用户批准的命令（候选加入白名单）
+    asked_approved = [l for l in logs
+                      if l["decision"] == "ask" and l["user_choice"] == "approve"]
+    ask_approve_cmds = Counter(l["command"].split()[0] for l in asked_approved)
+
+    # 2. 统计：ASK 被拒绝的命令（agent 在做不该做的）
+    asked_denied = [l for l in logs
+                    if l["decision"] == "ask" and l["user_choice"] == "deny"]
+    ask_deny_cmds = Counter(l["command"].split()[0] for l in asked_denied)
+
+    # 3. 自动放行的命令占比（衡量自动化程度）
+    auto_rate = sum(1 for l in logs if l["decision"] == "allow") / len(logs)
+
+    print("=== 审批日志分析报告 ===")
+    print(f"总操作数：{len(logs)}，自动放行率：{auto_rate:.0%}")
+    print(f"\n[建议加入白名单] ASK 但总是被批准的命令：")
+    for cmd, cnt in ask_approve_cmds.most_common(5):
+        if cnt &gt;= 3:  # 连续批准 3 次以上才建议
+            print(f"  {cmd}: 被询问 {cnt} 次全部批准 → 考虑自动放行")
+    print(f"\n[警示] ASK 被拒绝的命令（agent 行为需关注）：")
+    for cmd, cnt in ask_deny_cmds.most_common(5):
+        print(f"  {cmd}: 被拒绝 {cnt} 次 → 考虑加入 deny 或调整 prompt")
+
+# 示例输出：
+# === 审批日志分析报告 ===
+# 总操作数：1247，自动放行率：78%
+# [建议加入白名单] ASK 但总是被批准的命令：
+#   npm: 被询问 12 次全部批准 → 考虑自动放行
+# [警示] ASK 被拒绝的命令：
+#   rm: 被拒绝 3 次 → 考虑加入 deny 或调整 prompt</code></pre>
+    <div class="callout"><strong>💡 运维要点</strong><br>审批系统不是配好就完事，而是一个<strong>持续优化的闭环</strong>：跑起来 → 收集日志 → 分析 → 调整规则 → 再跑。目标是逐步提高自动放行率（减少用户打扰）同时控制住风险操作（deny/ask 拦住真正危险的）。健康指标：自动放行率 70-85%（太低说明规则太严，太高说明可能漏放风险），ASK 拒绝率 &lt;5%（高了说明 agent 行为需要纠正）。</div>
 <h2><span class="idx"></span>本章小结</h2>
 <p>本章我们通过源码深挖了"Codex 审批：sandbox_mode × approval_policy"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
 <div class="chapter-nav">
 <a href="157-agent-codex-sandbox-landlock.html"><div class="lbl">← 上一章</div><div class="ttl">157 · Codex 沙箱：Linux Landlock + seccomp</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="159-agent-codex-exec.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">159 · Codex exec 路径：命令分类</div></a></div>
 <footer><p>AI 全栈实战教学 · 第 158 章 · Codex 审批：sandbox_mode × approval_policy</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

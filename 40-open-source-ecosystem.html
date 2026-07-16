@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>开源大模型生态全景 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开源大模型生态全景 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -54,7 +61,7 @@
       <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
       <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
       <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
-      <a href="40-open-source-ecosystem.html" class="active" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
+      <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
       <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
@@ -295,7 +302,9 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
+  </aside>
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>开源大模型生态全景</h1><p class="lead">Llama/Qwen/GLM/Mistral——开源大模型的版图与选择</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
     <h2><span class="idx"></span>开源 vs 闭源：不是对立，是互补</h2>
     <p>2026 年的大模型格局已经清晰：闭源（GPT-4/Claude/Gemini）在通用能力和生态上领先，但贵、不可控、数据出域；开源（Llama/Qwen/GLM/Mistral/DeepSeek）能力快速追赶，可私有部署、可微调、零 API 成本。两者不是非此即彼——成熟的 AI 策略是"闭源做原型+开源做生产"，用闭源模型验证可行性，用开源模型降成本。</p>
@@ -321,8 +330,117 @@ output = model.generate(**inputs, max_new_tokens=200)
 print(tokenizer.decode(output[0]))</code></pre>
     <h2><span class="idx"></span>微调生态：把开源模型变成"你的"</h2>
     <p>开源模型最大的价值是可微调——用你的领域数据 SFT/DPO，让通用模型变成行业专家。这比调闭源 API 强：① 数据不出域（隐私）；② 一次微调永久受益（不像 API 每次付费）；③ 可针对特定任务极致优化。微调工具链：Axolotl（一站式）、LLaMA-Factory（UI 友好）、PEFT/LoRA（高效微调）。</p>
+    <h2><span class="idx"></span>主流开源模型横向对比：2026 年的版图</h2>
+    <p>前面按梯队划分了开源模型，但落地选型需要更细的对比——同样是 70B 级模型，Llama、Qwen、DeepSeek、GLM 在中文能力、代码能力、推理能力、许可证上各有差异。下面的对比表把当前（2026 年）最主流的开源模型放在同一维度下衡量，帮你快速找到适合自己场景的模型。</p>
+    <table class="data-table"><thead><tr><th>模型</th><th>参数</th><th>中文</th><th>代码</th><th>推理</th><th>上下文</th><th>许可证</th><th>强项</th></tr></thead><tbody><tr><td>Llama 4</td><td>70B-400B</td><td>中</td><td>强</td><td>强</td><td>128K</td><td>Llama License</td><td>生态最全，英文综合最强</td></tr><tr><td>Qwen 3</td><td>0.5B-110B</td><td>极强</td><td>强</td><td>强</td><td>128K</td><td>Apache 2.0</td><td>中文第一梯队，尺寸最全</td></tr><tr><td>DeepSeek V3</td><td>671B(MoE)</td><td>极强</td><td>极强</td><td>极强</td><td>128K</td><td>MIT</td><td>推理/数学顶尖，性价比极高</td></tr><tr><td>GLM-5</td><td>9B-100B</td><td>极强</td><td>强</td><td>强</td><td>128K</td><td>Apache 2.0</td><td>中文/Agent 能力强，工具调用稳</td></tr><tr><td>Mistral Large</td><td>123B</td><td>中</td><td>强</td><td>强</td><td>128K</td><td>Apache 2.0</td><td>欧洲代表，多语言好</td></tr><tr><td>Gemma 3</td><td>2B-27B</td><td>中</td><td>中</td><td>中</td><td>128K</td><td>Gemma License</td><td>Google 出品，小尺寸质量高</td></tr><tr><td>Phi-4</td><td>14B</td><td>弱</td><td>强</td><td>强</td><td>128K</td><td>MIT</td><td>小而精，合成数据训练</td></tr></tbody></table>
+    <p>从这张表能得出几个选型结论：① <strong>中文场景首选 Qwen3 或 GLM-5</strong>——中文能力极强且 Apache 2.0 自由商用；② <strong>推理/数学任务选 DeepSeek V3</strong>——MoE 架构让它在推理上接近闭源顶级，且激活参数少推理快；③ <strong>要尺寸灵活选 Qwen</strong>——从 0.5B 到 110B 全覆盖，端侧到云端一套搞定；④ <strong>英文综合生态选 Llama</strong>——社区微调/工具支持最多，但要留意商业限制（7 亿月活阈值）。</p>
+    <h2><span class="idx"></span>选型矩阵：场景 × 约束 的决策表</h2>
+    <p>对比表给了模型能力，但实际选型还要结合你的约束（硬件、预算、隐私要求、语言）。下面用一个"场景 × 约束"的决策矩阵，针对常见落地场景直接给出推荐模型——无需自己再做对比。</p>
+    <pre class="code"><code class="language-text">开源模型选型矩阵（场景 × 约束 → 推荐）
+
+【场景：企业私有化部署（中文）】
+  ├─ 有 A100/H100 集群     → Qwen3-72B 或 GLM-5（INT8）
+  ├─ 只有消费级显卡(24G)   → Qwen3-14B（INT4）或 GLM-5-9B
+  └─ CPU 部署              → Qwen3-7B（GGUF Q4）
+
+【场景：代码助手 / 编程 Agent】
+  ├─ 追求最强代码能力      → DeepSeek-Coder-V3 或 Qwen3-Coder
+  ├─ 本地隐私部署          → DeepSeek-Coder-33B（INT4）
+  └─ 轻量补全（IDE 插件）  → Qwen3-Coder-7B 或 StarCoder2-7B
+
+【场景：推理 / 数学（CoT 长推理）】
+  ├─ 推理能力优先          → DeepSeek-R1（开源推理王）
+  ├─ 平衡推理和通用        → Qwen3（带思考模式）
+  └─ 小模型也要推理        → Phi-4（14B 推理很强）
+
+【场景：端侧 / 手机 / IoT】
+  ├─ 手机（&lt;4GB）          → Qwen3-1.5B 或 Phi-3-mini
+  ├─ 手机（4-8GB）         → Qwen3-3B 或 Gemma-3-4B
+  └─ IoT/嵌入式            → Qwen3-0.5B（极致小）
+
+【场景：多语言 / 跨文化】
+  ├─ 欧洲语言              → Mistral 或 Llama
+  ├─ 亚洲语言              → Qwen（中日韩都强）
+  └─ 全球通用              → Llama（训练数据最多元）
+
+通用原则：
+  ① 中文优先 Qwen/GLM/DeepSeek
+  ② 商用优先 Apache 2.0（避开 Llama 的限制）
+  ③ 不确定就先试 Qwen3（综合最均衡，尺寸最全）
+  ④ 一定要在【自己的评测集】上实测，别只信榜单</code></pre>
+    <h2><span class="idx"></span>本地部署 Quick Start：5 分钟跑起来</h2>
+    <p>选好模型后，最快的本地部署方式是用 Ollama 或 vLLM。Ollama 适合个人/开发（一键拉模型、CPU 也能跑），vLLM 适合生产（高吞吐、GPU 利用率高）。下面是两种方式的 Quick Start，让你 5 分钟内把一个开源模型跑起来并测试。</p>
+    <pre class="code"><code class="language-bash"># 方式一：Ollama（最简单，个人开发首选）
+# 1. 安装 Ollama（一行命令）
+curl -fsSL https://ollama.com/install.sh | sh
+
+# 2. 拉模型并运行（自动选量化版本）
+ollama run qwen3:8b          # 8B 模型，CPU 也能跑
+ollama run qwen3:32b         # 需要 24GB 显存
+ollama run deepseek-r1:70b   # 推理王，需要大显存
+
+# 3. 作为 API 服务（兼容 OpenAI 格式）
+ollama serve                  # 默认 localhost:11434
+curl http://localhost:11434/v1/chat/completions \
+  -H "Content-Type: application/json" \
+  -d '{"model":"qwen3:8b","messages":[{"role":"user","content":"你好"}]}'
+
+# ──────────────────────────────────────────
+# 方式二：vLLM（生产级，高吞吐）
+# 1. 安装
+pip install vllm
+
+# 2. 启动 OpenAI 兼容服务（一行命令）
+python -m vllm.entrypoints.openai.api_server \
+  --model Qwen/Qwen3-14B-Instruct \
+  --quantization awq \                 # INT4 量化，省显存
+  --max-model-len 32768 \              # 最大上下文
+  --tensor-parallel-size 2 \           # 2 卡并行（大模型）
+  --gpu-memory-utilization 0.9 \
+  --port 8000
+
+# 3. 测试（和调 OpenAI API 完全一样）
+from openai import OpenAI
+client = OpenAI(base_url="http://localhost:8000/v1", api_key="dummy")
+response = client.chat.completions.create(
+    model="Qwen/Qwen3-14B-Instruct",
+    messages=[{"role": "user", "content": "用 Python 实现快速排序"}],
+)
+print(response.choices[0].message.content)</code></pre>
+    <pre class="code"><code class="language-python"># 部署后必做：评测模型在你任务上的真实表现
+# 不要只信公开榜单，要测自己的数据
+def eval_on_my_tasks(model_endpoint):
+    """在自有评测集上测模型，决定能不能用。"""
+    test_cases = load_my_eval_set()  # 你标注的 100-500 条测试
+    results = []
+    for case in test_cases:
+        pred = call_model(model_endpoint, case["input"])
+        # 按你的标准评分（准确率/相关性/格式...）
+        score = my_rubric(pred, case["expected"])
+        results.append({"case": case["id"], "score": score,
+                        "pred": pred[:100]})
+
+    avg = sum(r["score"] for r in results) / len(results)
+    print(f"平均得分：{avg:.2%}（{len(results)} 条测试）")
+    # 分析低分 case，看模型在什么类型的问题上弱
+    low = [r for r in results if r["score"] &lt; 0.6]
+    print(f"低分 case（&lt;60%）：{len(low)} 条")
+    for r in low[:5]:
+        print(f"  案例 {r['case']}：{r['pred']}")
+    return avg &gt; 0.85  # 达标才能上生产
+
+# 关键：用【你自己的评测集】测，而不是 MMLU/C-Eval
+# 公开榜单测的是通用能力，你的任务可能有特殊要求
+# （领域术语、输出格式、特定风格）</code></pre>
+    <div class="callout"><strong>💡 部署建议</strong><br>本地部署的三阶段策略：① <strong>开发阶段用 Ollama</strong>——一键拉模型，CPU 都能跑，快速验证可行性；② <strong>测试阶段上 vLLM</strong>——GPU 部署，测真实并发和延迟；③ <strong>生产阶段优化 vLLM 配置</strong>——加量化、prefix cache、监控。无论哪个阶段，<strong>务必在自己的评测集上测</strong>——开源模型的能力参差很大，公开榜单（MMLU/C-Eval）反映的是通用水平，不等于在你特定任务上的表现。花一周建一个 100-500 条的领域评测集，是选型最值得的投资。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>开源大模型分四梯队：顶级（Llama/Qwen/DeepSeek）、中坚（GLM/Mistral）、小模型（Phi/Gemma）、专用（CodeLlama）。许可证要注意——Apache 2.0 最自由（Qwen/GLM），Llama 有商业限制。Hugging Face 是生态中心（transformers 一行加载）。开源最大价值是可微调——把通用模型变成行业专家，数据不出域。</p>
     <div class="chapter-nav">
       <a href="39-security-cases.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 40 章 · 开源大模型生态全景</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <footer><p>AI 全栈实战教学 · 第 40 章 · 开源大模型生态全景</p></footer>  </main>
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

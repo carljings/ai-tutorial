@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -214,7 +212,7 @@
     <div class="nav-group"><h3>★Skills技能</h3>
       <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
       <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
-      <a href="181-skills-vs-mcp.html" class="active" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
+      <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
       <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
       <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
       <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 203 章 · Skills 技能体系</span>
     <h1>Skills vs MCP</h1>
     <p class="lead">Skills vs MCP</p>
@@ -327,6 +326,221 @@
     <h2><span class="idx"></span>架构上的差异</h2>
     <p>从实现角度看，两者的架构差异也很大。Skills 是"静态文件包"——部署就是把文件夹放到指定目录，agent 启动时扫描。没有运行时进程，没有网络通信，极其轻量。MCP 是"运行时服务"——需要启动一个 server 进程，通过 stdio 或 SSE 与 agent 通信，有生命周期管理、错误处理、并发控制。</p>
     <p>这意味着 Skills 的开发成本极低（写几个 Markdown 文件就行），但能力限于"注入知识"；MCP 的开发成本较高（要写一个 server，定义工具 schema，处理协议），但能力是"接入任意系统"。选择时权衡：能用知识解决的别上 MCP（杀鸡不用牛刀），需要实时数据/外部操作的必须上 MCP。</p>
+    <h2><span class="idx"></span>"菜谱 vs 厨具"类比深入：一个比喻讲透本质</h2>
+    <p>前面用了"Skills 是菜谱，MCP 是厨具"的类比，现在把这个比喻彻底展开——它不止是修辞，而是准确反映了两者的本质差异。理解透这个类比，你遇到任何"该用 Skills 还是 MCP"的纠结，都能秒判。</p>
+    <pre class="code"><code class="language-text">"菜谱 vs 厨具"类比的完整对照
+
+场景：用户说"帮我做一道红烧肉"
+
+┌─────────────────────────────────────────────────────────────┐
+│ Skills = 菜谱（知识/方法论）                                  │
+├─────────────────────────────────────────────────────────────┤
+│ 菜谱告诉你「怎么做」，但不提供食材和工具：                    │
+│  - 食材：五花肉 500g、冰糖、生抽、老抽、料酒                  │
+│  - 步骤：1.焯水 2.炒糖色 3.加肉翻炒 4.加水炖 40 分钟         │
+│  - 技巧：糖色炒到琥珀色、大火收汁、肥瘦相间                   │
+│                                                              │
+│ 菜谱是「文字指令」，没有实体——它指导你行动，本身不干活。      │
+│ 对应 Skills：SKILL.md 里的"先确认报告类型→收集数据→选模板"   │
+│ 这些指令告诉 agent「该怎么做」，但不提供「数据从哪来」。       │
+│                                                              │
+│ 特点：                                                        │
+│  ✓ 极轻量（一张纸/一个 Markdown 文件）                       │
+│  ✓ 可传播（菜谱可以复印分享）                                │
+│  ✓ 依赖厨具（光有菜谱做不出菜，得有锅和食材）                │
+│  ✗ 不能自己动手（菜谱不会自己切肉）                          │
+
+┌─────────────────────────────────────────────────────────────┐
+│ MCP = 厨具 + 食材（能力/接入）                                │
+├─────────────────────────────────────────────────────────────┤
+│ 厨具提供「做事的能力」，但不知道「该做什么菜」：              │
+│  - 锅、铲、刀：能切、能炒、能炖                               │
+│  - 冰箱里的食材：肉、调料                                     │
+│  - 但厨具自己不会"决定"做红烧肉还是清蒸鱼                    │
+│                                                              │
+│ 厨具是「实体工具」，能实际操作——但需要人来指挥。             │
+│ 对应 MCP：数据库 MCP 提供"查询 SQL 的能力"，                  │
+│ GitHub MCP 提供"创建 PR 的能力"——但调哪个、怎么调靠 agent。  │
+│                                                              │
+│ 特点：                                                        │
+│  ✓ 能实际干活（锅真的能炒菜）                                │
+│  ✓ 提供接入（连冰箱拿食材 = 连数据库拿数据）                 │
+│  ✗ 较重（要实体厨具/要起 server 进程）                       │
+│  ✗ 不提供方法（有锅不等于会做饭）                            │
+
+┌─────────────────────────────────────────────────────────────┐
+│ 两者配合 = 一道菜完成                                         │
+├─────────────────────────────────────────────────────────────┤
+│ 菜谱（Skills）+ 厨具食材（MCP）= 红烧肉上桌                   │
+│                                                              │
+│ agent（厨师）读菜谱知道步骤，                                │
+│ 用厨具切肉炒菜，从冰箱拿食材。                               │
+│ 缺菜谱：有锅有肉但不知道怎么做（瞎炒）。                      │
+│ 缺厨具：有菜谱但没法动手（纸上谈兵）。                       │
+│ 两者齐全：完美执行。                                          │
+└─────────────────────────────────────────────────────────────┘
+
+推论：
+  - 只缺方法 → 加 Skills（agent 有能力但不懂流程）
+  - 只缺接入 → 加 MCP（agent 懂流程但够不到数据）
+  - 都缺 → 两者都加（全新任务类型）</code></pre>
+    <h2><span class="idx"></span>Skills 与 MCP 实际配合流程代码</h2>
+    <p>把上面的类比落地成代码。这个例子展示一个完整任务里 Skills 和 MCP 如何配合——Skills 提供"怎么做月报"的流程知识，MCP 提供"从数据库取数据"和"发邮件"的能力。agent 作为"厨师"协调两者。</p>
+    <pre class="code"><code class="language-python"># Skills + MCP 配合：生成并发送月度销售报告
+# 场景：用户说"生成本月销售月报，发给管理层"
+
+# ═══ MCP 层：提供"能力"（连接外部系统）═══
+# 这些是独立运行的 server 进程，通过协议暴露工具
+mcp_tools = {
+    # 数据库 MCP：能查 SQL
+    "query_sales_db": MCPTool(
+        server="postgres-mcp",
+        schema={"sql": "string", "db": "string"},
+        desc="执行 SQL 查询销售数据库"
+    ),
+    # 邮件 MCP：能发邮件
+    "send_email": MCPTool(
+        server="email-mcp",
+        schema={"to": "list", "subject": "string", "body": "string"},
+        desc="发送邮件"
+    ),
+    # 日历 MCP：能创建会议
+    "create_meeting": MCPTool(
+        server="calendar-mcp",
+        schema={"title": "string", "time": "datetime", "attendees": "list"},
+        desc="创建日历会议邀请"
+    ),
+}
+
+# ═══ Skills 层：提供"方法"（怎么做月报）═══
+# 这是一个 SKILL.md 文件注入的指令，不是代码
+MONTHLY_REPORT_SKILL = """
+# 销售月报生成技能
+
+## 使用流程
+1. 确认报告月份和受众（管理层/销售团队）
+2. 查询核心数据：
+   - 本月总销售额、环比增长率
+   - 各产品线销售占比
+   - TOP 5 客户和 TOP 3 销售员
+3. 分析亮点和问题（哪些产品涨/跌，原因）
+4. 生成报告（用管理层视角：结论先行，数据支撑）
+5. 发送给管理层，并创建评审会议
+
+## 报告规范
+- 第一页：执行摘要（3 个关键数字 + 1 句结论）
+- 数据要带同比/环比（孤立数字无意义）
+- 标注异常波动（涨跌 &gt;20% 的要解释原因）
+
+## 受众适配
+- 管理层：重结论和趋势，少细节
+- 销售团队：重明细和排名，可操作
+"""
+
+# ═══ Agent 层：协调 Skills（方法）和 MCP（能力）═══
+class MonthlyReportAgent:
+    def __init__(self, skills_registry, mcp_registry, llm):
+        self.skills = skills_registry
+        self.mcp = mcp_registry
+        self.llm = llm
+
+    async def handle(self, user_request: str):
+        # 1. 匹配技能（Skills 提供"怎么做"的知识）
+        skill = self.skills.match(user_request)  # 匹配到月报技能
+        self.context.inject(skill.instructions)  # 注入月报流程知识
+
+        # 2. agent 按技能指引执行，过程中调用 MCP 工具
+        # 步骤1-2：查数据（用 MCP 的数据库能力）
+        sales = await self.mcp.call("query_sales_db", {
+            "sql": "SELECT SUM(amount) FROM sales WHERE month='2026-06'",
+            "db": "production"
+        })
+        product_breakdown = await self.mcp.call("query_sales_db", {
+            "sql": "SELECT product, SUM(amount) FROM sales GROUP BY product",
+            "db": "production"
+        })
+
+        # 步骤3-4：分析+生成报告（agent 用 LLM，遵循技能的规范）
+        report = await self.llm.generate(
+            f"基于以下数据生成管理层月报。遵循报告规范："
+            f"结论先行，带环比，标注异常。\n数据：{sales}, {product_breakdown}"
+        )
+
+        # 步骤5：发送邮件 + 建会议（用 MCP 的邮件/日历能力）
+        await self.mcp.call("send_email", {
+            "to": ["management@company.com"],
+            "subject": "2026年6月销售月报",
+            "body": report
+        })
+        await self.mcp.call("create_meeting", {
+            "title": "6月销售月报评审",
+            "time": "2026-07-05T10:00:00",
+            "attendees": ["management@company.com"]
+        })
+        return "月报已生成并发送，评审会议已创建。"
+
+# 关键洞察：
+# - 没有月报技能（Skills）：agent 查到数据但不知道"怎么组织成管理层报告"
+# - 没有数据库/邮件 MCP：agent 知道怎么做但"取不到数据、发不出去"
+# - 两者齐全：agent 既能拿到数据，又知道怎么变成专业报告并发送</code></pre>
+    <h2><span class="idx"></span>选择决策框架：什么情况用哪个</h2>
+    <p>最后一个实用工具——一个决策框架，帮你在任何场景下快速判断该用 Skills、MCP，还是两者都用。这个框架把决策依据固化成几个判断问题，沿着流程走就能得出答案。</p>
+    <pre class="code"><code class="language-text">Skills vs MCP 选择决策框架
+
+开始：你要扩展 agent 的什么？
+│
+├─→ 「agent 不知道怎么做某类任务」
+│   （有数据有能力，但缺方法论/流程/规范）
+│   │
+│   ├─ 例：按公司规范做代码审查、生成品牌风格的文案、
+│   │       执行标准化的安全审计、走某个审批流程
+│   │
+│   └─→ ✅ 用 Skills
+│        写一个 SKILL.md，把步骤/规范/模板放进去
+│        成本：低（几个 Markdown 文件）
+│
+├─→ 「agent 访问不到某个外部系统」
+│   （知道要做什么，但够不到数据/操作）
+│   │
+│   ├─ 例：查内部数据库、操作 Jira 工单、读 Confluence、
+│   │       控制 Slack、操作 GitHub、调用内部 API
+│   │
+│   └─→ ✅ 用 MCP
+│        写一个 MCP server，暴露工具 schema
+│        成本：中（要写 server，定义协议）
+│
+├─→ 「既要方法又要接入」
+│   （全新复杂任务，agent 既不懂流程也够不到数据）
+│   │
+│   ├─ 例：自动处理客户工单（要连系统 + 要分类回复流程）、
+│   │       智能运维（要连监控 + 要故障处理 SOP）
+│   │
+│   └─→ ✅ 两者都用
+│        MCP 提供数据接入，Skills 提供处理流程
+│        成本：中高（但这是强大 agent 的标配）
+│
+└─→ 「只是简单的单步操作」
+    （不需要复杂流程，也不需要新系统接入）
+    │
+    ├─ 例：翻译一段话、总结一篇文章、改写文案
+    │
+    └─→ ❌ 都不用
+         agent 自身能力就够，别过度设计
+         加 Skills/MCP 反而增加复杂度
+
+判断口诀：
+  - "该怎么做"不清楚 → Skills
+  - "够不到数据/系统" → MCP
+  - 两者都缺 → 两个都上
+  - 简单任务 → 都别上（杀鸡不用牛刀）
+
+一个常见误区：什么都用 MCP。
+  有些团队把所有 prompt 都封装成 MCP 工具（"generate_report" 工具），
+  这是误用——MCP 是"接入"不是"知识"。
+  报告怎么写是知识（Skills），不是能力（MCP）。
+  判断标准：如果它需要"步骤/判断/规范"，是 Skills；
+            如果它需要"连接/操作/数据"，是 MCP。</code></pre>
+    <div class="callout"><strong>💡 终极心法</strong><br>Skills 和 MCP 不是竞争关系，而是 agent 能力的两个正交维度：<strong>Skills 扩展"知道什么"（知识/方法），MCP 扩展"能做什么"（能力/接入）</strong>。一个真正强大的 agent，两者都需要——丰富的 Skills 让它懂多领域的方法论，丰富的 MCP 让它能触达多系统。判断该用哪个的终极标准就一句话：<strong>"缺方法用 Skills，缺工具用 MCP"</strong>。掌握了这个区分，你就能为任何扩展需求选对工具，构建出既聪明又能干的 agent。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Skills 和 MCP 是扩展 agent 能力的两大支柱，分别对应"知识注入"和"系统接入"。理解了它们的分工，你就能为不同的扩展需求选择正确的工具：流程规范用 Skills，系统连接用 MCP，复杂任务两者配合。这种"方法论 + 工具箱"的组合，正是现代 agent 强大的根源。</p>
     <div class="chapter-nav">
@@ -335,6 +549,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 203 章 · Skills vs MCP：两种扩展 agent 的哲学</p><p>Skills 技能体系深度系列 · 覆盖 SKILL.md 契约 · 渐进式披露 · MCP 对比 · 技能生态</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

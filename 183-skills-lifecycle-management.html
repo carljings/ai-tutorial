@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -216,7 +214,7 @@
       <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
       <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
       <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
-      <a href="183-skills-lifecycle-management.html" class="active" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
+      <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
       <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
       <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
       <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 205 章 · Skills 技能体系</span>
     <h1>技能生命周期管理</h1>
     <p class="lead">技能生命周期管理</p>
@@ -332,6 +331,179 @@ zcode plugin remove pdf-tools            # 卸载</code></pre>
     <div class="callout"><strong>💡 要点</strong><br>技能安全的核心原则：永远不要盲目信任第三方技能的指令内容。安装前审查 SKILL.md、运行时限制工具权限、操作后查日志。把技能当成"会说话的插件"——它既能帮你，也能骗你。</div>
     <h2><span class="idx"></span>技能市场的生态设计</h2>
     <p>一个健康的技能生态需要：可发现（用户能搜到需要的技能）、可评价（评分/评论帮用户筛选）、可审计（代码开源或经审核）、可变现（激励开发者持续维护）。这些是技能从"个人玩具"走向"生态基础设施"的关键。目前这个领域还在早期，但方向清晰。</p>
+    <h2><span class="idx"></span>技能完整生命周期：发现→加载→执行→卸载</h2>
+    <p>前面讲了安装分发和版本管理的概念，现在用一个完整的代码实现把整个生命周期串起来。一个技能从被 agent 发现到最终卸载，经历四个阶段：发现（判断哪些技能可用）、加载（把技能读进上下文）、执行（运行技能的逻辑）、卸载（清理资源）。每个阶段都有对应的工程问题。</p>
+    <pre class="code"><code class="language-python"># 技能完整生命周期管理器
+import yaml
+import importlib
+from pathlib import Path
+from dataclasses import dataclass, field
+from typing import Optional
+
+SKILLS_DIR = Path("~/.agent/skills").expanduser()
+
+@dataclass
+class Skill:
+    name: str
+    description: str
+    version: str
+    path: Path
+    loaded: bool = False
+    enabled: bool = True
+    permissions: list = field(default_factory=list)
+    _module: object = None  # 懒加载的执行模块
+
+class SkillLifecycleManager:
+    """管理技能的发现→加载→执行→卸载全流程。"""
+
+    # ─── 阶段一：发现（DISCOVERY）───
+    def discover(self) -> list[Skill]:
+        """扫描技能目录，读取所有 SKILL.md 的头部元信息。"""
+        skills = []
+        for skill_dir in SKILLS_DIR.iterdir():
+            skill_md = skill_dir / "SKILL.md"
+            if not skill_md.exists():
+                continue
+            # 只读 frontmatter（不读正文，省 token）
+            meta = self._parse_frontmatter(skill_md)
+            skills.append(Skill(
+                name=meta.get("name", skill_dir.name),
+                description=meta.get("description", ""),
+                version=meta.get("version", "0.0.0"),
+                path=skill_dir,
+                permissions=meta.get("permissions", []),
+                enabled=meta.get("enabled", True),
+            ))
+        return skills
+
+    def _parse_frontmatter(self, path) -> dict:
+        """解析 YAML frontmatter（--- 包围的头部）。"""
+        text = path.read_text()
+        if text.startswith("---"):
+            end = text.find("---", 3)
+            return yaml.safe_load(text[3:end])
+        return {}
+
+    # ─── 阶段二：加载（LOADING）───
+    def load(self, skill: Skill):
+        """按需加载技能的完整内容（渐进式披露）。"""
+        if skill.loaded:
+            return
+        # 1. 检查权限：技能声明的权限是否被授予
+        for perm in skill.permissions:
+            if not self._check_permission(skill.name, perm):
+                raise PermissionError(f"技能 {skill.name} 缺少权限：{perm}")
+
+        # 2. 加载指令正文（SKILL.md 的 body）
+        body = self._read_body(skill.path / "SKILL.md")
+        self.context.inject(body)  # 注入 agent 上下文
+
+        # 3. 懒加载执行模块（如果技能带 Python 代码）
+        code_file = skill.path / "handler.py"
+        if code_file.exists():
+            spec = importlib.util.spec_from_file_location(skill.name, code_file)
+            skill._module = importlib.util.module_from_spec(spec)
+            spec.loader.exec_module(skill._module)  # 执行模块代码
+
+        skill.loaded = True
+        self._log("load", skill.name, f"v{skill.version}")
+
+    # ─── 阶段三：执行（EXECUTION）───
+    def execute(self, skill: Skill, task: str, **kwargs):
+        """运行技能的处理逻辑。"""
+        if not skill.loaded:
+            self.load(skill)  # 自动加载（如果还没加载）
+
+        # 安全沙箱：限制技能能调用的工具
+        with self.sandbox.allow(skill.permissions):
+            if skill._module and hasattr(skill._module, "handle"):
+                result = skill._module.handle(task, **kwargs)
+            else:
+                # 纯指令型技能：靠 agent 按 SKILL.md 指引执行
+                result = self.agent.follow_instructions(task, **kwargs)
+        self._log("execute", skill.name, f"task={task[:50]}")
+        return result
+
+    # ─── 阶段四：卸载（UNLOADING）───
+    def unload(self, skill: Skill):
+        """卸载技能：清理上下文和资源。"""
+        if not skill.loaded:
+            return
+        # 1. 从上下文移除指令（释放 token）
+        self.context.remove(skill.name)
+        # 2. 释放模块引用（让 GC 回收）
+        skill._module = None
+        skill.loaded = False
+        self._log("unload", skill.name, "")
+
+    def cleanup(self):
+        """agent 会话结束时，卸载所有已加载技能。"""
+        for skill in self.loaded_skills:
+            self.unload(skill)</code></pre>
+    <p>这个生命周期管理器体现了几个工程要点：① <strong>发现阶段只读 frontmatter</strong>——几十个技能的正文全加载会撑爆上下文，只读 name+description 用于匹配，这是渐进式披露的第一层；② <strong>加载是懒触发的</strong>——只有真正要用某个技能时才加载完整内容，省 token；③ <strong>执行要进沙箱</strong>——技能声明的权限（读文件、调网络）在沙箱里被限制，防止越权；④ <strong>卸载要清理上下文</strong>——技能用完从上下文移除，腾出空间给后续任务。</p>
+    <h2><span class="idx"></span>版本管理：处理升级、回滚与兼容性</h2>
+    <p>技能会迭代，而 agent 环境也在变。版本管理要处理三类问题：技能自身的升级（新功能）、破坏性变更（不兼容旧版）、以及回滚（新版出问题要退回）。下面展示一套基于语义化版本的版本管理实现。</p>
+    <pre class="code"><code class="language-python"># 技能版本管理：升级 / 兼容检查 / 回滚
+from packaging import version
+import shutil
+
+class SkillVersionManager:
+    def __init__(self, skills_dir, registry):
+        self.skills_dir = skills_dir
+        self.registry = registry  # 技能市场/仓库
+        self.versions_dir = skills_dir / ".versions"  # 存历史版本
+
+    def update(self, skill_name: str, target: str = "latest") -> dict:
+        """更新技能，自动处理兼容性和备份。"""
+        current = self._get_installed_version(skill_name)
+        latest = self.registry.fetch_version(skill_name, target)
+
+        # 1. 兼容性检查：新版本要求的 agent 版本，当前是否满足？
+        required_agent = latest.frontmatter.get("requires_agent", "0.0.0")
+        if version.parse(self.agent_version) &lt; version.parse(required_agent):
+            return {"ok": False, "reason":
+                    f"需要 agent &gt;= {required_agent}，当前 {self.agent_version}"}
+
+        # 2. 破坏性变更检查：major 版本升级可能不兼容
+        if version.parse(latest.version).major &gt; version.parse(current).major:
+            print(f"⚠️ 大版本升级 {current} → {latest.version}，可能有 breaking change")
+            print(f"   变更说明：{latest.frontmatter.get('breaking_changes', '无')}")
+            if not confirm("确认升级？"):  # 大版本要人工确认
+                return {"ok": False, "reason": "用户取消"}
+
+        # 3. 备份当前版本（用于回滚）
+        self._backup(skill_name, current)
+
+        # 4. 执行升级
+        self.registry.install(skill_name, latest.version)
+
+        # 5. 健康检查：升级后跑一次自测
+        if not self._health_check(skill_name):
+            print("⚠️ 升级后自测失败，自动回滚")
+            self.rollback(skill_name)
+            return {"ok": False, "reason": "自测失败，已回滚"}
+
+        return {"ok": True, "from": current, "to": latest.version}
+
+    def rollback(self, skill_name: str):
+        """回滚到上一个版本。"""
+        backups = sorted(self.versions_dir.glob(f"{skill_name}-*"))
+        if not backups:
+            raise RuntimeError(f"没有 {skill_name} 的历史版本可回滚")
+        last = backups[-1]
+        shutil.rmtree(self.skills_dir / skill_name)
+        shutil.copytree(last, self.skills_dir / skill_name)
+        print(f"已回滚 {skill_name} 到 {last.name}")
+
+    def _backup(self, name, ver):
+        """升级前备份当前版本。"""
+        dest = self.versions_dir / f"{name}-{ver}"
+        shutil.copytree(self.skills_dir / name, dest)
+        # 只保留最近 3 个版本，清理旧的
+        backups = sorted(self.versions_dir.glob(f"{name}-*"))
+        for old in backups[:-3]:
+            shutil.rmtree(old)</code></pre>
+    <div class="callout"><strong>💡 版本管理要点</strong><br>技能版本管理的三个关键设计：① <strong>升级前必备份</strong>——保留历史版本（最近 3 个），新版出问题能秒回滚；② <strong>大版本升级要人工确认</strong>——major 版本号变更意味着可能有破坏性改动，不能静默升级；③ <strong>升级后跑自测</strong>——每个技能应带一个自测用例（SKILL.md 里声明），升级后自动跑一遍，失败就自动回滚。这三道保险让技能升级"可进可退"，不会因为一个坏更新搞挂整个 agent。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>技能的生命周期管理决定了技能体系能否在生产环境落地。安装要方便（市场/插件）、版本要可控（语义化版本+兼容声明）、安全要有保障（权限+审计）。把这些工程问题解决好，技能才能真正成为 agent 的"可插拔能力"。</p>
     <div class="chapter-nav">
@@ -340,6 +512,8 @@ zcode plugin remove pdf-tools            # 卸载</code></pre>
     </div>
     <footer><p>AI 全栈实战教学 · 第 205 章 · 技能生命周期管理：安装、更新、版本、权限</p><p>Skills 技能体系深度系列 · 覆盖 SKILL.md 契约 · 渐进式披露 · MCP 对比 · 技能生态</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

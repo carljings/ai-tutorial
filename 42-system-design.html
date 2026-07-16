@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -65,7 +63,7 @@
       <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
       <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
       <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
-      <a href="42-system-design.html" class="active" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
+      <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
       <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 专题深度</span>
     <h1>AI 系统设计与面试</h1><p class="lead">从 RAG 到多模态搜索：AI 时代的系统设计方法论</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -376,6 +375,211 @@
    → 知识库覆盖够不够
    → 是否需要补充数据</code></pre>
     <div class="callout"><strong>💡 要点</strong><br>面试核心技巧：AI 系统设计没有"标准答案"，但有"思考框架"。需求澄清 → 高层架构 → 核心组件 → 瓶颈分析 → 扩展性。每一步都要展现你的工程直觉——不是背名词，而是解释"为什么这么选、代价是什么、什么时候该换方案"。</div>
+    <h2><span class="idx"></span>完整方案：设计一个企业智能客服系统</h2>
+    <p>前面讲了智能客服的高层架构和核心组件，现在把整个设计方案串成一个完整的回答——就像在面试白板上从需求到落地讲一遍。这个方案覆盖了架构、数据流、瓶颈应对、扩展性，是回答"设计智能客服"这类系统设计题的完整模板。</p>
+    <pre class="code"><code class="language-text">企业智能客服完整设计方案
+
+【需求】日活 100 万，日均咨询 20 万条，峰值 QPS 500，要求 P95 首字 &lt;2s
+【知识】5 万条 FAQ + 产品文档 2000 篇 + 历史工单 50 万条
+
+═══ 架构总览（请求流）═══
+用户消息
+  │
+  ├─→ [CDN/网关] 限流(令牌桶) + 鉴权
+  │
+  ├─→ [会话服务] 管理多轮对话状态（Redis 存会话）
+  │
+  ├─→ [意图路由] 小模型(bge-small)分类 → FAQ/闲聊/复杂/RAG
+  │     ├─ FAQ(80%) → 向量精确匹配，毫秒返回
+  │     ├─ 闲聊(5%) → 小模型直接生成
+  │     └─ 复杂(15%) → 进入 RAG 流程 ↓
+  │
+  ├─→ [RAG 检索]
+  │     ├─ Query 改写（多轮对话压缩上下文）
+  │     ├─ 混合检索（向量 top-20 + BM25 top-20）
+  │     ├─ Rerank 精排（cross-encoder → top-5）
+  │     └─ 召回为空？→ 降级到模型自身知识 + 标注"未覆盖"
+  │
+  ├─→ [LLM 生成] vLLM 服务，流式输出
+  │     ├─ Prefix Caching（公共 system prompt 加速）
+  │     └─ 超时兜底（15s 没回 → 换小模型或转人工）
+  │
+  ├─→ [安全检查] 输出过滤（敏感词/合规）
+  │
+  ├─→ [流式返回] SSE 推给前端
+  │
+  └─→ [反馈飞轮] 记录答案 + 收集 thumbs up/down
+        → 每周用负反馈优化 RAG 和微调小模型
+
+═══ 容量与扩展性 ═══
+- LLM 推理：4 × A100(vLLM)，每卡 50 QPS，共 200 QPS
+  峰值 500 QPS 时：加排队缓冲 + 小模型分流（FAQ/闲聊不走大模型）
+- 向量库：Milvus 集群，5 万 FAQ + 2000 文档切片 ~10 万向量，单节点够
+- 会话状态：Redis 集群，100 万并发会话 × 4KB = 4GB，轻松
+- 知识更新：每日增量重建索引（只处理变化的文档）</code></pre>
+    <pre class="code"><code class="language-python"># 智能客服的核心：意图路由 + 三级分流（带容量意识）
+class CustomerServiceRouter:
+    """根据意图把请求分流到不同处理路径，控制大模型负载。"""
+
+    async def route(self, msg: str, session: dict) -&gt; str:
+        # 1. 意图分类（用小模型，快且便宜）
+        intent = await self.classifier.predict(msg)
+        # intent: faq / chitchat / complex / complaint
+
+        if intent == "faq":
+            # 80% 流量走这里——向量匹配，毫秒级，零 LLM 成本
+            answer = self.faq_matcher.search(msg, threshold=0.9)
+            if answer:
+                return answer
+
+        if intent == "chitchat":
+            # 5% 流量——小模型直接生成（7B 足够）
+            return await self.small_model.generate(msg)
+
+        if intent == "complaint":
+            # 投诉直接转人工（别让 AI 处理情绪化用户）
+            return self.transfer_to_human(session, reason="投诉")
+
+        # 15% 流量——复杂问题走完整 RAG
+        return await self.rag_pipeline(msg, session)
+
+    async def rag_pipeline(self, msg, session) -&gt; str:
+        # Query 改写（带上多轮对话历史）
+        rewritten = await self.rewrite_query(msg, session.history)
+
+        # 混合检索
+        vec_results = self.vector_db.search(rewritten, k=20)
+        bm25_results = self.bm25.search(rewritten, k=20)
+        merged = self.reciprocal_rank_fusion(vec_results, bm25_results)
+
+        # 精排
+        reranked = self.reranker.rerank(merged, query=rewritten, top_n=5)
+
+        if not reranked:
+            # 召回为空：降级，标注"知识库未覆盖"
+            return await self.fallback_generate(msg)
+
+        # LLM 生成（流式）
+        return await self.llm.stream_generate(msg, context=reranked)
+
+# 容量意识：为什么分流这么重要？
+# 如果所有请求都走大模型：500 QPS × $0.02/次 = $600/小时 = 贵
+# 分流后：只有 15% (75 QPS) 走大模型：$90/小时 = 省 85%
+# 而且 FAQ/闲聊用小模型，响应更快，用户体验更好</code></pre>
+    <h2><span class="idx"></span>RAG 召回率排查链：从 60% 提到 90% 的完整路径</h2>
+    <p>前面给了一个简要的排查链，现在展开成完整的诊断手册。RAG 召回率低是最常见的线上问题，排查要按"从易到难、从数据到模型"的顺序，每一步都给出具体的诊断方法和修复手段。这套排查链能帮你系统性地定位召回率问题，而不是盲目调参。</p>
+    <pre class="code"><code class="language-text">RAG 召回率排查链（完整版，从 60% 提升到 90%+）
+
+【第0步：先建评测集】（没有测量就没有优化）
+  - 收集 200-500 个真实问题 + 标注正确答案所在的文档
+  - 定义"召回成功"：正确文档出现在 top-k 里
+  - 当前召回率：60%（假设）
+
+【第1步：检查切块】（最常见的问题）
+  症状：相关文档被切散，单个 chunk 信息不完整
+  诊断：
+    - 抽查召回失败的 case，看正确答案是否被切断
+    - 检查 chunk_size 是否过大（信息稀释）或过小（上下文丢失）
+  修复：
+    - 切块太死板 → 换语义切块（按句子/段落边界）
+    - 重要文档被切散 → 用父子切块（检索子块，返回父块）
+    - 代码/表格被切碎 → 用 AST/结构感知切块
+  预期提升：+5-10%
+
+【第2步：检查 embedding 模型】
+  症状：语义相近但表述不同的内容匹配不到
+  诊断：
+    - 用"查询-正确文档"对计算 embedding 相似度，看分布
+    - 检查 embedding 模型是否匹配语言（中文用 bge-large-zh）
+    - 检查 embedding 维度是否够（768/1024 通常够，太低会丢信息）
+  修复：
+    - 换更强的 embedding（bge-large-zh &gt; bge-base &gt; e5-small）
+    - 中英文混合 → 用多语言 embedding 或分别建索引
+  预期提升：+3-8%
+
+【第3步：检查检索策略】
+  症状：向量检索漏掉关键词精确匹配的内容
+  诊断：
+    - 分析失败 case：是语义没匹配上，还是关键词没匹配上？
+  修复：
+    - 单一向量 → 加 BM25 混合检索（RRF 融合）
+    - 无精排 → 加 cross-encoder reranker（精度大幅提升）
+    - top-k 太小 → 适当增大召回数（20→50）
+  预期提升：+5-15%
+
+【第4步：检查查询】
+  症状：用户的表述和文档表述差异大
+  诊断：
+    - 看失败 case 的 query，对比文档表述
+    - 多轮对话中，query 是否丢失了上下文（"那个怎么用"缺指代）
+  修复：
+    - 加 Query 改写（多轮对话压缩 + 指代消解）
+    - 加 HyDE（让 LLM 先生成假设性答案，用答案检索）
+    - 加多查询（生成多个改写版本，分别检索后融合）
+  预期提升：+5-10%
+
+【第5步：检查数据】
+  症状：知识库本身没有覆盖某些问题
+  诊断：
+    - 统计失败 case 的主题分布，找系统性缺口
+    - 对比用户提问和知识库覆盖范围
+  修复：
+    - 补充缺失的知识（针对高频缺口优先补）
+    - 清理过时/错误的数据
+  预期提升：+5-15%（取决于缺口大小）
+
+每修一步，在评测集上重新测，确认提升再继续下一步。
+典型路径：60%(切块) → 68%(embedding) → 78%(混合检索)
+         → 85%(query改写) → 92%(补数据)</code></pre>
+    <h2><span class="idx"></span>容量估算：用数字证明方案可行</h2>
+    <p>系统设计面试的加分项是能用数字说话——不只是说"用 vLLM 部署"，而是算出"需要几张卡、多少 QPS、多少成本"。容量估算（back-of-envelope calculation）是资深工程师的基本功。下面以智能客服为例，展示完整的容量估算过程。</p>
+    <pre class="code"><code class="language-text">智能客服容量估算（back-of-envelope calculation）
+
+【已知需求】
+- 日活 100 万，日均咨询 20 万条
+- 峰值 QPS 500（白天集中）
+- 平均输入 200 token，输出 300 token
+- P95 首 token &lt; 2s
+
+【第一步：算推理负载】
+- 日均 20 万条咨询，但只有 15%（复杂问题）走大模型 = 3 万次/天
+- 大模型 QPS：3 万 / 86400 秒 ≈ 0.35 平均，但峰值要 ×5 = 1.75 QPS
+- 看似不高？错！要算"并发生成时的 token 吞吐"
+- 峰值时 1.75 请求/秒，每个生成 300 token，需 525 token/秒
+- 单卡 A100(vLLM) 吞吐 ~3000 token/秒 → 1 张卡绰绰有余
+
+  但要考虑所有流量（含 FAQ 兜底走模型的）：
+  - 峰值 500 QPS，15% 走大模型 = 75 QPS
+  - 75 × 300 token = 22500 token/秒
+  - 单卡 A100(vLLM, 7B INT4) ~5000 token/秒
+  - 需要 22500 / 5000 ≈ 5 张卡 → 用 4 张（做 batch 优化后）+ 1 张冗余
+
+【第二步：算存储】
+- 知识库：5 万 FAQ + 2000 文档切片 ≈ 10 万向量
+  每个 1024 维 FP32 = 4KB → 10 万 × 4KB = 400MB（Milvus 单节点够）
+- 会话状态：100 万并发 × 4KB(对话历史) = 4GB（Redis 轻松）
+- 历史记录：20 万条/天 × 1KB = 200MB/天 → 73GB/年（PostgreSQL）
+
+【第三步：算成本】
+- GPU：4 × A100(按需 $2/小时) × 24 × 30 = $5760/月 ≈ 4万人民币
+  （长期用可买预留实例，省 40%）
+- 模型 API（如果不自部署，用闭源）：
+  3 万次/天 × 500 token × $0.002/1K = $30/天 = $900/月
+  但自部署更可控（数据不出域），且大流量时更便宜
+- 向量库/Redis/存储：~$500/月
+- 总成本：~$6500/月 ≈ 4.5 万人民币/月
+
+【第四步：验证 SLA】
+- 首 token 延迟：vLLM 在 batch=32 时 ~300ms + 网络 100ms = 400ms ✓ &lt;2s
+- 可用性：4 卡做负载均衡 + 自动故障转移 → 99.9% 可达
+- 降级：大模型全挂时，FAQ + 小模型能撑住 85% 流量
+
+【面试呈现技巧】
+  先报总量级（"约 5 张 A100，月成本 4.5 万"），
+  再说关键假设（"15% 走大模型，其余 FAQ 分流"），
+  最后留余量（"+20% buffer 应对增长"）。
+  数字让你显得"真做过"，而不是空谈架构。</code></pre>
+    <div class="callout"><strong>💡 系统设计面试的终极心法</strong><br>AI 系统设计面试考察的不是"背了多少架构图"，而是三个能力：① <strong>结构化拆解</strong>（需求→架构→组件→瓶颈，层层深入）；② <strong>用数字说话</strong>（容量估算让方案可信）；③ <strong>权衡意识</strong>（每个选择都有代价，能说清"为什么这么选、什么时候该换"）。准备时重点练这三个：拿"智能客服""推荐系统""内容审核"三道经典题，每道都按"需求澄清→高层架构→核心组件深挖→瓶颈分析→容量估算"的框架完整答一遍，面试时就能从容应对任何变体。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>AI 系统设计比传统系统设计多了三个维度：推理延迟不可预测、输出不确定、需要知识层。核心矛盾是"用户要秒回+永远正确" vs "LLM 可能慢+可能错"。典型架构是"安全过滤→意图分类→RAG检索→LLM生成→流式返回→反馈飞轮"。四个经典瓶颈（延迟/成本/幻觉/并发）各有标准工程解法。面试加分靠的是在某个点上能深入排查到底。</p>
     <div class="chapter-nav">
@@ -384,6 +588,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 42 章 · AI 系统设计与面试</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

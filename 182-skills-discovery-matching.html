@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -215,7 +213,7 @@
       <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
       <a href="180-skills-progressive-disclosure.html" title="渐进式披露：技能如何省着用上下文"><span class="num">180</span>渐进式披露</a>
       <a href="181-skills-vs-mcp.html" title="Skills vs MCP：两种扩展 agent 的哲学"><span class="num">181</span>Skills vs </a>
-      <a href="182-skills-discovery-matching.html" class="active" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
+      <a href="182-skills-discovery-matching.html" title="技能发现与匹配：agent 如何选对技能"><span class="num">182</span>技能发现与匹配</a>
       <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
       <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
       <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 204 章 · Skills 技能体系</span>
     <h1>技能发现与匹配</h1>
     <p class="lead">技能发现与匹配</p>
@@ -337,6 +336,208 @@ description: &gt;
     <p>注意最后一句"不用于生成新文档"——这是明确边界。好的 description 不仅说"我做什么"，也说"我不做什么"，帮 agent 在多个候选技能间正确取舍。</p>
     <h2><span class="idx"></span>多技能冲突的处理</h2>
     <p>有时多个技能都匹配，agent 需要决定用哪个或用几个。策略有：优先级（技能可以设 priority，冲突时高的优先）、组合（如果任务确实需要多个技能就依次或并行调用）、询问用户（如果不确定就问"你是想做 A 还是 B"）。大多数 agent 默认让 LLM 自主决策，因为它最能理解任务意图。</p>
+    <h2><span class="idx"></span>语义匹配算法：从关键词到向量相似度</h2>
+    <p>前面讲了"LLM 直判"和"向量预筛"两条路线，现在深入向量匹配的算法细节。语义匹配的核心是把用户意图和技能描述都转成向量，算它们的相似度（通常用余弦相似度）。但单纯的向量相似度有个问题——它可能把"不相关但表述相似"的技能误判为相关。改进方案是<strong>混合检索</strong>：向量相似度（语义）+ 关键词匹配（精确），两者加权。</p>
+    <pre class="code"><code class="language-python"># 技能匹配：向量语义 + 关键词的混合检索
+import numpy as np
+from sklearn.feature_extraction.text import TfidfVectorizer
+
+class SkillMatcher:
+    """混合匹配：语义相似度 + 关键词匹配，加权融合。"""
+
+    def __init__(self, skills: list, embed_model):
+        self.skills = skills
+        self.embed_model = embed_model
+        # 预计算所有技能描述的向量
+        self.skill_embeddings = np.array([
+            embed_model.encode(s.description) for s in skills
+        ])
+        # TF-IDF 用于关键词匹配
+        self.tfidf = TfidfVectorizer()
+        self.tfidf_matrix = self.tfidf.fit_transform(
+            [s.description for s in skills])
+
+    def match(self, query: str, top_k: int = 3,
+              alpha: float = 0.7) -&gt; list:
+        """返回最匹配的 top_k 个技能。alpha 是语义权重。"""
+        # 1. 语义相似度（余弦）
+        query_emb = self.embed_model.encode(query)
+        sem_scores = cosine_similarity(
+            [query_emb], self.skill_embeddings)[0]
+
+        # 2. 关键词匹配（TF-IDF）
+        query_vec = self.tfidf.transform([query])
+        kw_scores = cosine_similarity(
+            query_vec, self.tfidf_matrix)[0]
+
+        # 3. 加权融合（语义 0.7 + 关键词 0.3）
+        combined = alpha * sem_scores + (1 - alpha) * kw_scores
+
+        # 4. 取 top_k，并过滤掉分数太低的（避免误匹配）
+        ranked = sorted(enumerate(combined), key=lambda x: -x[1])
+        results = []
+        for idx, score in ranked[:top_k]:
+            if score &gt; 0.3:  # 最低阈值
+                results.append({
+                    "skill": self.skills[idx],
+                    "score": float(score),
+                    "sem": float(sem_scores[idx]),
+                    "kw": float(kw_scores[idx]),
+                })
+        return results
+
+# 为什么混合比纯向量好？
+# 用户说"把 PDF 弄成文字"
+# 纯向量：可能匹配到"PDF 编辑"（语义接近但功能不同）
+# 混合：关键词"PDF"+"文字"拉高了"OCR 识别"的分数，匹配更准</code></pre>
+    <p>这个混合匹配的精妙在于<strong>语义和关键词互补</strong>：向量捕捉语义相似（"弄成文字"≈"提取"），关键词捕捉精确匹配（"PDF"这个实体词）。纯向量会被表述相似但功能不同的技能误导，纯关键词处理不了同义表述。两者加权融合，既灵活又精确。alpha 参数控制偏向——任务表述多变时调高 alpha（重语义），术语精确时调低（重关键词）。</p>
+    <h2><span class="idx"></span>技能加载代码：从匹配到执行</h2>
+    <p>匹配到技能只是第一步，还要把它正确加载进 agent 上下文。加载过程遵循渐进式披露——先把技能的指令正文注入，如果技能带了辅助文件（模板、示例），按需加载。下面是完整的"匹配→加载→执行"流程代码。</p>
+    <pre class="code"><code class="language-python"># 技能匹配 → 加载 → 执行的完整流程
+from pathlib import Path
+import yaml
+
+class SkillLoader:
+    def __init__(self, skills_dir: Path, matcher: SkillMatcher):
+        self.skills_dir = skills_dir
+        self.matcher = matcher
+        self.cache = {}  # 已加载技能的缓存
+
+    def select_and_load(self, user_query: str) -&gt; list:
+        """匹配最相关的技能并加载（渐进式披露）。"""
+        # 1. 匹配：从所有技能中找最相关的
+        matches = self.matcher.match(user_query, top_k=2)
+
+        if not matches:
+            return []  # 没有匹配的技能，agent 用自身能力处理
+
+        loaded = []
+        for m in matches:
+            skill = m["skill"]
+            if skill.name in self.cache:
+                loaded.append(self.cache[skill.name])
+                continue
+
+            # 2. 加载 SKILL.md 的指令正文（渐进式第一层）
+            skill_md = self._read_skill_md(skill.path)
+            instructions = self._extract_body(skill_md)
+
+            # 3. 决定是否加载辅助文件（渐进式第二层）
+            # 简单任务只加载正文；复杂任务按需加载模板等
+            if self._needs_templates(user_query, instructions):
+                templates = self._load_aux_file(
+                    skill.path / "TEMPLATES.md")
+                instructions += f"\n\n## 可用模板\n{templates}"
+
+            # 4. 注入 agent 上下文
+            self.context.add(f"[技能：{skill.name}]\n{instructions}")
+            self.cache[skill.name] = skill
+            loaded.append(skill)
+            print(f"✓ 加载技能：{skill.name}（匹配度 {m['score']:.2f}）")
+
+        return loaded
+
+    def _read_skill_md(self, path: Path) -&gt; str:
+        """读 SKILL.md，跳过 frontmatter（正文才是指令）。"""
+        text = (path / "SKILL.md").read_text()
+        if text.startswith("---"):
+            end = text.find("---", 3)
+            return text[end + 3:]  # 只返回正文
+        return text
+
+    def _needs_templates(self, query: str, instructions: str) -&gt; bool:
+        """判断是否需要加载模板文件（避免无谓加载省 token）。"""
+        # 如果指令里引用了 TEMPLATES.md，且任务像是要用模板的
+        return ("TEMPLATES.md" in instructions and
+                any(w in query for w in ["模板", "例子", "示例", "格式"]))
+
+# 完整流程示例
+loader = SkillLoader(SKILLS_DIR, matcher)
+user_says = "帮我生成一份项目周报的 PDF"
+
+# 1. 匹配 + 加载
+skills = loader.select_and_load(user_says)
+# 输出：✓ 加载技能：pdf-report-generator（匹配度 0.87）
+
+# 2. agent 现在上下文里有了"怎么做 PDF 报告"的指令
+#    它会按指令执行：确认报告类型 → 收集内容 → 选模板 → 生成
+# 3. 任务完成后，技能从上下文移除（卸载）</code></pre>
+    <h2><span class="idx"></span>多级发现路径：本地 → 团队 → 市场 → 动态</h2>
+    <p>当 agent 装的技能越来越多，单一的匹配可能不够——有些技能在本地，有些在团队共享仓库，有些在公开市场，有些甚至需要运行时动态发现（比如 MCP 注册的远程技能）。多级发现路径按"近→远"的顺序查找：先查本地（最快），没有再查团队仓库，再没有查公开市场。这样既快又全。</p>
+    <pre class="code"><code class="language-text">技能多级发现路径（从近到远，逐级扩大搜索范围）
+
+Level 1: 本地技能（~/.agent/skills/）
+  ├─ 已安装的个人技能
+  ├─ 查找方式：直接扫描目录
+  ├─ 速度：毫秒级
+  └─ 示例：你自己写的"周报生成"技能
+
+Level 2: 团队/组织技能仓库（git://team-agent/skills）
+  ├─ 团队共享的技能（git 同步）
+  ├─ 查找方式：查询团队技能索引
+  ├─ 速度：秒级（可能需拉取）
+  └─ 示例：公司统一的"代码审查规范"技能
+
+Level 3: 公开技能市场（marketplace.agent.dev）
+  ├─ 社区发布的技能
+  ├─ 查找方式：API 搜索市场
+  ├─ 速度：秒级（网络）
+  ├─ 信任级别：需审查（可能有恶意技能）
+  └─ 示例："YouTube 视频摘要"社区技能
+
+Level 4: MCP 动态注册（运行时发现）
+  ├─ MCP server 暴露的能力（非传统技能）
+  ├─ 查找方式：查询已连接的 MCP server
+  ├─ 速度：毫秒级（已连接）
+  └─ 示例：数据库 MCP 提供的"SQL 查询"能力</code></pre>
+    <pre class="code"><code class="language-python"># 多级技能发现器：从近到远逐级查找
+class MultiLevelDiscovery:
+    LEVELS = ["local", "team", "marketplace", "mcp"]
+
+    def discover(self, query: str) -&gt; list:
+        """逐级查找匹配的技能，找到就返回（不继续查更远的）。"""
+        all_matches = []
+        for level in self.LEVELS:
+            finder = self._get_finder(level)
+            try:
+                matches = finder.search(query)
+            except Exception as e:
+                print(f"{level} 发现失败：{e}")
+                continue
+
+            for m in matches:
+                m.level = level  # 标记来源级别
+                all_matches.append(m)
+
+            # 本地/团队找到足够多了，不必查市场（省网络开销）
+            if level in ("local", "team") and len(matches) &gt;= 3:
+                break
+
+        # 跨级别统一排序（按匹配度，不按来源）
+        all_matches.sort(key=lambda x: -x.score)
+        return all_matches[:5]
+
+    def _get_finder(self, level):
+        finders = {
+            "local": LocalSkillFinder("~/.agent/skills"),
+            "team": GitRepoFinder("git://team-agent/skills"),
+            "marketplace": MarketAPIClient("marketplace.agent.dev"),
+            "mcp": MCPRegistryFinder(self.mcp_servers),
+        }
+        return finders[level]
+
+# 信任级别处理：不同来源的技能，审查力度不同
+def trust_policy(match):
+    """根据技能来源决定执行前的审查级别。"""
+    if match.level == "local":
+        return "auto_execute"     # 自己写的，直接执行
+    elif match.level == "team":
+        return "auto_execute"     # 团队审核过，信任
+    elif match.level == "marketplace":
+        return "review_first"     # 第三方，先看 SKILL.md 再决定
+    elif match.level == "mcp":
+        return "check_permissions"  # 检查工具权限</code></pre>
+    <div class="callout"><strong>💡 多级发现的实践要点</strong><br>多级发现的两个关键设计：① <strong>按近→远查找，够用就停</strong>——本地能解决就不查网络（省延迟），团队有就不查市场（省信任成本）；② <strong>不同来源不同信任级别</strong>——本地/团队技能可直接执行，市场技能要先审查（读 SKILL.md 确认无注入），MCP 能力要检查权限声明。这套机制让 agent 既能利用海量的远程技能，又能控制住安全风险。本质是把"技能发现"从单机问题变成了分布式系统的"服务发现"问题。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>技能匹配是 Skills 体系的"调度层"——再好的技能，选不对也白搭。匹配质量取决于 description 的写法和匹配策略的选择。写好 description（场景+关键词+边界），选对路线（LLM 直判 vs 向量预筛），技能体系就能精准运转。</p>
     <div class="chapter-nav">
@@ -345,6 +546,8 @@ description: &gt;
     </div>
     <footer><p>AI 全栈实战教学 · 第 204 章 · 技能发现与匹配：agent 如何选对技能</p><p>Skills 技能体系深度系列 · 覆盖 SKILL.md 契约 · 渐进式披露 · MCP 对比 · 技能生态</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

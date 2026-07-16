@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -246,7 +244,7 @@
       <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
-      <a href="207-deep-agentic-rag.html" class="active" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
+      <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
       <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 231 章 · Deep Agent</span>
     <h1>Agentic RAG</h1><p class="lead">RAG 从被动检索到主动探索</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -339,6 +338,203 @@
     <p>Agentic RAG 的思想在学术界有两个里程碑。Self-RAG（arXiv:2310.11511）训练模型发出"反思 token"来控制检索：Retrieve/NoRetrieve（要不要查）、ISREL（查到的相关吗）、ISSUP（答案有没有被证据支撑，防幻觉）、ISUSE（最终回答有用吗）。这些 token 让"检索-判断"循环成为模型自身能力的一部分。</p>
     <p>CRAG / Corrective RAG（arXiv:2401.15884）则引入一个轻量"检索评估器"，把检索到的文档打三档：correct（直接用）、incorrect（丢弃，转 web 搜索兜底）、ambiguous（改写查询重新检索）。这种"三档纠错"是很多生产级 Agentic RAG 的基础模式——检索结果不照单全收，而是先评估质量再决定用不用。</p>
     <table class="data-table"><thead><tr><th>机制</th><th>来源</th><th>核心思想</th><th>解决什么</th></tr></thead><tbody><tr><td>Self-RAG 反思 token</td><td>arXiv:2310.11511</td><td>模型自决定检索/判断相关性/验证支撑</td><td>检索决策内化到模型</td></tr><tr><td>CRAG 三档纠错</td><td>arXiv:2401.15884</td><td>检索结果按质量分 correct/incorrect/ambiguous</td><td>低质检索的兜底</td></tr><tr><td>查询改写</td><td>HyDE 等</td><td>先改写查询再检索</td><td>用户表述 ≠ 检索最优表述</td></tr><tr><td>多跳检索</td><td>链式 RAG</td><td>前一步答案喂下一步查询</td><td>组合性问题</td></tr></tbody></table>
+    <h2><span class="idx"></span>多跳检索实现：链式深挖复杂问题</h2>
+    <p>Agentic RAG 最体现价值的能力是多跳检索——前一步的检索结果影响下一步的查询，层层递进直到拼凑出完整答案。比如"《三体》作者最新小说的改编电影导演是谁"需要三跳：查《三体》作者 → 查作者最新小说 → 查该小说的电影改编 → 查导演。标准 RAG 一次检索根本做不到。下面实现一个完整的多跳检索器。</p>
+    <pre class="code"><code class="language-python"># 多跳检索：前一步答案喂下一步查询，链式深挖
+class MultiHopRetriever:
+    def __init__(self, vector_db, llm, web_search=None):
+        self.db = vector_db
+        self.llm = llm
+        self.web = web_search  # 本地知识库查不到时兜底 web
+
+    def retrieve(self, question: str, max_hops: int = 5) -&gt; dict:
+        """多跳检索：每跳基于已知信息生成下一个查询。"""
+        collected = []          # 累积的所有证据
+        reasoning_chain = []    # 推理链（可追溯）
+
+        current_query = question
+        for hop in range(max_hops):
+            # 1. 检索当前查询
+            docs = self.db.search(current_query, k=5)
+            source = "local"
+
+            # 2. 本地不够，尝试 web 搜索（跨知识库）
+            if len(docs) &lt; 2 and self.web:
+                web_results = self.web.search(current_query, k=3)
+                docs.extend(web_results)
+                source = "web"
+
+            if not docs:
+                break  # 查不到更多了
+
+            collected.extend(docs)
+            reasoning_chain.append({
+                "hop": hop + 1, "query": current_query,
+                "source": source, "found": len(docs),
+            })
+
+            # 3. 核心：基于当前已知，决定下一步查什么
+            decision = self.llm.generate(f"""基于问题和已收集的信息，
+            判断是否需要继续检索，以及下一步该查什么。
+
+            原始问题：{question}
+            已收集信息：{summarize(collected)}
+
+            输出 JSON：
+            {{
+              "can_answer": true/false,  // 现有信息够回答了吗？
+              "next_query": "...",       // 不够的话，下一步查什么？
+              "reasoning": "..."         // 为什么这么判断
+            }}""", response_format="json")
+
+            if decision["can_answer"]:
+                break  # 信息够了，停止检索
+            current_query = decision["next_query"]  # 用新查询继续跳
+
+        return {
+            "evidence": collected,
+            "chain": reasoning_chain,  # 完整推理链（可溯源/可调试）
+            "hops_used": hop + 1,
+        }
+
+# 实战：多跳问题
+retriever = MultiHopRetriever(my_db, my_llm, web_search=TavilySearch())
+result = retriever.retrieve("GLM-5 的训练用了哪些和数据相关的创新？")
+# Hop 1: 查 "GLM-5 训练创新" → 找到架构创新
+# Hop 2: 发现"数据相关"线索 → 查 "GLM-5 数据策略"
+# Hop 3: 找到具体数据技术 → 信息够，停止
+print(f"用了 {result['hops_used']} 跳，收集 {len(result['evidence'])} 条证据")</code></pre>
+    <p>多跳检索的关键设计：① <strong>查询是动态生成的</strong>——每跳根据已知信息决定下一步查什么，不是预先固定的查询序列；② <strong>有明确的停止条件</strong>——LLM 判断"信息够了"就停，避免无意义的检索；③ <strong>保留完整推理链</strong>——每跳的查询、来源、结果都记录下来，答案可溯源，调试时能看清"为什么得出这个结论"。</p>
+    <h2><span class="idx"></span>查询路由：把问题分发给对的检索器</h2>
+    <p>生产级 RAG 通常不止一个知识库——有文档库、代码库、FAQ 库，还能查 web。不同问题应该查不同的源。"这个函数怎么用"该查代码库，"公司报销政策"该查文档库，"今天的新闻"该查 web。查询路由就是做这个分发——它分析问题的特征，决定该走哪条检索路径。</p>
+    <pre class="code"><code class="language-python"># 查询路由：根据问题特征分发到不同检索器
+from typing import Literal
+from dataclasses import dataclass
+
+@dataclass
+class Route:
+    destination: str       # vector_docs / code_index / faq / web / direct
+    reason: str            # 为什么走这条路
+
+class QueryRouter:
+    """分析查询，决定走哪条检索路径。"""
+
+    # 预定义的路由规则（基于关键词 + 语义）
+    ROUTE_PATTERNS = {
+        "code_index": [r"\b(函数|function|API|类|class|方法|报错|error)\b",
+                       r"`\w+`", r"def |class "],
+        "faq": [r"\b(怎么|如何|流程|政策|规定|报销|请假)\b"],
+        "web": [r"\b(最新|今天|新闻|现在|当前|实时)\b",
+                r"\d{4}年"],  # 时间敏感的问题走 web
+    }
+
+    def route(self, query: str, has_local_kb: bool = True) -&gt; Route:
+        # 1. 关键词快速匹配（便宜）
+        for dest, patterns in self.ROUTE_PATTERNS.items():
+            if any(re.search(p, query) for p in patterns):
+                return Route(dest, f"匹配 {dest} 关键词模式")
+
+        # 2. 关键词不明确，用 LLM 语义判断（更准但贵）
+        decision = self.llm.generate(f"""分析这个问题该查哪个知识源。
+
+        可选目的地：
+        - vector_docs: 内部文档知识库（政策、规范、文档）
+        - code_index: 代码库（函数实现、API 用法）
+        - faq: 常见问题库（高频问答）
+        - web: 网络搜索（最新信息、公开知识）
+        - direct: 直接用模型自身知识（常识类）
+
+        问题：{query}
+
+        输出目的地名称和理由（JSON）。""", response_format="json")
+
+        return Route(decision["destination"], decision["reason"])
+
+# 路由 + 检索的组合
+class RoutedRAG:
+    def __init__(self):
+        self.router = QueryRouter()
+        self.retrievers = {
+            "vector_docs": VectorDBRetriever(),
+            "code_index": CodeIndexRetriever(),
+            "faq": FAQRetriever(),
+            "web": WebSearchRetriever(),
+        }
+
+    def answer(self, query: str) -&gt; str:
+        route = self.router.route(query)
+        print(f"路由到：{route.destination}（{route.reason}）")
+
+        if route.destination == "direct":
+            return self.llm.generate(query)  # 不检索，直接答
+
+        retriever = self.retrievers[route.destination]
+        docs = retriever.retrieve(query)
+        return self.llm.generate(query, context=docs)
+
+# 示例路由结果：
+# "getUserById 函数在哪定义"   → code_index（匹配"函数"）
+# "年假怎么申请"                → faq（匹配"怎么"）
+# "2026 年大模型最新进展"       → web（匹配"最新"+"年份"）
+# "水的沸点是多少"              → direct（常识，不检索）</code></pre>
+    <h2><span class="idx"></span>自适应检索策略：CRAG 的三档纠错落地</h2>
+    <p>前面提到了 CRAG 的"三档纠错"思想（correct/incorrect/ambiguous），现在把它落地成完整代码。自适应检索的核心是<strong>不盲目信任检索结果</strong>——先评估检索质量，质量好就用，质量差就改写查询重试或转 web。这比标准 RAG"检索到什么用什么"靠谱得多。</p>
+    <pre class="code"><code class="language-python"># 自适应检索：CRAG 三档纠错的完整实现
+class AdaptiveRetriever:
+    """检索 → 评估 → 纠错，保证检索质量。"""
+
+    def retrieve_and_answer(self, query: str) -&gt; str:
+        # 1. 初始检索
+        docs = self.vector_db.search(query, k=5)
+
+        # 2. 评估检索质量（核心：不照单全收）
+        assessment = self._assess(query, docs)
+
+        if assessment == "correct":
+            # 质量好：直接用（可能再做知识精炼）
+            refined = self._refine(docs, query)  # 去噪、提炼
+            return self._generate(query, refined)
+
+        elif assessment == "ambiguous":
+            # 质量存疑：改写查询重试一次
+            rewritten = self.llm.rewrite_query(query)
+            docs2 = self.vector_db.search(rewritten, k=5)
+            if self._assess(rewritten, docs2) in ("correct", "ambiguous"):
+                return self._generate(query, docs2)
+            # 重试还不行，转 web
+            return self._web_fallback(query)
+
+        else:  # incorrect
+            # 质量差：本地知识库没覆盖，转 web 搜索
+            return self._web_fallback(query)
+
+    def _assess(self, query: str, docs: list) -&gt; str:
+        """评估检索结果与查询的相关性，分三档。"""
+        if not docs:
+            return "incorrect"  # 啥都没检索到
+
+        scores = [self._relevance(query, d) for d in docs]
+        avg = sum(scores) / len(scores)
+
+        if avg &gt; 0.8:
+            return "correct"     # 高度相关
+        elif avg &gt; 0.4:
+            return "ambiguous"   # 部分相关，存疑
+        else:
+            return "incorrect"   # 不相关
+
+    def _relevance(self, query: str, doc: str) -&gt; float:
+        """用 cross-encoder 评估单条文档与查询的相关性。"""
+        return self.cross_encoder.predict([(query, doc)])[0]
+
+    def _web_fallback(self, query: str) -&gt; str:
+        """本地知识不够，转 web 搜索兜底。"""
+        print("本地知识库未覆盖，转 web 搜索")
+        web_docs = self.web_search.search(query, k=3)
+        # web 结果也要评估（网上也有垃圾信息）
+        trusted = [d for d in web_docs if self._trustworthy(d)]
+        return self._generate(query, trusted or web_docs)</code></pre>
+    <div class="callout"><strong>💡 Agentic RAG 的工程心法</strong><br>把多跳检索、查询路由、自适应纠错这三个能力组合起来，就是一个完整的生产级 Agentic RAG：<strong>路由决定查哪 → 多跳决定查几次 → 纠错保证查得准</strong>。这套架构相比标准 RAG 的代价是更多 LLM 调用（每跳、每次评估都要调 LLM），但换来的是对复杂问题的高回答质量。落地建议：先用标准 RAG 上线，收集"答不好"的 case，针对性地加路由/多跳/纠错——按需投入，不要一上来就上全套（简单问题用标准 RAG 就够，复杂问题才需要 Agentic）。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agentic RAG 把 RAG 从"被动检索"升级为"主动探索"：agent 自主决定检索时机、构造查询、评估结果、多跳深挖。它用更高的复杂度换来了对复杂问题的处理能力。前面概念辨析章里讲过 Skills 和 MCP 的关系——Agentic RAG 就是用 agent 的智能来驱动 RAG 的检索。</p>
     <div class="chapter-nav">
@@ -347,6 +543,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 231 章 · Agentic RAG：让 RAG 学会自主决策</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

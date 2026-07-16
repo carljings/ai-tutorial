@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-  <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -230,7 +237,7 @@
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
-      <a href="202-fw-llamaindex.html" class="active" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
+      <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
@@ -295,7 +302,9 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
+  </aside>
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★Agent框架</span><h1>LlamaIndex：从 RAG 到 Agent</h1><p class="lead">RAG 框架的王者——LlamaIndex 的架构与使用</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
     <h2><span class="idx"></span>LlamaIndex：RAG 领域的第一框架</h2>
     <p>如果说 LangChain 是"通用 Agent 框架"，LlamaIndex 就是"RAG 专精框架"——它的核心能力是把各种数据源（PDF/数据库/API/网页）高效地索引、检索、喂给 LLM。如果你的应用核心是 RAG，LlamaIndex 比 LangChain 更顺手。~50K GitHub stars。</p>
@@ -324,8 +333,175 @@ response = agent.chat("对比第三章和第五章的核心观点")</code></pre>
     <h2><span class="idx"></span>LlamaIndex vs LangChain 怎么选</h2>
     <table class="data-table"><thead><tr><th>场景</th><th>推荐</th><th>理由</th></tr></thead><tbody><tr><td>纯 RAG（文档问答）</td><td>LlamaIndex</td><td>RAG 抽象更完善</td></tr><tr><td>复杂 Agent（多工具/多步）</td><td>LangGraph</td><td>状态图更灵活</td></tr><tr><td>快速原型</td><td>LlamaIndex</td><td>5行代码跑通RAG</td></tr><tr><td>生产级可控</td><td>LangGraph</td><td>错误处理/可观测更好</td></tr><tr><td>两者结合</td><td>LlamaIndex 做检索 + LangGraph 做 Agent</td><td>各取所长</td></tr></tbody></table>
     <div class="callout"><strong>💡 要点</strong><br>最佳实践：**LlamaIndex 做"数据层"（索引/检索），LangGraph 做"控制层"（Agent循环/工具调度）**。这是当前生产级 RAG-Agent 系统的主流架构——LlamaIndex 的 Document/Node/Index 抽象处理数据最好，LangGraph 的 StateGraph 处理复杂流程最好。</div>
+    <h2><span class="idx"></span>索引构建：从原始文档到可检索的向量库</h2>
+    <p>LlamaIndex 最简 RAG 只需三行代码，但生产环境的索引构建远比这复杂。真实的索引构建是一条完整管道：文档加载 → 清洗 → 切块 → 嵌入 → 存储。每个环节都有坑：PDF 要处理表格和图片、切块策略影响召回率、嵌入模型选型决定语义理解上限。下面拆解这条管道的每一步。</p>
+    <pre class="code"><code class="language-python"># LlamaIndex 生产级索引构建管道
+from llama_index.core import (
+    SimpleDirectoryReader, VectorStoreIndex,
+    StorageContext, Settings
+)
+from llama_index.core.node_parser import SemanticSplitterNodeParser
+from llama_index.core.schema import MetadataMode
+from llama_index.embeddings.huggingface import HuggingFaceEmbedding
+from llama_index.vector_stores.qdrant import QdrantVectorStore
+
+# 1. 配置全局设置（嵌入模型 + LLM）
+Settings.embed_model = HuggingFaceEmbedding(
+    model_name="BAAI/bge-large-zh-v1.5"  # 中文场景首选
+)
+Settings.llm = None  # 建索引时不需要 LLM，省成本
+
+# 2. 文档加载：支持 PDF/网页/Notion/API 等 20+ 数据源
+documents = SimpleDirectoryReader(
+    input_dir="./knowledge_base",
+    required_exts=[".pdf", ".md", ".docx", ".txt"],
+    recursive=True,  # 递归读子目录
+).load_data()
+
+# 给每个文档打元数据标签（后续可按标签过滤检索）
+for doc in documents:
+    doc.metadata.update({
+        "source": "internal_docs",
+        "department": classify_department(doc.text),  # 自动分类
+        "updated_at": doc.metadata.get("last_modified"),
+    })
+
+# 3. 语义切块：按语义边界切，而非固定字数（召回率更高）
+splitter = SemanticSplitterNodeParser(
+    embed_model=Settings.embed_model,
+    breakpoint_percentile_threshold=95,  # 语义断层阈值
+)
+nodes = splitter.get_nodes_from_documents(documents, chunk_size=512)
+
+print(f"加载 {len(documents)} 个文档，切成 {len(nodes)} 个节点")
+
+# 4. 嵌入 + 存储：用 Qdrant 做向量库（生产级）
+vector_store = QdrantVectorStore(
+    client=qdrant_client,
+    collection_name="company_kb",
+)
+storage_context = StorageContext.from_defaults(vector_store=vector_store)
+
+# 5. 建索引（自动嵌入所有节点并存入向量库）
+index = VectorStoreIndex(
+    nodes=nodes,
+    storage_context=storage_context,
+    show_progress=True,
+)
+# 持久化（下次直接 load，不用重建）
+index.storage_context.persist(persist_dir="./index_storage")</code></pre>
+    <p>这条管道的几个关键决策点：① <strong>切块用语义切而非固定大小</strong>——固定 512 字符可能把一个完整论点切成两半，语义切能保持片段的完整性，召回率和答案质量都更好；② <strong>嵌入模型要匹配语言</strong>——中文用 bge-large-zh，英文用 text-embedding-3，混用会导致语义匹配失准；③ <strong>元数据要打好</strong>——后续检索可以按部门、时间、来源过滤，大幅提升精准度（"只查 2024 年财务部的文档"）。</p>
+    <h2><span class="idx"></span>Query Engine 配置：让检索又准又全</h2>
+    <p>建好索引只是第一步，怎么查同样重要。LlamaIndex 的 QueryEngine 提供了大量可配置项：检索 top-k 数量、是否加 reranker 精排、相似度阈值、是否做查询改写、返回内容窗口大小。默认配置往往不是最优的，需要根据任务调参。下面是一个针对"复杂问答"优化的 QueryEngine 配置。</p>
+    <pre class="code"><code class="language-python"># 生产级 QueryEngine：检索 + 精排 + 查询改写
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.retrievers import VectorIndexRetriever
+from llama_index.core.postprocessor import (
+    SentenceTransformerRerank, MetadataReplacementPostProcessor
+)
+from llama_index.core.response_synthesizers import ResponseSynthesizer
+
+# 1. 检索器：召回 top-20（先广撒网）
+retriever = VectorIndexRetriever(
+    index=index,
+    similarity_top_k=20,
+    filters=MetadataFilters(exact_filters=[  # 元数据过滤
+        ExactMatchFilter(key="department", value="财务部"),
+    ]),
+)
+
+# 2. Reranker：用 cross-encoder 精排到 top-5（再精选）
+reranker = SentenceTransformerRerank(
+    model="BAAI/bge-reranker-large",  # 中文精排模型
+    top_n=5,
+)
+
+# 3. 上下文扩展：检索到片段后，取其前后窗口（保留完整上下文）
+postprocessor = MetadataReplacementPostProcessor(
+    target_metadata_key="window"  # 用相邻节点扩展上下文
+)
+
+# 4. 组装 QueryEngine
+query_engine = RetrieverQueryEngine(
+    retriever=retriever,
+    node_postprocessors=[reranker, postprocessor],
+    response_synthesizer=ResponseSynthesizer.from_args(
+        response_mode="compact",  # 紧凑模式：合并片段再喂 LLM
+        streaming=True,            # 流式输出
+    ),
+)
+
+# 测试检索质量
+response = query_engine.query("2024 年 Q3 的营收增长主要来自哪些业务？")
+for src in response.source_nodes:  # 每个答案都带来源溯源
+    print(f"[{src.score:.2f}] {src.node.metadata['file_name']}")
+print(response.response)</code></pre>
+    <p>这个配置体现了一个重要的 RAG 优化理念：<strong>两阶段检索（召回 + 精排）</strong>。第一阶段用向量检索快速召回 top-20（recall 优先，宁多勿漏），第二阶段用 cross-encoder reranker 精排到 top-5（precision 优先，只留最相关的）。为什么要两阶段？因为向量检索（双塔模型）快但不够精确，cross-encoder 精确但慢——两者结合既快又准。这是生产级 RAG 的标配。</p>
+    <h2><span class="idx"></span>Data Ingestion 管道：让知识库自动更新</h2>
+    <p>知识库不是建一次就完事——文档会更新、新增、删除。手动重建索引既低效又容易遗漏。LlamaIndex 的 IngestionPipeline 解决这个问题：它把"加载→处理→嵌入→存储"封装成可定时执行的管道，配合增量更新机制，只处理变化的文档，省时省算力。这是知识库"持续保鲜"的关键。</p>
+    <pre class="code"><code class="language-python"># Data Ingestion 管道：增量更新 + 定时执行
+from llama_index.core.ingestion import IngestionPipeline, docstore  # 简化示例
+from llama_index.core.extractors import TitleExtractor, KeywordExtractor
+import hashlib
+
+class KnowledgeBaseIngester:
+    """知识库自动更新管道：只处理变化的文档。"""
+    def __init__(self, vector_store, doc_store_path="./docstore"):
+        self.pipeline = IngestionPipeline(
+            transformations=[
+                # 切块
+                SemanticSplitterNodeParser(...),
+                # 抽取元数据（用 LLM 自动生成标题和关键词）
+                TitleExtractor(nodes=5),
+                KeywordExtractor(keywords=5),
+                # 嵌入
+                Settings.embed_model,
+            ],
+            vector_store=vector_store,
+            docstore=doc_store,  # 记录已处理文档的哈希
+        )
+
+    def _file_hash(self, path):
+        """计算文件内容哈希，用于判断是否变化。"""
+        return hashlib.md5(open(path, "rb").read()).hexdigest()
+
+    def sync(self, docs_dir: str):
+        """同步：只处理新增/修改的文档。"""
+        current_files = {f: self._file_hash(f) for f in glob(f"{docs_dir}/**")}
+        previous = self.doc_store.load_hashes()  # 上次的哈希记录
+
+        to_add, to_update, to_delete = [], [], []
+        for path, h in current_files.items():
+            if path not in previous:           # 新文件
+                to_add.append(path)
+            elif previous[path] != h:          # 内容变了
+                to_update.append(path)
+        for path in previous:
+            if path not in current_files:       # 文件被删了
+                to_delete.append(path)
+
+        # 增量处理
+        if to_add or to_update:
+            docs = SimpleDirectoryReader(input_files=to_add + to_update).load_data()
+            self.pipeline.run(documents=docs, show_progress=True)
+        for path in to_delete:  # 删除向量库中对应节点
+            self.vector_store.delete(ref_doc_id=path)
+
+        self.doc_store.save_hashes(current_files)
+        print(f"新增 {len(to_add)}，更新 {len(to_update)}，删除 {len(to_delete)}")
+
+# 定时任务：每天凌晨同步知识库
+# （用 cron 或 Airflow 调度）
+# 0 2 * * * python -c "from kb import ingester; ingester.sync('./kb')"</code></pre>
+    <div class="callout"><strong>💡 生产建议</strong><br>LlamaIndex 的 Data Ingestion 管道解决的是知识库的<strong>"保鲜"问题</strong>——过时的知识库比没有知识库更危险（用户得到错误答案）。关键设计：① <strong>增量更新</strong>——用文件哈希判断变化，只重新处理变化的文档（全量重建太慢太贵）；② <strong>定时同步</strong>——配合 cron/Airflow 每日同步，保持知识库与源文档一致；③ <strong>文档溯源</strong>——每个节点保留来源文件和时间戳，答案能追溯到具体文档。这三个能力加起来，才能支撑一个可信的生产级 RAG 系统。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LlamaIndex 是 RAG 专精框架（50K stars），核心抽象：Document→Node→Index→Retriever→QueryEngine→Agent。从纯 RAG 进化为 Agentic Document Workflows。选型：纯 RAG 用 LlamaIndex，复杂 Agent 用 LangGraph，生产级最佳组合是 LlamaIndex（数据层）+ LangGraph（控制层）。</p>
     <div class="chapter-nav">
     <a href="201-fw-openai-agents.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 202 章 · LlamaIndex：从 RAG 到 Agent</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <footer><p>AI 全栈实战教学 · 第 202 章 · LlamaIndex：从 RAG 到 Agent</p></footer>  </main>
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

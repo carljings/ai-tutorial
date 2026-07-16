@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -109,7 +109,7 @@
       <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
-      <a href="86-appendix.html" class="active" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
+      <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
       <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
@@ -303,8 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 86 · 附录 · 全书最终终章</span>
       <h1>全书附录与最终总结<br>86 章的完整地图与致谢</h1>
@@ -398,6 +398,147 @@
       <strong>86 章。一个起点。无限未来。</strong>
     </blockquote>
 
+    <h2 class="section" id="knowledge-graph"><span class="idx">07</span> 全书知识图谱：概念之间的脉络</h2>
+    <p>86 章的内容看起来很多，但核心概念是相互关联的。这张知识图谱把全书的"骨架概念"串联起来，让你看清它们之间的依赖和演进关系。理解了这张图，你就掌握了 AI 全栈的"心智模型"——不再是一堆零散的知识点，而是一棵有根有枝的知识树。</p>
+    <pre class="code"><code class="language-text">全书知识图谱（核心概念的依赖与演进）
+
+                    【根基】
+            Transformer / Attention（第100-111章）
+                    │
+        ┌───────────┼───────────┐
+        ▼           ▼           ▼
+   【训练】     【推理】     【应用】
+   预训练(02)   KV Cache    Prompt(19)
+   SFT/RLHF     vLLM(25)    RAG(06)
+   LoRA(26)         │          │
+        │           ▼          ▼
+        ▼       【部署】    【Agent】
+   【模型】     量化(221)   Agent Loop(04)
+   开源模型     剪枝        ReAct(187)
+   闭源模型     蒸馏        Reflection(189)
+        │           │        ToT(190)
+        └─────┬─────┘        Plan-Execute(188)
+              ▼              多Agent(191)
+         【工程化】              │
+         Harness(03)            ▼
+         Skills/MCP(08)     【框架】
+         Agent 框架(198)    LangGraph/LlamaIndex
+              │                │
+              └────────┬───────┘
+                       ▼
+                  【进阶】
+               Deep Research(204)
+               Agentic RAG(207)
+               计算机使用(208)
+               安全(249)
+
+核心脉络（5 条主线）：
+1. 原理线：Attention → 训练四段式 → 推理优化 → 部署压缩
+2. 应用线：Prompt → RAG → Agent → 多 Agent → Deep Agent
+3. 工程线：Harness → Agent Loop → Skills/MCP → 框架
+4. 数据线：文档 → 切块 → 嵌入 → 向量库 → 检索 → 生成
+5. 优化线：延迟 → 成本 → 幻觉 → 并发 → 安全
+
+掌握建议：先打通"原理线"（懂底层），
+再走"应用线"（会落地），最后补"工程线"（能生产化）。</code></pre>
+    <p>这张图揭示了一个重要事实：<strong>AI 全栈的知识是"漏斗形"的</strong>——越往下（根基）概念越少越核心，越往上（应用）分支越多越具体。Attention 是几乎所有内容的根基；训练和推理是两大主干；应用层（Agent/RAG/Skills）是枝叶。如果你时间有限，<strong>从树根往上打通</strong>比"从树叶开始背"高效得多——理解了 Attention 和 Agent Loop，大半个知识图谱就通了。</p>
+    <h2 class="section" id="top20"><span class="idx">08</span> TOP 20 核心概念速查表</h2>
+    <p>全书 86 章涵盖数百个概念，但真正"高频使用、必须内化"的核心概念大约 20 个。这张速查表把它们浓缩成一句话定义加关键要点，方便你快速回忆和复习。建议打印出来贴在桌前，随时查阅。</p>
+    <pre class="code"><code class="language-text">TOP 20 核心概念速查表（一句话定义 + 关键点）
+
+【模型与原理】
+1. Attention     注意力机制：序列每位置关注所有位置，加权聚合信息。
+                  关键：Q/K/V 三矩阵，softmax 归一化，O(n²) 复杂度。
+2. Transformer   基于 Attention 的架构，Encoder/Decoder 或 Decoder-only。
+                  关键：残差连接 + LayerNorm + FFN，现代 LLM 的骨架。
+3. Tokenization  把文本切成模型能处理的离散单元（token）。
+                  关键：BPE/SentencePiece，中文一字≈1-2 token。
+4. KV Cache      缓存已计算过的 Key/Value，避免重复计算。
+                  关键：长上下文的显存大头，PagedAttention 优化。
+5. 量化          把 FP16 权重压成 INT8/INT4，省显存加速。
+                  关键：GPTQ/AWQ，INT4 是甜点（损失&lt;2%，省4倍）。
+
+【训练】
+6. 预训练         海量无标注数据学语言规律（next token prediction）。
+                  关键：Scaling Law，数据越多模型越大效果越好。
+7. SFT           用指令-回答对教模型"听懂人话、好好回答"。
+                  关键：高质量指令数据比量更重要。
+8. RLHF/DPO      用人类偏好对齐，让模型回答"讨人喜欢"。
+                  关键：RLHF 复杂但强，DPO 简单且接近效果。
+9. LoRA          冻结原模型，只训练低秩适配器（省显存微调）。
+                  关键：只训 0.1% 参数，效果接近全参微调。
+
+【推理与部署】
+10. vLLM         推理引擎，PagedAttention + 连续批处理，2-4× 加速。
+                  关键：无损优化，生产部署首选。
+11. Speculative Decoding 小模型猜+大模型验，减少串行步骤。
+                  关键：小模型要猜得准，否则回退反而更慢。
+
+【Prompt 与 RAG】
+12. CoT          Chain of Thought，让模型"一步步想"再答。
+                  关键：适合推理任务，"Let's think step by step"。
+13. RAG          检索增强生成：先检索相关文档，再喂给 LLM 生成。
+                  关键：切块 + 嵌入 + 向量库 + 检索 + 生成。
+14. Embedding    把文本转成向量，语义相近的文本向量也相近。
+                  关键：检索的基础，选对模型（bge/e5）很关键。
+15. Reranker     Cross-encoder 精排，对召回结果重新排序。
+                  关键：比向量检索精确，两阶段（召回+精排）标配。
+
+【Agent】
+16. Agent Loop   感知→思考→行动→观察的循环，智能体的本质。
+                  关键：工具调用是"手脚"，LLM 是"大脑"。
+17. ReAct         Reason + Act，边推理边调工具。
+                  关键：Thought/Action/Observation 三段式。
+18. Reflection   自我反思，生成后批判改进直到达标。
+                  关键：Act→Evaluate→Reflect→Retry 循环。
+19. Skills       可插拔的指令包，教 agent"怎么做某类任务"。
+                  关键：SKILL.md 契约 + 渐进式披露。
+20. MCP          模型上下文协议，让 agent 连接外部系统。
+                  关键：Skills 是"方法论"，MCP 是"工具箱"。</code></pre>
+    <h2 class="section" id="cross-ref"><span class="idx">09</span> 各章节交叉引用索引</h2>
+    <p>很多概念在多个章节被引用，这张交叉引用索引帮你找到"一个概念在全书哪些地方被讲到"。当你想深入理解某个主题时，可以按这张索引把相关章节串起来读，获得立体、多角度的理解，而不是只看一个章节的单一视角。</p>
+    <pre class="code"><code class="language-text">核心概念交叉引用索引（一个概念 → 多个章节）
+
+【Attention / Transformer】
+  - 原理深挖：第100-111章（自注意力/FFN/LayerNorm/位置编码...）
+  - 训练视角：第02章（GLM 架构基于 Transformer）
+  - 推理视角：第25章（FlashAttention 加速）
+  - 优化视角：第221章（量化压缩 Transformer）
+
+【RAG / 检索】
+  - 基础：第06章（RAG 原理）
+  - 进阶：第202章（LlamaIndex 实现）、第207章（Agentic RAG）
+  - 评测：第24章（如何测 RAG 质量）
+  - 应用：第42章（智能客服中的 RAG）、第88章（行业落地）
+
+【Agent / Agent Loop】
+  - 本质：第04章（Agent Loop）、第05章（智能体）
+  - 设计模式：第187-191章（ReAct/Plan-Execute/Reflection/ToT/多Agent）
+  - 框架：第197-202章（LangChain/LangGraph/AutoGen/LlamaIndex）
+  - 进阶：第204-208章（Deep Research/STORM/GPT Researcher/Computer Use）
+  - 源码深挖：第156-183章（Codex/Claude/Skills 源码级解析）
+
+【Skills / MCP】
+  - 概览：第08章（Skills/MCP 引入）
+  - 深度系列：第179-183章（SKILL.md/渐进式披露/对比/发现/生命周期）
+  - 安全：第249章（技能的安全风险与防护）
+
+【训练 / 微调】
+  - 全景：第02章（GLM 训练四段式）
+  - 方法：第26章（LoRA）、第27章（QLoRA）
+  - 数据：第14章（SFT 数据构造）
+  - 对齐：第17章（推理模型/GRPO）
+
+【推理优化 / 部署】
+  - 原理：第25章（KV Cache/Speculative Decoding）
+  - 引擎：第221章（vLLM/量化/剪枝/蒸馏）
+  - 开源：第40章（开源模型生态）
+
+使用方法：
+  - 想深入某主题 → 按索引把多个章节串读（多视角理解）
+  - 遇到不懂的引用 → 查索引找到原始定义章节
+  - 复习某概念 → 读所有相关章节的对应小节（巩固）</code></pre>
+    <div class="callout"><strong>💡 如何用这本附录</strong><br>这份附录是全书的"导航仪"。三个用法：① <strong>新手入门</strong>——先看知识图谱建立全局观，再按"原理线→应用线→工程线"的顺序学习；② <strong>快速复习</strong>——TOP 20 速查表覆盖 80% 的常用知识，面试前过一遍就能回忆起核心；③ <strong>深入研究</strong>——用交叉引用索引把一个主题的所有章节串起来读，获得最完整的理解。AI 领域知识更新极快，但这份图谱里的核心概念是相对稳定的——掌握了它们，新的技术发展你也能快速理解。</div>
     <div class="chapter-nav">
       <a href="85-product-ux-patterns.html"><div class="lbl">← 上一章</div><div class="ttl">85 · 产品设计模式</div></a>
       <a href="index.html" class="next"><div class="lbl">回到目录 ↑</div><div class="ttl">全册 86 章完结 · 感谢同行</div></a>
@@ -407,6 +548,8 @@
       <p>全册 86 章完结 · 从 Token 到无限未来 · 感谢一路同行 · 2026.06</p>
     </footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

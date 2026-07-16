@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -244,7 +242,7 @@
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
       <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
-      <a href="205-deep-gpt-researcher.html" class="active" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
+      <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
       <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 229 章 · Deep Agent</span>
     <h1>GPT Researcher</h1><p class="lead">开源 deep research 的标杆</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -348,6 +347,240 @@ async def research(topic, breadth=4, depth=2):
     return report</code></pre>
     <h2><span class="idx"></span>Deep Research 模式：递归深挖</h2>
     <p>GPT Researcher 的"Deep Research"模式增加了一个递归层：研究完一轮后，检查"还有哪些信息缺口"（identify_gaps），对缺口再发起一轮研究。这就像人类研究员发现"这块还不清楚，得再查查"——通过多轮递归，覆盖越来越全面。depth 参数控制递归深度（默认 2 层）。</p>
+    <h2><span class="idx"></span>三角色架构代码：Planner/Researcher/Reporter 协作</h2>
+    <p>前面介绍了 GPT Researcher 的三角色分工，现在用完整代码实现这个流水线。这三个角色各自是一个 LLM 调用，通过共享的数据结构协作：Planner 产出子问题列表，Researcher 对每个子问题搜索抓取，Reporter 综合成报告。理解这个实现，你就掌握了 Deep Research agent 的核心架构。</p>
+    <pre class="code"><code class="language-python"># GPT Researcher 三角色架构的完整实现
+import asyncio
+from dataclasses import dataclass, field
+
+@dataclass
+class Finding:
+    query: str           # 子问题
+    source_url: str      # 来源 URL（可溯源）
+    source_title: str
+    content: str         # 提取的要点
+    relevance: float     # 相关性评分
+
+@dataclass
+class ResearchContext:
+    topic: str                          # 研究主题
+    sub_queries: list = field(default_factory=list)  # Planner 产出
+    findings: list = field(default_factory=list)     # Researcher 产出
+    report: str = ""                    # Reporter 产出
+
+class Planner:
+    """角色一：把主题分解成具体可搜索的子问题。"""
+    async def plan(self, topic: str, breadth: int = 4) -&gt; list[str]:
+        prompt = f"""你是研究规划师。把研究主题分解成 {breadth} 个具体的、
+        可独立搜索的子问题。每个子问题应该能通过搜索得到明确答案。
+
+        研究主题：{topic}
+
+        要求：
+        - 子问题要覆盖主题的不同方面（现状/原因/趋势/影响/案例）
+        - 每个子问题具体可搜索（不要太空泛）
+        - 输出 JSON 数组：["子问题1", "子问题2", ...]"""
+        return await self.llm.generate(prompt, response_format="json")
+
+class Researcher:
+    """角色二：对每个子问题并行搜索、抓取、提取要点。"""
+    async def research(self, sub_queries: list) -&gt; list[Finding]:
+        # 并行搜索所有子问题（关键加速点）
+        tasks = [self._research_one(q) for q in sub_queries]
+        results = await asyncio.gather(*tasks)
+        # 展平（每个子问题可能有多条发现）
+        return [f for sublist in results for f in sublist]
+
+    async def _research_one(self, query: str) -&gt; list[Finding]:
+        # 1. 搜索（用 web search API）
+        search_results = await self.web_search(query, num_results=3)
+        findings = []
+        for result in search_results:
+            # 2. 抓取网页内容
+            content = await self.scraper.fetch(result["url"])
+            if not content:
+                continue
+            # 3. 用 LLM 提取与查询相关的要点（控制长度，不保留全文）
+            extracted = await self._extract(content, query, result)
+            if extracted:
+                findings.append(extracted)
+        return findings
+
+    async def _extract(self, content, query, source) -&gt; Finding:
+        """LLM 提取：只保留与子问题相关的信息（省 token）。"""
+        prompt = f"""从以下网页内容中，提取与问题"{query}"相关的信息。
+        只提取事实和数据，忽略广告/导航/无关内容。
+        用简洁的要点形式输出（不超过 200 字）。
+
+        网页内容：{content[:4000]}"""
+        result = await self.llm.generate(prompt)
+        relevance = await self._score_relevance(result, query)
+        return Finding(query=query, source_url=source["url"],
+                      source_title=source["title"],
+                      content=result, relevance=relevance)
+
+class Reporter:
+    """角色三：综合所有发现，写成结构化报告。"""
+    async def synthesize(self, ctx: ResearchContext) -&gt; str:
+        # 按子问题组织发现（结构清晰）
+        grouped = self._group_by_query(ctx.findings)
+        prompt = f"""你是研究报告撰写者。基于以下研究发现，写一份关于
+        "{ctx.topic}"的研究报告。
+
+        要求：
+        1. 结构清晰：摘要 / 分章节论述 / 结论
+        2. 每个论点都要引用来源（标注 [1][2] 等）
+        3. 客观中立，区分事实和观点
+        4. 指出信息缺口（哪些方面证据不足）
+
+        研究发现（按子问题分组）：
+        {self._format_findings(grouped)}"""
+        return await self.llm.generate(prompt)
+
+# 组装完整流水线
+class GPTResearcher:
+    def __init__(self):
+        self.planner = Planner()
+        self.researcher = Researcher()
+        self.reporter = Reporter()
+
+    async def research(self, topic: str, breadth=4, depth=2) -&gt; str:
+        ctx = ResearchContext(topic=topic)
+
+        # 阶段一：规划
+        ctx.sub_queries = await self.planner.plan(topic, breadth)
+
+        # 阶段二：研究（含递归深挖）
+        ctx.findings = await self.researcher.research(ctx.sub_queries)
+        if depth &gt; 1:
+            ctx = await self._deep_research(ctx, depth - 1)
+
+        # 阶段三：综合报告
+        ctx.report = await self.reporter.synthesize(ctx)
+        return ctx.report</code></pre>
+    <h2><span class="idx"></span>来源跟踪：让报告可溯源、可验证</h2>
+    <p>研究报告的公信力来自<strong>可溯源</strong>——每个论断都能追溯到具体的来源 URL。这是 GPT Researcher 区别于"让 LLM 凭记忆写报告"的关键：它不编造，而是基于真实检索到的内容生成，并且标注引用。下面展示来源跟踪和引用生成的实现。</p>
+    <pre class="code"><code class="language-python"># 来源跟踪与引用生成
+class SourceTracker:
+    """管理所有来源，生成引用编号，支持验证。"""
+
+    def __init__(self):
+        self.sources = []    # 去重后的来源列表
+        self.url_to_id = {}  # URL → 引用编号
+
+    def register(self, finding: Finding) -&gt; int:
+        """注册一个来源，返回引用编号（去重）。"""
+        if finding.source_url in self.url_to_id:
+            return self.url_to_id[finding.source_url]
+        idx = len(self.sources) + 1
+        self.sources.append({
+            "id": idx,
+            "url": finding.source_url,
+            "title": finding.source_title,
+            "accessed_at": datetime.now().isoformat(),
+            "supports": [],  # 这个来源支撑了哪些论点
+        })
+        self.url_to_id[finding.source_url] = idx
+        return idx
+
+    def generate_bibliography(self) -&gt; str:
+        """生成参考文献列表（带编号、标题、URL）。"""
+        lines = ["## 参考文献"]
+        for s in self.sources:
+            lines.append(f"[{s['id']}] {s['title']}")
+            lines.append(f"    {s['url']} (访问于 {s['accessed_at'][:10]})")
+        return "\n".join(lines)
+
+    def verify_claim(self, claim: str, cited_id: int) -&gt; bool:
+        """验证一个论断是否真的被所引用的来源支撑（防幻觉）。"""
+        source = self.sources[cited_id - 1]
+        # 重新抓取来源，检查 claim 是否能被原文支撑
+        content = fetch(source["url"])
+        return self.llm.verify(f"以下内容是否支撑这个论断：'{claim}'\n\n内容：{content}")
+
+# 在 Reporter 中使用来源跟踪
+class ReporterWithCitations(Reporter):
+    async def synthesize(self, ctx):
+        tracker = SourceTracker()
+        # 先注册所有来源
+        for f in ctx.findings:
+            f.citation_id = tracker.register(f)
+
+        # 生成报告时，要求 LLM 标注引用编号
+        report = await self._generate_with_citations(ctx, tracker)
+        # 附加参考文献列表
+        report += "\n\n" + tracker.generate_bibliography()
+        return report
+
+    async def _generate_with_citations(self, ctx, tracker):
+        prompt = f"""写研究报告。每个事实论断后必须标注来源编号 [n]。
+        
+        可用来源（编号 → 内容）：
+        {format_sources_with_ids(ctx.findings, tracker)}
+        
+        严禁编造没有来源支撑的数据。如果某点没有来源，标注 [需补充]。"""
+        return await self.llm.generate(prompt)</code></pre>
+    <h2><span class="idx"></span>报告生成管道：从原始发现到成品报告</h2>
+    <p>Reporter 把零散的发现综合成报告，这一步的质量决定最终产出。一个成熟的报告生成管道不是"把所有内容塞给 LLM 让它写"，而是<strong>分阶段处理</strong>：先去重过滤、再按主题聚类、然后分章节生成、最后润色统一风格。这样能处理大量来源而不超 token 上限，且报告结构更清晰。</p>
+    <pre class="code"><code class="language-text">报告生成管道（分阶段处理，避免 token 爆炸）
+
+输入：500 条原始发现（来自 20 个子问题的检索）
+  │
+  ▼
+【阶段1：去重 + 过滤】
+  - 去除重复来源（同一 URL 多次出现）
+  - 过滤低相关性发现（relevance &lt; 0.5）
+  - 过滤低质量来源（无实质内容的页面）
+  结果：500 → 180 条高质量发现
+  │
+  ▼
+【阶段2：聚类分组】
+  - 按主题/子问题聚类（用 embedding 聚类）
+  - 合并同主题的要点（避免重复论述）
+  结果：180 条 → 8 个主题簇
+  │
+  ▼
+【阶段3：分章节生成】（关键：分而治之）
+  - 对每个主题簇单独调 LLM 生成该章节
+  - 每章节 500-1000 字，带该簇内的引用
+  - 并行生成（8 章同时写，加速）
+  结果：8 个章节草稿
+  │
+  ▼
+【阶段4：组装 + 润色】
+  - 生成摘要（基于各章节的核心观点）
+  - 组装成完整报告（摘要 + 8 章 + 结论）
+  - 统一风格/过渡/引用编号
+  - 检查信息缺口（哪些方面证据不足，标注"需进一步研究"）
+  结果：成品报告 + 参考文献列表</code></pre>
+    <pre class="code"><code class="language-python"># 分章节生成（避免把所有内容塞进一个 prompt）
+class SectionalReporter:
+    async def generate_report(self, ctx) -&gt; str:
+        findings = self._dedup_filter(ctx.findings)  # 阶段1
+        clusters = self._cluster(findings)           # 阶段2
+
+        # 阶段3：并行生成各章节（分而治之）
+        sections = await asyncio.gather(*[
+            self._write_section(topic, docs, ctx.topic)
+            for topic, docs in clusters.items()
+        ])
+
+        # 阶段4：组装 + 摘要 + 润色
+        summary = await self._write_summary(sections, ctx.topic)
+        conclusion = await self._write_conclusion(sections, ctx.topic)
+        report = f"# {ctx.topic}\n\n## 摘要\n{summary}\n\n"
+        report += "\n\n".join(sections)
+        report += f"\n\n## 结论\n{conclusion}"
+        return report
+
+    async def _write_section(self, topic, docs, main_topic):
+        """单章节生成：只看该主题的文档，token 可控。"""
+        return await self.llm.generate(
+            f"写关于"{topic}"的章节（大主题：{main_topic}）。"
+            f"基于以下发现，500-800 字，带引用编号。\n"
+            f"发现：{format_docs(docs)}"
+        )</code></pre>
+    <div class="callout"><strong>💡 Deep Research 的工程精髓</strong><br>GPT Researcher 这套架构揭示了 Deep Research agent 的三个核心工程智慧：① <strong>分而治之</strong>——把"写一篇长报告"拆成"规划→检索→分章节写→组装"，每步聚焦一个小问题，避免单次 LLM 调用扛不住；② <strong>并行是加速关键</strong>——子问题并行搜索、章节并行生成，能把 30 分钟的研究压到 5 分钟；③ <strong>可溯源是公信力基础</strong>——每个论断带来源编号，读者能验证，这比"LLM 凭记忆写"可信得多。这三个原则适用于任何"长周期、多来源、高质量"的 agent 任务。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>GPT Researcher 用清晰的 Planner/Researcher/Reporter 三角色实现了 Deep Research：Planner 分解问题、Researcher 并行搜索抓取、Reporter 综合报告。它的 Deep Research 模式用递归实现"发现缺口→补充研究"。读懂它的源码，你就掌握了 Deep Research agent 的实现蓝图。</p>
     <div class="chapter-nav">
@@ -356,6 +589,8 @@ async def research(topic, breadth=4, depth=2):
     </div>
     <footer><p>AI 全栈实战教学 · 第 229 章 · GPT Researcher：开源深度研究 agent 源码解析</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

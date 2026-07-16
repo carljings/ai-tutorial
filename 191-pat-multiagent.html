@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -226,7 +224,7 @@
       <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
       <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
       <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
-      <a href="191-pat-multiagent.html" class="active" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
+      <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
       <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
       <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
       <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 215 章 · Agent 设计模式</span>
     <h1>多 Agent 协作</h1><p class="lead">让专业的人做专业的事</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -336,6 +335,163 @@ manager = GroupChatManager(groupchat)
 # 启动对话
 user_proxy.initiate_chat(manager, message="实现一个栈数据结构")</code></pre>
     <div class="callout"><strong>💡 要点</strong><br>多 agent 的核心权衡：协作质量 vs 成本。每个 agent 都是一次 LLM 调用，3 个 agent 对话 10 轮 = 30 次调用。简单任务不值得用多 agent（开销大于收益），复杂任务（需要多视角、多专长）才值得。</div>
+    <h2><span class="idx"></span>Agent 通信协议：协作的"语言层"</h2>
+    <p>多 agent 要协作，首先要解决"怎么通信"。对话式协作用自然语言（够直观但冗余），更工程化的系统会用结构化的消息协议。一条消息通常包含四个字段：发送方、接收方、消息类型、内容载荷。消息类型决定了接收方如何处理——是任务分派、状态同步、请求帮助，还是结果回报。</p>
+    <p>主流通信范式有三种。第一是<strong>点对点</strong>：agent 之间直接互发消息，灵活但容易乱（谁该收什么难管理）。第二是<strong>中心总线</strong>：所有消息经过一个 manager 转发，可控但 manager 是瓶颈和单点故障。第三是<strong>发布订阅</strong>：agent 订阅感兴趣的话题，消息按话题广播，解耦且可扩展，是分布式系统的经典选择。</p>
+    <pre class="code"><code class="language-python"># 一个轻量的 agent 消息协议
+from dataclasses import dataclass, field
+from typing import Any
+
+@dataclass
+class AgentMessage:
+    sender: str            # 发送方 agent 名
+    recipient: str         # 接收方，"*" 表示广播
+    msg_type: str          # task / result / help / status
+    content: Any           # 载荷（文本、字典、代码）
+    in_reply_to: str = ""  # 回复哪条消息（串联对话）
+    round: int = 0         # 第几轮（防止旧消息干扰）
+
+class MessageBus:
+    """发布订阅总线：agent 解耦通信的核心。"""
+    def __init__(self):
+        self.subscribers = {}  # topic -> [agent names]
+
+    def subscribe(self, topic, agent_name):
+        self.subscribers.setdefault(topic, []).append(agent_name)
+
+    def publish(self, msg: AgentMessage):
+        topic = msg.recipient if msg.recipient != "*" else "broadcast"
+        for name in self.subscribers.get(topic, []):
+            self.agents[name].receive(msg)
+
+# 使用：coder 把"需要测试数据"发到 help 话题，tester 自动响应
+bus = MessageBus()
+bus.subscribe("help", "tester")
+bus.publish(AgentMessage("coder", "*", "help", "我需要栈的测试用例"))</code></pre>
+    <p>设计通信协议的关键权衡是<strong>表达力 vs 开销</strong>。自然语言消息最灵活（agent 能理解任何意图），但每条消息都要过一次 LLM 解析，成本高。结构化消息（JSON/Protobuf）开销低、可校验，但需要预先定义 schema，处理不了意料外的场景。生产系统常用混合方案：常规流程用结构化协议，异常或模糊情况降级为自然语言协商。</p>
+    <h2><span class="idx"></span>共享黑板架构：多 agent 的"记忆中枢"</h2>
+    <p>对话式协作（GroupChat）有个痛点：信息在对话流里线性传递，后到的 agent 看不到完整全貌，容易重复劳动或遗漏前人的发现。<strong>黑板架构（Blackboard）</strong>解决它——设立一块共享的"黑板"（内存结构），所有 agent 往上读写，每个人都能看到所有人的产出。这模拟了人类团队的"共享文档"协作方式。</p>
+    <p>黑板架构源自 1980 年代的 Hearsay-II 语音识别系统，近年来在 agent 领域复兴（如 Microsoft 的 AutoGen v0.4 引入的共享 context、ChatDev 的共享代码库）。它的核心是<strong>解耦</strong>：agent 不直接互发消息，而是各自观察黑板、贡献自己的部分。这让团队结构灵活——加减 agent 不影响其他人。</p>
+    <pre class="code"><code class="language-python"># 共享黑板：多 agent 围绕同一份状态协作
+class Blackboard:
+    """所有 agent 共享的工作区。"""
+    def __init__(self):
+        self.facts = {}        # 已确定的事实
+        self.artifacts = {}    # 产出物（代码、文档）
+        self.issues = []       # 待解决问题
+        self.history = []      # 操作日志（可溯源）
+
+    def write(self, key, value, who):
+        self.facts[key] = {"value": value, "by": who}
+        self.history.append((who, "write", key))
+
+    def add_artifact(self, name, content, who):
+        self.artifacts[name] = content
+        self.history.append((who, "create", name))
+
+    def raise_issue(self, issue, who):
+        self.issues.append({"issue": issue, "by": who, "resolved": False})
+
+class CoderAgent:
+    def act(self, bb: Blackboard):
+        # 读黑板上的需求，写代码，提交
+        spec = bb.facts.get("spec")
+        code = self.llm.generate(f"实现：{spec}")
+        bb.add_artifact("main.py", code, "coder")
+
+class ReviewerAgent:
+    def act(self, bb: Blackboard):
+        code = bb.artifacts.get("main.py", "")
+        bugs = self.llm.review(code)
+        if bugs:
+            bb.raise_issue(bugs, "reviewer")  # 提到黑板上
+
+# 协调器：循环让各 agent 基于黑板状态行动
+bb = Blackboard()
+bb.write("spec", "实现一个支持 push/pop/min 的栈", "user")
+agents = [CoderAgent(), ReviewerAgent(), TesterAgent()]
+for rnd in range(max_rounds):
+    for a in agents:
+        a.act(bb)
+    if not bb.issues:  # 所有问题解决，结束
+        break</code></pre>
+    <p>黑板架构的典型应用是<strong>软件开发 agent 团队</strong>（ChatDev 的"Coder/Reviewer/Tester"三角色）和<strong>研究报告生成</strong>（多个 researcher 往同一份报告里贡献章节）。相比 GroupChat，它减少了"重复说一遍"的 token 浪费，也让结果可溯源（黑板上的每条记录都有作者和时间戳）。代价是需要设计黑板的结构，且并发写入要做一致性控制——简单场景用单线程串行执行即可，高并发才需要锁。</p>
+    <h2><span class="idx"></span>AutoGen GroupChat 完整实战：软件开发生命周期</h2>
+    <p>把前面的概念落地。下面是一个完整的 AutoGen GroupChat 实现，模拟一个三角色团队完成"实现并测试一个数据结构"的完整流程。它展示了角色定义、发言顺序控制、终止条件、以及如何捕获整个对话历史做复盘。</p>
+    <pre class="code"><code class="language-python"># AutoGen GroupChat 完整实战：coder/reviewer/tester 协作开发
+import autogen
+
+config_list = [{"model": "glm-5", "api_key": "YOUR_KEY",
+                "base_url": "https://open.bigmodel.cn/api/paas/v4/"}]
+
+# 1. 定义三个角色 agent（各有专属 system prompt）
+coder = autogen.AssistantAgent(
+    name="coder",
+    system_message="""你是资深程序员。
+    职责：根据需求写 Python 代码。只写代码和简短说明，不做审查。
+    完成代码后说 'CODE DONE' 让 reviewer 接手。""",
+    llm_config={"config_list": config_list},
+)
+
+reviewer = autogen.AssistantAgent(
+    name="reviewer",
+    system_message="""你是严格的代码审查员。
+    职责：找出 bug、边界问题、坏味道。给出具体修改建议。
+    审查通过后说 'REVIEW PASS'，否则说 'REVIEW FAIL' 并列出问题让 coder 改。""",
+    llm_config={"config_list": config_list},
+)
+
+tester = autogen.AssistantAgent(
+    name="tester",
+    system_message="""你是测试工程师。
+    职责：为代码写 pytest 单元测试，覆盖正常和边界情况。
+    只在 reviewer 通过后写测试。写完说 'TEST DONE'。""",
+    llm_config={"config_list": config_list},
+)
+
+# user_proxy 代表人，负责执行代码、给出最终反馈
+user_proxy = autogen.UserProxyAgent(
+    name="user_proxy",
+    human_input_mode="NEVER",       # 全自动
+    max_consecutive_auto_reply=15,  # 最多自动对话轮数
+    code_execution_config={"work_dir": "workspace"},  # 能执行代码
+)
+
+# 2. 自定义 speaker selector：用 LLM 决定下一个发言者
+def speaker_selection(last_speaker, groupchat):
+    """控制发言流转：coder→reviewer→(coder|tester)。"""
+    last_msg = groupchat.messages[-1]["content"]
+    if last_speaker.name == "coder" and "CODE DONE" in last_msg:
+        return reviewer       # coder 写完，交审查
+    if last_speaker.name == "reviewer":
+        return coder if "REVIEW FAIL" in last_msg else tester
+    if last_speaker.name == "tester" and "TEST DONE" in last_msg:
+        return user_proxy     # 测试完成，结束
+    return None  # None = 结束对话
+
+# 3. 创建 GroupChat 并指定发言控制
+groupchat = autogen.GroupChat(
+    agents=[user_proxy, coder, reviewer, tester],
+    messages=[],
+    max_round=20,
+    speaker_selection_method=speaker_selection,  # 自定义流转
+)
+manager = autogen.GroupChatManager(
+    groupchat=groupchat,
+    llm_config={"config_list": config_list},
+)
+
+# 4. 启动协作
+user_proxy.initiate_chat(
+    manager,
+    message="实现一个 MinStack：支持 push/pop/top，且能在 O(1) 取最小值。"
+            "要求：① 写实现 ② 审查 ③ 写测试。",
+)
+
+# 5. 复盘：提取对话历史做分析
+print(f"\n总轮数：{len(groupchat.messages)}")
+print(f"Token 消耗估算：{sum(m.get('usage',{}).get('total_tokens',0) for m in groupchat.messages)}")</code></pre>
+    <div class="callout"><strong>💡 实战要点</strong><br>这个例子暴露了多 agent 的三个工程现实：① <strong>角色 prompt 要正交</strong>——coder 只写、reviewer 只挑刺，职责重叠会导致互相妥协；② <strong>发言顺序要可控</strong>——纯靠 LLM 自由发言容易"抢话"或"冷场"，自定义 speaker selector 能保证流程（写→审→测）；③ <strong>终止条件要明确</strong>——用特殊标记（REVIEW PASS/TEST DONE）作为信号，避免无限对话烧钱。生产环境务必设 max_round 上限并监控 token 消耗。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>多 agent 协作通过"角色分工"提升质量：每个 agent 专注一摊，通过流水线/对话/主管/辩论等模式协作。AutoGen 的 GroupChat、CrewAI 的 Crew、OpenAI Swarm 的 handoffs 都是这一模式的实现。关键是判断任务是否真的需要多 agent——简单任务单 agent 更经济。</p>
     <div class="chapter-nav">
@@ -344,6 +500,8 @@ user_proxy.initiate_chat(manager, message="实现一个栈数据结构")</code><
     </div>
     <footer><p>AI 全栈实战教学 · 第 215 章 · 多 Agent 协作：分工合作的智能体团队</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -263,7 +261,7 @@
       <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
       <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
       <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
-      <a href="220-ux-error-states.html" class="active" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
+      <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
     </div>
     <div class="nav-group"><h3>★模型压缩部署</h3>
       <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★Agent交互设计</span>
     <h1>Agent 的错误状态与降级设计</h1><p class="lead">当 AI 出错时——优雅降级的工程设计</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -359,12 +358,232 @@ class AgentWithFallback:
     <div class="callout"><strong>💡 要点</strong><br>Fallback 链的设计哲学：**从"最强但最脆弱"到"最弱但最可靠"逐级降级**。用户永远应该得到某种回应——即使是"我做不到，但你可以这样..."——而不是白屏或卡死。每一级 fallback 都要保证 &lt;2s 响应。</div>
     <h2><span class="idx"></span>错误监控：从用户报障到主动发现</h2>
     <p>不要等用户来投诉才知道出了错。建立错误监控体系：① 实时告警（错误率突增时 PagerDuty 告警）；② 错误分类（按类型统计，发现高频错误优先修）；③ 用户满意度追踪（对每个回答的 thumbs up/down 比例）。这些数据驱动你的降级策略优化——哪些错误最频繁、哪些降级最受用户接受。</p>
+    <h2><span class="idx"></span>Fallback 链 Python 实现：可配置的降级引擎</h2>
+    <p>前面给了一个 Fallback 链的雏形，现在实现一个更完整、可配置的版本。生产级的 Fallback 引擎应该支持：链式降级（按优先级逐级尝试）、每级独立超时、自动熔断（某级持续失败就暂时跳过）、以及降级原因记录（用于监控分析）。下面是这个完整实现。</p>
+    <pre class="code"><code class="language-python"># 生产级 Fallback 链：可配置、可熔断、可观测
+import time
+from dataclasses import dataclass, field
+from typing import Callable, Any
+from enum import Enum
+
+class FallbackLevel(Enum):
+    L1_PRIMARY = "L1: 大模型+RAG"       # 最强但最脆弱
+    L2_FAST = "L2: 小模型+RAG"          # 快但稍差
+    L3_RAW = "L3: 纯模型(无RAG)"        # 用模型自身知识
+    L4_CACHE = "L4: 缓存/FAQ匹配"       # 最快但最弱
+    L5_FALLBACK = "L5: 兜底文案"        # 最后防线
+
+@dataclass
+class FallbackHandler:
+    name: str                           # 处理器名称
+    level: FallbackLevel
+    handler: Callable                   # 实际处理函数
+    timeout: float = 15.0               # 超时秒数
+    failure_count: int = 0              # 连续失败次数
+    tripped: bool = False               # 是否被熔断（暂时跳过）
+    trip_threshold: int = 5             # 连续失败几次熔断
+    last_failure: float = 0.0           # 上次失败的时间戳
+
+    def execute(self, query: str) -&gt; tuple[str, bool]:
+        """执行处理，返回 (结果, 是否成功)。"""
+        if self.tripped:
+            raise RuntimeError(f"{self.name} 已熔断")
+        try:
+            start = time.time()
+            result = self.handler(query)
+            if time.time() - start &gt; self.timeout:
+                raise TimeoutError()
+            self.failure_count = 0  # 成功，重置失败计数
+            return result, True
+        except Exception as e:
+            self.failure_count += 1
+            self.last_failure = time.time()
+            if self.failure_count &gt;= self.trip_threshold:
+                self.tripped = True  # 连续失败，熔断
+                print(f"⚠️ {self.name} 触发熔断（连续失败 {self.failure_count} 次）")
+            raise
+
+class FallbackChain:
+    """降级链：从强到弱逐级尝试，直到成功。"""
+    def __init__(self, handlers: list[FallbackHandler]):
+        self.chain = sorted(handlers, key=lambda h: h.level.value)
+        self.trip_recovery_time = 60  # 熔断 60s 后尝试恢复
+
+    def answer(self, query: str) -&gt; dict:
+        """沿链尝试，返回第一个成功的结果。"""
+        attempts = []
+        for handler in self.chain:
+            # 熔断恢复检查：超过恢复时间，尝试重新启用
+            if handler.tripped and self._should_retry(handler):
+                handler.tripped = False
+                handler.failure_count = 0
+                print(f"🔄 尝试恢复 {handler.name}")
+
+            try:
+                result, ok = handler.execute(query)
+                if ok:
+                    return {
+                        "answer": result,
+                        "level": handler.level.value,
+                        "attempts": attempts,  # 记录尝试了哪些级
+                    }
+            except Exception as e:
+                attempts.append({"level": handler.level.value,
+                                "error": str(e)})
+                print(f"↓ {handler.level.value} 失败：{e}，降级到下一级")
+                continue
+
+        # 所有级都失败（理论上 L5 兜底不会失败）
+        return {"answer": "服务暂时不可用，请稍后重试", "level": "FAILED"}
+
+    def _should_retry(self, handler):
+        """熔断后是否到了尝试恢复的时间。"""
+        return time.time() - handler.last_failure &gt; self.trip_recovery_time
+
+# 组装一条完整的降级链
+chain = FallbackChain([
+    FallbackHandler("大模型+RAG", FallbackLevel.L1_PRIMARY,
+                    handler=lambda q: big_model_with_rag(q), timeout=15),
+    FallbackHandler("小模型+RAG", FallbackLevel.L2_FAST,
+                    handler=lambda q: small_model_with_rag(q), timeout=5),
+    FallbackHandler("纯小模型", FallbackLevel.L3_RAW,
+                    handler=lambda q: small_model(q), timeout=5),
+    FallbackHandler("FAQ缓存", FallbackLevel.L4_CACHE,
+                    handler=lambda q: faq_match(q), timeout=1),
+    FallbackHandler("兜底", FallbackLevel.L5_FALLBACK,
+                    handler=lambda q: "抱歉，暂无法回答。可稍后重试或联系客服。"),
+])
+
+result = chain.answer("查询我的订单状态")
+print(f"由 {result['level']} 处理，尝试了 {len(result['attempts'])} 次降级")</code></pre>
+    <h2><span class="idx"></span>优雅降级三原则详解：从理念到落地</h2>
+    <p>前面提到了优雅降级的三原则，现在深入展开，给出每个原则的判断标准和落地检查清单。这三条原则不只是"理念"，而是可以在代码 review 和上线 checklist 里逐条检查的工程标准。</p>
+    <pre class="code"><code class="language-text">优雅降级三原则（落地检查清单）
+
+原则一：永远不只报"出错了"
+─────────────────────────────────────────
+理念：错误消息要包含「定位 + 出路」，让用户知道发生了什么、能做什么。
+
+检查清单：
+  □ 错误消息是否说明了错误类型？（不是泛泛的"出错了"）
+  □ 是否避免了技术黑话？（用户看不懂"NullPointerException"）
+  □ 是否提供了至少一个"用户可以做什么"的选项？（重试/换方式/求助）
+  □ 是否表达了歉意/共情？（"抱歉"比冷冰冰的错误号好）
+
+  对比：
+  ❌ "Error 500"
+  ❌ "服务异常，请重试"
+  ✅ "抱歉，我暂时无法获取天气信息。可以：① 稍后重试 ② 手动输入城市"
+  ✅ "这个功能需要联网，请检查网络后重试。如已联网仍失败，请联系客服。"
+
+原则二：部分成功 &gt; 全盘失败
+─────────────────────────────────────────
+理念：多步任务中某步失败，完成能完成的，跳过不能的，别整体崩溃。
+
+检查清单：
+  □ 多步骤任务是否做了"单步隔离"？（一步失败不影响其他步）
+  □ 失败的步骤是否有默认值/占位？（而不是整个输出为空）
+  □ 是否明确告知用户哪步成功了、哪步跳过了？
+
+  示例：生成月报（数据查询+图表+文字+排版）
+  ❌ 数据查询失败 → 整个月报生成失败，用户什么都得不到
+  ✅ 数据查询失败 → 文字和排版正常，图表位置标注"数据暂不可用"
+                   → 用户至少得到了月报框架，知道缺什么
+
+原则三：给用户出路，不只给错误
+─────────────────────────────────────────
+理念：每个错误都附带"用户可执行的下一步"，绝不留死胡同。
+
+检查清单：
+  □ 是否提供了"重试"入口？（最常用的出路）
+  □ 是否提供了"换一种方式"？（plan B）
+  □ 是否提供了"求助渠道"？（转人工/客服/反馈）
+  □ 是否预估了"什么时候能恢复"？（"预计 10 分钟后恢复"）
+
+  死胡同（避免）：
+  ❌ "查询失败" → 用户不知道怎么办
+  有出路（提倡）：
+  ✅ "查询失败。可：① 重试 ② 换关键词 ③ 浏览常见问题 ④ 联系客服"</code></pre>
+    <h2><span class="idx"></span>错误分类矩阵：对症下药的降级策略</h2>
+    <p>不同类型的错误需要不同的降级策略。把错误按"严重程度 × 可恢复性"两个维度分类，能帮你对症下药——哪些该自动重试、哪些该立即降级、哪些该直接报错。这个分类矩阵是设计降级策略的决策工具。</p>
+    <pre class="code"><code class="language-text">错误分类矩阵（严重程度 × 可恢复性 → 处理策略）
+
+                    可恢复（重试可能成功）    不可恢复（重试也没用）
+                  ┌──────────────────────┬──────────────────────┐
+  严重（影响核心）│ 限流 429              │ 模型不支持该功能      │
+  必须处理         │ 策略：指数退避重试     │ 策略：明确告知不支持   │
+                  │      + 排队提示       │      + 建议替代方案   │
+                  ├──────────────────────┼──────────────────────┤
+  中等（影响部分）│ 工具调用偶发失败       │ 知识库无相关内容      │
+  可降级           │ 策略：重试 1-2 次     │ 策略：降级用模型知识  │
+                  │      失败则跳过       │      + 标注"未覆盖"   │
+                  ├──────────────────────┼──────────────────────┤
+  轻微（可忽略）  │ 某个非关键工具超时     │ 可选功能不可用        │
+  可继续           │ 策略：跳过，继续主流程│ 策略：静默降级，不打扰│
+                  └──────────────────────┴──────────────────────┘
+
+决策流程：
+  1. 这个错误影响核心功能吗？
+     ├─ 是 → 严重，必须处理（重试 or 明确报错）
+     └─ 否 → 继续 2
+  2. 重试有可能成功吗？
+     ├─ 是 → 自动重试（带退避），失败再降级
+     └─ 否 → 直接降级 or 明确告知</code></pre>
+    <pre class="code"><code class="language-python"># 错误分类与自动降级决策
+class ErrorClassifier:
+    """分类错误，决定降级策略。"""
+
+    RECOVERABLE = {429, 503, 504, "timeout", "connection_reset"}
+    CRITICAL_TOOLS = {"llm_generate", "rag_retrieve"}  # 核心功能
+
+    def classify(self, error, context) -&gt; dict:
+        # 判断可恢复性
+        recoverable = (getattr(error, "status_code", None) in self.RECOVERABLE
+                       or type(error).__name__ in self.RECOVERABLE)
+
+        # 判断严重程度
+        critical = (context.get("tool") in self.CRITICAL_TOOLS
+                    and not context.get("has_fallback"))
+
+        if critical and recoverable:
+            return {"strategy": "retry_with_backoff",
+                    "max_retries": 3, "backoff": "exponential",
+                    "on_fail": "degrade"}
+        elif critical and not recoverable:
+            return {"strategy": "explicit_error",
+                    "message": "核心功能不可用，建议替代方案",
+                    "offer_alternatives": True}
+        elif not critical and recoverable:
+            return {"strategy": "retry_once", "on_fail": "skip"}
+        else:  # 轻微且不可恢复
+            return {"strategy": "silent_degrade", "notify_user": False}
+
+# 实战：限流错误的处理（最常见的生产错误）
+def handle_rate_limit(error, context):
+    """429 限流：指数退避重试。"""
+    classifier = ErrorClassifier()
+    decision = classifier.classify(error, context)
+
+    if decision["strategy"] == "retry_with_backoff":
+        for attempt in range(decision["max_retries"]):
+            wait = 2 ** attempt + random.random()  # 指数退避 + 抖动
+            time.sleep(wait)
+            try:
+                return retry_request(context)
+            except RateLimitError:
+                continue
+        # 重试用完，降级
+        return degrade_to_small_model(context)
+        # 用户侧提示："系统繁忙，已切换到快速模式（可能稍简略）"</code></pre>
+    <div class="callout"><strong>💡 错误处理的工程哲学</strong><br>优雅降级不是"打补丁"，而是系统设计的一等公民。三个认知升级：① <strong>接受"出错是常态"</strong>——分布式 AI 系统的故障率比传统系统高（模型超时、工具失败、限流都是日常），架构要假设"随时会出错"来设计；② <strong>降级要可观测</strong>——每次降级都记录"从哪级降到哪级、为什么"，这些数据告诉你系统的真实健康度；③ <strong>用户感知 &gt; 技术正确</strong>——用户不在乎你用了什么 fallback 策略，只在乎"我有没有得到有用的回应"。所以降级的终极目标是"让用户感觉不到出错了"，而不是"技术上正确地处理了错误"。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agent 一定会出错，关键是优雅降级。错误分五类（超时/工具失败/无结果/安全拦截/限流），各有降级策略。三原则：永远不只报"出错了"（要定位+给出路）、部分成功&gt;全盘失败、给用户出路。工程实现是 Fallback 链——从强到弱逐级降级，用户永远得到某种回应。配合错误监控主动发现高频问题。优雅降级是 Agent 可靠性的另一半，和正常路径同样重要。</p>
     <div class="chapter-nav">
     <a href="219-ux-human-in-loop.html"><div class="lbl">← 上一章</div>
     <footer><p>AI 全栈实战教学 · 第 220 章 · Agent 的错误状态与降级设计</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

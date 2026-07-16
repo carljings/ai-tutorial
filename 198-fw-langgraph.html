@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -235,7 +233,7 @@
     </div>
     <div class="nav-group"><h3>★Agent框架</h3>
       <a href="197-fw-langchain.html" title="LangChain：最经典的 agent 框架"><span class="num">197</span>LangChain</a>
-      <a href="198-fw-langgraph.html" class="active" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
+      <a href="198-fw-langgraph.html" title="LangGraph：把 agent 建模成状态图"><span class="num">198</span>LangGraph</a>
       <a href="199-fw-autogen.html" title="AutoGen：微软的多 agent 对话框架"><span class="num">199</span>AutoGen</a>
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 222 章 · Agent 框架</span>
     <h1>LangGraph</h1><p class="lead">agent 的图时代：状态 + 节点 + 边</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -353,6 +352,166 @@ result = app.invoke({"messages": [user_message]})</code></pre>
     <div class="callout"><strong>💡 要点</strong><br>LangGraph 的精髓是"条件边"——它让你用代码精确描述 agent 的控制流。ReAct 循环只是"agent → tools → agent"的循环；更复杂的（多 agent 路由、人工审批分支、错误重试）都能用图清晰表达。这是它取代 AgentExecutor 的根本原因。</div>
     <h2><span class="idx"></span>LangGraph 的高级能力</h2>
     <p>除了基本的图结构，LangGraph 还支持：持久化（checkpointer，状态可存盘恢复，支持断点续传和 time-travel）、人工介入（interrupt，在某节点暂停等人确认再继续）、子图（把复杂逻辑封装成子图复用）、流式（逐 token 流式输出）。这些是生产级 agent 必备的能力。</p>
+    <h2><span class="idx"></span>StateGraph 构建实战：一个带工具调用和审批的完整 agent</h2>
+    <p>前面的入门示例展示了 StateGraph 的基本用法，现在构建一个更贴近生产的完整 agent——它具备工具调用、条件路由、人工审批分支。这个例子覆盖了 LangGraph 最常用的模式，是构建生产级 agent 的模板。</p>
+    <pre class="code"><code class="language-python"># LangGraph 完整 agent：工具调用 + 人工审批 + 错误处理
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated, Literal
+from langgraph.graph.message import add_messages
+
+# 1. 定义状态（agent 运行中流转的所有数据）
+class AgentState(TypedDict):
+    messages: Annotated[list, add_messages]  # 消息历史（自动累积）
+    needs_approval: bool                     # 是否需要人工审批
+    retry_count: int                         # 重试次数（防死循环）
+    tool_results: list                       # 工具调用结果
+
+# 2. 定义节点
+def call_model(state: AgentState):
+    """主节点：调 LLM 决定下一步。"""
+    response = model.invoke(state["messages"])
+    # 判断是否需要人工审批（高风险操作）
+    needs_approval = any(tc["name"] in DANGEROUS_TOOLS
+                        for tc in response.tool_calls)
+    return {"messages": [response], "needs_approval": needs_approval}
+
+def call_tools(state: AgentState):
+    """工具节点：执行 LLM 请求的工具调用。"""
+    last_msg = state["messages"][-1]
+    results = []
+    for tc in last_msg.tool_calls:
+        try:
+            result = tools[tc["name"]].invoke(tc["args"])
+            results.append(ToolMessage(result, tool_call_id=tc["id"]))
+        except Exception as e:
+            results.append(ToolMessage(f"工具出错：{e}", tool_call_id=tc["id"]))
+    return {"messages": results, "retry_count": state.get("retry_count", 0) + 1}
+
+def human_review(state: AgentState):
+    """人工审批节点：暂停等用户确认。"""
+    # interrupt 让图暂停，等用户输入后才继续
+    approval = interrupt({
+        "question": "以下操作需要确认：",
+        "tool_calls": state["messages"][-1].tool_calls,
+    })
+    if approval == "approved":
+        return {"messages": state["messages"]}  # 继续，去执行工具
+    return {"messages": [HumanMessage("用户拒绝了该操作")]}
+
+# 3. 定义条件边（图的核心：控制流逻辑）
+def route_after_model(state: AgentState) -> Literal["tools", "human", "__end__"]:
+    """根据 LLM 输出决定下一步去哪。"""
+    last_msg = state["messages"][-1]
+    if not last_msg.tool_calls:
+        return END                        # 没有工具调用，任务完成
+    if state.get("needs_approval"):
+        return "human"                    # 高风险操作，先审批
+    return "tools"                        # 普通操作，直接执行
+
+def route_after_tools(state: AgentState) -> Literal["agent", "__end__"]:
+    """工具执行完，根据重试次数决定。"""
+    if state.get("retry_count", 0) &gt;= 5:
+        return END                        # 防止无限循环
+    return "agent"                        # 回到 agent 继续推理
+
+# 4. 构建图
+graph = StateGraph(AgentState)
+graph.add_node("agent", call_model)
+graph.add_node("tools", call_tools)
+graph.add_node("human", human_review)
+
+graph.set_entry_point("agent")
+graph.add_conditional_edges("agent", route_after_model)  # 条件分支
+graph.add_edge("tools", "agent")                          # 固定边
+graph.add_conditional_edges("human", lambda s: "tools")   # 审批通过去工具</code></pre>
+    <h2><span class="idx"></span>条件边深入：图的"大脑"</h2>
+    <p>条件边是 LangGraph 区别于固定循环的核心。它本质是一个函数：输入当前状态，输出"下一个该去哪个节点"。这个函数可以包含任意复杂的判断逻辑——基于 LLM 的输出、基于状态计数器、基于外部条件。下面展示几种常见的条件边模式。</p>
+    <pre class="code"><code class="language-python"># 条件边的常见模式
+
+# 模式1：路由分发（一个节点根据内容分发到不同处理器）
+def route_by_intent(state) -&gt; str:
+    """根据用户意图路由到不同专家节点。"""
+    intent = classify(state["messages"][-1].content)
+    routing = {
+        "coding": "code_expert",
+        "writing": "writing_expert",
+        "math": "math_expert",
+        "chat": END,
+    }
+    return routing.get(intent, END)
+
+graph.add_conditional_edges("router", route_by_intent)
+
+# 模式2：循环 + 退出条件（ReAct 循环的本质）
+def should_continue(state) -&gt; str:
+    """ReAct：有工具调用就继续，没有就结束。"""
+    last = state["messages"][-1]
+    if last.tool_calls and state.get("steps", 0) &lt; 10:  # 步数上限
+        return "tools"
+    return END
+
+# 模式3：错误处理分支
+def handle_error(state) -&gt; str:
+    """出错时决定重试还是降级。"""
+    if state.get("error_count", 0) &lt; 3:
+        return "retry"       # 重试
+    return "fallback"        # 重试够了，降级处理
+
+# 模式4：质量门控（生成后评估，不够好就重来）
+def quality_gate(state) -&gt; str:
+    """评估输出质量，决定接受还是重新生成。"""
+    quality = evaluate_quality(state["messages"][-1].content)
+    if quality &gt; 0.8:
+        return END              # 质量达标，输出
+    if state.get("regen_count", 0) &lt; 2:
+        return "regenerate"     # 不够好，重新生成
+    return END                  # 重生成了还不行，凑合用</code></pre>
+    <p>这四种模式覆盖了 90% 的 agent 控制流需求：<strong>分发</strong>（按内容路由到不同处理）、<strong>循环</strong>（ReAct 的核心）、<strong>错误处理</strong>（重试与降级）、<strong>质量门控</strong>（评估后决定是否接受）。用条件边把这套逻辑表达出来，比在 AgentExecutor 里写一堆 if-else 清晰得多——因为图的结构本身就是流程图，一眼能看出控制流。</p>
+    <h2><span class="idx"></span>Checkpoint 持久化：让 agent 能"存档"和"读档"</h2>
+    <p>生产级 agent 有个刚需：状态要能持久化。原因有二：① <strong>断点续传</strong>——长任务中途崩了或要暂停，能从上次的状态恢复；② <strong>人工介入</strong>——agent 跑到某步暂停等人审批，审批完继续。LangGraph 的 checkpointer 就是为此设计——它把每个节点执行后的状态快照存下来，支持"读档"到任意一步（甚至回退）。</p>
+    <pre class="code"><code class="language-python"># Checkpoint 持久化：状态存档 + 断点续传 + time-travel
+from langgraph.checkpoint.memory import MemorySaver  # 内存版
+from langgraph.checkpoint.sqlite import SqliteSaver   # SQLite 持久化
+import sqlite3
+
+# 1. 带持久化的编译
+conn = sqlite3.connect("agent_checkpoints.db", check_same_thread=False)
+checkpointer = SqliteSaver(conn)
+
+app = graph.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["human"],  # 在 human 节点前暂停（等审批）
+)
+
+# 2. 每个会话有唯一 thread_id（状态按会话隔离）
+config = {"configurable": {"thread_id": "user-123-session-1"}}
+
+# 第一次运行：跑到 human 节点前暂停
+result = app.invoke(
+    {"messages": [HumanMessage("删除生产环境的旧数据库")]},
+    config=config,
+)
+# agent 在"删数据库"前暂停了（因为 interrupt_before=["human"]）
+
+# 3. 查看当前状态（暂停在哪、状态是什么）
+state = app.get_state(config)
+print(f"暂停在节点：{state.next}")  # ('human',)
+print(f"当前消息数：{len(state.values['messages'])}")
+
+# 4. 人工审批后继续（提供审批结果，恢复执行）
+app.update_state(config, {"approval": "approved"})
+result = app.invoke(None, config=config)  # None = 从暂停处继续
+
+# 5. Time-travel：回退到之前某一步（撤销错误决策）
+history = list(app.get_state_history(config))
+# 找到"调工具前"的那一步
+target = [h for h in history if h.next == ("tools",)][0]
+# 从那一步重新开始（换条路走）
+app.invoke(None, config={"configurable": {
+    "thread_id": "user-123-session-1",
+    "checkpoint_id": target.config["configurable"]["checkpoint_id"],
+}})</code></pre>
+    <div class="callout"><strong>💡 生产价值</strong><br>Checkpoint 持久化是 LangGraph 杀手级能力，它解决了 agent 的两大生产难题：① <strong>人工介入</strong>（interrupt）——agent 自动跑到需要人决策的点暂停，人审完再继续，这是"人在环中"(Human-in-the-loop) 系统的基础；② <strong>可恢复性</strong>——长任务（如深度研究、批量处理）中途断了能续上，不用从头重来。配合 time-travel，还能回退重跑（比如发现某步决策错了，回退到那步换条路）。这些是 AgentExecutor 完全做不到的，也是 LangGraph 成为生产级首选的原因。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LangGraph 把 agent 从"固定循环"升级为"状态图"：State 管数据、Node 管处理、Edge 管流转。条件边让它能表达任意复杂的控制流。它是 LangChain 家族中做生产级 agent 的推荐方案——AgentExecutor 能做的它都能做，还能做 AgentExecutor 做不到的。</p>
     <div class="chapter-nav">
@@ -361,6 +520,8 @@ result = app.invoke({"messages": [user_message]})</code></pre>
     </div>
     <footer><p>AI 全栈实战教学 · 第 222 章 · LangGraph：把 agent 建模成状态图</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

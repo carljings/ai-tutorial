@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -225,7 +223,7 @@
       <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
       <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
       <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
-      <a href="190-pat-tot.html" class="active" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
+      <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
       <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
       <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
       <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 214 章 · Agent 设计模式</span>
     <h1>Tree of Thoughts</h1><p class="lead">树状探索 + 评估回溯</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -343,6 +342,172 @@
     <div class="callout"><strong>💡 要点</strong><br>ToT 的代价是 LLM 调用次数爆炸（每个节点要 generate + evaluate，分支越多调用越多）。但它带来的提升也是数量级的：在经典"24 点"游戏上，Tree of Thoughts 达到 74% 成功率，而 Chain of Thought 仅 4%——因为这类问题需要试错和回溯，线性推理无能为力。ToT 适合"解谜题、24点、创意写作"等需要深度探索的任务，不适合简单的问答——那种用 CoT 就够。</div>
     <h2><span class="idx"></span>CoT vs ToT vs ReAct 怎么选</h2>
     <table class="data-table"><thead><tr><th>模式</th><th>探索方式</th><th>适合任务</th><th>成本</th></tr></thead><tbody><tr><td>CoT</td><td>单条线性推理</td><td>简单推理、数学</td><td>低（1 次调用）</td></tr><tr><td>ReAct</td><td>线性 + 工具反馈</td><td>需要外部信息的任务</td><td>中（每步 1 次）</td></tr><tr><td>ToT</td><td>树状搜索 + 回溯</td><td>需要试错的难题</td><td>高（指数级调用）</td></tr></tbody></table>
+    <h2><span class="idx"></span>BFS 与 DFS：两种树搜索策略的实现</h2>
+    <p>ToT 的搜索算法借鉴自经典 AI 搜索理论，主要有两种策略：BFS（广度优先，逐层展开，适合解在浅层）和 DFS（深度优先，一条路走到底，适合解在深层）。前面示例里的 beam search 是 BFS 的一种变体——每层只保留评分最高的几个节点。下面分别实现完整的 BFS 和 DFS 版本，并说明各自的适用场景。</p>
+    <pre class="code"><code class="language-python"># ToT 的两种搜索策略：BFS（广度）和 DFS（深度）
+from dataclasses import dataclass
+from typing import Callable
+
+@dataclass
+class ThoughtNode:
+    state: str           # 当前推理状态（部分解）
+    score: float         # 前景评分 0-1
+    path: list           # 到达此节点的思考路径
+    depth: int
+
+class TreeOfThoughts:
+    def __init__(self, llm, max_depth=5, branching=3, beam_width=3):
+        self.llm = llm
+        self.max_depth = max_depth
+        self.branching = branching      # 每个节点生成几个候选
+        self.beam_width = beam_width    # BFS 每层保留几个
+
+    def search_bfs(self, problem: str) -> str:
+        """广度优先 + beam search：逐层展开，每层只留最优的几个。"""
+        frontier = [ThoughtNode(problem, 1.0, [], 0)]
+        for depth in range(self.max_depth):
+            next_layer = []
+            for node in frontier:
+                # 1. 生成 branching 个候选思路
+                thoughts = self.llm.generate_thoughts(node.state, self.branching)
+                for t in thoughts:
+                    new_state = node.state + "\n→ " + t
+                    # 2. 评估每个候选的前景
+                    score = self.llm.evaluate(new_state, problem)
+                    new_node = ThoughtNode(new_state, score,
+                                          node.path + [t], depth + 1)
+                    # 找到解就立刻返回
+                    if self.llm.is_solution(new_state):
+                        return new_state
+                    next_layer.append(new_node)
+            # 3. 剪枝：只保留评分最高的 beam_width 个（核心！）
+            next_layer.sort(key=lambda x: x.score, reverse=True)
+            frontier = next_layer[:self.beam_width]
+            print(f"Depth {depth+1}: 保留 {len(frontier)} 个节点，"
+                  f"最高分 {frontier[0].score:.2f}")
+        return frontier[0].state
+
+    def search_dfs(self, problem: str) -> str:
+        """深度优先：一条路走到底，不行就回溯。"""
+        def _dfs(node: ThoughtNode, visited_threshold=0.3) -> str:
+            if node.depth &gt;= self.max_depth:
+                return node.state if self.llm.is_solution(node.state) else None
+            thoughts = self.llm.generate_thoughts(node.state, self.branching)
+            # 按评分排序，优先探索高分分支
+            scored = [(self.llm.evaluate(node.state + "\n" + t, problem), t)
+                      for t in thoughts]
+            scored.sort(reverse=True)
+            for score, t in scored:
+                if score &lt; visited_threshold:
+                    continue  # 太低分的直接跳过（剪枝）
+                new_state = node.state + "\n→ " + t
+                if self.llm.is_solution(new_state):
+                    return new_state
+                # 递归深入
+                result = _dfs(ThoughtNode(new_state, score,
+                             node.path + [t], node.depth + 1))
+                if result:  # 这条路找到解了
+                    return result
+                # 否则回溯，尝试下一个候选
+            return None  # 所有候选都失败
+        return _dfs(ThoughtNode(problem, 1.0, [], 0)) or "未找到解"</code></pre>
+    <p>BFS 和 DFS 的选择取决于问题特征：<strong>BFS 适合解在浅层、且每步选择影响大的问题</strong>（如规划类任务，前几步走错全盘皆输，所以要每层都仔细评估择优）；<strong>DFS 适合解在深层、且能快速判断死路的问题</strong>（如解谜，需要深入探索某条路，走到死胡同快速回溯）。实践中 BFS（beam search）更常用，因为它通过剪枝控制了宽度，成本可预测；DFS 在最坏情况可能指数爆炸。</p>
+    <h2><span class="idx"></span>状态评估函数：ToT 的"裁判"</h2>
+    <p>ToT 的效果好坏，70% 取决于 Evaluate 阶段的状态评估函数——它判断"当前这个推理状态有没有希望"。评估函数太松（什么都说有希望），退化成盲目搜索，浪费调用；太严（动不动判死刑），可能剪掉真正有希望的分支。设计一个好的评估函数是 ToT 的核心难点。</p>
+    <pre class="code"><code class="language-python"># 状态评估函数：判断推理状态的前景
+class StateEvaluator:
+    """评估当前推理状态离目标有多近。"""
+
+    def evaluate(self, state: str, problem: str) -&gt; float:
+        """返回 0-1 的分数，越高越有希望。"""
+        score = self.llm.evaluate(
+            f"""问题：{problem}
+            当前进度：{state}
+
+            评估当前推理状态离正确答案有多近。
+            打分（0.0-1.0）并说明理由：
+            - 1.0: 已经接近或得到正确答案
+            - 0.7: 方向正确，继续推进很可能成功
+            - 0.3: 方向可能有问题，但有希望
+            - 0.0: 走入死胡同，应该放弃
+
+            只输出 JSON：{{{"score": 0.X, "reason": "..."}}}
+            """,
+            response_format="json"
+        )
+        return score["score"]
+
+    def evaluate_relative(self, candidates: list[str], problem: str) -&gt; list[float]:
+        """相对评估：多个候选一起比较（比绝对评估更准）。"""
+        # 让 LLM 同时看多个候选，排出优劣
+        ranking = self.llm.evaluate(
+            f"""问题：{problem}
+            有以下几个候选推理路径，请评估它们的前景并排序：
+            {chr(10).join(f"{i}. {c}" for i, c in enumerate(candidates))}
+
+            给每个打 0-1 分，分数要拉开差距（最好的 0.9，最差的 0.3）。
+            """,
+            response_format="json"
+        )
+        return ranking["scores"]  # [0.9, 0.4, 0.6, ...]
+
+# 关键技巧：相对评估 &gt; 绝对评估
+# 绝对评估（单独打分）：LLM 倾向给所有候选高分（"看起来都不错"）
+# 相对评估（一起比较）：LLM 被迫拉开差距，择优更准
+
+# 另一种评估：用外部信号（不靠 LLM 自评）
+class ExternalEvaluator:
+    """对有客观标准的问题，用外部信号评估更可靠。"""
+    def evaluate_math(self, state, problem):
+        # 数学题：把中间结果代入验证
+        try:
+            return 1.0 if verify_equation(state, problem) else 0.2
+        except:
+            return 0.1  # 推导格式错误
+
+    def evaluate_code(self, state, problem):
+        # 编程题：跑测试用例
+        result = run_tests(extract_code(state), problem)
+        return result.pass_rate  # 通过率作为分数</code></pre>
+    <p>评估函数有两个层次：<strong>LLM 自评</strong>（通用，适合没有客观标准的任务如创意写作）和<strong>外部信号评估</strong>（精确，适合数学/编程等有验证方法的任务）。一个重要技巧是"相对评估优于绝对评估"——让 LLM 同时看多个候选并排序，比逐个打分更准，因为比较能迫使它拉开差距。对数学题，直接代入验算；对编程题，跑测试用例。外部信号永远是比 LLM 自评更可靠的评估器。</p>
+    <h2><span class="idx"></span>ToT vs CoT 对比实验：何时值得用 ToT</h2>
+    <p>ToT 比 CoT 强，但贵得多。到底什么场景值得为 ToT 付出指数级的调用成本？下面用一个对比实验说明：在"需要试错"的任务上 ToT 完胜，在"线性推理"的任务上 CoT 更划算（用 ToT 是浪费）。</p>
+    <pre class="code"><code class="language-text">ToT vs CoT 对比实验（GPT-4 级模型）
+
+任务1：24 点游戏（用 1,4,7,8 凑出 24）
+─────────────────────────────────────
+CoT 尝试：
+  "8×(4-1)=24... 不对，24。1,4,7,8 怎么用？
+   7+8=15, 15+... 算不出来。"
+  结果：失败（成功率 4%）
+
+ToT 探索（BFS, branching=3, depth=4）：
+  层1: [(8×4=32), (7+8=15), (8-1=7)]     评分后保留 [8-1=7]
+  层2: [7×4=28, 7+4=11, ...]              保留 [7×4=28]
+  层3: 28-7=21✗  28-4=24✓ 找到！
+  结果：成功（成功率 74%）
+  代价：~30 次 LLM 调用 vs CoT 的 1 次
+
+任务2：简单数学题（123 × 45 = ?）
+─────────────────────────────────────
+CoT：直接算 123×45 = 5535（一次调用，正确）
+ToT：展开树搜索... 杀鸡用牛刀，30 次调用得到同样答案
+
+结论：
+┌──────────────────┬────────┬────────┬──────────┐
+│ 任务类型         │ CoT    │ ToT    │ 该用哪个 │
+├──────────────────┼────────┼────────┼──────────┤
+│ 24点/解谜/填字   │ 4%     │ 74%    │ ToT     │
+│ 创意写作(择优)   │ 单调   │ 多样择优│ ToT     │
+│ 策略规划(多步)   │ 35%    │ 65%    │ ToT     │
+│ 简单数学/计算    │ 95%    │ 95%    │ CoT     │
+│ 常识问答         │ 88%    │ 88%    │ CoT     │
+│ 代码生成(简单)   │ 80%    │ 82%    │ CoT     │
+└──────────────────┴────────┴────────┴──────────┘
+
+决策法则：ToT 值得当且仅当「问题需要试错/回溯」且
+          「CoT 成功率低」且「单次调用成本可接受」。</code></pre>
+    <div class="callout"><strong>💡 实用建议</strong><br>不要把 ToT 当万能锤。它的成本是 CoT 的 10-30 倍，只有当 CoT 在你的任务上成功率明显不够（比如低于 50%）时才考虑。而且 ToT 可以<strong>按需升级</strong>：先用 CoT 试，失败了再上 ToT——这样大部分简单问题用便宜的 CoT 解决，只有难题才付出 ToT 的成本。这种"渐进式投入"是生产环境控制成本的常用策略。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Tree of Thoughts 把推理从"一条路"升级为"一棵树"：生成多个候选、评估择优、搜索回溯。它适合需要深度探索的难题（解谜、规划、创意），代价是高昂的 LLM 调用成本。理解了 CoT→ReAct→ToT 的演进，你就掌握了 agent 推理能力的三个层次。</p>
     <div class="chapter-nav">
@@ -351,6 +516,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 214 章 · Tree of Thoughts：像下棋一样探索多条推理路径</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

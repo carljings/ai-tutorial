@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -266,7 +264,7 @@
       <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
     </div>
     <div class="nav-group"><h3>★模型压缩部署</h3>
-      <a href="221-comp-overview.html" class="active" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
+      <a href="221-comp-overview.html" title="模型压缩全景：量化之外的路线"><span class="num">221</span>模型压缩全景</a>
       <a href="222-comp-pruning.html" title="剪枝：删掉模型里的冗余"><span class="num">222</span>剪枝</a>
       <a href="223-comp-distill.html" title="知识蒸馏进阶：从 logits 到 agent 行为"><span class="num">223</span>知识蒸馏进阶</a>
       <a href="224-comp-tensorrt.html" title="编译优化：TensorRT / ONNX / vLLM"><span class="num">224</span>编译优化</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ ★模型压缩部署</span>
     <h1>模型压缩全景：量化之外的路线</h1><p class="lead">让大模型跑得更快、更省、更小——压缩的四条路线</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -324,12 +323,82 @@
     <h2><span class="idx"></span>蒸馏：大模型教小模型</h2>
     <p>蒸馏是最极端的压缩——不是压缩同一个模型，而是训一个全新的小模型来"模仿"大模型的行为。典型如 DistilBERT（把 BERT 压缩到 60% 大小，保留 97% 能力）、Alpaca/Vicuna（用 GPT-4 的输出训练 7B 模型）。蒸馏后的模型架构完全不同，压缩比可达 10-50 倍。</p>
     <div class="callout"><strong>💡 要点</strong><br>蒸馏 vs 量化的选择：要在同一硬件上跑 → 量化（保留能力，减少资源）；要部署到手机/IoT → 蒸馏（做一个全新的小模型）；要最快推理 → 两者叠加（蒸馏出小模型再量化）。</div>
+    <h2><span class="idx"></span>四条压缩路线横向对比：一表看懂怎么选</h2>
+    <p>前面分别介绍了量化、剪枝、蒸馏、编译优化。实际选型时不能孤立看每条路线，而要把它们放在一起对比——维度不只是"压缩比"，还包括精度损失是否可控、要不要训练数据、能不能和别的路线叠加、工程复杂度多高。下面的对比表把这些维度摊开，帮你快速定位哪条路线最适合你的场景。</p>
+    <table class="data-table"><thead><tr><th>对比维度</th><th>量化</th><th>剪枝</th><th>蒸馏</th><th>编译优化</th></tr></thead><tbody><tr><td>压缩原理</td><td>降低数值精度</td><td>删除冗余权重/结构</td><td>训练全新小模型模仿大模型</td><td>优化计算图（不改权重）</td></tr><tr><td>典型压缩比</td><td>2-8×</td><td>2-10×</td><td>5-50×</td><td>1.5-3×</td></tr><tr><td>精度损失</td><td>小（INT8 &lt;1%，INT4 ~2%）</td><td>中等（需微调恢复）</td><td>可控（取决于学生模型大小）</td><td>无损（数学等价）</td></tr><tr><td>需要训练数据吗</td><td>校准集（128 样本即可）</td><td>需要（恢复训练）</td><td>大量（教学生模型）</td><td>不需要</td></tr><tr><td>需要 GPU 训练吗</td><td>不需要（离线转换）</td><td>需要（微调恢复）</td><td>需要（训练学生模型）</td><td>不需要</td></tr><tr><td>能与其他叠加</td><td>能（量化+剪枝常见）</td><td>能</td><td>能（蒸馏后再量化）</td><td>能（所有场景必叠加）</td></tr><tr><td>工程复杂度</td><td>低（一行命令）</td><td>高（需调参）</td><td>极高（等同训练新模型）</td><td>低（换推理引擎）</td></tr><tr><td>代表工具</td><td>GPTQ/AWQ/llama.cpp</td><td>Wanda/ SparseGPT</td><td>LLaMA-Factory/自定义</td><td>vLLM/TensorRT-LLM</td></tr></tbody></table>
+    <p>从对比表能看出一个清晰结论：<strong>量化是性价比之王</strong>（低复杂度、小损失、高压缩比），所以它是 90% 场景的首选。<strong>编译优化是必选项</strong>（无损且通用），应该叠加在所有方案之上。剪枝和蒸馏是"为极致压缩准备的"——只有量化满足不了需求（比如要部署到手机）时才考虑，因为它们的工程成本和精度风险都高得多。</p>
+    <h2><span class="idx"></span>压缩率 vs 精度损失：那条不可逾越的曲线</h2>
+    <p>压缩的本质是"用精度换资源"。但这个交换不是线性的——存在一条"帕累托前沿"曲线：在某个压缩比之前，精度损失很小（平缓段）；越过某个临界点，精度断崖式下跌（崩溃段）。理解这条曲线，才能避免"贪心压缩导致模型废掉"。</p>
+    <pre class="code"><code class="language-text">压缩率 vs 精度损失曲线（以 70B 模型在 MMLU 基准为例）
+
+精度(%) 保持
+  │
+100├─●─FP16 基线（无压缩）
+  │  ╲
+ 98├───●INT8 量化（损失 &lt;1%，压缩 2×）  ← 平缓段：性价比极高
+  │      ╲
+ 96├──────●INT4 量化（损失 ~2%，压缩 4×） ← 仍是好选择
+  │         ╲
+ 92├─────────●INT3 量化（损失 ~5%，压缩 5.3×） ← 开始有风险
+  │            ╲╲
+ 80├─────────────●●INT2 量化（损失 ~15%，压缩 8×） ← 接近崩溃
+  │                 ╲╲
+ 60├──────────────────● 1-bit (BitNet) ← 需专门训练，不能直接量化
+  │
+  └──┬───┬────┬────┬────┬────┬── 压缩率
+     1×  2×   4×   6×   8×  10×
+
+关键洞察：
+  - 平缓段（压缩 &lt;4×）：精度损失 &lt;2%，几乎所有任务可接受
+  - 临界点（压缩 ~5×）：精度开始明显下降，需评估具体任务
+  - 崩溃段（压缩 &gt;8×）：除非专门训练（如 BitNet），否则不可用</code></pre>
+    <p>这条曲线揭示了一个反直觉的事实：<strong>并不是压缩越狠越好</strong>。把 70B 模型从 INT4（35GB）再压到 INT3（27GB）只多省 8GB 显存，却可能损失 3-5% 精度——通常不划算。而从 INT4 往回退到 INT8（70GB）要多花一倍显存，精度却只提升不到 1%——也不划算。所以 INT4 几乎是通用部署的甜点，它正好在帕累托曲线的拐点上。</p>
+    <p>不同任务的曲线拐点不同：推理密集任务（数学、代码）对量化更敏感（INT4 可能明显掉点），而生成任务（对话、写作）对量化更鲁棒。所以选压缩比时要在<strong>你的真实评测集上测</strong>，而不是看公开基准的数字。</p>
+    <h2><span class="idx"></span>选型决策树：5 分钟确定你的压缩方案</h2>
+    <p>有了对比表和曲线，最后用一个决策树把选型流程固化下来。从你的部署目标出发，沿着树的分支走，就能得到推荐的压缩组合。这个决策树覆盖了 95% 的实际场景。</p>
+    <pre class="code"><code class="language-text">模型压缩选型决策树
+
+开始：你要部署到什么环境？
+│
+├─→ 【服务器（有 GPU）】
+│   │  能接受多大显存？
+│   ├─ 单卡 A100(80GB) 装得下 → INT8 量化 + vLLM（无损体验，推荐）
+│   ├─ 单卡装不下，要省钱      → INT4 量化(GPTQ/AWQ) + vLLM（主流选择）
+│   └─ 极致省成本              → INT4 量化 + 剪枝(Wanda) + vLLM
+│
+├─→ 【消费级 GPU（如 RTX 4090, 24GB）】
+│   │  要跑多大的模型？
+│   ├─ 7B-14B → INT4 量化(GGUF) + llama.cpp（够用）
+│   ├─ 30B+   → INT4 量化 + 卸载部分层到 CPU（llama.cpp ggml）
+│   └─ 实在装不下 → 蒸馏成 7B 小模型 + INT4 量化
+│
+├─→ 【端侧（手机/IoT/CPU）】
+│   │  延迟要求？
+│   ├─ 秒级可接受 → INT4 量化(GGUF) + llama.cpp（手机能跑 3B）
+│   ├─ 需要毫秒级 → 蒸馏成 &lt;1B 小模型 + INT8 量化 + ONNX
+│   └─ 极致小（&lt;100MB）→ 蒸馏 + 结构化剪枝 + INT4 + TFLite
+│
+└─→ 【边缘服务器（如 Jetson）】
+    │  功耗限制？
+    ├─ 15W  → INT4 量化小模型（7B 太大，用 3B）
+    └─ 30W+ → INT4 量化 7B 模型 + TensorRT-LLM
+
+通用叠加层（所有场景都加）：
+  ✓ 编译优化（vLLM/TensorRT/llama.cpp 自带）
+  ✓ Prefix Caching（加速公共 prompt）
+  ✓ Speculative Decoding（小模型加速大模型）
+
+验证：压缩后在【你的真实评测集】测精度，
+      损失 &lt;3% 才算成功，否则回退到上一档。</code></pre>
+    <div class="callout"><strong>💡 决策心法</strong><br>压缩选型的三个原则：① <strong>从部署环境倒推</strong>（先确定硬件，再定压缩比）；② <strong>够用就好</strong>（不要追求极致压缩，INT4 往往是最优解）；③ <strong>必测真实数据</strong>（公开基准不代表你的任务）。90% 的情况，答案就是"INT4 量化 + vLLM"——简单、稳定、性价比高。只有当这个方案装不下或精度不够时，才往决策树更深的分支走。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>模型压缩有四条路线：量化（降精度，2-8× 压缩，最常用）、剪枝（删冗余）、蒸馏（大教小，极小模型）、编译优化（无损，所有场景必叠加）。INT4 量化（GPTQ/AWQ）+ vLLM 编译优化是 90% 生产部署的默认组合。压缩策略：量化先上 → 编译叠加 → 剪枝看场景 → 蒸馏做小模型。后续章节逐一深入每条路线。</p>
     <div class="chapter-nav">
     <a href="220-ux-error-states.html"><div class="lbl">← 上一章</div>
     <footer><p>AI 全栈实战教学 · 第 221 章 · 模型压缩全景：量化之外的路线</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

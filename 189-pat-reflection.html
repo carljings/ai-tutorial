@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -224,7 +222,7 @@
     <div class="nav-group"><h3>★Agent设计模式</h3>
       <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
       <a href="188-pat-plan-execute.html" title="Plan-and-Execute：先规划再执行的两段式"><span class="num">188</span>Plan-and-E</a>
-      <a href="189-pat-reflection.html" class="active" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
+      <a href="189-pat-reflection.html" title="Reflection 自我反思：让 agent 批判并改进自己"><span class="num">189</span>Reflection</a>
       <a href="190-pat-tot.html" title="Tree of Thoughts：像下棋一样探索多条推理路径"><span class="num">190</span>Tree of Th</a>
       <a href="191-pat-multiagent.html" title="多 Agent 协作：分工合作的智能体团队"><span class="num">191</span>多 Agent 协作</a>
       <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
@@ -305,7 +303,8 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
+<main class="content">
+<main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 213 章 · Agent 设计模式</span>
     <h1>Reflection 自我反思</h1><p class="lead">从错误中学习的 agent</p>
     <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
@@ -340,6 +339,181 @@
     <div class="callout"><strong>💡 要点</strong><br>Reflection 的威力在于"累积学习"——每轮的反思都进入上下文，agent 不会犯同样的错。Reflexion 论文（Shinn et al. NeurIPS 2023）的数据：在 HumanEval 编程基准上，Reflexion + GPT-4 达到约 91% 通过率，而单次 GPT-4 基线约 80%——零权重更新、纯靠"口头反思"就提升了 11 个百分点。代价是多次 LLM 调用带来的延迟和成本。</div>
     <h2><span class="idx"></span>Reflection 的两种评估方式</h2>
     <p>Reflection 的 Evaluate 阶段有两种实现。第一种是"自评"——让 LLM 自己判断结果好不好（适合没有客观标准的任务，如写作）。第二种是"外部反馈"——用测试用例、编译器、linter 等客观信号判断（适合编程等有明确对错的任务）。外部反馈比自评更可靠，因为 LLM 自评有时会"自我感觉良好"。</p>
+    <h2><span class="idx"></span>自我批评 prompt 模板：让反思更犀利</h2>
+    <p>Reflection 的质量很大程度上取决于 Reflect 阶段的 prompt——你让 LLM 怎么反思，它就反思出什么。模糊的反思指令（"看看哪里有问题"）只会得到套话（"整体不错，可以更详细"）；精确的反思模板能逼出具体的、可操作的批评。下面是经过验证的自我批评 prompt 模板，按任务类型分类。</p>
+    <pre class="code"><code class="language-text">自我批评 prompt 模板（按任务分类）
+
+【编程任务】
+你刚写了这段代码。以资深代码审查员的身份，逐条检查：
+1. 正确性：每个分支/边界情况都处理了吗？有空指针/越界风险吗？
+2. 健壮性：异常输入会崩溃吗？错误处理完整吗？
+3. 效率：有明显的时间/空间浪费吗？有更优算法吗？
+4. 可读性：命名清晰吗？复杂逻辑有注释吗？
+5. 测试：关键路径有测试覆盖吗？
+
+请输出：
+- 严重问题（会导致 bug/崩溃的）：列出来，必须修
+- 改进建议（锦上添花的）：列出来，可选修
+- 已做得好的（确认不该动的）：简述
+
+【写作任务】
+你刚写了这篇文章。以挑剔的编辑身份审视：
+1. 论点：核心观点有证据支撑吗？有逻辑跳跃吗？
+2. 结构：层次清晰吗？有冗余/重复吗？过渡自然吗？
+3. 受众：对目标读者来说，太深还是太浅？有术语没解释吗？
+4. 事实：有未经核实的数据/断言吗？
+5. 语言：有歧义/病句/啰嗦的表达吗？
+
+请输出：3 个最该改的点 + 具体修改建议。
+
+【推理/数学任务】
+你刚推导了这个结论。以"找茬"的心态重审每一步：
+1. 前提：用的假设/公理都成立吗？有隐含假设没声明吗？
+2. 推导：每一步推理都严密吗？有循环论证吗？
+3. 计算：数值算对了吗？单位一致吗？
+4. 结论：结论真的从前提推出吗？有过度概括吗？
+5. 反例：能构造一个反例推翻这个结论吗？</code></pre>
+    <p>这些模板的共同设计原则：① <strong>明确角色</strong>（审查员/编辑/找茬者）——给 LLM 一个"挑剔"的人格，它才会真的挑刺而不是客气；② <strong>分维度检查</strong>（正确性/效率/可读性...）——把模糊的"好不好"拆成具体的检查项，避免笼统评价；③ <strong>要求分级输出</strong>（严重/建议/已好）——区分"必须改"和"可选改"，避免把精力浪费在细枝末节上；④ <strong>要求具体而非套话</strong>——"第 12 行的 for 循环没处理空列表"远好过"有些地方考虑不周"。</p>
+    <h2><span class="idx"></span>Reflexion 框架实战：让 agent 从失败中累积学习</h2>
+    <p>Reflexion 论文（Shinn et al.）的核心创新是"用语言反馈代替梯度更新"——agent 不更新权重，而是把每次失败的反思写成"语言强化笔记"，累积进上下文，下次执行时避开同样的坑。下面用 Python 实现一个完整的 Reflexion 循环，展示自我反思如何逐步提升代码质量。</p>
+    <pre class="code"><code class="language-python"># Reflexion 框架：通过语言反思累积改进（无权重更新）
+from dataclasses import dataclass, field
+
+@dataclass
+class ReflexionAgent:
+    llm: object
+    max_trials: int = 4
+    reflections: list = field(default_factory=list)  # 累积的反思记忆
+
+    def solve(self, task: str, test_cases: list) -> dict:
+        """解决编程任务，通过反思迭代改进。"""
+        best_code, best_score = None, 0
+
+        for trial in range(1, self.max_trials + 1):
+            # 1. Act：生成代码（带上之前的反思记忆）
+            code = self._generate(task, trial)
+            print(f"\n--- Trial {trial} ---")
+
+            # 2. Evaluate：跑测试用例，客观评分
+            score, failures = self._run_tests(code, test_cases)
+            print(f"通过率：{score:.0%}")
+            if score &gt; best_score:
+                best_code, best_score = code, score
+            if score == 1.0:
+                print("全部通过，成功！")
+                break  # 满分，提前结束
+
+            # 3. Reflect：分析失败，生成反思笔记
+            reflection = self._reflect(task, code, failures, trial)
+            self.reflections.append(reflection)
+            print(f"反思：{reflection[:80]}...")
+
+        return {"code": best_code, "score": best_score,
+                "trials": trial, "reflections": self.reflections}
+
+    def _generate(self, task, trial):
+        """生成代码，带上累积的反思记忆。"""
+        memory = "\n".join(f"第{i+1}次反思：{r}"
+                           for i, r in enumerate(self.reflections))
+        prompt = f"""任务：{task}
+
+{f"之前的尝试和反思（避免重蹈覆辙）：{memory}" if memory else "这是第一次尝试。"}
+
+请写出 Python 函数实现。"""
+        return self.llm.generate(prompt)
+
+    def _reflect(self, task, code, failures, trial):
+        """生成针对本次失败的具体反思。"""
+        prompt = f"""你写的代码在以下测试用例上失败了：
+
+任务：{task}
+代码：{code}
+失败的用例：{failures}
+
+请具体分析：
+1. 为什么会失败？（根本原因，不是表面症状）
+2. 应该怎么改？（给出具体的修复方向）
+3. 下次要注意什么？（抽象出可复用的教训）
+
+用一两句话总结教训，我会记住它避免下次再犯。"""
+        return self.llm.generate(prompt)
+
+
+# 实战：让 agent 实现 MinStack（O(1) 取最小值）
+agent = ReflexionAgent(llm=my_llm, max_trials=4)
+task = "实现 MinStack 类：push(x), pop(), top() 都是 O(1)，且 getMin() 也是 O(1)。"
+tests = [
+    ("push(5); push(3); push(7); getMin()", 3),    # 最小是 3
+    ("push(5); push(3); pop(); getMin()", 5),        # 弹出 3 后最小是 5
+    ("push(2); push(2); push(2); getMin()", 2),      # 全相同
+]
+result = agent.solve(task, tests)
+print(f"\n最终通过率：{result['score']:.0%}（{result['trials']} 次迭代）")</code></pre>
+    <h2><span class="idx"></span>迭代改进示例：看反思如何逐轮提升质量</h2>
+    <p>上面的 Reflexion agent 实际跑起来会是什么样？下面模拟一个典型的迭代过程，展示每一轮的代码、失败原因和反思——你能直观看到"累积的反思记忆"如何引导 agent 避开之前的坑。</p>
+    <pre class="code"><code class="language-text">迭代改进全过程（MinStack 任务）
+
+═══ Trial 1：第一次尝试 ═══
+代码（错误）：
+  class MinStack:
+      def __init__(self):
+          self.stack = []
+      def push(self, x):
+          self.stack.append(x)
+      def getMin(self):
+          return min(self.stack)   # ← O(n)，违反 O(1) 要求！
+
+测试结果：通过率 33%（2/3 通过，但复杂度不达标被判定失败）
+失败原因：getMin() 用了 min()，是 O(n) 不是 O(1)
+反思笔记：「不能用 min() 遍历。需要额外维护一个记录当前最小值的结构。
+          考虑用一个辅助栈，每次 push 时同步更新当前最小值。」
+
+═══ Trial 2：应用反思，但引入新 bug ═══
+代码（带反思记忆生成）：
+  class MinStack:
+      def __init__(self):
+          self.stack = []
+          self.min_stack = []      # ← 采纳反思：辅助栈
+      def push(self, x):
+          self.stack.append(x)
+          self.min_stack.append(x)  # ← 错误：每次都 append，pop 后 min 错乱
+      def pop(self):
+          self.stack.pop()
+          self.min_stack.pop()
+      def getMin(self):
+          return self.min_stack[-1] if self.min_stack else None
+
+测试结果：通过率 67%（第 2 个用例失败：push(3);pop();getMin() 返回错）
+失败原因：min_stack 每次都 append 当前值，没记录"到这一步为止的最小值"
+反思笔记：「辅助栈要记录的是"截至当前的历史最小值"，不是当前值本身。
+          push 时：如果新值 ≤ 当前最小，才入 min_stack；
+          或者更简单：每次都压入 min(x, 当前栈顶)。」
+
+═══ Trial 3：修正，通过 ═══
+代码（应用两次反思）：
+  class MinStack:
+      def __init__(self):
+          self.stack = []
+          self.min_stack = []
+      def push(self, x):
+          self.stack.append(x)
+          cur_min = x if not self.min_stack else min(x, self.min_stack[-1])
+          self.min_stack.append(cur_min)  # ← 每步记录历史最小值
+      def pop(self):
+          self.stack.pop()
+          self.min_stack.pop()
+      def getMin(self):
+          return self.min_stack[-1]
+
+测试结果：通过率 100%（3/3 全过，复杂度达标）
+
+═══ 总结 ═══
+迭代次数：3 次
+关键：每一轮的反思都进入下一轮的上下文，agent 不会重复 Trial 1 的 min() 错误，
+      也不会重复 Trial 2 的辅助栈逻辑错误。反思是累积的、可叠加的。
+代价：3 轮 = 3 倍的 LLM 调用成本。对一次性任务可能不值，
+      对关键代码（如库的核心函数）很值——一次写对比反复调试更省时间。</code></pre>
+    <div class="callout"><strong>💡 关键洞察</strong><br>Reflexion 的威力来自<strong>反思的累积性</strong>：第 N 轮的 agent 带着前 N-1 轮所有反思的"教训"，相当于一个越来越有经验的工程师。这和人类"做错一次就记住"的学习机制一致。但要注意它的局限：① 反思是"语言级"的，无法修正模型本身的能力天花板（如果模型根本不会某算法，反思也救不了）；② 成本是线性的（N 轮 = N 倍调用）；③ 反思有时会"钻牛角尖"（在错误方向上越反思越偏），所以要有客观的外部评估（测试用例）作为锚点，不能纯靠自评。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Reflection 让 agent 从"一次性输出"进化为"迭代改进"。Act → Evaluate → Reflect → Retry 的循环，让 agent 像人一样从错误中学习。这是提升 agent 可靠性的关键模式——尤其在编程、数学等有明确对错的领域，反思 + 外部反馈（测试/编译）能把成功率提升一个台阶。</p>
     <div class="chapter-nav">
@@ -348,6 +522,8 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 213 章 · Reflection 自我反思：让 agent 批判并改进自己</p></footer>
   </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>
