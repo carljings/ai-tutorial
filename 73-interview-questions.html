@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -94,7 +94,7 @@
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
-      <a href="73-interview-questions.html" class="active" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
+      <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 73 · 参考指南</span>
@@ -458,6 +458,99 @@
       <div class="callout pit"><div class="head">❌ 减分行为</div><ul style="margin:6px 0;"><li>只会背概念不懂原理</li><li>说「用 AI 解决」但不说怎么解决</li><li>忽视 trade-off</li><li>不问澄清问题</li><li>夸大经验</li></ul></div>
     </div>
 
+    <h2 class="section" id="code-answers"><span class="idx">★</span> 实战：高频面试题的代码解答</h2>
+    <p>光会「说」不够，能<strong>现场写代码</strong>才是硬实力。下面把两道最高频的面试题用代码落地：第 1 题考察 embedding + 向量检索（RAG 原理），第 2 题给出系统设计题的答题模板（结构化拆解）。</p>
+
+    <h3>题目：手写一个最小 RAG 检索器</h3>
+    <p>这是面试出场率极高的题——考你是否真懂 embedding + 向量相似度。要求：给定一批文档和 query，返回最相关的 top-k。</p>
+    <div class="code-title">mini_rag.py · 手写最小 RAG 检索</div>
+    <pre><code><span class="c">"""最小 RAG：embedding + 余弦相似度 top-k 检索，不依赖向量库。"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = OpenAI(base_url=<span class="s">"https://open.bigmodel.cn/api/paas/v4"</span>, api_key=<span class="s">"YOUR_KEY"</span>)
+EMB_MODEL = <span class="s">"embedding-3"</span>
+
+<span class="k">def</span> <span class="f">embed</span>(texts):
+    r = client.embeddings.create(model=EMB_MODEL, input=texts)
+    <span class="k">return</span> np.array([d.embedding <span class="k">for</span> d <span class="k">in</span> r.data])
+
+<span class="k">class</span> <span class="f">MiniRAG</span>:
+    <span class="k">def</span> <span class="f">__init__</span>(<span class="k">self</span>, docs):
+        <span class="k">self</span>.docs = docs
+        <span class="k">self</span>.mat = embed(docs)                   <span class="c"># [N, D]</span>
+        <span class="k">self</span>.mat /= np.linalg.norm(<span class="k">self</span>.mat, axis=<span class="n">1</span>, keepdims=<span class="k">True</span>)  <span class="c"># 归一化</span>
+
+    <span class="k">def</span> <span class="f">search</span>(<span class="k">self</span>, query, k=<span class="n">3</span>):
+        q = embed([query])[<span class="n">0</span>]
+        q /= np.linalg.norm(q)
+        sims = <span class="k">self</span>.mat @ q                       <span class="c"># 余弦相似度 = 内积</span>
+        idx = np.argsort(-sims)[:k]            <span class="c"># 取 top-k 下标</span>
+        <span class="k">return</span> [(<span class="k">self</span>.docs[i], <span class="f">float</span>(sims[i])) <span class="k">for</span> i <span class="k">in</span> idx]
+
+<span class="c"># 面试加分点（主动提）：</span>
+<span class="c">#  1) 归一化后内积=余弦，省一次 sqrt；2) 大数据换 faiss/ANN；</span>
+<span class="c">#  3) 实际要 chunk 切分 + 元数据过滤；4) recall 用 RAGAS 评估</span>
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    docs = [<span class="s">"GLM 是智谱的大模型"</span>, <span class="s">"FAISS 是向量检索库"</span>, <span class="s">"RAG 结合检索与生成"</span>]
+    rag = MiniRAG(docs)
+    <span class="k">for</span> doc, score <span class="k">in</span> rag.search(<span class="s">"什么是 RAG"</span>):
+        print(f<span class="s">"{score:.3f}  {doc}"</span>)
+</code></pre>
+
+    <h3>系统设计题答题模板</h3>
+    <p>系统设计题（如「设计一个智能客服系统」）最怕答得散。用一个<strong>固定模板</strong>能保证结构清晰、不漏关键点。下面是把模板编码成一个可复用的检查清单函数。</p>
+    <div class="code-title">system_design_template.py · 系统设计答题检查清单</div>
+    <pre><code><span class="c">"""系统设计题的通用答题模板：6 步走，每步带检查点。"""</span>
+
+SYSTEM_DESIGN_TEMPLATE = {
+    <span class="s">"1. 澄清需求"</span>: [
+        <span class="s">"核心功能是什么？（如：用户提问→检索知识库→LLM 生成回答）"</span>,
+        <span class="s">"规模预估：DAU？QPS？数据量？（给出具体数字）"</span>,
+        <span class="s">"非功能需求：延迟 SLA？可用性？成本上限？"</span>,
+    ],
+    <span class="s">"2. 总体架构"</span>: [
+        <span class="s">"画架构图：接入层→业务逻辑→数据层"</span>,
+        <span class="s">"标出关键组件：网关、RAG、向量库、LLM、缓存"</span>,
+        <span class="s">"说清数据流：请求从哪进、各组件怎么协作"</span>,
+    ],
+    <span class="s">"3. 核心模块深挖"</span>: [
+        <span class="s">"向量库选型：规模多大？用 Milvus 还是 pgvector？"</span>,
+        <span class="s">"LLM 调用：并发控制、限流、超时、降级策略"</span>,
+        <span class="s">"缓存层：相似问题缓存（embedding 近似匹配）省 token"</span>,
+    ],
+    <span class="s">"4. 扩展性与瓶颈"</span>: [
+        <span class="s">"瓶颈在哪？LLM 推理慢？向量检索？数据库？"</span>,
+        <span class="s">"如何水平扩展？读多写少→加副本；写多→分库分表"</span>,
+        <span class="s">"LLM 是单点：考虑多模型路由/灾备"</span>,
+    ],
+    <span class="s">"5. 可靠性与监控"</span>: [
+        <span class="s">"监控：成功率、延迟 P99、token 成本、幻觉率"</span>,
+        <span class="s">"降级：LLM 挂了→走规则/兜底话术；向量库挂了→走关键词"</span>,
+        <span class="s">"评估闭环：bad case 收集→回流→迭代"</span>,
+    ],
+    <span class="s">"6. Trade-off 总结"</span>: [
+        <span class="s">"成本 vs 质量（大模型贵但好）"</span>,
+        <span class="s">"延迟 vs 准确（RAG 多召回慢但全）"</span>,
+        <span class="s">"主动给出你的选择和理由"</span>,
+    ],
+}
+
+<span class="k">def</span> <span class="f">walk_template</span>():
+    <span class="k">for</span> step, checkpoints <span class="k">in</span> SYSTEM_DESIGN_TEMPLATE.items():
+        print(f<span class="s">"
+【{step}】"</span>)
+        <span class="k">for</span> c <span class="k">in</span> checkpoints:
+            print(f<span class="s">"  - {c}"</span>)
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    walk_template()
+    print(<span class="s">"
+技巧：每答完一步停一下，问面试官『这个方向对吗』，再深入。"</span>)
+</code></pre>
+
+    <p>这两个代码块示范了面试中「能写出来」的价值：MiniRAG 展示你<strong>懂底层原理</strong>（归一化、相似度、top-k），系统设计模板展示你<strong>有结构化思维</strong>。面试官见到这种「不只是背概念」的候选人，印象分会大幅提升。</p>
+
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>50 道题分四类：原理(15)+工程(15)+系统设计(10)+场景(10)；</li><li>每题理解「为什么」比背「是什么」重要；</li><li>面试加分：数字+原理+trade-off+实战经验。</li></ul></div>
     <div class="chapter-nav">
@@ -466,6 +559,9 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 73 章 · LLM 面试题全集</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

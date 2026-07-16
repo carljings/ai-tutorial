@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -37,7 +37,7 @@
       <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
       <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
       <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
-      <a href="20-vector-database.html" class="active" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
+      <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
       <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
     </div>
     <div class="nav-group"><h3>原理</h3>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 20 · 专题深度 · 全书终章</span>
@@ -466,6 +466,51 @@ overlap = <span class="f">len</span>(<span class="f">set</span>(labels[<span cla
 print(f<span class="s">"recall@10: {overlap/10:.0%}"</span>)
 <span class="c"># 典型输出：暴力 0.5s，HNSW 0.001s，recall 95%+ → 快 500 倍！</span></code></pre>
 
+    <h2 class="section" id="faiss-ivf"><span class="idx">★</span> 实战：用 FAISS 构建 IVF 索引</h2>
+    <p>上一节用 hnswlib 演示了 HNSW 图索引。这里换成 <strong>FAISS</strong>（Facebook 的向量检索库）构建 <strong>IVF（倒排文件）索引</strong>——它先对向量做 K-Means 聚类，查询时只搜索最近的几个聚类桶，是超大规模（千万~亿级）场景的常见选择。下面对比 IVF 与暴力（Flat）索引的召回率和速度。</p>
+    <div class="code-title">faiss_ivf.py · 创建 IVF 索引并对比召回率与延迟</div>
+    <pre><code><span class="c">"""用 FAISS 构建 IVF 索引，对比暴力搜索的 recall 与延迟。"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> faiss, time
+
+<span class="c"># ① 准备 10 万条 768 维向量（模拟 BERT embedding）</span>
+np.random.seed(<span class="n">42</span>)
+N, D = <span class="n">100_000</span>, <span class="n">768</span>
+data = np.random.randn(N, D).astype(<span class="s">"float32"</span>)
+faiss.normalize_L2(data)              <span class="c"># L2 归一化后内积 = 余弦相似度</span>
+query = np.random.randn(<span class="n">1</span>, D).astype(<span class="s">"float32"</span>)
+faiss.normalize_L2(query)
+
+<span class="c"># ② 暴力索引（Flat）：精确但慢，作为 recall 基准</span>
+flat = faiss.IndexFlatIP(D)
+flat.add(data)
+t0 = time.time()
+_, gt = flat.search(query, <span class="n">10</span>)     <span class="c"># ground truth top-10</span>
+print(f<span class="s">"Flat  搜索: {time.time()-t0:.4f}s"</span>)
+
+<span class="c"># ③ IVF 索引：先聚类再只搜 nprobe 个桶</span>
+nlist = <span class="n">256</span>                            <span class="c"># 聚类中心数，常用 sqrt(N)</span>
+quantizer = faiss.IndexFlatIP(D)
+ivf = faiss.IndexIVFFlat(quantizer, D, nlist, faiss.METRIC_INNER_PRODUCT)
+
+t0 = time.time()
+ivf.train(data[:<span class="n">50_000</span>])             <span class="c"># 训练聚类（用部分数据即可）</span>
+ivf.add(data)                         <span class="c"># 加入全部向量</span>
+print(f<span class="s">"IVF  建索引: {time.time()-t0:.2f}s"</span>)
+
+<span class="c"># ④ nprobe 越大 recall 越高、越慢——经典的精度/速度权衡</span>
+<span class="k">for</span> nprobe <span class="k">in</span> [<span class="n">1</span>, <span class="n">8</span>, <span class="n">32</span>, <span class="n">128</span>]:
+    ivf.nprobe = nprobe
+    t0 = time.time()
+    _, ids = ivf.search(query, <span class="n">10</span>)
+    dt = time.time() - t0
+    recall = <span class="f">len</span>(<span class="f">set</span>(ids[<span class="n">0</span>]) & <span class="f">set</span>(gt[<span class="n">0</span>])) / <span class="n">10</span>
+    print(f<span class="s">"nprobe={nprobe:<3} recall@10={recall:.0%}  {dt*1000:.2f}ms"</span>)
+<span class="c"># 典型输出：nprobe=1 → recall 35% 0.3ms；nprobe=128 → recall 99% 8ms</span>
+<span class="c"># 实战常配 IVFPQ：把向量再做乘积量化，内存再压一个量级</span></code></pre>
+
+    <p>这段代码揭示了 ANN 的核心权衡：<strong>nprobe 是一个旋钮</strong>——调大，搜索的聚类桶多，召回率高但变慢；调小，速度快但可能漏掉真近邻。生产中通常把 recall@10 调到 <strong>95% 以上</strong>即可（剩余 5% 的误差对 RAG 检索质量影响很小）。当数据量大到内存放不下时，把 <code>IndexIVFFlat</code> 换成 <code>IndexIVFPQ</code>，用<strong>乘积量化</strong>把每个向量从 768×4 字节压到几十字节，这就是十亿级向量库的标配方案。</p>
+
     <h2 class="section" id="summary"><span class="idx">07</span> 本章小结 & 全书完结</h2>
     <div class="grid cols-2">
       <div class="callout note">
@@ -513,6 +558,9 @@ print(f<span class="s">"recall@10: {overlap/10:.0%}"</span>)
       <p>参考：HNSW (Malkov) · Faiss · Milvus · pgvector 文档</p>
     </footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

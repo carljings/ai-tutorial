@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -302,9 +300,10 @@
     </div>
     <div class="nav-group"><h3>★知识库与安全</h3>
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
-      <a href="249-agent-security-ux.html" class="active" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
+      <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
+<main class="content">
   <main class="content">
     <section class="hero"><span class="eyebrow">◆ ★知识库与安全</span>
     <h1>智能体两大痛点</h1><p class="lead">安全（别闯祸）与交互（别难用）——Agent 落地的真正门槛</p>
@@ -355,6 +354,81 @@
     <h2><span class="idx"></span>安全与交互的交汇：人在回路（HITL）</h2>
     <p>安全和交互有一个共同的解法：**人在回路（Human-in-the-Loop）**。从安全角度，HITL 是拦截高危操作的最后一道闸；从交互角度，HITL 是用户保持控制感的手段。一个设计良好的 HITL 应该：① 只在真正必要时打扰用户（避免确认疲劳）；② 给用户足够信息做判断（显示 Agent 要做什么、为什么）；③ 让确认/拒绝都很轻量（一键，不要复杂表单）。</p>
     <table class="data-table"><thead><tr><th>HITL 触发条件</th><th>示例</th><th>频率</th></tr></thead><tbody><tr><td>高危操作</td><td>删除文件、转账、发送邮件、部署</td><td>每次都确认</td></tr><tr><td>低置信度结果</td><td>Agent 对答案不确定（置信度低）</td><td>偶尔</td></tr><tr><td>首次/罕见操作</td><td>Agent 第一次执行某类任务</td><td>首次确认</td></tr><tr><td>不可逆操作</td><td>没法 undo 的动作</td><td>必须确认</td></tr></tbody></table>
+    <h2><span class="idx"></span>实战：Agent 安全 checklist 的自动化验证</h2>
+    <p>前面讲了「最小权限+HITL+沙箱+审计」的防御原则，但光有原则不够——<strong>上线前要用代码逐条验证</strong>。下面把 Agent 安全 checklist 编码成可运行的检查器，自动检测你的 Agent 配置是否满足每一条安全要求，不达标直接报错拦截。</p>
+    <pre class="code"><code class="language-python"><span class="c"># agent_security_check.py · 上线前自动验证 Agent 安全配置</span>
+<span class="k">import</span> re, os
+
+<span class="c"># 安全 checklist：每条 = (检查项, 检查函数, 严重级别)</span>
+CHECKS = []
+
+<span class="k">def</span> <span class="f">check</span>(name, level=<span class="s">"CRITICAL"</span>):
+    <span class="k">def</span> <span class="f">decorator</span>(fn):
+        CHECKS.append((name, fn, level))
+        <span class="k">return</span> fn
+    <span class="k">return</span> decorator
+
+@check(<span class="s">"工具权限：网络访问是否限定白名单域名"</span>)
+<span class="k">def</span> <span class="f">c_network_whitelist</span>(cfg):
+    allowed = cfg.get(<span class="s">"allowed_domains"</span>, [])
+    <span class="k">return</span> (<span class="k">bool</span>(allowed), <span class="s">f"白名单 {len(allowed)} 个域名"</span> <span class="k">if</span> allowed <span class="k">else</span> <span class="s">"未设白名单=全网放开，危险"</span>)
+
+@check(<span class="s">"HITL：高危操作是否强制人工确认"</span>)
+<span class="k">def</span> <span class="f">c_hitl_dangerous</span>(cfg):
+    hitl = cfg.get(<span class="s">"confirm_actions"</span>, [])
+    must = {<span class="s">"delete"</span>, <span class="s">"send_email"</span>, <span class="s">"shell"</span>, <span class="s">"payment"</span>}
+    missing = must - <span class="f">set</span>(hitl)
+    <span class="k">return</span> (<span class="k">not</span> missing, <span class="s">f"缺失确认的高危动作：{missing}"</span> <span class="k">if</span> missing <span class="k">else</span> <span class="s">"高危动作均已配置确认"</span>)
+
+@check(<span class="s">"沙箱：Agent 是否在隔离环境运行"</span>, level=<span class="s">"HIGH"</span>)
+<span class="k">def</span> <span class="f">c_sandbox</span>(cfg):
+    sandboxed = cfg.get(<span class="s">"sandbox"</span>, <span class="k">False</span>)
+    <span class="k">return</span> (sandboxed, <span class="s">"已沙箱化"</span> <span class="k">if</span> sandboxed <span class="k">else</span> <span class="s">"直接在宿主运行，易越权"</span>)
+
+@check(<span class="s">"指令隔离：prompt 是否区分指令与外部数据"</span>)
+<span class="k">def</span> <span class="f">c_instruction_isolation</span>(cfg):
+    tmpl = cfg.get(<span class="s">"prompt_template"</span>, <span class="s">""</span>)
+    ok = <span class="s">"&lt;untrusted_data&gt;"</span> <span class="k">in</span> tmpl
+    <span class="k">return</span> (ok, <span class="s">"已用标签隔离外部数据"</span> <span class="k">if</span> ok <span class="k">else</span> <span class="s">"未隔离，易被 prompt injection"</span>)
+
+@check(<span class="s">"速率限制：是否防止 Agent 死循环烧钱"</span>, level=<span class="s">"HIGH"</span>)
+<span class="k">def</span> <span class="f">c_rate_limit</span>(cfg):
+    rl = cfg.get(<span class="s">"max_steps"</span>, <span class="n">0</span>)
+    <span class="k">return</span> (rl &gt; <span class="n">0</span> <span class="k">and</span> rl &lt; <span class="n">50</span>, <span class="s">f"max_steps={rl}"</span>)
+
+@check(<span class="s">"审计：是否记录所有外发请求"</span>)
+<span class="k">def</span> <span class="f">c_audit_log</span>(cfg):
+    <span class="k">return</span> (cfg.get(<span class="s">"audit_outbound"</span>, <span class="k">False</span>), <span class="s">"开启外发审计"</span> <span class="k">if</span> cfg.get(<span class="s">"audit_outbound"</span>) <span class="k">else</span> <span class="s">"未审计外发"</span>)
+
+<span class="k">def</span> <span class="f">run_security_audit</span>(agent_config):
+    print(<span class="s">"=" * 60</span>)
+    print(<span class="s">"Agent 安全审计报告"</span>)
+    print(<span class="s">"=" * 60</span>)
+    passed, failed = <span class="n">0</span>, <span class="n">0</span>
+    <span class="k">for</span> name, fn, level <span class="k">in</span> CHECKS:
+        ok, msg = fn(agent_config)
+        status = <span class="s">"✅ PASS"</span> <span class="k">if</span> ok <span class="k">else</span> <span class="s">"❌ FAIL"</span>
+        print(f<span class="s">"[{level:<9}] {status}  {name}"</span>)
+        print(f<span class="s">"              → {msg}"</span>)
+        passed += ok; failed += (<span class="k">not</span> ok)
+    print(<span class="s">"-" * 60</span>)
+    print(f<span class="s">"通过 {passed}/{len(CHECKS)}，失败 {failed}"</span>)
+    <span class="k">return</span> failed == <span class="n">0</span>
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    config = {
+        <span class="s">"allowed_domains"</span>: [<span class="s">"api.example.com"</span>],
+        <span class="s">"confirm_actions"</span>: [<span class="s">"delete"</span>, <span class="s">"send_email"</span>, <span class="s">"shell"</span>, <span class="s">"payment"</span>],
+        <span class="s">"sandbox"</span>: <span class="k">True</span>,
+        <span class="s">"prompt_template"</span>: <span class="s">"用户指令...&lt;untrusted_data&gt;网页内容&lt;/untrusted_data&gt;"</span>,
+        <span class="s">"max_steps"</span>: <span class="n">20</span>,
+        <span class="s">"audit_outbound"</span>: <span class="k">True</span>,
+    }
+    <span class="k">assert</span> run_security_audit(config), <span class="s">"安全审计未全通过，禁止上线！"</span>
+<span class="c"># 集成进 CI：checklist 不过 → deploy 直接失败，把安全变成强制门禁</span></code></pre>
+
+    <p>这个检查器的价值在于<strong>把安全原则变成可执行的门禁</strong>：每条 checklist 都是一个断言，不通过就阻止部署。关键设计是用装饰器注册检查项，新增规则只需加一个 <code>@check</code> 函数——这样新的攻击面（比如「未检测深度伪造输出」）出现时，能快速加入审计。配合 CI/CD，安全不再是「记得做」，而是「不做就发不出去」。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agent 落地的两大生死线：安全与交互。安全侧，Prompt Injection（OWASP #1，尤其间接注入）是 Agent 时代最阴险的攻击，根因是 LLM 无法区分指令与数据；务实防御是"最小权限+人在回路+沙箱+审计"控制爆炸半径，而非追求绝对安全。交互侧，四大痛点是信任缺失、透明度与延迟矛盾、错误恢复差、控制感丢失；解法是透明（看得见）+可控（渐进自主+高危确认）+可恢复（优雅降级）+分层（简洁默认+深度可展开）。人在回路（HITL）是安全与交互的共同解法。一个真正能落地的 Agent，必须是"能力够强 + 够安全 + 够好用"三者兼备——缺一不可。</p>
     <div class="chapter-nav">
@@ -363,6 +437,9 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 273 章 · 智能体两大核心痛点：安全与交互</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

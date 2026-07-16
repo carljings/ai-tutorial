@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -285,7 +283,7 @@
       <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
     </div>
     <div class="nav-group"><h3>★zvec向量库</h3>
-      <a href="236-zvec-overview.html" class="active" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
+      <a href="236-zvec-overview.html" title="zvec 全景：嵌入式向量库的设计哲学"><span class="num">236</span>zvec 全景</a>
       <a href="237-zvec-proxima-engine.html" title="Proxima 引擎内幕：达摩院的向量检索内核"><span class="num">237</span>Proxima 引擎</a>
       <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
       <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
@@ -305,6 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
+<main class="content">
   <main class="content">
     <section class="hero"><span class="eyebrow">◆ ★zvec向量库</span>
     <h1>zvec 全景</h1><p class="lead">"SQLite for vectors"——为什么向量库要重新发明一次</p>
@@ -371,6 +370,59 @@ for h in hits:
 db.close()</code></pre>
     <p>没有 docker、没有端口、没有连接字符串。整个过程像在用一个本地数据结构，而不是在"操作一个数据库"。这正是 zvec 想传递的体验：让向量检索回到"它本来应该有的简单程度"。注意几个和传统向量库 API 的差异：① 没有"连接字符串"，因为根本没有连接——create_and_open 打开的是一个文件路径；② 数据是带 schema 的（Field 列），不是裸的 (id, vector, meta) 三元组，这意味着你可以用 SQL 语义做过滤；③ 一次 zvec.init() 管整个进程，包括线程数、内存上限等全局参数。</p>
     <div class="callout"><strong>💡 要点</strong><br>心智模型对齐：把 zvec 当成"会查相似度的 SQLite"——一个文件、一个进程、一套 schema + 函数调用，开箱即用，关闭即走。下一章我们会钻进它的底层引擎 Proxima，看这套简单 API 背后是怎么把达摩院多年的检索能力压缩到一个嵌入式库里。</div>
+    <h2><span class="idx"></span>实战：zvec Python SDK 端侧 RAG 完整示例</h2>
+    <p>上一节是最小骨架。真实端侧 RAG 还需要<strong>标量过滤、更新、持久化、并发只读</strong>等能力。下面给一个更完整的 SDK 用法：构建一个本地知识库，支持「按来源过滤 + 向量召回」的混合查询，并用 WAL 保证断电不丢数据——这就是手机/桌面 App 内置知识库的典型形态。</p>
+    <pre class="code"><code class="language-python"><span class="c"># zvec_local_rag.py · 端侧 RAG：建库 + 插入 + 混合查询 + 持久化</span>
+<span class="k">import</span> zvec
+<span class="k">from</span> zvec <span class="k">import</span> (CollectionSchema, Field, FieldType,
+                 MetricType, VectorQuery, ScalarFilter)
+
+<span class="c"># ① 进程级初始化：限制内存（端侧资源敏感）</span>
+zvec.init(memory_limit_mb=<span class="n">256</span>)
+
+<span class="c"># ② 定义 schema：向量列 + 标量列（用于过滤/元数据）</span>
+schema = CollectionSchema(name=<span class="s">"notes"</span>, fields=[
+    Field(name=<span class="s">"id"</span>,  dtype=FieldType.INT64, is_primary=<span class="k">True</span>),
+    Field(name=<span class="s">"vec"</span>, dtype=FieldType.FLOAT_VECTOR, dim=<span class="n">768</span>),
+    Field(name=<span class="s">"src"</span>, dtype=FieldType.STRING),      <span class="c"># 来源文件</span>
+    Field(name=<span class="s">"tag"</span>, dtype=FieldType.STRING),      <span class="c"># 分类标签</span>
+    Field(name=<span class="s">"ts"</span>,  dtype=FieldType.INT64),       <span class="c"># 时间戳</span>
+])
+
+<span class="c"># ③ 打开/创建库（文件即库，WAL 自动落盘）</span>
+db = zvec.create_and_open(<span class="s">"local_kb.zv"</span>, schema=schema)
+col = db.collection(<span class="s">"notes"</span>)
+
+<span class="c"># ④ 批量插入（embedding 由你的模型生成，这里占位）</span>
+<span class="k">def</span> <span class="f">emb</span>(text): ...                       <span class="c"># 调 embedding 模型，返回 768 维</span>
+records = [
+    {<span class="s">"id"</span>: <span class="n">1</span>, <span class="s">"vec"</span>: emb(<span class="s">"如何配置环境变量"</span>), <span class="s">"src"</span>: <span class="s">"setup.md"</span>,  <span class="s">"tag"</span>: <span class="s">"ops"</span>,      <span class="s">"ts"</span>: <span class="n">1700000000</span>},
+    {<span class="s">"id"</span>: <span class="n">2</span>, <span class="s">"vec"</span>: emb(<span class="s">"Python 异步编程"</span>),  <span class="s">"src"</span>: <span class="s">"async.md"</span>,   <span class="s">"tag"</span>: <span class="s">"coding"</span>,   <span class="s">"ts"</span>: <span class="n">1700001000</span>},
+    {<span class="s">"id"</span>: <span class="n">3</span>, <span class="s">"vec"</span>: emb(<span class="s">"向量数据库原理"</span>),    <span class="s">"src"</span>: <span class="s">"vector.md"</span>,  <span class="s">"tag"</span>: <span class="s">"coding"</span>,   <span class="s">"ts"</span>: <span class="n">1700002000</span>},
+]
+col.insert(records)
+db.flush()                                 <span class="c"># 显式刷盘（也可依赖 WAL 自动）</span>
+
+<span class="c"># ⑤ 混合查询：向量召回 + 标量过滤（只搜 coding 类）</span>
+q = (VectorQuery(field=<span class="s">"vec"</span>, vector=emb(<span class="s">"怎么做并发"</span>), topk=<span class="n">5</span>,
+                 metric=MetricType.COSINE)
+     .filter(ScalarFilter(<span class="s">"tag"</span>) == <span class="s">"coding"</span>)       <span class="c"># 只在 coding 里找</span>
+     .output([<span class="s">"id"</span>, <span class="s">"src"</span>, <span class="s">"ts"</span>]))               <span class="c"># 指定返回列</span>
+<span class="k">for</span> h <span class="k">in</span> col.query(q):
+    print(f<span class="s">"{h['_score']:.3f}  {h['src']}  ts={h['ts']}"</span>)
+
+<span class="c"># ⑥ 更新与删除（主键 upsert）</span>
+col.upsert({<span class="s">"id"</span>: <span class="n">2</span>, <span class="s">"vec"</span>: emb(<span class="s">"asyncio 完整教程"</span>), <span class="s">"src"</span>: <span class="s">"async.md"</span>, <span class="s">"tag"</span>: <span class="s">"coding"</span>, <span class="s">"ts"</span>: <span class="n">1700009999</span>})
+col.delete(ids=[<span class="n">1</span>])                          <span class="c"># 删除过期条目</span>
+
+<span class="c"># ⑦ 多进程并发只读：一个进程写、多个进程读（端侧常见）</span>
+<span class="c">#   写进程独占 open；读进程用 zvec.open_readonly("local_kb.zv") 即可共享</span>
+
+db.close()                                 <span class="c"># WAL + checkpoint 落盘</span>
+<span class="c"># 下次直接 zvec.open("local_kb.zv") 即恢复，数据不丢——这是端侧记忆的关键</span></code></pre>
+
+    <p>这段代码覆盖了端侧 RAG 的完整生命周期。注意几个 zvec 的设计精髓：<strong>schema 化</strong>（像 SQLite 建表，标量列可过滤）、<strong>WAL 持久化</strong>（断电不丢，App 重启即恢复）、<strong>混合查询</strong>（向量+标量过滤一把梭）、<strong>多进程只读</strong>（一份索引多端共享）。这些能力让 zvec 在「手机 App 内置知识库」这类场景里，比需要独立服务的 Milvus 体验好得多。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>zvec 是阿里达摩院 System AI 实验室开源的嵌入式向量数据库，定位 "SQLite for vectors"，底层是达摩院内部久经实战的 Proxima 引擎，C++ 核心 + Python 封装，Apache-2.0，约 1.22 万 stars，最新 v0.4.0。它通过"把数据库嵌进应用进程"，在延迟（函数调用级）、资源（共享内存零拷贝）、运维（零，靠 WAL 持久化）、隐私（数据不出进程）四个维度上重新定义了向量检索的体验。它不取代服务化方案，而是补齐"端侧/本地/原型"这一类被服务化方案过度工程化的场景。后续章节将从 Proxima 引擎内幕开始，逐层展开 zvec 的实现。</p>
     <div class="chapter-nav">
@@ -379,6 +431,9 @@ db.close()</code></pre>
     </div>
     <footer><p>AI 全栈实战教学 · 第 260 章 · zvec 全景：嵌入式向量库的设计哲学</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

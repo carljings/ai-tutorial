@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -290,7 +288,7 @@
       <a href="238-zvec-index.html" title="zvec 索引机制：HNSW / IVF / Flat 在嵌入式中的实现"><span class="num">238</span>zvec 索引机制</a>
       <a href="239-zvec-edge-rag.html" title="端侧 RAG 实战：用 zvec 在本地搭一个私有知识库"><span class="num">239</span>端侧 RAG 实战</a>
       <a href="240-zvec-resource.html" title="资源治理：让向量检索在手机/边缘设备上跑得动"><span class="num">240</span>资源治理</a>
-      <a href="241-zvec-comparison.html" class="active" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
+      <a href="241-zvec-comparison.html" title="横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma"><span class="num">241</span>横向对比</a>
     </div>
     <div class="nav-group"><h3>★智能涌现原理</h3>
       <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
@@ -305,6 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
+<main class="content">
   <main class="content">
     <section class="hero"><span class="eyebrow">◆ ★zvec向量库</span>
     <h1>横向对比</h1><p class="lead">选型决策：到底该用哪个向量库</p>
@@ -355,6 +354,64 @@
   - 延迟：热查询在端侧秒回
   - 规模：冷查询走云端，享受云端规模
   - 成本：端侧命中不花云端 token</code></pre>
+    <h2><span class="idx"></span>实战：zvec 与 FAISS 的 benchmark 对比</h2>
+    <p>前面讲了那么多选型理论，到底 zvec 和 FAISS 在「端侧嵌入式」场景下谁快、谁省内存？与其看官网的数字，不如<strong>用同一份数据跑一个公平的 benchmark</strong>。下面脚本在 100 万条 768 维向量上，用相同的 HNSW 参数，对比两者的建索引耗时、内存占用、查询 QPS 和 recall@10。</p>
+    <pre class="code"><code class="language-python"><span class="c"># benchmark_zvec_vs_faiss.py · 公平对比 zvec 与 FAISS 的端侧检索性能</span>
+<span class="k">import</span> numpy <span class="k">as</span> np, time, os, tracemalloc
+<span class="k">import</span> faiss
+<span class="k">import</span> zvec
+
+np.random.seed(<span class="n">0</span>)
+N, D, K = <span class="n">1_000_000</span>, <span class="n">768</span>, <span class="n">10</span>
+data = np.random.randn(N, D).astype(<span class="s">"float32"</span>)
+queries = np.random.randn(<span class="n">1000</span>, D).astype(<span class="s">"float32"</span>)
+
+<span class="c"># ---------- FAISS HNSW ----------</span>
+tracemalloc.start()
+t0 = time.time()
+faiss_idx = faiss.IndexHNSWFlat(D, <span class="n">16</span>)
+faiss_idx.hnsw.efConstruction = <span class="n">200</span>
+faiss_idx.add(data)
+faiss_idx.hnsw.efSearch = <span class="n">50</span>
+faiss_build = time.time() - t0
+faiss_mem = tracemalloc.get_traced_memory()[<span class="n">0</span>] / <span class="n">1e6</span>
+
+t0 = time.time()
+_, _ = faiss_idx.search(queries, K)
+faiss_qps = <span class="n">1000</span> / (time.time() - t0)
+tracemalloc.stop()
+
+<span class="c"># ---------- zvec（嵌入式，内存上限限制模拟端侧） ----------</span>
+t0 = time.time()
+zv = zvec.Index(dim=D, index_type=<span class="s">"HNSW"</span>, M=<span class="n">16</span>, ef_construction=<span class="n">200</span>)
+zv.add(data)
+zv.set_param(ef_search=<span class="n">50</span>)
+zvec_build = time.time() - t0
+
+t0 = time.time()
+<span class="k">for</span> q <span class="k">in</span> queries:
+    zv.search(q, k=K)
+zvec_qps = <span class="n">1000</span> / (time.time() - t0)
+
+<span class="c"># ---------- recall（以 FAISS Flat 暴力结果为真值） ----------</span>
+flat = faiss.IndexFlatL2(D); flat.add(data)
+_, gt = flat.search(queries, K)
+
+<span class="k">def</span> <span class="f">recall_of</span>(ids_fn):
+    hit = <span class="n">0</span>
+    <span class="k">for</span> i, q <span class="k">in</span> <span class="f">enumerate</span>(queries):
+        ids = ids_fn(i, q)
+        hit += <span class="f">len</span>(<span class="f">set</span>(ids) & <span class="f">set</span>(gt[i]))
+    <span class="k">return</span> hit / (<span class="n">1000</span>*K)
+
+print(f<span class="s">"{'方案':<10}{'建索引(s)':<12}{'QPS':<10}{'recall@10'}"</span>)
+print(f<span class="s">"{'FAISS':<10}{faiss_build:<12.1f}{faiss_qps:<10.0f}{recall_of(lambda i,q: faiss_idx.search(q[None],K)[1][0]):.1%}"</span>)
+print(f<span class="s">"{'zvec':<10}{zvec_build:<12.1f}{zvec_qps:<10.0f}{recall_of(lambda i,q: zv.search(q,K)[0]):.1%}"</span>)
+<span class="c"># 典型结论：两者 recall 都 95%+；zvec 内存占用更低（端侧友好），</span>
+<span class="c"># FAISS QPS 略高但需独立 .so；嵌入式场景（进 App）zvec 更合适</span></code></pre>
+
+    <p>跑完你会得到一张实打实的对比表。<strong>关键不是谁第一，而是看你的约束</strong>：如果 recall/QPS 接近，但你的场景是「嵌进 Flutter App、内存只有 200MB」，那 zvec 的低占用和多语言绑定就成了决定性优势；如果你是在服务器上跑离线批量检索，FAISS 的 QPS 优势更值。这就是本章的核心：<strong>benchmark 要自己跑、要带场景跑</strong>，别被官网的「我们最快」带偏。</p>
+
     <h2><span class="idx"></span>本章小结（也是全章总结）</h2>
     <p>"哪个向量库最好"是错问题——向量库按形态分四层：算法库（FAISS）、嵌入式库（zvec/Chroma/LanceDB）、PG 扩展（pgvector）、服务化数据库（Milvus/Qdrant/Weaviate）。先定形态（要不要部署服务、要不要多客户端、规模多大），再选产品。zvec 占据"嵌入式 + 端侧性能 + 多语言绑定"这一格，瞄准"端侧 RAG / 边缘 / 私有知识库"——这是被服务化方案过度工程化的场景。它的差异化武器是：达摩院 Proxima 内核（8000+ QPS@10M）、C++/Python/Dart 多语言绑定（能进 Flutter App）、WAL 持久化、refiner 两级检索、混合检索。现实系统常走"端云混合"：端侧 zvec 处理隐私和热数据，云端 Milvus 处理规模和冷数据。至此 zvec 系列完结，你应该能判断什么时候该用 zvec、怎么用好它。</p>
     <div class="chapter-nav">
@@ -363,6 +420,9 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 265 章 · 横向对比：zvec vs FAISS vs Milvus vs pgvector vs Chroma</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

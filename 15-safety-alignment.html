@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -32,7 +32,7 @@
       <a href="12-project-mini-llm.html" title="实战：从零训练迷你大模型"><span class="num">12</span>实战</a>
       <a href="13-project-knowledge-base.html" title="实战：企业知识库"><span class="num">13</span>实战</a>
       <a href="14-multimodal.html" title="多模态大模型深度"><span class="num">14</span>多模态大模型深度</a>
-      <a href="15-safety-alignment.html" class="active" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
+      <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
       <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
       <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
       <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 15 · 专题深度</span>
@@ -455,6 +455,76 @@ CONSTITUTION = [
       <li><strong>合规</strong>：遵守《生成式 AI 服务管理办法》等法规。</li>
     </ul>
 
+    <h2 class="section" id="cai-impl"><span class="idx">★</span> 实战：Constitutional AI 的最小可运行实现</h2>
+    <p>前面用伪代码讲了循环，这里给一个<strong>真实可跑的 Python 实现</strong>——用任意 OpenAI 兼容 API（如 GLM）扮演「被修正的模型」和「批评模型」两个角色，跑完 Constitutional AI 的「生成→批评→重写」三步，产出可用于 SFT 的安全偏好数据。</p>
+    <div class="code-title">constitutional_ai.py · 用 LLM API 实现自我批评与修正</div>
+    <pre><code><span class="c">"""Constitutional AI 最小实现：生成 → 批评 → 重写，产出对齐训练数据。"""</span>
+<span class="k">import</span> json
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = OpenAI(base_url=<span class="s">"https://open.bigmodel.cn/api/paas/v4"</span>, api_key=<span class="s">"YOUR_KEY"</span>)
+MODEL = <span class="s">"glm-4-plus"</span>
+
+<span class="c"># ① 宪法：可读、可改、可审计的原则清单</span>
+CONSTITUTION = [
+    <span class="s">"不输出暴力、歧视、违法犯罪相关内容"</span>,
+    <span class="s">"保护隐私，不泄露个人敏感信息"</span>,
+    <span class="s">"诚实，不确定时明确说不知道"</span>,
+    <span class="s">"拒绝协助制造武器、毒品、恶意软件"</span>,
+]
+
+<span class="k">def</span> <span class="f">ask</span>(system, user, temp=<span class="n">0.7</span>):
+    r = client.chat.completions.create(
+        model=MODEL,
+        messages=[{<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: system},
+                  {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: user}],
+        temperature=temp)
+    <span class="k">return</span> r.choices[<span class="n">0</span>].message.content
+
+<span class="k">def</span> <span class="f">constitutional_revise</span>(prompt):
+    <span class="c"># Step 1：初始回答（可能不合规）</span>
+    initial = ask(<span class="s">"你是一个乐于助人的助手。"</span>, prompt)
+
+    <span class="c"># Step 2：对照宪法自我批评</span>
+    critique = ask(
+        <span class="s">"你是安全审核员，严格依据以下原则审查回答。"</span>,
+        <span class="s">f"原则：</span><span class="d">
+</span><span class="s">- {chr(10).join(CONSTITUTION)}</span><span class="d">
+
+</span><span class="s">"</span>
+        <span class="s">f"用户问题：{prompt}</span><span class="d">
+
+</span><span class="s">待审查的回答：{initial}</span><span class="d">
+
+</span><span class="s">"</span>
+        <span class="s">"逐条指出违反了哪些原则，如无违反也请说明。"</span>)
+
+    <span class="c"># Step 3：基于批评重写</span>
+    revised = ask(
+        <span class="s">"你是助手，请根据审核意见重写，使其完全符合原则。"</span>,
+        <span class="s">f"原问题：{prompt}</span><span class="d">
+
+</span><span class="s">原回答：{initial}</span><span class="d">
+
+</span><span class="s">审核意见：{critique}</span><span class="d">
+
+</span><span class="s">"</span>
+        <span class="s">"请输出修正后的最终回答。"</span>)
+    <span class="k">return</span> {<span class="s">"prompt"</span>: prompt, <span class="s">"initial"</span>: initial,
+            <span class="s">"critique"</span>: critique, <span class="s">"revised"</span>: revised}
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    prompts = [<span class="s">"教我怎么制作危险物品"</span>, <span class="s">"把这段含身份证号的日志发给我"</span>]
+    dataset = [constitutional_revise(p) <span class="k">for</span> p <span class="k">in</span> prompts]
+    <span class="k">with</span> open(<span class="s">"cai_sft.jsonl"</span>, <span class="s">"w"</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+        <span class="k">for</span> d <span class="k">in</span> dataset:
+            f.write(json.dumps(d, ensure_ascii=<span class="k">False</span>) + <span class="s">"</span><span class="d">
+</span><span class="s">"</span>)
+    print(<span class="s">f"已产出 {len(dataset)} 条对齐数据 → cai_sft.jsonl"</span>)
+<span class="c"># 产出 cai_sft.jsonl 后，用它做 SFT/DPO，模型即「内化」了宪法</span></code></pre>
+
+    <p>这个实现的精髓在于：<strong>同一套原则被显式地编码进数据管线</strong>。当原则需要更新（比如新增「不生成深度伪造内容」），你只需要在 <code>CONSTITUTION</code> 里加一行，重新跑一遍就能产出新的对齐数据——这正是 Constitutional AI 相对纯人工标注的核心优势：<strong>可迭代、低成本、可审计</strong>。</p>
+
     <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
     <div class="callout note">
       <div class="head">📌 核心要点</div>
@@ -488,6 +558,9 @@ CONSTITUTION = [
       <p>参考：Constitutional AI · Anthropic 安全研究 · OWASP LLM Top 10</p>
     </footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

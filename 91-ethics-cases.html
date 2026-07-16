@@ -304,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 91 · AI 伦理</span>
       <h1>AI 伦理案例<br>自动驾驶、Deepfake、偏见、就业的伦理拷问</h1>
@@ -413,10 +414,62 @@ print(f"差异影响比(>0.8 视为合规): {report.attrs['disparate_impact']}")
     <p><strong>保留人类复核</strong>。在高风险场景(信贷、司法、医疗、招聘),永远保留人类在决策回路里。AI 给建议,人做最终决定。这不是低效,而是对"AI 会犯错"的必要容错。</p>
     <p><strong>透明与可解释</strong>。尽可能让 AI 的决策可解释——用可解释模型、提供决策理由、向用户披露"这是 AI 决策"。透明度既是伦理要求,也是建立用户信任的必要条件。</p>
     <p><strong>说不的勇气</strong>。如果你被要求开发一个你确信会造成伤害的系统(比如用于监控弱势群体的识别系统),要有说"不"的勇气和渠道。这是专业伦理的底线。很多科技公司已经建立了"伦理审查委员会"或"红队"机制,正是为了给这种"说不"提供制度支持。</p>
+    <h2 class="section" id="bias-detect-code"><span class="idx">★</span> 实战：检测词向量里的隐性偏见</h2>
+    <p>前面的 <code>fairness_audit</code> 检测的是「决策结果」的偏见（输出层）。但偏见的<strong>根源往往在表示层</strong>——模型把某些职业词和性别词在向量空间里靠得太近，比如「护士」靠近「女性」、「程序员」靠近「男性」。这种「隐性偏见」会悄悄影响下游任务。下面用<strong>词嵌入关联测试（WEAT）</strong>的简化版，量化 embedding 里的刻板印象关联——这正是当年发现 Amazon 招聘工具偏见的同类分析手段。</p>
+    <pre><code class="language-python"><span class="c"># bias_in_embeddings.py · 检测词向量里的性别/职业刻板印象</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">from</span> sklearn.metrics.pairwise <span class="k">import</span> cosine_similarity
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = OpenAI(base_url=<span class="s">"https://open.bigmodel.cn/api/paas/v4"</span>, api_key=<span class="s">"YOUR_KEY"</span>)
+MODEL = <span class="s">"embedding-3"</span>
+
+<span class="k">def</span> <span class="f">embed</span>(word):
+    r = client.embeddings.create(model=MODEL, input=[word])
+    <span class="k">return</span> np.array(r.data[<span class="n">0</span>).embedding)
+
+<span class="c"># 两组「目标词」(职业) 和两组「属性词」(性别)</span>
+TARGET_A = [<span class="s">"程序员"</span>, <span class="s">"工程师"</span>, <span class="s">"科学家"</span>, <span class="s">"CEO"</span>]      <span class="c"># 刻板印象中偏男性</span>
+TARGET_B = [<span class="s">"护士"</span>, <span class="s">"教师"</span>, <span class="s">"助理"</span>, <span class="s">"秘书"</span>]          <span class="c"># 刻板印象中偏女性</span>
+ATTR_M = [<span class="s">"男性"</span>, <span class="s">"男人"</span>, <span class="s">"父亲"</span>, <span class="s">"儿子"</span>]
+ATTR_F = [<span class="s">"女性"</span>, <span class="s">"女人"</span>, <span class="s">"母亲"</span>, <span class="s">"女儿"</span>]
+
+<span class="k">def</span> <span class="f">mean_vec</span>(words):
+    <span class="k">return</span> np.mean([embed(w) <span class="k">for</span> w <span class="k">in</span> words], axis=<span class="n">0</span>)
+
+m_vec, f_vec = mean_vec(ATTR_M), mean_vec(ATTR_F)   <span class="c"># 性别属性的中心向量</span>
+
+<span class="c"># WEAT 核心思想：某词与「男性中心」的相似度，是否系统性高于与「女性中心」的相似度</span>
+<span class="k">def</span> <span class="f">gender_bias_score</span>(word):
+    v = embed(word)
+    <span class="k">return</span> cosine_similarity([v], [m_vec])[<span class="n">0</span>][<span class="n">0</span>] - cosine_similarity([v], [f_vec])[<span class="n">0</span>][<span class="n">0</span>]
+    <span class="c"># &gt; 0 表示该词在向量空间里更靠近男性，&lt; 0 更靠近女性</span>
+
+print(<span class="s">"职业词的性别偏见分数（正=偏男性，负=偏女性）："</span>)
+<span class="k">for</span> w <span class="k">in</span> TARGET_A + TARGET_B:
+    score = gender_bias_score(w)
+    bar = <span class="s">"■"</span> * <span class="f">int</span>(<span class="f">abs</span>(score) * <span class="n">50</span>)
+    flag = <span class="s">"男→"</span> <span class="k">if</span> score &gt; <span class="n">0</span> <span class="k">else</span> <span class="s">"←女"</span>
+    print(f<span class="s">"  {w:<6} {score:+.4f} {flag}{bar}"</span>)
+
+<span class="c"># WEAT 效应量：两组目标词偏见分差，除以合并标准差</span>
+scores_A = [gender_bias_score(w) <span class="k">for</span> w <span class="k">in</span> TARGET_A]
+scores_B = [gender_bias_score(w) <span class="k">for</span> w <span class="k">in</span> TARGET_B]
+pooled_std = np.sqrt((np.var(scores_A) + np.var(scores_B)) / <span class="n">2</span>)
+effect_size = (np.mean(scores_A) - np.mean(scores_B)) / (pooled_std + <span class="n">1e-8</span>)
+print(f<span class="s">"
+WEAT 效应量 = {effect_size:.2f}（|d|>0.5 视为存在显著性别偏见关联）"</span>)
+<span class="c"># 结论：若程序员/工程师组显著偏向男性向量，说明 embedding 内化了社会刻板印象，</span>
+<span class="c"># 下游用于招聘/推荐时会放大这种偏见 → 需在训练时去偏(debias)或换数据</span></code></pre>
+
+    <p>这段代码和前面的 <code>fairness_audit</code> 互补：前者查<strong>结果的偏见</strong>（输出层），这里查<strong>表示的偏见</strong>（embedding 层）。两者结合才是完整的偏见检测。WEAT 效应量是学术界衡量刻板印象关联的标准指标——当 <code>|d| &gt; 0.5</code>，说明模型已经把「职业-性别」的刻板印象编码进了向量空间，下游任务（招聘筛选、推荐）会继承并放大它。这正是 Amazon 招聘工具出问题的深层原因：<strong>偏见不是 bug，而是数据属性的投影</strong>，必须在数据和表示层就干预。</p>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 伦理不是"想多了",而是 AI 系统规模化决策带来的真实挑战。我们用"谁受益谁受损、能否知情同意、能否解释追责、是否放大不平等"四个维度,分析了四个经典案例:自动驾驶的电车难题(伦理决策的编码)、Deepfake(真实性的消亡)、算法偏见(歧视的放大)、就业冲击(利益分配的不对等)。</p>
     <p>四个案例揭示了共同模式:伦理决策被编码进算法、规模化放大效应、不透明导致的问责真空、利益分配不对等。这些模式会在未来的更多 AI 应用中反复出现。</p>
     <p>作为从业者,我们能做的是:在设计阶段就考虑伦理、做公平性评估、保留人类复核、追求透明可解释、必要时勇敢说不。AI 伦理没有标准答案,但有一个核心原则贯穿始终——<strong>技术应该服务于人,而不是人服务于技术</strong>。记住这条,在具体的伦理困境里,你就有了判断的罗盘。技术让我们能做什么,和我们应该做什么,是两个截然不同的问题;而后者,最终定义了我们是谁。</p>
+
+</main>
 
 </main>
 

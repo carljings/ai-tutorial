@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -113,7 +113,7 @@
       <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
-      <a href="90-faq.html" class="active" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
+      <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
       <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 90 · 参考指南</span>
@@ -455,6 +455,102 @@
       </tbody>
     </table>
 
+    <h2 class="section" id="debug-code"><span class="idx">★</span> 实战：高频报错排查与环境自检</h2>
+    <p>FAQ 里最常被问的两类问题是「这个报错什么意思」和「我环境配对了吗」。光靠文字解释效率低，下面用两个<strong>可直接运行的脚本</strong>来兜底：第一个诊断常见 API 调用报错并给出修复建议，第二个一键自检本地 AI 开发环境是否就绪。</p>
+
+    <div class="code-title">diagnose_api_error.py · 常见 LLM API 报错的自动诊断</div>
+    <pre><code><span class="c">"""捕获 LLM API 调用异常，按错误类型给出修复建议。"""</span>
+<span class="k">import</span> openai
+
+<span class="c"># 常见报错 → (关键词, 原因, 修复建议)</span>
+ERROR_TABLE = [
+    (<span class="s">"AuthenticationError"</span>, <span class="s">"API Key 无效或过期"</span>,
+     <span class="s">"检查环境变量 API_KEY 是否正确，到控制台重新生成。"</span>),
+    (<span class="s">"RateLimitError"</span>, <span class="s">"触发速率/额度限制"</span>,
+     <span class="s">"加退避重试、降低 QPS、或升级套餐额度。"</span>),
+    (<span class="s">"context_length_exceeded"</span>, <span class="s">"输入超过模型上下文窗口"</span>,
+     <span class="s">"缩短 prompt、用 RAG 只喂相关片段、换更大窗口的模型。"</span>),
+    (<span class="s">"ConnectionError"</span>, <span class="s">"网络不通/DNS 解析失败"</span>,
+     <span class="s">"检查代理设置、base_url 是否可达、ping 测试。"</span>),
+    (<span class="s">"BadRequestError"</span>, <span class="s">"请求参数非法"</span>,
+     <span class="s">"检查 model 名、messages 格式、temperature 范围。"</span>),
+    (<span class="s">"InternalServerError"</span>, <span class="s">"服务端错误"</span>,
+     <span class="s">"重试 2-3 次；持续报错看服务商状态页。"</span>),
+]
+
+<span class="k">def</span> <span class="f">diagnose</span>(err: Exception):
+    name = <span class="f">type</span>(err).__name__
+    msg = <span class="f">str</span>(err).lower()
+    <span class="k">for</span> key, reason, fix <span class="k">in</span> ERROR_TABLE:
+        <span class="k">if</span> key.lower() <span class="k">in</span> name.lower() <span class="k">or</span> key.lower() <span class="k">in</span> msg:
+            print(f<span class="s">"❌ 报错：{name}"</span>)
+            print(f<span class="s">"   原因：{reason}"</span>)
+            print(f<span class="s">"   修复：{fix}"</span>)
+            <span class="k">return</span>
+    print(f<span class="s">"❓ 未知报错：{name}: {err}"</span>)
+    print(<span class="s">"   建议：把完整 traceback 贴出来，或查官方文档。"</span>)
+
+<span class="c"># 用法：包一层 try/except，出错自动诊断</span>
+<span class="k">def</span> <span class="f">safe_chat</span>(client, **kwargs):
+    <span class="k">try</span>:
+        <span class="k">return</span> client.chat.completions.create(**kwargs)
+    <span class="k">except</span> Exception <span class="k">as</span> e:
+        diagnose(e); <span class="k">raise</span>
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    client = openai.OpenAI(api_key=<span class="s">"sk-invalid"</span>)   <span class="c"># 故意用错 key 演示</span>
+    <span class="k">try</span>:
+        safe_chat(client, model=<span class="s">"glm-4-plus"</span>, messages=[{<span class="s">"role"</span>:<span class="s">"user"</span>,<span class="s">"content"</span>:<span class="s">"hi"</span>}])
+    <span class="k">except</span> Exception:
+        <span class="k">pass</span>
+<span class="c"># 输出会指出 AuthenticationError → 检查 API_KEY，而不是让人面对一堆 traceback 发呆</span></code></pre>
+
+    <div class="code-title">check_env.py · AI 开发环境一键自检</div>
+    <pre><code><span class="c">"""检查本地 AI 开发环境：Python 版本、GPU、关键库、API Key 是否就绪。"""</span>
+<span class="k">import</span> sys, os, importlib
+
+<span class="k">def</span> <span class="f">status</span>(ok, msg):
+    print(f<span class="s">"{'✅' if ok else '❌'} {msg}"</span>)
+    <span class="k">return</span> ok
+
+all_ok = <span class="k">True</span>
+
+<span class="c"># 1. Python 版本（≥3.9）</span>
+v = sys.version_info
+all_ok &= status(v &gt;= (<span class="n">3</span>, <span class="n">9</span>), <span class="s">f"Python {v.major}.{v.minor}.{v.micro}"</span>)
+
+<span class="c"># 2. GPU 可用性（torch.cuda / MPS）</span>
+<span class="k">try</span>:
+    <span class="k">import</span> torch
+    <span class="k">if</span> torch.cuda.is_available():
+        all_ok &= status(<span class="k">True</span>, <span class="s">f"CUDA GPU: {torch.cuda.get_device_name(0)}"</span>)
+    <span class="k">elif</span> torch.backends.mps.is_available():
+        all_ok &= status(<span class="k">True</span>, <span class="s">"Apple MPS (Metal) 可用"</span>)
+    <span class="k">else</span>:
+        status(<span class="k">False</span>, <span class="s">"无 GPU，仅 CPU（推理会慢）"</span>); all_ok = <span class="k">False</span>
+<span class="k">except</span> ImportError:
+    status(<span class="k">False</span>, <span class="s">"未安装 torch"</span>); all_ok = <span class="k">False</span>
+
+<span class="c"># 3. 关键库是否齐全</span>
+<span class="k">for</span> lib <span class="k">in</span> [<span class="s">"openai"</span>, <span class="s">"numpy"</span>, <span class="s">"faiss"</span>, <span class="s">"transformers"</span>]:
+    <span class="k">try</span>:
+        importlib.import_module(lib)
+        all_ok &= status(<span class="k">True</span>, <span class="s">f"已安装 {lib}"</span>)
+    <span class="k">except</span> ImportError:
+        status(<span class="k">False</span>, <span class="s">f"缺少 {lib} → pip install {lib}"</span>); all_ok = <span class="k">False</span>
+
+<span class="c"># 4. API Key 是否配置</span>
+<span class="k">for</span> key <span class="k">in</span> [<span class="s">"ZHIPUAI_API_KEY"</span>, <span class="s">"OPENAI_API_KEY"</span>]:
+    has = <span class="k">bool</span>(os.getenv(key))
+    all_ok &= status(has, <span class="s">f"环境变量 {key} {'已设置' if has else '未设置'}"</span>)
+
+print(<span class="s">"
+"</span> + (<span class="s">"🎉 环境就绪，可以开始第 11 章项目了！"</span> <span class="k">if</span> all_ok
+      <span class="k">else</span> <span class="s">"⚠️ 有项目未通过，按提示修复后再继续。"</span>))
+<span class="c"># 把这个脚本放进项目根目录，新人 clone 后跑一遍就能发现环境问题</span></code></pre>
+
+    <p>这两个脚本是<strong>把 FAQ 变成工具</strong>的思路：与其反复回答「我这个错怎么办」「我环境对吗」，不如给一个能自动诊断、自动检查的脚本。新手跑一遍 <code>check_env.py</code> 就知道自己缺什么，遇到报错套一层 <code>safe_chat</code> 就有修复建议——这比文档里的文字说明高效得多。</p>
+
     <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心信息</div><p>这 50 个问题覆盖了从入门到进阶最常见的疑问。当你遇到问题时，先来这里查——可能已经有答案了。</p></div>
     <div class="chapter-nav">
@@ -463,6 +559,9 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 90 章 · LLM 常见 FAQ 与疑难解答</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

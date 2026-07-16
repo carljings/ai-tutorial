@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                    <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -294,7 +292,7 @@
     </div>
     <div class="nav-group"><h3>★智能涌现原理</h3>
       <a href="242-emerg-compression.html" title="压缩即智能：从信息论到 Ilya 理论"><span class="num">242</span>压缩即智能</a>
-      <a href="243-emerg-scaling.html" class="active" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
+      <a href="243-emerg-scaling.html" title="Scaling Laws：大力出奇迹的数学"><span class="num">243</span>Scaling La</a>
       <a href="244-emerg-emergence.html" title="涌现能力与相变：智能的突然出现"><span class="num">244</span>涌现能力与相变</a>
       <a href="245-emerg-induction.html" title="机制可解释性：induction heads 与 ICL 的电路真相"><span class="num">245</span>机制可解释性</a>
       <a href="246-emerg-doubledescent.html" title="grokking、双重下降与过参数化的反直觉"><span class="num">246</span>grokking、双</a>
@@ -305,6 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
+<main class="content">
   <main class="content">
     <section class="hero"><span class="eyebrow">◆ ★智能涌现原理</span>
     <h1>Scaling Laws</h1><p class="lead">把"炼丹"变成"工程"的幂律定律</p>
@@ -350,6 +349,43 @@
     <p>他们的做法：用"遗忘事件"（forgetting events，模型在训练中反复忘掉的样本）作为难度指标，**保留难的、删掉简单的**，相当于给数据排了一个课程（curriculum）。结果显示：在 ImageNet 上，这种剪枝能把幂律指数改善，达到同等精度所需的数据量大幅减少。这印证了 Chinchilla 的精神：**数据质量 &gt; 数据数量**——同样是 Scaling，高质量数据的"性价比"远高于低质量数据。</p>
     <table class="data-table"><thead><tr><th>数据策略</th><th>效果</th><th>理论依据</th></tr></thead><tbody><tr><td>无脑堆量</td><td>遵循 Kaplan/Chinchilla 幂律</td><td>基础 Scaling Law</td></tr><tr><td>数据剪枝（删简单）</td><td>打破幂律，同等精度用更少数据</td><td>Sorscher 2022</td></tr><tr><td>课程学习（先易后难）</td><td>收敛更快、最终性能更好</td><td>curriculum learning</td></tr><tr><td>高质量合成数据</td><td>特定能力大幅提升</td><td>Phi 系列 / 数学合成数据</td></tr></tbody></table>
     <div class="callout"><strong>💡 要点</strong><br>Scaling Law 的现代演化：从"堆量"（Kaplan）到"配比"（Chinchilla，20 tokens/参数）再到"质量"（Sorscher 数据剪枝）。当前的最前沿是"用强模型生成高质量合成数据喂给小模型"——这是 Phi、Qwen、DeepSeek 系列快速逼近 GPT-4 的核心手段。Scaling 的战场，已经从"算力"转移到了"数据工程"。</div>
+    <h2><span class="idx"></span>实战：用 matplotlib 复现 Scaling Law 曲线</h2>
+    <p>理论讲完，用代码<strong>亲手画出 Kaplan 的 Loss-Curve</strong>，能让你直观感受幂律的形态。下面用对数坐标拟合 L(C) = A·C^(-α) 这条经典曲线，并对比"等比例扩展"（Chinchilla 最优）与"只堆参数"（Kaplan 错误策略）两条路线在同等算力下的 loss 差距——这正是 Chinchilla 反超 Gopher 的可视化。</p>
+    <pre class="code"><code class="language-python"><span class="c"># 绘制 Scaling Law 幂律曲线：loss 随算力 C 平滑下降</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> matplotlib.pyplot <span class="k">as</span> plt
+
+<span class="c"># ① Kaplan 2020 的拟合系数（loss = A * C^(-alpha) + L_irreducible）</span>
+A, alpha, L_irr = <span class="n">6.0</span>, <span class="n">0.05</span>, <span class="n">1.7</span>
+C = np.logspace(<span class="n">18</span>, <span class="n">25</span>, <span class="n">100</span>)          <span class="c"># 算力 1e18 ~ 1e25 FLOPs</span>
+loss_kaplan = A * C**(-alpha) + L_irr
+
+<span class="c"># ② Chinchilla 策略：同等算力下数据更优 → loss 更低（效率杠杆）</span>
+loss_chinchilla = A * C**(-alpha) * <span class="n">0.75</span> + L_irr
+
+fig, ax = plt.subplots(figsize=(<span class="n">8</span>, <span class="n">5</span>))
+ax.loglog(C, loss_kaplan, <span class="s">"o-"</span>, label=<span class="s">"Kaplan: 堆参数"</span>, lw=<span class="n">2</span>)
+ax.loglog(C, loss_chinchilla, <span class="s">"s-"</span>, label=<span class="s">"Chinchilla: 参数+数据等比"</span>, lw=<span class="n">2</span>)
+ax.set_xlabel(<span class="s">"训练算力 C (FLOPs)"</span>)
+ax.set_ylabel(<span class="s">"测试 loss"</span>)
+ax.set_title(<span class="s">"Scaling Law: 算力 vs Loss（幂律）"</span>)
+ax.grid(<span class="k">True</span>, which=<span class="s">"both"</span>, ls=<span class="s">"--"</span>, alpha=<span class="n">0.4</span>)
+ax.legend()
+
+<span class="c"># ③ 标注典型模型的算力档位</span>
+<span class="k">for</span> name, c, marker <span class="k">in</span> [(<span class="s">"GPT-3"</span>, <span class="n">3e23</span>, <span class="s">"^"</span>),
+                     (<span class="s">"Chinchilla"</span>, <span class="n">6e22</span>, <span class="s">"v"</span>)]:
+    ax.scatter([c], [A * c**(-alpha)*<span class="n">0.75</span>+L_irr], marker=marker, s=<span class="n">120</span>, zorder=<span class="n">5</span>)
+    ax.annotate(name, (c, A*c**(-alpha)*<span class="n">0.75</span>+L_irr), textcoords=<span class="s">"offset points"</span>,
+                xytext=(<span class="n">8</span>,<span class="n">8</span>))
+plt.tight_layout()
+plt.savefig(<span class="s">"scaling_law.png"</span>, dpi=<span class="n">120</span>)
+print(<span class="s">"已保存 scaling_law.png"</span>)
+<span class="c"># 曲线斜率 = -alpha，在双对数坐标下是直线，这正是"幂律"的特征</span>
+<span class="c"># Chinchilla 曲线整体下移 → 同算力 loss 更低，印证"小模型+多数据"更优</span></code></pre>
+
+    <p>画完这张图你会注意到一个关键细节：<strong>在双对数坐标下，幂律是一条直线</strong>——斜率的绝对值就是 α。这也是 Scaling Law 之所以"可外推"的原因：只要拟合出这条直线，就能预测更大算力下的 loss。但请记住 Sorscher 的结论——<strong>数据质量能把这条线整体下移</strong>，所以现代的 Scaling 战场已经从"谁的线斜率好"变成"谁的数据让线更低"。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>Scaling Laws 是"大力出奇迹"的数学基础：Kaplan 2020 发现 loss 与 N/D/C 呈幂律（可外推）；Chinchilla 2022 纠正为"参数与数据等比例（~20 tokens/参数）"，揭示了多数大模型欠训练；Sorscher 2022 证明数据剪枝能打破幂律。平滑的 loss 下降通过"阈值效应"产生离散的能力涌现——这是"大力出奇迹"的完整机制。下一章我们深入看"涌现"现象本身。</p>
     <div class="chapter-nav">
@@ -358,6 +394,9 @@
     </div>
     <footer><p>AI 全栈实战教学 · 第 267 章 · Scaling Laws：大力出奇迹的数学</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

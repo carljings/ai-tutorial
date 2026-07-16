@@ -18,13 +18,13 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
       <a href="07-llm-wiki.html" title="LLM Wiki 知识中枢"><span class="num">07</span>LLM Wiki 知</a>
       <a href="08-skills.html" title="Skills 技能体系"><span class="num">08</span>Skills 技能体</a>
-      <a href="09-trends.html" class="active" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
+      <a href="09-trends.html" title="2026 AI 趋势盘点"><span class="num">09</span>2026 AI 趋势</a>
       <a href="10-resources.html" title="开源资源与精选"><span class="num">10</span>开源资源与精选</a>
     </div>
     <div class="nav-group"><h3>工程</h3>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 09 · 前沿与实战</span>
@@ -508,6 +508,68 @@
     </div>
     <p>防御是<strong>多层的</strong>：第 3 章的权限模型（最小权限）、Hook（外发审计）、把「工具返回内容」与「用户指令」在 prompt 里<strong>明确隔离</strong>（用标签包裹，标注「以下是不可信的外部内容」）、对高敏操作强制人工确认。<strong>没有任何单一手段能完全防住注入，必须纵深防御</strong>。</p>
 
+    <h2 class="section" id="tools-tracking"><span class="idx">13</span> 实战：用代码量化技术趋势</h2>
+    <p>讲了一整章趋势，但「凭什么说某项技术在火」不能只凭感觉。下面两个脚本示范<strong>如何用代码量化趋势</strong>：第一个调 GitHub API 抓取项目的 star 增长曲线，第二个把多个技术按「采用度/成熟度」画成技术雷达，这是技术选型报告里最常见的可视化。</p>
+    <div class="code-title">github_stars.py · 抓取项目 star 趋势</div>
+    <pre><code><span class="c">"""调 GitHub API 获取某仓库的 star 增长曲线，判断热度趋势。"""</span>
+<span class="k">import</span> requests, datetime
+<span class="k">from</span> collections <span class="k">import</span> Counter
+
+TOKEN = <span class="s">"ghp_你的token"</span>      <span class="c"># 提高 rate limit，无 token 每小时限 60 次</span>
+HEADERS = {<span class="s">"Authorization"</span>: <span class="s">f"token {TOKEN}"</span>, <span class="s">"Accept"</span>: <span class="s">"application/vnd.github.star+json"</span>}
+
+<span class="k">def</span> <span class="f">star_history</span>(repo, max_pages=<span class="n">10</span>):
+    <span class="s">"""repo 形如 'langchain-ai/langchain'，返回每月新增 star 数。"""</span>
+    url = <span class="s">f"https://api.github.com/repos/{repo}/stargazers"</span>
+    monthly = Counter()
+    <span class="k">for</span> page <span class="k">in</span> <span class="f">range</span>(<span class="n">1</span>, max_pages + <span class="n">1</span>):
+        r = requests.get(url, headers=HEADERS,
+                         params={<span class="s">"per_page"</span>: <span class="n">100</span>, <span class="s">"page"</span>: page})
+        <span class="k">if</span> r.status_code != <span class="n">200</span>:
+            <span class="k">break</span>
+        <span class="k">for</span> s <span class="k">in</span> r.json():
+            ym = s[<span class="s">"starred_at"</span>][:<span class="n">7</span>]      <span class="c"># "2024-03"</span>
+            monthly[ym] += <span class="n">1</span>
+    <span class="k">return</span> <span class="f">dict</span>(<span class="f">sorted</span>(monthly.items()))
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    hist = star_history(<span class="s">"langchain-ai/langchain"</span>)
+    recent = <span class="f">list</span>(hist.items())[-<span class="n">6</span>:]
+    total_recent = <span class="f">sum</span>(v <span class="k">for</span> _, v <span class="k">in</span> recent)
+    print(<span class="s">"近 6 个月新增 star："</span>, recent)
+    print(<span class="s">f"月均 +{total_recent/6:.0f}  → {'上升' if total_recent > 5000 else '趋稳'}"</span>)
+<span class="c"># 输出近 6 月 star 曲线，若月均仍在涨说明生态在扩张，可纳入「技术雷达」</span></code></pre>
+
+    <div class="code-title">tech_radar.py · 用 matplotlib 绘制技术采用雷达</div>
+    <pre><code><span class="c">"""把多项技术按 采用度(角度) × 成熟度(半径) 画成技术雷达。"""</span>
+<span class="k">import</span> numpy <span class="k">as</span> np
+<span class="k">import</span> matplotlib.pyplot <span class="k">as</span> plt
+
+<span class="c"># 每条：(技术名, 象限角度, 成熟度 0~1, 状态)</span>
+techs = [
+    (<span class="s">"RAG"</span>,            <span class="n">30</span>,  <span class="n">0.85</span>, <span class="s">"采纳"</span>),
+    (<span class="s">"Agent 框架"</span>,     <span class="n">100</span>, <span class="n">0.60</span>, <span class="s">"试验"</span>),
+    (<span class="s">"向量数据库"</span>,     <span class="n">170</span>, <span class="n">0.80</span>, <span class="s">"采纳"</span>),
+    (<span class="s">"Computer Use"</span>,  <span class="n">240</span>, <span class="n">0.35</span>, <span class="s">"评估"</span>),
+    (<span class="s">"MoE 模型"</span>,      <span class="n">300</span>, <span class="n">0.55</span>, <span class="s">"试验"</span>),
+]
+color_map = {<span class="s">"采纳"</span>: <span class="s">"#2ecc71"</span>, <span class="s">"试验"</span>: <span class="s">"#f1c40f"</span>, <span class="s">"评估"</span>: <span class="s">"#e67e22"</span>}
+
+fig, ax = plt.subplots(figsize=(<span class="n">7</span>, <span class="n">7</span>), subplot_kw={<span class="s">"projection"</span>: <span class="s">"polar"</span>})
+<span class="k">for</span> r <span class="k">in</span> [<span class="n">0.33</span>, <span class="n">0.66</span>, <span class="n">1.0</span>]:           <span class="c"># 三圈：评估/试验/采纳</span>
+    ax.plot(np.linspace(<span class="n">0</span>, <span class="n">2</span>*np.pi, <span class="n">100</span>), [r]*<span class="n">100</span>, color=<span class="s">"#bbb"</span>, lw=<span class="n">0.8</span>)
+<span class="k">for</span> name, deg, maturity, status <span class="k">in</span> techs:
+    theta = np.deg2rad(deg)
+    ax.scatter([theta], [maturity], s=<span class="n">140</span>, color=color_map[status], zorder=<span class="n">5</span>)
+    ax.annotate(name, (theta, maturity), fontsize=<span class="n">10</span>, ha=<span class="s">"center"</span>)
+ax.set_yticklabels([]); ax.set_xticklabels([])
+ax.set_title(<span class="s">"2026 AI 技术雷达"</span>, pad=<span class="n">20</span>)
+plt.tight_layout(); plt.savefig(<span class="s">"tech_radar.png"</span>, dpi=<span class="n">120</span>)
+print(<span class="s">"已保存 tech_radar.png"</span>)
+<span class="c"># 内圈=评估(早期)，中圈=试验，外圈=采纳(成熟) → 一眼看出该押注哪项</span></code></pre>
+
+    <p>这两个脚本代表了<strong>数据驱动的趋势判断方法</strong>：star 曲线看「热度斜率」，技术雷达看「采用度/成熟度」的二维定位。把这种量化思维用在技术选型上，比「我感觉 X 很火」可靠得多——这也是本章反复强调的「工程在变贵、决策要靠谱」的具体落地。</p>
+
     <blockquote>
       2026 年的核心判断：<strong>模型在变便宜，工程在变贵</strong>。能把模型变成可靠产品的人，比能训模型的人更稀缺。这正是本教程的全部意义所在。
     </blockquote>
@@ -528,6 +590,9 @@
       <p>来源：IBM / Anthropic / Microsoft / ByteByteGo / Firecrawl / Towards AI 等 2026 年度盘点</p>
     </footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

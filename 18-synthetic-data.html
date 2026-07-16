@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -35,7 +35,7 @@
       <a href="15-safety-alignment.html" title="AI 安全与对齐"><span class="num">15</span>AI 安全与对齐</a>
       <a href="16-edge-deployment.html" title="端侧与私有化部署"><span class="num">16</span>端侧与私有化部署</a>
       <a href="17-reasoning-models.html" title="推理模型深度"><span class="num">17</span>推理模型深度</a>
-      <a href="18-synthetic-data.html" class="active" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
+      <a href="18-synthetic-data.html" title="合成数据工程"><span class="num">18</span>合成数据工程</a>
       <a href="19-prompt-engineering.html" title="Prompt 工程系统化"><span class="num">19</span>Prompt 工程系</a>
       <a href="20-vector-database.html" title="向量数据库原理"><span class="num">20</span>向量数据库原理</a>
       <a href="21-a2a-protocol.html" title="A2A 多智能体协议实战"><span class="num">21</span>A2A 多智能体协议</a>
@@ -303,7 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
+<main class="content">
   <main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 18 · 专题深度</span>
@@ -485,6 +485,72 @@ client = ZhipuAI()
       <li><strong>难度课程学习</strong>：按难度排序，从易到难训练。</li>
     </ul>
 
+    <h2 class="section" id="pipeline"><span class="idx">★</span> 实战：用 LLM 生成合成训练数据的完整 pipeline</h2>
+    <p>前面讲了 Self-Instruct、Evol-Instruct 等技术，这里把它们<strong>串成一个可运行的 pipeline</strong>：用强模型生成指令-回答对，再用规则+模型做质量过滤与去重，最终产出可用于 SFT 的数据集。这是 Phi、Qwen 等模型快速提升能力的核心工程。</p>
+    <div class="code-title">synthetic_pipeline.py · Self-Instruct + 质量过滤 + 去重</div>
+    <pre><code><span class="c">"""合成 SFT 数据 pipeline：种子 → 扩增 → 过滤 → 去重 → 导出。"""</span>
+<span class="k">import</span> json, random, hashlib
+<span class="k">from</span> openai <span class="k">import</span> OpenAI
+
+client = OpenAI(base_url=<span class="s">"https://open.bigmodel.cn/api/paas/v4"</span>, api_key=<span class="s">"YOUR_KEY"</span>)
+GEN_MODEL, JUDGE_MODEL = <span class="s">"glm-4-plus"</span>, <span class="s">"glm-4-plus"</span>
+
+SEED_TOPICS = [<span class="s">"Python 异步编程"</span>, <span class="s">"SQL 窗口函数"</span>, <span class="s">"正则表达式"</span>]
+
+<span class="c"># ① Self-Instruct：从种子话题生成多样化指令</span>
+<span class="k">def</span> <span class="f">gen_instructions</span>(topic, n=<span class="n">5</span>):
+    prompt = (<span class="s">f"围绕主题『{topic}』生成 {n} 个互不相同的编程问题，"</span>
+              <span class="s">"覆盖从入门到进阶难度，每行一个，只要问题本身。"</span>)
+    r = client.chat.completions.create(model=GEN_MODEL, messages=[
+        {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: prompt}], temperature=<span class="n">0.9</span>)
+    <span class="k">return</span> [q.strip() <span class="k">for</span> q <span class="k">in</span> r.choices[<span class="n">0</span>].message.content.splitlines() <span class="k">if</span> q.strip()]
+
+<span class="c"># ② 生成回答</span>
+<span class="k">def</span> <span class="f">gen_answer</span>(question):
+    r = client.chat.completions.create(model=GEN_MODEL, messages=[
+        {<span class="s">"role"</span>: <span class="s">"system"</span>, <span class="s">"content"</span>: <span class="s">"你是资深工程师，给出准确、带代码示例的回答。"</span>},
+        {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: question}], temperature=<span class="n">0.7</span>)
+    <span class="k">return</span> r.choices[<span class="n">0</span>].message.content
+
+<span class="c"># ③ 质量过滤：用模型当裁判打分（拒绝低质）</span>
+<span class="k">def</span> <span class="f">quality_ok</span>(question, answer):
+    r = client.chat.completions.create(model=JUDGE_MODEL, messages=[
+        {<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: <span class="s">f"判断回答质量。问题：{question}</span><span class="d">
+
+</span><span class="s">回答：{answer}</span><span class="d">
+
+</span><span class="s">"</span>
+         <span class="s">"只输出 1（合格，准确且有代码）或 0（不合格）。"</span>}], temperature=<span class="n">0.0</span>)
+    <span class="k">return</span> <span class="s">"1"</span> <span class="k">in</span> r.choices[<span class="n">0</span>].message.content[:<span class="n">3</span>]
+
+<span class="c"># ④ 去重：按问题归一化哈希去重（防分布塌缩）</span>
+<span class="k">def</span> <span class="f">dedup_key</span>(question):
+    norm = <span class="s">""</span>.join(<span class="f">sorted</span>(question.replace(<span class="s">" "</span>, <span class="s">""</span>).lower()))
+    <span class="k">return</span> hashlib.md5(norm.encode()).hexdigest()
+
+<span class="k">if</span> __name__ == <span class="s">"__main__"</span>:
+    seen, dataset = <span class="f">set</span>(), []
+    <span class="k">for</span> topic <span class="k">in</span> SEED_TOPICS:
+        <span class="k">for</span> q <span class="k">in</span> gen_instructions(topic):
+            <span class="k">if</span> dedup_key(q) <span class="k">in</span> seen:        <span class="c"># 跳过重复问题</span>
+                <span class="k">continue</span>
+            ans = gen_answer(q)
+            <span class="k">if</span> <span class="k">not</span> quality_ok(q, ans):      <span class="c"># 质量过滤</span>
+                <span class="k">continue</span>
+            seen.add(dedup_key(q))
+            dataset.append({<span class="s">"instruction"</span>: q, <span class="s">"output"</span>: ans})
+            print(f<span class="s">"✓ 保留 ({len(dataset)}): {q[:40]}"</span>)
+
+    <span class="k">with</span> open(<span class="s">"synthetic_sft.jsonl"</span>, <span class="s">"w"</span>, encoding=<span class="s">"utf-8"</span>) <span class="k">as</span> f:
+        <span class="k">for</span> d <span class="k">in</span> dataset:
+            f.write(json.dumps(d, ensure_ascii=<span class="k">False</span>) + <span class="s">"</span><span class="d">
+</span><span class="s">"</span>)
+    print(f<span class="s">"产出 {len(dataset)} 条 SFT 数据 → synthetic_sft.jsonl"</span>)
+<span class="c"># 关键防护：① 高温扩增多样性 ② 裁判过滤保质量 ③ 去重防塌缩</span>
+<span class="c"># 进阶：再混入真实数据做锚、用 Evol-Instruct 提升难度梯度</span></code></pre>
+
+    <p>这个 pipeline 把本章的所有要点<strong>编码进了工程</strong>：高温生成追求多样性、裁判模型保质量、哈希去重防分布塌缩。真正的生产级 pipeline 还会加上<strong>难度课程排序</strong>（先易后难训练）、<strong>拒绝采样</strong>（生成多个解法只留对的，RLVR 的基础）、以及<strong>始终混入真实数据</strong>作为锚——这些都是防止 Model Collapse 的关键。</p>
+
     <h2 class="section" id="summary"><span class="idx">07</span> 本章小结</h2>
     <div class="callout note">
       <div class="head">📌 核心要点</div>
@@ -517,6 +583,9 @@ client = ZhipuAI()
       <p>参考：Self-Instruct · Evol-Instruct · Model Collapse 论文 · Gartner 预测</p>
     </footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

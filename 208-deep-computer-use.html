@@ -304,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+<main class="content">
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 208 · 深度应用</span>
       <h1>Computer Use<br>让 AI 像人一样操作电脑</h1>
@@ -431,10 +432,89 @@ run_computer_use("打开浏览器,搜索'今天上海的天气',告诉我结果"
     <p><strong>成本高</strong>。多轮推理 + 大量截图传输,token 消耗和 API 费用都不低。规模化部署要算清成本账。</p>
     <p><strong>无法访问无障碍信息</strong>。理想情况下,如果软件提供 accessibility tree(无障碍语义树),Agent 能更精确地理解界面。但目前多数软件的无障碍支持参差不齐,Computer Use 主要靠视觉,精度受限。</p>
     <p>未来方向上,几个趋势值得期待:更快的视觉模型降低延迟;更强的鲁棒性减少错误;专用硬件(如操作系统级的 Agent API)让操作更精确;以及安全框架的成熟让 Computer Use 能更放心地用。Anthropic、OpenAI、Google 都在押注这个方向,它很可能是 Agent 走向"通用智能体"的关键一环。</p>
+    <h2 class="section" id="prod-loop"><span class="idx">★</span> 实战：生产级 Computer Use 调用循环</h2>
+    <p>上面的最小循环只演示了「决策-执行」。真实部署还需要<strong>重试、超时、安全护栏、状态快照、人在回路确认</strong>。下面给一个更接近生产的完整循环：把每一步的可撤销操作记进历史，高危动作拦截并请求人工确认，出错自动重试并在连续失败后熔断。</p>
+    <pre><code class="language-python"><span class="c"># computer_use_loop.py · 生产级 Computer Use：护栏 + 重试 + 审计 + HITL</span>
+<span class="k">import</span> anthropic, time, json, logging
+
+client = anthropic.Anthropic()
+logging.basicConfig(level=logging.INFO, format=<span class="s">"%(asctime)s [%(levelname)s] %(message)s"</span>)
+log = logging.getLogger(<span class="s">"computer_use"</span>)
+
+<span class="c"># 安全护栏：高危动作必须人工确认，禁用动作直接拦截</span>
+CONFIRM_ACTIONS = {<span class="s">"key"</span>, <span class="s">"left_click"</span>}    <span class="c"># 按键/点击可能触发不可逆操作</span>
+BLOCKED_KEYS = {<span class="s">"ctrl+alt+del"</span>, <span class="s">"win+l"</span>, <span class="s">"ctrl+shift+esc"</span>}
+MAX_RETRIES = <span class="n">3</span>                            <span class="c"># 单步重试上限</span>
+MAX_STEPS = <span class="n">20</span>                             <span class="c"># 整个任务步数上限（防死循环烧钱）</span>
+
+tools = [{<span class="s">"type"</span>: <span class="s">"computer_20241022"</span>, <span class="s">"name"</span>: <span class="s">"computer"</span>,
+          <span class="s">"display_width_px"</span>: <span class="n">1024</span>, <span class="s">"display_height_px"</span>: <span class="n">768</span>, <span class="s">"display_number"</span>: <span class="n">1</span>}]
+
+<span class="k">def</span> <span class="f">human_confirm</span>(action, inp) -&gt; <span class="k">bool</span>:
+    <span class="s">"""高危动作请求人工确认（生产里接 Slack/审批系统）。"""</span>
+    ans = <span class="f">input</span>(f<span class="s">"⚠️ Agent 想执行 {action}({inp})，允许？[y/N] "</span>)
+    <span class="k">return</span> ans.strip().lower() == <span class="s">"y"</span>
+
+<span class="k">def</span> <span class="f">safe_execute</span>(name, action_input):
+    <span class="s">"""带护栏的动作执行：拦截禁用项、高危项走 HITL、全程审计。"""</span>
+    action = action_input.get(<span class="s">"action"</span>, name)
+    <span class="c"># 1. 硬拦截：禁用动作</span>
+    <span class="k">if</span> action == <span class="s">"key"</span> <span class="k">and</span> action_input.get(<span class="s">"key"</span>, <span class="s">""</span>).lower() <span class="k">in</span> BLOCKED_KEYS:
+        log.warning(<span class="s">f"拦截禁用按键: {action_input['key']}"</span>)
+        <span class="k">return</span> <span class="s">"BLOCKED: 该按键已被安全策略禁止"</span>
+    <span class="c"># 2. 软确认：高危动作请求人工</span>
+    <span class="k">if</span> action <span class="k">in</span> CONFIRM_ACTIONS <span class="k">and</span> <span class="k">not</span> human_confirm(action, action_input):
+        log.info(<span class="s">"用户拒绝动作"</span>)
+        <span class="k">return</span> <span class="s">"USER DENIED: 用户拒绝了此操作"</span>
+    <span class="c"># 3. 执行并审计</span>
+    log.info(<span class="s">f"EXEC {action} {action_input}"</span>)
+    <span class="k">return</span> execute_tool(name, action_input)       <span class="c"># 复用上一节的 execute_tool</span>
+
+<span class="k">def</span> <span class="f">run_task</span>(task: str):
+    messages = [{<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: task}]
+    fail_streak = <span class="n">0</span>
+    <span class="k">for</span> step <span class="k">in</span> <span class="f">range</span>(MAX_STEPS):
+        <span class="k">try</span>:
+            resp = client.beta.messages.create(
+                model=<span class="s">"claude-3-5-sonnet-20241022"</span>, max_tokens=<span class="n">4096</span>,
+                tools=tools, messages=messages, betas=[<span class="s">"computer-use-2024-10-22"</span>],
+                system=<span class="s">"你是能操作电脑的助手。一步步完成，每步后观察结果。"</span>)
+            messages.append({<span class="s">"role"</span>: <span class="s">"assistant"</span>, <span class="s">"content"</span>: resp.content})
+            <span class="k">if</span> resp.stop_reason == <span class="s">"end_turn"</span>:
+                log.info(<span class="s">f"任务完成（{step} 步）"</span>); <span class="k">return</span>
+            <span class="c"># 执行工具调用，收集结果</span>
+            results = []
+            <span class="k">for</span> b <span class="k">in</span> resp.content:
+                <span class="k">if</span> b.type == <span class="s">"tool_use"</span>:
+                    results.append({<span class="s">"type"</span>: <span class="s">"tool_result"</span>,
+                                    <span class="s">"tool_use_id"</span>: b.id,
+                                    <span class="s">"content"</span>: safe_execute(b.name, b.input)})
+            messages.append({<span class="s">"role"</span>: <span class="s">"user"</span>, <span class="s">"content"</span>: results})
+            fail_streak = <span class="n">0</span>                          <span class="c"># 成功一步，清零失败计数</span>
+            time.sleep(<span class="n">0.5</span>)                            <span class="c"># 等界面刷新</span>
+        <span class="k">except</span> Exception <span class="k">as</span> e:
+            fail_streak += <span class="n">1</span>
+            log.error(<span class="s">f"第 {step} 步出错({fail_streak}/{MAX_RETRIES}): {e}"</span>)
+            <span class="k">if</span> fail_streak &gt;= MAX_RETRIES:        <span class="c"># 连续失败 → 熔断</span>
+                log.critical(<span class="s">"连续失败达上限，熔断停止，需人工介入"</span>)
+                <span class="k">return</span>
+            time.sleep(<span class="n">2</span> ** fail_streak)              <span class="c"># 指数退避重试</span>
+    log.warning(<span class="s">f"达到步数上限 {MAX_STEPS}，任务未确认完成"</span>)
+    <span class="c"># 保存对话历史，便于事后审计/debug</span>
+    <span class="k">with</span> open(<span class="s">"computer_use_trace.json"</span>, <span class="s">"w"</span>) <span class="k">as</span> f:
+        json.dump([{<span class="s">"role"</span>: m[<span class="s">"role"</span>]} <span class="k">for</span> m <span class="k">in</span> messages], f, ensure_ascii=<span class="k">False</span>)
+
+run_task(<span class="s">"打开浏览器，搜索'今天上海的天气'，告诉我结果"</span>)
+<span class="c"># 这个循环的核心增益：护栏防失控、重试抗抖动、审计可追溯、HITL 守底线</span></code></pre>
+
+    <p>这个生产级循环把本章的安全要求<strong>落到了代码里</strong>：禁用动作硬拦截、高危动作人工确认、连续失败指数退避、达到上限自动熔断、全程审计可追溯。注意它和最小循环的区别——不是「能跑」，而是「敢跑」。Computer Use 的可靠性本就不足，没有这层护栏的 Agent 一旦失控，后果远超聊天机器人。<strong>能力之上，安全先行</strong>，这是 Computer Use 落地的铁律。</p>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Computer Use 让 AI 从"对话框"走进"整个数字世界",通过视觉理解屏幕、鼠标键盘操作软件,实现了通用的软件操作能力。它的难点在像素级视觉理解、精确坐标定位、动态状态感知、错误恢复,这也是它直到最近才可用的原因。</p>
     <p>Anthropic 的 Computer Use API 通过 computer/text_editor/bash 三个工具,实现了"模型驱动"的操作循环:截图-决策-执行-观察。我们演示了完整代码。安全是它的第一红线,沙箱、最小权限、审计、动作白名单缺一不可。</p>
     <p>Computer Use 适合遗留系统集成、跨应用工作流、数据录入、软件测试、无障碍辅助等场景。相比 RPA 它更鲁棒但更慢更不确定,两者适合不同场景,也可结合使用。当前它在速度、可靠性、成本上仍有局限,但方向意义重大——这是 AI 从"专用助手"走向"通用数字劳动力"的桥梁,值得长期关注和提前布局。</p>
+
+</main>
 
 </main>
 
