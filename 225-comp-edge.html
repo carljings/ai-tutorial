@@ -304,6 +304,114 @@
     </div>
   </aside>
 <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 225 · 模型压缩部署系列</span>
+      <h1>端侧部署<br>把 LLM 塞进手机和边缘设备</h1>
+      <p class="lead">手机跑 LLM 不再是科幻。MLC-LLM 在 iPhone 15 Pro 上跑 Llama-3-8B 达到 10 tokens/s，Apple CoreML 让 3B 模型在 Mac 上丝滑运行。本章讲清端侧部署的三大框架、量化策略和功耗优化。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 115 章量化</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="challenge"><span class="idx">★</span> 端侧部署的核心挑战</h2>
+    <p>在手机/平板/嵌入式设备上跑 LLM，面临三重约束：</p>
+    <table>
+      <tr><th>约束</th><th>手机典型值</th><th>服务器典型值</th><th>差距</th></tr>
+      <tr><td>内存</td><td>8-16 GB（系统占一半）</td><td>80-640 GB</td><td>10-40倍</td></tr>
+      <tr><td>算力(TFLOPS)</td><td>5-35（NPU/GPU）</td><td>300-2000</td><td>20-60倍</td></tr>
+      <tr><td>功耗</td><td>3-5W（必须不发热）</td><td>300-700W</td><td>100倍</td></tr>
+    </table>
+
+    <h2 class="section" id="mlc"><span class="idx">★</span> MLC-LLM：通用端侧框架</h2>
+    <p>MLC-LLM 是目前最成熟的端侧 LLM 部署框架，支持 iOS/Android/macOS/Windows/Linux 全平台。它的核心思路是把模型编译成各平台的 GPU 代码（Metal/Vulkan/OpenCL），实现跨平台高性能推理。</p>
+
+    <pre><code class="language-python"># MLC-LLM 模型转换（在开发机上操作）
+# 安装
+# pip install mlc-llm mlc-ai
+
+from mlc_llm import MLCEngine
+
+# 加载预量化的模型（自动下载）
+engine = MLCEngine(
+    model="Llama-3-8B-Instruct-q4f16_1-MLC",  # INT4量化
+    model_lib_path="/path/to/compiled/lib.so",
+    device="metal",  # macOS/iOS用Metal，Android用Vulkan
+)
+
+# 推理（API与OpenAI兼容）
+for chunk in engine.chat.completions.create(
+    messages=[{"role": "user", "content": "解释量子计算"}],
+    model="Llama-3-8B",
+    stream=True,
+    max_tokens=256,
+):
+    print(chunk.choices[0].delta.content, end="")
+
+# 编译到 Android/iOS
+# python -m mlc_llm compile ./model-config.json \
+#   --device android --target adreno   # 高通GPU
+# python -m mlc_llm compile ./model-config.json \
+#   --device iphone --target apple-a17  # A17 Pro
+    </code></pre>
+
+    <h2 class="section" id="coreml"><span class="idx">★</span> Apple CoreML 部署</h2>
+    <p>Apple 生态有 CoreML + MLX 两条路线。CoreML 适合将小模型集成到 App 中（如 3B 模型），MLX 适合在 Mac 上进行模型推理和微调。</p>
+
+    <pre><code class="language-python"># CoreML 路线：PyTorch → CoreML
+import coremltools as ct
+import torch
+
+# 加载并量化模型
+model = MyLLM.load_quantized("model-q4f16")  # INT4量化
+
+# 转换为 CoreML 格式
+traced = torch.jit.trace(model, dummy_input)
+mlmodel = ct.convert(
+    traced,
+    inputs=[ct.TensorType(name="input", shape=dummy_input.shape)],
+    compute_units=ct.ComputeUnit.ALL,  # CPU+GPU+Neural Engine
+    minimum_deployment_target=ct.target.iOS17,
+)
+mlmodel.save("LLM.mlpackage")
+
+# 在 Swift App 中使用
+# let model = try LLM(configuration: MLModelConfiguration())
+# let prediction = try model.prediction(input: input)
+
+# MLX 路线（更灵活，适合Mac）
+import mlx.core as mx
+from mlx_lm import load, generate
+
+model, tokenizer = load("mlx-community/glm-4-9b-chat-4bit")
+response = generate(model, tokenizer, prompt="你好", max_tokens=200)
+    </code></pre>
+
+    <h2 class="section" id="strategy"><span class="idx">★</span> 量化+剪枝+蒸馏组合策略</h2>
+    <p>端侧部署不是单一技术能搞定的，需要组合拳：</p>
+    <ol>
+      <li><strong>蒸馏</strong>：13B → 3B，保持 90% 能力（教师模型→学生模型）</li>
+      <li><strong>量化</strong>：FP16 → INT4，显存降低 4 倍</li>
+      <li><strong>剪枝</strong>：去除 20-30% 冗余权重，进一步缩小模型</li>
+      <li><strong>Speculative Decoding</strong>：用 0.5B 草稿模型预测，3B 主模型验证，速度提升 2 倍</li>
+    </ol>
+
+    <table>
+      <tr><th>模型</th><th>原始大小</th><th>INT4量化</th><th>iPhone 15 Pro速度</th></tr>
+      <tr><td>Qwen2-0.5B</td><td>1.0 GB</td><td>0.3 GB</td><td>50+ tok/s</td></tr>
+      <tr><td>Phi-3-mini(3.8B)</td><td>7.6 GB</td><td>2.2 GB</td><td>20 tok/s</td></tr>
+      <tr><td>Llama-3-8B</td><td>16 GB</td><td>4.5 GB</td><td>10 tok/s</td></tr>
+    </table>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>端侧三大约束：内存、算力、功耗，决定了只能跑 INT4 量化的小模型</li>
+      <li>MLC-LLM 是跨平台首选，支持 iOS/Android/Linux 全平台</li>
+      <li>Apple 生态用 CoreML（App集成）或 MLX（Mac推理）</li>
+      <li>蒸馏→量化→剪枝→投机解码的组合策略可将 8B 模型塞进手机</li>
+      <li>选型：0.5-1B 用 TFLite/CoreML，3-8B 用 MLC-LLM，Mac 上用 MLX</li>
+    </ul>
 
 </main>
 

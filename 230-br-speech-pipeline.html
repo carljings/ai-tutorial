@@ -304,6 +304,173 @@
     </div>
   </aside>
 <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 230 · 业务应用系列</span>
+      <h1>语音 Pipeline<br>从 VAD 到 ASR 到 TTS 的完整链路</h1>
+      <p class="lead">语音对话是最自然的交互方式。一个完整的语音 Agent 需要 VAD 端点检测→ASR 语音识别→LLM 推理→TTS 语音合成→音频播放，全链路延迟控制在 1 秒内才算"可用"。本章拆解每个环节并给出完整代码。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 27 章语音模型</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="arch"><span class="idx">★</span> 完整架构</h2>
+    <p>一个实时语音对话 Agent 的数据流：</p>
+    <pre><code class="language-text">
+用户说话 → 麦克风采集 → [VAD: 检测语音起止]
+                           ↓ 开始说话
+                    [ASR: Whisper 流式识别]
+                           ↓ 文本
+                    [LLM: GLM-5 推理回复]
+                           ↓ 回复文本
+                    [TTS: CosyVoice 合成语音]
+                           ↓ 音频流
+                    扬声器播放
+                           ↓ 延迟目标 < 1秒
+    </code></pre>
+
+    <h2 class="section" id="vad"><span class="idx">★</span> VAD 端点检测</h2>
+    <p>VAD（Voice Activity Detection）决定"用户什么时候说完了"。最简单的实现是能量阈值法——声音能量低于阈值超过 N 毫秒就判定为说完。生产级用 Silero VAD（基于深度学习，精度高）。</p>
+    <pre><code class="language-python">import torch
+import numpy as np
+
+# 方案1: 简单能量阈值法
+def simple_vad(audio_chunk, threshold=0.02, sample_rate=16000):
+    """能量阈值VAD，返回是否有语音"""
+    energy = np.sqrt(np.mean(audio_chunk ** 2))
+    return energy > threshold
+
+# 方案2: Silero VAD（推荐）
+model, utils = torch.hub.load('snakers4/silero-vad', 'silero_vad')
+(get_speech_timestamps, save_audio, read_audio, VADIterator, collect_chunks) = utils
+
+# 检测语音段
+wav = read_audio('input.wav', sampling_rate=16000)
+timestamps = get_speech_timestamps(wav, model, return_seconds=True)
+# 输出示例: [{'start': 1.2, 'end': 3.5}, {'start': 4.1, 'end': 6.8}]
+
+# 实时流式检测
+class StreamingVAD:
+    def __init__(self, silence_duration_ms=700, sample_rate=16000):
+        self.model, self.utils = torch.hub.load('snakers4/silero-vad', 'silero_vad')
+        self.silence_threshold = silence_duration_ms * (sample_rate // 1000)
+        self.silence_frames = 0
+        self.is_speaking = False
+
+    def process(self, audio_chunk):
+        """每次喂入512样本(32ms@16kHz)"""
+        confidence = self.model(audio_chunk, 16000).item()
+        if confidence > 0.5:
+            self.is_speaking = True
+            self.silence_frames = 0
+        elif self.is_speaking:
+            self.silence_frames += 1
+            if self.silence_frames > self.silence_threshold / 512:
+                self.is_speaking = False
+                return "speech_end"  # 语音结束，触发ASR
+        return "speaking" if self.is_speaking else "silence"
+    </code></pre>
+
+    <h2 class="section" id="asr"><span class="idx">★</span> ASR：Whisper 流式识别</h2>
+    <pre><code class="language-python">import whisper
+
+model = whisper.load_model("base")  # tiny/base/small/medium/large
+
+# 方案1: 完整音频→文本（离线模式）
+result = model.transcribe("speech.wav", language="zh")
+print(result["text"])
+# "你好，我想查询一下我的账户余额"
+
+# 方案2: 流式识别（faster-whisper，更低延迟）
+from faster_whisper import WhisperModel
+
+model = WhisperModel("base", device="cpu", compute_type="int8")
+
+segments, info = model.transcribe("speech.wav", 
+    language="zh",
+    beam_size=5,
+    vad_filter=True,          # 自动VAD过滤静音
+    chunk_length=30,          # 30秒一个chunk
+)
+for segment in segments:
+    print(f"[{segment.start:.1f}s→{segment.end:.1f}s] {segment.text}")
+    </code></pre>
+
+    <h2 class="section" id="llm"><span class="idx">★</span> LLM 推理 + TTS 合成</h2>
+    <pre><code class="language-python">from openai import OpenAI
+
+client = OpenAI(base_url="https://open.bigmodel.cn/api/paas/v4", api_key="YOUR_KEY")
+
+# LLM 回复
+response = client.chat.completions.create(
+    model="glm-5-flash",  # 用flash模型降低延迟
+    messages=[{"role": "user", "content": asr_text}],
+    max_tokens=100,        # 限制回复长度，减少TTS等待
+    stream=True,           # 流式输出→流式TTS
+)
+
+# TTS 合成（CosyVoice 或 OpenAI TTS）
+# 方案1: OpenAI TTS
+audio = client.audio.speech.create(
+    model="tts-1",
+    voice="alloy",
+    input=reply_text,
+    response_format="opus",  # 低延迟编码
+)
+audio.stream_to_file("reply.opus")
+
+# 方案2: CosyVoice 语音克隆（本地部署）
+# from cosyvoice.cli.cosyvoice import CosyVoice
+# cv = CosyVoice('pretrained_models/CosyVoice-300M')
+# for chunk in cv.inference_sft(reply_text, '中文女声', stream=True):
+#     play_audio(chunk)  # 流式播放，降低首音延迟
+
+# 完整的流式 Pipeline: LLM每出一个句子就送TTS
+def streaming_voice_conversation(asr_text):
+    """从ASR文本到语音输出的流式管道"""
+    first_audio_latency = None
+    import time; t0 = time.time()
+    
+    buffer = ""
+    for chunk in client.chat.completions.create(
+        model="glm-5-flash",
+        messages=[{"role": "user", "content": asr_text}],
+        stream=True,
+    ):
+        token = chunk.choices[0].delta.content or ""
+        buffer += token
+        
+        # 每遇到标点就送TTS（降低首音延迟）
+        if token in "。！？!?.\n":
+            audio = synthesize_tts(buffer)  # 调用TTS
+            if first_audio_latency is None:
+                first_audio_latency = time.time() - t0
+                print(f"首音延迟: {first_audio_latency:.2f}s")
+            play_audio(audio)  # 边合成边播放
+            buffer = ""
+    </code></pre>
+
+    <h2 class="section" id="latency"><span class="idx">★</span> 延迟优化策略</h2>
+    <table>
+      <tr><th>环节</th><th>优化前</th><th>优化后</th><th>方法</th></tr>
+      <tr><td>VAD</td><td>200ms</td><td>50ms</td><td>Silero VAD + 减少静音等待</td></tr>
+      <tr><td>ASR</td><td>500ms</td><td>200ms</td><td>faster-whisper + INT8 + VAD预过滤</td></tr>
+      <tr><td>LLM</td><td>800ms</td><td>300ms</td><td>Flash模型 + max_tokens限制</td></tr>
+      <tr><td>TTS</td><td>600ms</td><td>150ms</td><td>流式合成 + opus编码 + 句子级流式</td></tr>
+      <tr><td><strong>总计</strong></td><td><strong>2.1s</strong></td><td><strong>0.7s</strong></td><td>三重流式</td></tr>
+    </table>
+
+    <blockquote><strong>关键技巧</strong>：LLM 流式输出 → 每出一个句子（标点分隔）就送 TTS 合成 → TTS 流式输出音频 → 边播放边等后续。这种"三重流式"是降到 1 秒以内的核心。</blockquote>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>语音 Agent 五步链路：VAD→ASR→LLM→TTS→播放</li>
+      <li>VAD 推荐 Silero VAD，精度高且支持流式</li>
+      <li>ASR 推荐 faster-whisper，INT8 量化+流式识别延迟约 200ms</li>
+      <li>"三重流式"（LLM流式→句子级TTS流式→音频流式播放）是降到 1s 的核心</li>
+      <li>CosyVoice 支持语音克隆，适合定制化品牌声音</li>
+    </ul>
 
 </main>
 

@@ -304,6 +304,154 @@
     </div>
   </aside>
 <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 219 · 人在回路HITL</span>
+      <h1>人在回路HITL<br>审批、反馈、修正与LangGraph中断机制</h1>
+      <p class="lead">完全自动化的 Agent 听起来很美，但在涉及资金、数据、外部副作用的高风险场景里，一次错误可能比一千次成功更昂贵。人在回路（Human-in-the-Loop, HITL）就是给自动化系统装上"人工安全阀"：在关键节点暂停、请人确认或修正、再继续执行。本章深入 HITL 的三种核心模式——approval、feedback、correction，并用 LangGraph 的 interrupt 机制给出可落地的工程实现。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-hitl"><span class="idx">★</span> 为什么需要人在回路</h2>
+    <p>设想一个客户运营 Agent，它每天给 1000 个高价值客户发个性化邮件。如果模型某次幻觉把"王先生"错写成"王女士"，或把"折扣 5%"写成"折扣 50%"，损失可能远超这 1000 封邮件带来的收益。问题不在于模型不够强——再强的模型也无法保证零错误——而在于"错误代价"和"自动化收益"之间的不平衡。这种不平衡在以下场景尤其突出：金融交易、医疗建议、法律文书生成、对外公关、数据删除、付费 API 调用、权限授予。</p>
+    <p>HITL 的核心思想是"分级信任"：把决策按风险分级，低风险的交给 Agent 全自动，高风险的引入人工把关。这本质上是把"全人工"和"全自动"两极之间的大片灰色地带，用一套机制填补起来。一套好的 HITL 系统不是简单地"什么都让人确认"，那样会让人变成瓶颈；而是只在真正需要人判断的节点暂停，让人发挥不可替代的价值——比如对模糊意图的判断、对伦理风险的权衡、对创意的最终拍板。</p>
+    <p>HITL 还有一个常被低估的价值：它产生高质量的标注数据。每一次人工审批、修正、反馈，都是一条带上下文的训练样本。把这些样本沉淀下来，可以用来微调模型、优化 prompt、训练分类器来自动判断"哪些决策可以放宽人工"。换句话说，HITL 不是"永久的成本"，而是"通向更高自动化水平的阶梯"。</p>
+    <h2 class="section" id="three-modes"><span class="idx">★</span> 三种核心模式：approval / feedback / correction</h2>
+    <p>HITL 在工程上有三种典型实现模式，对应不同的介入深度和信任度。理解它们的差异是设计 HITL 系统的第一步。</p>
+    <p>第一种是 <strong>approval 模式（审批）</strong>。Agent 在执行不可逆操作前暂停，把完整计划提交给人审批，人选择"批准"或"拒绝"后系统才继续。这是介入最深的模式，人相当于系统的"决策把关人"。典型场景是发邮件、转账、删除数据。审批可以是同步的（人在界面上立刻看到并决策），也可以是异步的（提交到工单系统，人按节奏处理，Agent 在等待中挂起状态）。</p>
+    <p>第二种是 <strong>feedback 模式（反馈）</strong>。Agent 完成输出后请人打分、点赞踩、或写一句评价，反馈用于训练或重排，但不影响这一次的输出。这是介入最浅的模式，人不阻断流程，只是事后留下信号。典型场景是聊天助手的"赞/踩"按钮、推荐系统的隐式反馈。反馈模式的好处是不影响延迟，坏处是反馈质量参差，需要做去噪和置信度加权。</p>
+    <p>第三种是 <strong>correction 模式（修正）</p>
+    <p>第三种是 <strong>correction 模式（修正）</strong>。Agent 输出后，人可以直接编辑修改，修改后的版本作为"金标准"被记录下来。它介于 approval 和 feedback 之间：人介入的程度比 feedback 深（直接改内容），但比 approval 浅（不阻断执行，而是事后校正）。典型场景是文档生成、代码生成、翻译——AI 出草稿，人改完直接用，同时把改后版本喂回模型做 DPO/SFT 训练。下面这个表格总结了三者的关键差异。</p>
+    <table>
+      <thead><tr><th>维度</th><th>Approval</th><th>Feedback</th><th>Correction</th></tr></thead>
+      <tbody>
+        <tr><td>介入时机</td><td>执行前</td><td>执行后</td><td>执行后</td></tr>
+        <tr><td>是否阻断流程</td><td>是</td><td>否</td><td>否</td></tr>
+        <tr><td>典型场景</td><td>发邮件、转账</td><td>点赞踩、打分</td><td>改文档、改代码</td></tr>
+        <tr><td>产生数据</td><td>批准/拒绝标签</td><td>偏好信号</td><td>编辑后金标准</td></tr>
+        <tr><td>训练用途</td><td>训练审批分类器</td><td>RLHF / DPO</td><td>SFT 微调</td></tr>
+      </tbody>
+    </table>
+    <p>实际系统往往三种模式并用：低风险步骤走 feedback，中风险步骤走 correction，高风险步骤走 approval。下一节我们看如何在 LangGraph 里实现这些模式。</p>
+    <h2 class="section" id="langgraph-interrupt"><span class="idx">★</span> LangGraph 的 interrupt 机制</h2>
+    <p>LangGraph 是 LangChain 团队推出的 Agent 编排框架，它把 Agent 建模为一张"状态图"（StateGraph）：节点是处理函数，边是状态转移。这种图模型天然适合表达 HITL——你可以在某个节点暂停整张图的执行，把状态持久化下来，等人介入后再恢复。LangGraph 提供的 <code>interrupt</code> 函数就是实现这种"暂停-恢复"的核心原语。</p>
+    <p><code>interrupt</code> 的工作机制是：当节点函数调用 <code>interrupt(value)</code> 时，LangGraph 会把 <code>value</code> 作为"待确认内容"抛出，并把当前图的完整状态持久化到 checkpoint（通常是数据库）。Agent 进程此时可以退出，状态不会丢。当人决策后，外部调用 <code>graph.invoke(Command(resume=decision), config)</code> 来恢复执行，<code>interrupt</code> 函数会返回这个 <code>decision</code>，节点函数继续往下跑。这种机制让"等待人"可以跨越进程、跨越时间——哪怕人 8 小时后才回来决策，Agent 也能无缝续上。下面是一个完整的 approval 模式实现。</p>
+    <pre><code class="language-python"># pip install langgraph langchain-openai
+from typing import TypedDict, Annotated
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import interrupt, Command
+from langgraph.checkpoint.memory import MemorySaver
+from langchain_openai import ChatOpenAI
+
+class State(TypedDict):
+    user_intent: str
+    draft_email: str
+    approved: bool
+
+def write_draft(state: State) -> State:
+    """Agent 起草邮件。"""
+    model = ChatOpenAI(model="gpt-4o-mini")
+    draft = model.invoke(
+        f"为以下意图写一封简短商务邮件：{state['user_intent']}"
+    ).content
+    return {"draft_email": draft}
+
+def human_approve(state: State) -> State:
+    """暂停等待人工审批。interrupt 把草稿抛给外部，等人 resume。"""
+    decision = interrupt({
+        "type": "approval",
+        "prompt": "请审批以下邮件：",
+        "email": state["draft_email"],
+    })
+    # decision 是外部通过 Command(resume=...) 传入的值
+    # 通常是 {"approved": True/False} 或 {"approved": True, "edited": "..."}
+    if decision.get("edited"):
+        return {"draft_email": decision["edited"], "approved": True}
+    return {"approved": decision["approved"]}
+
+def send_email(state: State) -> State:
+    if state["approved"]:
+        print(f"[发送] {state['draft_email']}")
+    else:
+        print("[取消] 用户拒绝发送")
+    return state
+
+# 构建状态图：写草稿 → 人审 → 发送
+g = StateGraph(State)
+g.add_node("write_draft", write_draft)
+g.add_node("approve", human_approve)
+g.add_node("send", send_email)
+g.add_edge(START, "write_draft")
+g.add_edge("write_draft", "approve")
+g.add_edge("approve", "send")
+g.add_edge("send", END)
+
+# MemorySaver 把状态存内存；生产环境用 PostgresSaver / RedisSaver
+app = g.compile(checkpointer=MemorySaver())
+</code></pre>
+    <p>这段代码的关键是 <code>interrupt</code> 的双向通信：它既把信息"抛出去"给人看，又能"接住"人的决策。注意 <code>checkpointer</code> 是必备的——没有持久化，进程一退出状态就没了，HITL 也就无从谈起。生产环境应该用 <code>PostgresSaver</code> 或 <code>RedisSaver</code>，确保状态跨进程、跨重启可恢复。</p>
+    <h2 class="section" id="resume-flow"><span class="idx">★</span> 完整的暂停-恢复调用流程</h2>
+    <p>有了上面的图定义，我们来看外部如何驱动整个 approval 流程。这涉及两次 <code>invoke</code>：第一次触发执行并在 <code>interrupt</code> 处暂停返回，第二次传入人的决策恢复执行。理解这两次调用的衔接，是用好 LangGraph HITL 的关键。下面这段代码完整演示了从启动到恢复的全过程。</p>
+    <pre><code class="language-python"># 每个会话用唯一 thread_id 标识，checkpointer 据此隔离不同会话的状态
+config = {"configurable": {"thread_id": "user-42-thread-1"}}
+
+# 第一次调用：执行到 approve 节点时，interrupt 会被抛出
+result = app.invoke(
+    {"user_intent": "通知客户合同下周二签约，时间下午 3 点"},
+    config=config,
+)
+# 此时 result 会包含 __interrupt__ 字段，里面有抛出的草稿内容
+print("Agent 暂停，等待审批。草稿：")
+print(result["draft_email"])
+
+# ... 这段时间由前端展示草稿、用户点"批准"或"拒绝"或直接编辑 ...
+
+# 第二次调用：用 Command(resume=...) 把人的决策传回去，恢复执行
+user_decision = {"approved": True}   # 或 {"approved": False}
+final = app.invoke(Command(resume=user_decision), config=config)
+print("最终状态：", final)
+</code></pre>
+    <p>这里有一个工程要点：<code>thread_id</code> 必须稳定，因为 checkpointer 是按它来定位持久化状态的。如果你的系统是多实例部署，同一个会话的两次 invoke 可能落到不同进程上，只要它们连同一个 checkpointer 后端，状态就能正确恢复。这是 LangGraph 适合生产部署的关键设计。</p>
+    <p>把这套流程套到三种模式上，差异只在 <code>interrupt</code> 抛出的内容和 <code>resume</code> 传回的内容。approval 模式抛"待审批计划"、收"批准/拒绝"；correction 模式抛"AI 草稿"、收"修改后内容"；feedback 模式其实不需要 interrupt（不阻断），只在事后异步收集反馈。理解了这一层，你就能灵活组合出任意复杂的 HITL 工作流——比如"双签"（两人审批）、"分级审批"（金额越大审批层级越高）、"自助修正"（AI 自我检查后再交人审）等高级模式。</p>
+    <h2 class="section" id="advanced-patterns"><span class="idx">★</span> 进阶：动态信任与渐进自动化</h2>
+    <p>HITL 的最高境界不是"什么都让人审"，而是"让该审的审、能自动的自动"。这就需要引入<strong>动态信任机制</strong>：根据历史数据动态调整哪些决策需要人工介入。核心思路是给每类决策维护一个"信任分数"：分数高时降低审批频率（抽样审），分数低时回到全审批。分数的依据可以是历史批准率、错误代价、用户偏好等。</p>
+    <p>一个简单而有效的策略是"指数衰减抽样"：某类操作连续被批准 N 次，下一次需要审批的概率降为 1/k；一旦出现一次拒绝或修正，立刻回到 N=0 的全审批状态。这种策略让 HITL 系统随时间"学会放手"——重复出现的低风险操作逐渐自动化，新出现或高风险的操作保持人工把关。它本质上是在线学习的一种朴素形式，不需要训练模型，只用计数器就能实现。下面是这段逻辑的简化实现。</p>
+    <pre><code class="language-python">from dataclasses import dataclass
+
+@dataclass
+class TrustScore:
+    consecutive_approved: int = 0   # 连续被批准的次数
+    rejected_once: bool = False     # 是否出现过拒绝/修正
+
+    def needs_review(self, base_rate=1.0):
+        """返回本次操作是否需要人工审批。"""
+        if self.rejected_once and self.consecutive_approved &lt; 5:
+            return True   # 出过问题，恢复期强制全审
+        # 连续批准越多，抽样概率越低；最多每 10 次抽 1 次
+        import random
+        k = min(10, 2 ** self.consecutive_approved // 4)
+        return random.random() &lt; (1.0 / max(1, k)) * base_rate
+
+    def update(self, approved: bool):
+        if approved:
+            self.consecutive_approved += 1
+        else:
+            self.consecutive_approved = 0
+            self.rejected_once = True
+
+# 在 Agent 路由层使用
+trust = trust_repo.get(action_type="refund", tenant="acme")
+if trust.needs_review():
+    decision = interrupt({"action": "refund", "amount": amount})
+    trust.update(decision["approved"])
+else:
+    execute_refund(amount)   # 跳过审批，直接执行
+trust_repo.save(action_type="refund", tenant="acme", score=trust)
+</code></pre>
+    <p>这种动态信任机制让 HITL 系统从"静态成本"变成"动态投资"：初期人工介入多，随着系统证明自己可靠，介入逐渐减少，最终大部分决策全自动、少数高风险或新模式仍有人把关。这是工业级 Agent 系统走向大规模落地的必经之路。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>人在回路是高风险 AI 系统的安全基石，本章系统梳理了它的理论与实践。首先我们解释了 HITL 存在的必要性——根源在于"错误代价"与"自动化收益"的不平衡，在金融、医疗、法律、对外公关等场景尤为关键；HITL 还附带产生高质量标注数据，是通向更高自动化的阶梯。其次，HITL 有三种核心模式：approval 在执行前阻断等待审批、feedback 事后收集偏好信号、correction 事后让用户直接修改内容，三者按风险分级组合使用。第三，LangGraph 的 interrupt 机制是实现 HITL 的利器，它通过"抛出待确认内容 + 持久化状态 + Command resume 恢复"的双向通信，让 Agent 能跨进程、跨时间地等待人介入，生产环境务必搭配 PostgresSaver / RedisSaver 等持久化 checkpointer。第四，完整的调用流程是两次 invoke 衔接：第一次触发执行并在 interrupt 暂停，第二次用 Command(resume=...) 传回决策恢复执行，thread_id 是状态定位的锚点。最后，HITL 的高级形态是动态信任机制——用连续批准计数实现指数衰减抽样，让重复的低风险操作逐渐自动化、高风险或新模式保持人工把关，把 HITL 从"静态成本"变为"渐进自动化"。掌握这些，你就能设计出既安全又高效的 Agent 系统，在风险和效率之间找到最优平衡。</p>
 
 </main>
 

@@ -304,6 +304,135 @@
     </div>
   </aside>
 <main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 224 · 模型压缩部署系列</span>
+      <h1>TensorRT-LLM 部署<br>把推理速度推到极限</h1>
+      <p class="lead">TensorRT-LLM 是 NVIDIA 推出的高性能 LLM 推理引擎，通过 kernel 融合、连续批处理和 INT8/FP8 量化，将推理吞吐量提升 3-8 倍。本章从 ONNX 转换到生产部署，讲清每一步的原理和踩坑点。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 115 章量化</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why"><span class="idx">★</span> 为什么需要 TensorRT-LLM</h2>
+    <p>直接用 PyTorch + HuggingFace 跑 LLM 推理，GPU 利用率通常只有 30-50%。大量时间花在 kernel 启动开销、显存搬运和 Python 解释器上。TensorRT-LLM 通过三个核心优化解决这些问题：</p>
+    <ul>
+      <li><strong>Kernel 融合</strong>：把矩阵乘 + LayerNorm + GELU 等连续操作合并为单个 CUDA kernel，减少中间结果的显存读写</li>
+      <li><strong>连续批处理（Continuous Batching）</strong>：不同于 static batching 等所有请求到齐才批处理，Inflight Batching 在每个 iteration 级别动态组批，已完成生成的请求立即让位给新请求</li>
+      <li><strong>量化感知</strong>：INT8 SmoothQuant 和 FP8 量化在保持精度的同时将显存占用减半、计算速度翻倍</li>
+    </ul>
+
+    <h2 class="section" id="pipeline"><span class="idx">★</span> 完整转换流程</h2>
+    <p>从 HuggingFace 模型到 TensorRT 引擎，经过四步：</p>
+
+    <pre><code class="language-python"># Step 1: 安装 TensorRT-LLM
+# git clone https://github.com/NVIDIA/TensorRT-LLM.git
+# cd TensorRT-LLM && pip install -e .
+
+# Step 2: 转换 HuggingFace 模型 → TensorRT 引擎
+from tensorrt_llm.models import LLaMAForCausalLM
+from tensorrt_llm.builder import build, BuilderConfig
+
+# 加载 HuggingFace 权重并转换为 TRT-LLM 格式
+model = LLaMAForCausalLM.from_hugging_face(
+    model_dir="/models/glm-5-9b-chat",
+    dtype="float16",
+    gpus=1,
+)
+
+# 配置引擎参数
+builder_config = BuilderConfig(
+    max_batch_size=32,
+    max_input_len=4096,
+    max_output_len=2048,
+    max_num_tokens=8192,  # PagedAttention 的 KV cache 槽位数
+    use_gpt_attention_plugin=True,
+    use_gemm_plugin=True,
+    use_rmsnorm_plugin=True,
+)
+engine = build(model, builder_config)
+engine.save("/models/glm-5-9b-chat/trt-engine/")
+
+# Step 3: 部署推理服务
+from tensorrt_llm.runtime import ModelRunner
+runner = ModelRunner.from_dir("/models/glm-5-9b-chat/trt-engine/")
+
+# Step 4: 推理
+output = runner.generate(
+    input_ids=[1, 2024, 3258, 998],  # tokenized prompt
+    max_new_tokens=512,
+    temperature=0.7,
+    top_p=0.9,
+)
+print(output)
+    </code></pre>
+
+    <h2 class="section" id="quant"><span class="idx">★</span> INT8 SmoothQuant 量化</h2>
+    <p>SmoothQuant 是 TensorRT-LLM 的招牌量化技术。它观察到：激活值的不同通道存在"离群值"（outlier），导致 INT8 量化误差大。SmoothQuant 的思路是把激活值的难度"迁移"到权重上——用平滑因子缩小激活值范围，同时放大对应权重，使两者都落在 INT8 可表示范围内。</p>
+
+    <pre><code class="language-python"># SmoothQuant 量化配置
+builder_config = BuilderConfig(
+    # ... 其他参数 ...
+    quant_mode="int8",          # INT8 量化
+    smoothquant_value=0.5,      # 平滑因子（0-1，0.5 是经验最优值）
+)
+
+# FP8 量化（H100 专用，精度更高）
+builder_config = BuilderConfig(
+    quant_mode="fp8",
+    use_fp8=True,
+)
+# FP8 在 H100 上比 FP16 快 2x，比 INT8 精度损失更小
+
+# 对比测试
+# FP16:  延迟 45ms/tok, 显存 18GB, BLEU 27.3
+# INT8:  延迟 22ms/tok, 显存 10GB, BLEU 26.8 (-0.5)
+# FP8:   延迟 28ms/tok, 显存 10GB, BLEU 27.1 (-0.2)
+    </code></pre>
+
+    <h2 class="section" id="bench"><span class="idx">★</span> 性能基准对比</h2>
+    <table>
+      <tr><th>引擎</th><th>吞吐(tokens/s)</th><th>延迟(ms/tok)</th><th>显存(GB)</th></tr>
+      <tr><td>PyTorch (FP16)</td><td>1,200</td><td>45</td><td>18</td></tr>
+      <tr><td>vLLM (FP16)</td><td>3,500</td><td>20</td><td>15</td></tr>
+      <tr><td>TRT-LLM (FP16)</td><td>5,800</td><td>15</td><td>14</td></tr>
+      <tr><td>TRT-LLM (INT8)</td><td>9,200</td><td>9</td><td>8</td></tr>
+      <tr><td>TRT-LLM (FP8)</td><td>11,000</td><td>7</td><td>8</td></tr>
+    </table>
+    <p>TRT-LLM INT8 相比原始 PyTorch，吞吐提升 7.7 倍，延迟降低 5 倍。</p>
+
+    <h2 class="section" id="prod"><span class="idx">★</span> 生产部署：Triton Inference Server</h2>
+    <pre><code class="language-python"># 用 Triton 部署 TRT-LLM，获得负载均衡、模型版本管理、A/B 测试等能力
+# 启动命令：
+# tritonserver --model-repository=/models/ \
+#   --http-port=8000 --grpc-port=8001
+
+# Python 客户端
+import tritonclient.http as httpclient
+
+client = httpclient.InferenceServerClient(url="localhost:8000")
+
+# 构造请求
+inputs = [httpclient.InferInput("input_ids", [1, 128], "INT32")]
+inputs[0].set_data_from_numpy(tokenized_prompt)
+
+outputs = [httpclient.InferRequestedOutput("output_ids")]
+
+# 发送请求（支持流式输出）
+result = client.infer("glm_trt_llm", inputs=inputs, outputs=outputs)
+print(result.as_numpy("output_ids"))
+    </code></pre>
+
+    <blockquote><strong>选型建议：</strong>如果你有 NVIDIA GPU 且追求极致吞吐 → TRT-LLM；如果需要跨硬件（CPU/AMD/Apple Silicon）→ vLLM 或 llama.cpp；如果模型较小且注重延迟 → MLC-LLM。</blockquote>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>TensorRT-LLM 的三把斧：kernel 融合 + 连续批处理 + INT8/FP8 量化</li>
+      <li>SmoothQuant 通过迁移离群值实现无损 INT8 量化</li>
+      <li>INT8 量化可达 7-8 倍吞吐提升，FP8 在 H100 上精度更好</li>
+      <li>配合 Triton Server 可实现负载均衡、模型版本管理、A/B 测试等生产功能</li>
+    </ul>
 
 </main>
 
