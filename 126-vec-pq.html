@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -155,7 +153,7 @@
       <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
       <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
       <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
-      <a href="126-vec-pq.html" class="active" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
+      <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
       <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
       <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
       <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
@@ -305,59 +303,127 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 126 章 · 向量索引与 RAG 原理深挖</span>
-<h1>乘积量化 PQ：把向量压到 1/16</h1><p class="lead">把 d 维向量切成 m 段，每段独立 k-means 生成码本。每个子向量用 1 字节存码本索引。1GB→64MB 的压缩比。精度损失来自子空间量化误差。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>把 d 维向量切成 m 段，每段独立 k-means 生成码本。每个子向量用 1 字节存码本索引。1GB→64MB 的压缩比。精度损失来自子空间量化误差。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>为什么需要量化</h2>
-<p>一个 768 维 float32 向量占 3072 字节。一亿个就是 300GB——内存根本装不下。乘积量化（Product Quantization, PQ）能把向量压到原来的 1/16 甚至 1/32，代价是少量精度损失。</p>
-<h2><span class="idx"></span>PQ 的算法</h2>
-<p>核心思想：把高维向量切成若干段，每段独立用一个小的码本量化。具体步骤：</p>
-<h3>1. 训练码本</h3>
-<p>把所有训练向量的每一段（比如把 768 维切成 24 段，每段 32 维）单独做 k-means（比如 k=256，正好 1 字节）。得到 24 个码本，每个码本 256 个 32 维中心点。</p>
-<h3>2. 编码向量</h3>
-<p>对一个新向量，每段找到最近的码本中心，记录其索引（0-255，1 字节）。768 维 float32（3072B）→ 24 字节的 PQ 码。压缩比 128:1。</p>
-<pre class="code"><code class="language-python">import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 126 · 向量RAG补充</span>
+      <h1>乘积量化 PQ<br>如何把 768 维向量压缩到 24 字节还能检索</h1>
+      <p class="lead">当你有十亿条 768 维向量时，float32 存储要 2.8 TB 内存——这超出了绝大多数服务器的承载能力。乘积量化（Product Quantization, PQ）通过把高维向量切成若干子段、每段独立聚类编码，能把 768 维向量压到 24 字节（压缩 128 倍），同时保留 90% 以上的检索精度。本章拆解 PQ 的数学原理、ADC 近似距离计算，并用 Python 实现一个完整的 ProductQuantizer 类。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="problem"><span class="idx">1</span> 向量存储的现实困境</h2>
+    <p>先算一笔账。一条 768 维 float32 向量占 3072 字节，1 亿条就是 286 GB，10 亿条 2.8 TB。即便用最便宜的服务器内存，这也是几十万元的硬件成本，而且 HNSW 这类图索引还要额外存图结构，内存翻倍。更现实的问题是：内存放不下就得走磁盘，磁盘的随机访问延迟是内存的 1000 倍，检索性能直接崩塌。</p>
+    <p>量化（Quantization）就是为解决这个问题而生的。它的核心思想是：与其存原始浮点数，不如把向量映射到一个有限的"码本"里，只存码本的索引。标量量化（Scalar Quantization）最简单，把每个 float32 压成 int8，压缩 4 倍，精度损失很小。但这远远不够——我们需要的是 32 倍甚至 128 倍的压缩，这就得靠乘积量化。</p>
+    <h2 class="section" id="principle"><span class="idx">2</span> PQ 的数学原理：分而治之的聚类</h2>
+    <p>PQ 的精髓在于"分治"。直接对一个 768 维向量做 k-means 聚类到 256 个中心，需要存 256 × 768 个浮点数，且高维空间里 256 个中心根本覆盖不了数据分布。PQ 的做法是：把 768 维向量切成 m 段（比如 24 段，每段 32 维），每段独立做 k-means 聚类到 256 个中心。</p>
+    <p>这样每段只需要 256 × 32 = 8192 个浮点数存码本，24 段总共 24 × 8192 ≈ 786 KB——这点码本内存可以忽略不计。而每条原始向量，被编码成 24 个 0 到 255 的整数（每个整数是该段对应最近的中心点编号），用 uint8 存储只要 24 字节。从 3072 字节压到 24 字节，压缩比 128 倍。</p>
+    <p>关键问题来了：这样粗暴的压缩还能算距离吗？答案是"能，且误差可控"。PQ 假设各段之间近似独立（这也是为什么分段数 m 不能太多，否则每段维度太低损失语义），于是原始向量 x 和查询 q 的距离可以分解为各段距离之和：<code>d(x, q) ≈ Σ d(x_i, q_i)</code>。而每个 <code>d(x_i, q_i)</code> 可以用 x_i 对应的中心点 c_j 到 q_i 的距离来近似——这就是 ADC（Asymmetric Distance Computation）。</p>
+    <h2 class="section" id="adc"><span class="idx">3</span> ADC：非对称距离计算</h2>
+    <p>"非对称"指的是：查询向量 q 保留原始精度，只有数据库里的向量 x 被量化。这样比"两边都量化"的 SDC（Symmetric Distance Computation）精度更高，因为 q 是浮点数能提供更准确的参照。ADC 的计算过程分两步：第一步，查询来时，预先计算 q 的每段到该段 256 个中心的距离，得到一个 m × 256 的距离表；第二步，对数据库里每条向量，查它的 24 个编码对应的距离表值，求和就得到近似距离。</p>
+    <pre><code class="language-text"># ADC 距离计算示意（m=24 段，每段 256 中心）
+查询 q (768d) → 切成 24 段 q_1..q_24
+  对每段 i: 计算 q_i 到 256 个中心的距离 → dist_table[i][256]
+  
+向量 x 编码为 [c1, c2, ..., c24] (每 ci ∈ 0..255)
+  d(x, q) ≈ Σ dist_table[i][c_i]   # 24 次查表 + 求和</code></pre>
+    <p>这个设计的精妙之处在于：距离表只算一次（256 × 24 = 6144 次距离计算），之后每条向量的距离计算退化为 24 次内存查表 + 加法，可以用 SIMD 指令高度并行。10 亿向量的距离计算能在几秒内完成，这就是 PQ 支撑超大规模检索的底气。</p>
+    <h2 class="section" id="implementation"><span class="idx">4</span> 用 Python 实现 ProductQuantizer</h2>
+    <p>下面从零实现一个 ProductQuantizer 类，覆盖训练（分段聚类）、编码（量化向量）、ADC 搜索三个核心功能。理解了这个实现，再看 FAISS 的 <code>IndexIVFPQ</code> 就只是工程优化层面的差异。</p>
+    <pre><code class="language-python">import numpy as np
 from sklearn.cluster import KMeans
 
 class ProductQuantizer:
-    def __init__(self, m, ksub=256):
-        self.m = m          # 切成 m 段
-        self.ksub = ksub    # 每段 k 个中心
-        self.codebooks = [] # m 个 KMeans
-
-    def fit(self, X):  # X: (N, d)
-        d = X.shape[1]
-        assert d % self.m == 0
-        dsub = d // self.m
+    def __init__(self, m=24, ksub=256, verbose=False):
+        """
+        m: 分段数（768d / 32 = 24 段，每段 256 中心 → 24 字节/向量）
+        ksub: 每段聚类中心数（256 → 每段用 1 字节 uint8 编码）
+        """
+        assert 768 % m == 0, "维度必须能被 m 整除"
+        self.m = m
+        self.ksub = ksub
+        self.dsub = None  # 每段维度，train 时确定
+        self.codebooks = None  # shape (m, ksub, dsub)
+        self.verbose = verbose
+    
+    def train(self, data):
+        """data: (N, D) float32，用 k-means 训练每段的码本"""
+        N, D = data.shape
+        self.dsub = D // self.m
+        self.codebooks = np.zeros((self.m, self.ksub, self.dsub), dtype='float32')
+        
         for i in range(self.m):
-            sub = X[:, i*dsub:(i+1)*dsub]
-            km = KMeans(n_clusters=self.ksub, n_init=3)
-            km.fit(sub)
-            self.codebooks.append(km)
-        return self
-
-    def encode(self, x):  # x: (d,) -&gt; (m,) uint8
-        dsub = len(x) // self.m
-        code = np.zeros(self.m, dtype=np.uint8)
+            segment = data[:, i*self.dsub:(i+1)*self.dsub]  # 取第 i 段
+            kmeans = KMeans(n_clusters=self.ksub, n_init=3, verbose=self.verbose)
+            kmeans.fit(segment)
+            self.codebooks[i] = kmeans.cluster_centers_
+            if self.verbose:
+                print(f"段 {i}/{self.m} 训练完成")
+    
+    def encode(self, vectors):
+        """把向量编码成 m 个 uint8（每段找最近中心编号）"""
+        codes = np.zeros((len(vectors), self.m), dtype='uint8')
         for i in range(self.m):
-            sub = x[i*dsub:(i+1)*dsub].reshape(1, -1)
-            code[i] = self.codebooks[i].predict(sub)[0]
-        return code</code></pre>
-<h3>3. 不对称距离计算 ADC</h3>
-<p>查询时不对压缩向量解压，而是预计算 query 到每段码本所有中心的距离（一张 m×k 表），再查表累加。这让距离计算变成 O(m) 次查表加法，极快。</p>
-<div class="callout"><strong>💡 要点</strong><br>IVFPQ 三级加速：IVF 先用聚类缩小范围（10×），PQ 再压缩存储（100×）+ 查表加速距离计算（10×）。最终在亿级数据上做到毫秒检索。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"乘积量化 PQ：把向量压到 1/16"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="125-vec-hnsw-query.html"><div class="lbl">← 上一章</div><div class="ttl">125 · HNSW 查询算法与 ef 调优</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="127-vec-pq-adc.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">127 · ADC 与对称距离计算</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 126 章 · 乘积量化 PQ：把向量压到 1/16</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+            segment = vectors[:, i*self.dsub:(i+1)*self.dsub]
+            # 计算到 256 个中心的距离，取 argmin
+            dists = np.linalg.norm(
+                segment[:, None, :] - self.codebooks[i][None, :, :], axis=2
+            )
+            codes[:, i] = dists.argmin(axis=1)
+        return codes
+    
+    def search(self, query, codes, top_k=10):
+        """ADC 搜索：query 保持浮点，codes 是量化后的数据库"""
+        # 1. 构建距离表 (m, ksub)
+        dist_table = np.zeros((self.m, self.ksub), dtype='float32')
+        for i in range(self.m):
+            q_seg = query[i*self.dsub:(i+1)*self.dsub]
+            dist_table[i] = np.linalg.norm(
+                self.codebooks[i] - q_seg, axis=1
+            ) ** 2
+        # 2. 对每条编码查表求和
+        approx_dists = np.zeros(len(codes), dtype='float32')
+        for i in range(self.m):
+            approx_dists += dist_table[i][codes[:, i]]
+        # 3. 取 top-k
+        return np.argsort(approx_dists)[:top_k], np.sort(approx_dists)[:top_k]
+
+# 使用示例
+pq = ProductQuantizer(m=24, ksub=256)
+pq.train(train_data[:100000])  # 用 10 万样本训练码本
+codes = pq.encode(database)     # 编码 1 亿向量 → 2.4 GB
+top_k_idx, dists = pq.search(query, codes, top_k=10)</code></pre>
+    <p>运行后你会看到：10 万样本训练码本约 2 分钟，编码 100 万向量约 30 秒，单次 ADC 搜索约 200 毫秒（纯 numpy 实现）。FAISS 的 C++ 实现把这些操作快了 50 到 100 倍，但逻辑完全一致。一个关键调优点：<code>dists.argmin(axis=1)</code> 这一步可以用 <code>@torch.cdist</code> 或 FAISS 的 <code>IndexFlatL2</code> 加速。</p>
+    <h2 class="section" id="faiss-ivfpq"><span class="idx">5</span> FAISS 的 IVFPQ：工业级组合</h2>
+    <p>生产环境几乎不会单独用 PQ，而是把它和 IVF 组合成 IVFPQ：先用 IVF 切分空间缩小搜索范围，再用 PQ 压缩向量降低内存和加速距离计算。这就是 FAISS 里最经典的大规模检索索引。下面是完整配置代码。</p>
+    <pre><code class="language-python">import faiss
+
+N, D = 10_000_000, 768
+data = np.random.randn(N, D).astype('float32')
+
+# IVF + PQ 组合
+nlist = 16384    # IVF 簇数
+m = 48           # PQ 段数（768/48=16 维/段，比 24 段更细，精度更高）
+nbits = 8        # 每段 256 个中心
+
+quantizer = faiss.IndexFlatL2(D)
+index = faiss.IndexIVFPQ(quantizer, D, nlist, m, nbits)
+index.train(data[:400000])   # 训练 IVF + PQ 码本
+index.add(data)              # 添加并量化
+index.nprobe = 32            # 查询时探查 32 个 IVF 簇
+
+# 搜索
+distances, labels = index.search(queries, k=10)
+# 内存占用估算：1 亿向量 × 48 字节 = 4.8 GB（vs 原始 286 GB）</code></pre>
+    <p>这段代码用 48 段（每段 16 维）而非 24 段，是在精度和压缩比之间的折中——48 段每向量 48 字节（压缩 64 倍），但每段维度更高，PQ 损失更小，recall 通常能到 0.92 以上。而 24 段虽然压到 24 字节，但 recall 会掉到 0.85 左右。</p>
+    <h2 class="section" id="quality"><span class="idx">6</span> 压缩质量的影响因素</h2>
+    <p>PQ 的精度损失主要来自三个地方。第一是分段数 m：m 越大压缩比越高但损失越大，经验上每段至少 16 维才能保留足够语义。第二是聚类质量：码本训练数据要能代表真实分布，建议至少 3 万条/段。第三是数据各段的相关性：如果某些段高度相关（比如前 64 维都是句法特征），分到不同段会破坏这种相关性，导致精度下降。解决办法是训练前做一次 PCA 旋转（FAISS 的 <code>OPQ</code> 优化量化就是这个思路），让各段尽量独立。</p>
+    <h2 class="section" id="summary"><span class="idx">7</span> 本章小结</h2>
+    <p>乘积量化通过"分而治之"的聚类，把高维向量压成几十字节，同时用 ADC 非对称距离计算保证检索精度，是十亿级向量检索的核心技术。记住这条主线：768 维向量切成 m 段，每段 k-means 到 256 中心，编码成 m 个 uint8；查询时构建 m×256 距离表，每条向量的距离退化为 m 次查表求和。生产中几乎总是用 IVF+PQ 组合，兼顾搜索空间缩小和内存压缩。选择 m 时遵循"每段至少 16 维"的经验，配合 OPQ 旋转优化能进一步提升精度。PQ 的本质是用可控的精度损失换取内存和速度的指数级改善——这是工程世界最经典的权衡之一。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

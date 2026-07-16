@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -173,7 +171,7 @@
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
-      <a href="144-vec-eval-benchmark.html" class="active" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
+      <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
       <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
     </div>
     <div class="nav-group"><h3>★Agent源码</h3>
@@ -305,66 +303,216 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 144 章 · 向量索引与 RAG 原理深挖</span>
-<h1>ANN 基准测试：ann-benchmark 实战</h1><p class="lead">recall@k vs QPS 曲线、不同数据集（SIFT/GLOVE/Deep）的表现、如何为自己的数据选索引。离线评估与在线 A/B。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>recall@k vs QPS 曲线、不同数据集（SIFT/GLOVE/Deep）的表现、如何为自己的数据选索引。离线评估与在线 A/B。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>recall@k vs QPS 曲线、不同数据集（SIFT/GLOVE/Deep）的表现、如何为自己的数据选索引。离线评估与在线 A/B。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 144 · 向量检索系列</span>
+      <h1>向量检索评估基准<br>VectorDBBench / ANN-benchmark 与 recall@k</h1>
+      <p class="lead">"我这个向量库性能怎么样？"——这个问题没有真实测过就没法回答。ANN-benchmarks 和 VectorDBBench 是当前最权威的两个向量检索评估基准，前者测算法本身的 recall-QPS 曲线，后者测完整向量库产品（Milvus/Qdrant/Weaviate）的端到端性能。本文拆解 recall@k 指标的定义、两个基准的用法，并跑一遍实操。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="recall-k"><span class="idx">★</span> recall@k：最核心也最易被滥用的指标</h2>
+    <p>recall@k 是评估 ANN 算法的基石指标。定义：对每个查询 q，先用暴力检索算出真正的 top-k（ground truth），再用 ANN 算法算出近似 top-k，recall@k = |近似 top-k ∩ 真实 top-k| / k。对一组查询取平均，就是系统的 recall@k。</p>
+    <p>这个定义看似简单，实操中却有几个易被滥用的细节：</p>
+    <ul>
+      <li><strong>k 必须一致</strong>：暴力 top-10 和 ANN top-10 比，不能暴力 top-100 和 ANN top-10 比（后者会虚高）。</li>
+      <li><strong>距离度量要一致</strong>：暴力用 L2，ANN 也必须用 L2，不能一个 L2 一个余弦。</li>
+      <li><strong>查询集要独立</strong>：查询不能出现在数据库里（不然 ANN 一定能找到自己，recall 虚高）。</li>
+      <li><strong>样本量要够</strong>：至少几百到几千个查询，否则方差大。</li>
+    </ul>
+    <p>另一个进阶指标是 recall@k vs QPS 曲线——单点 recall 没意义，要和速度一起看（120 篇讲过）。</p>
+
+    <pre><code class="language-python"># 手算 recall@k —— 理解每个细节
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+def compute_recall_at_k(ann_results, gt_results, k):
+    """
+    ann_results: list of list，每个查询的 ANN top-k（id 列表）
+    gt_results:  list of list，每个查询的真实 top-k（id 列表）
+    k:          top-k
+    return:     平均 recall@k
+    """
+    assert len(ann_results) == len(gt_results)
+    recalls = []
+    for ann, gt in zip(ann_results, gt_results):
+        ann_set = set(ann[:k])
+        gt_set = set(gt[:k])
+        recall = len(ann_set & gt_set) / k
+        recalls.append(recall)
+    return np.mean(recalls)
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 模拟：1000 查询，每个查 top-10
+N_q = 1000; k = 10
+gt = [list(np.random.choice(100000, k, replace=False)) for _ in range(N_q)]
+# ANN 大部分对、少部分错
+ann = [list(set(g[:8]) | set(np.random.choice(100000, 2))) for g in gt]
+print(f"recall@10 = {compute_recall_at_k(ann, gt, 10):.3f}")
+# 输出约 0.8 —— 因为每个查询 10 个里命中 8 个
+</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h2 class="section" id="ann-benchmarks"><span class="idx">★</span> ANN-benchmarks：算法层面的标杆</h2>
+    <p>ANN-benchmarks（ann-benchmarks.com）是 Erik Bernhardsson 等人维护的算法评测，覆盖 HNSW、Annoy、FAISS-IVF、NGT、ScaNN 等几乎所有主流 ANN 算法。它用标准数据集（如 SIFT 1M、GIST 1M、NYTimes、Fashion-MNIST），在每个算法的多个参数档位下跑 recall@10 vs QPS 曲线，画在同一张图上比较。算法越靠右上（高 recall + 高 QPS）越好。</p>
+    <p>它的价值在于<strong>可比性</strong>：同一硬件、同一数据集、同一指标下，所有算法公平对比。这是你看"HNSW 和 ScaNN 谁快"这种问题的权威答案来源。但它只测算法（库级别），不测完整产品（不含网络、并发、持久化）。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"ANN 基准测试：ann-benchmark 实战"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="143-vec-splade.html"><div class="lbl">← 上一章</div><div class="ttl">143 · SPLADE 稀疏向量：学习型 BM25</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="145-vec-prod-ops.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">145 · 向量库运维：重建、调优、成本</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 144 章 · ANN 基准测试：ann-benchmark 实战</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <pre><code class="language-bash"># 在本地跑 ANN-benchmarks（Docker）
+git clone https://github.com/erikbern/ann-benchmarks
+cd ann-benchmarks
+
+# 1. 安装
+pip install -r requirements.txt
+
+# 2. 下载一个数据集（如 SIFT 1M）
+python install.py --dataset sift-128-euclidean
+
+# 3. 跑某个算法（如 hnswlib）的评测
+python run.py --algorithm hnswlib --dataset sift-128-euclidean
+
+# 4. 跑多个算法对比
+python run.py --algorithm hnswlib faiss annory --dataset sift-128-euclidean
+
+# 5. 生成 recall-QPS 曲线图
+python plot.py --dataset sift-128-euclidean --output plot.png
+# 输出的图里每条曲线是一个算法，越靠右上越好
+</code></pre>
+
+    <h2 class="section" id="vectordbench"><span class="idx">★</span> VectorDBBench：产品层面的标杆</h2>
+    <p>VectorDBBench（zilliztech 给的）是评估<strong>完整向量库产品</strong>的基准——Milvus、Qdrant、Weaviate、Chroma、pgvector、Elasticsearch 等。它不只是测算法 recall-QPS，还测：</p>
+    <ul>
+      <li><strong>加载/构建时间</strong>：1 亿向量插入 + 建索引要多久。</li>
+      <li><strong>并发 QPS</strong>：多客户端并发查询的真实吞吐。</li>
+      <li><strong>延迟分布</strong>：P50/P95/P99 延迟（不只看平均）。</li>
+      <li><strong>过滤场景性能</strong>：带属性过滤时 recall 和 QPS 怎么变化。</li>
+      <li><strong>容量规划</strong>：不同数据规模下的内存/磁盘占用。</li>
+    </ul>
+    <p>选向量库产品时，VectorDBBench 是最权威的数据来源。它的结果反映了真实生产场景（含网络、序列化、并发），比 ANN-benchmarks 的算法对比更贴近实际，但也更复杂、跑一次更久。</p>
+
+    <pre><code class="language-bash"># VectorDBBench 实操
+# 前置：Docker 环境 + 要测的向量库实例（如 Milvus）
+pip install vectordb-bench
+
+# 1. 配置测试任务（YAML）
+# 编辑 config：数据集、规模、向量库连接、并发数等
+cat > my_task.yaml &lt;&lt;EOF
+label: my-bench
+vector_db: milvus
+dataset: openai-1536-angular   # 数据集
+db_config:
+  db_params: {uri: "http://localhost:19530"}
+  collection_name: bench
+  db_label: milvus-test
+collection_param:
+  index_type: HNSW
+  index_param: {M: 16, efConstruction: 200}
+  ef: 64
+search_param:
+  ef: 64
+upload:
+  parallel: 10
+  batch_size: 5000
+insert:
+  parallel: 10
+search:
+  parallel: 100
+  concurrency: 100
+EOF
+
+# 2. 跑测试（包括 insert / build / search / 并发）
+vdbbench --task my_task.yaml run
+
+# 3. 看结果（recall / QPS / 延迟分布 / 资源占用）
+vdbbench --task my_task.yaml show-result
+</code></pre>
+
+    <h2 class="section" id="datasets"><span class="idx">★</span> 标准数据集：测什么很重要</h2>
+    <p>不同数据集特性差异巨大，同一个算法在不同数据集上表现可能反转。常见的标准数据集：</p>
+    <ul>
+      <li><strong>SIFT-128-euclidean</strong>：图像特征，128 维 L2，1M 规模，最经典的 baseline。</li>
+      <li><strong>GIST-960-euclidean</strong>：图像 GIST 特征，960 维，更高维的挑战。</li>
+      <li><strong>NYTimes-256-angular</strong>：新闻 embedding，256 维余弦。</li>
+      <li><strong>Glove-25/100-angular</strong>：词向量，不同维度。</li>
+      <li><strong>Cohere-768-angular</strong>：Cohere embedding，768 维，更接近现代 RAG 场景。</li>
+    </ul>
+    <p>选数据集的原则：尽量选和你业务相近的（维度、距离度量、规模、分布）。如果业务是 768 维余弦的文本 embedding，Glove-25 这种低维数据测出来的结果参考价值有限。</p>
+
+    <h2 class="section" id="common-mistakes"><span class="idx">★</span> 评测常见误区</h2>
+    <ul>
+      <li><strong>只看 QPS 不看 recall</strong>：调小 efSearch 能让 QPS 翻倍，但 recall 掉到 0.5，单看 QPS 没意义。</li>
+      <li><strong>用训练数据当查询</strong>：查询和库重叠，recall 虚高。</li>
+      <li><strong>k 不匹配</strong>：暴力算 top-100，ANN 算 top-10，recall 虚高。</li>
+      <li><strong>硬件不一致对比</strong>：在自己机器测 HNSW，在论文里抄 ScaNN 数据，对比不公平。</li>
+      <li><strong>忽略 P99 延迟</strong>：平均延迟 5ms 但 P99 200ms，用户体验仍差。</li>
+      <li><strong>忽略过滤场景</strong>：很多库在无过滤时很快，加了属性过滤就崩，不测过滤等于没测。</li>
+    </ul>
+
+    <h2 class="section" id="practice"><span class="idx">★</span> 自己搭一套评测流程</h2>
+    <p>除了跑现成基准，多数团队需要测自己业务数据的性能。流程：</p>
+
+    <pre><code class="language-python"># 自建评测：用自己的 embedding 数据测向量库性能
+import numpy as np
+import time
+import faiss
+
+# 1. 准备数据：用真实 embedding（这里用随机模拟）
+d = 768; N = 10_000_000
+xb = np.random.randn(N, d).astype(np.float32); faiss.normalize_L2(xb)
+
+# 拆分：95% 入库，5% 做查询（保证查询不在库里）
+split = int(N * 0.95)
+db_vecs, query_vecs = xb[:split], xb[split:]
+
+# 2. 构建 ground truth（暴力，只对查询集算）
+flat = faiss.IndexFlatIP(d); flat.add(db_vecs)
+k = 10
+_, gt = flat.search(query_vecs, k)    # 这个会慢，但只算一次
+
+# 3. 构建待测索引
+def build_index(index_type="hnsw"):
+    if index_type == "hnsw":
+        idx = faiss.IndexHNSWFlat(d, 32)
+        idx.hnsw.efConstruction = 200
+    elif index_type == "ivfpq":
+        q = faiss.IndexFlatIP(d)
+        idx = faiss.IndexIVFPQ(q, d, 4096, 64, 8, faiss.METRIC_INNER_PRODUCT)
+        idx.train(db_vecs[:50000])
+    idx.add(db_vecs)
+    return idx
+
+# 4. 评测函数：扫参数档位，画 recall-QPS 曲线
+def benchmark(idx, param_name, param_values, set_param_fn):
+    results = []
+    for v in param_values:
+        set_param_fn(idx, v)
+        t0 = time.time()
+        _, I = idx.search(query_vecs, k)
+        qps = len(query_vecs) / (time.time() - t0)
+        # 算 recall@k
+        hits = sum(len(set(I[i]) & set(gt[i])) for i in range(len(query_vecs)))
+        recall = hits / (len(query_vecs) * k)
+        results.append((v, recall, qps))
+        print(f"{param_name}={v}  recall@{k}={recall:.4f}  QPS={qps:.0f}")
+    return results
+
+idx = build_index("hnsw")
+benchmark(idx, "efSearch", [16, 32, 64, 128, 256],
+          lambda i, v: i.hnsw.__setattr__("efSearch", v))
+# 输出一张表，按业务需要的 recall 下限选最优 efSearch
+</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>recall@k = |ANN top-k ∩ 真实 top-k| / k，是 ANN 评估的基石。注意 k/距离/查询独立/样本量四个细节，否则数字虚高。</li>
+      <li>ANN-benchmarks 测算法本身（recall-QPS 曲线，库级别），VectorDBBench 测完整向量库产品（端到端 QPS/延迟/过滤/容量）。</li>
+      <li>标准数据集（SIFT/GIST/NYTimes/Cohere）特性差异大，选和业务相近的。</li>
+      <li>误区：只看 QPS 不看 recall、查询和库重叠、k 不匹配、硬件不一致、忽略 P99、忽略过滤场景。</li>
+      <li>自建评测：用真实 embedding，拆查询集，先暴力算 ground truth，再扫参数档位画 recall-QPS 曲线。</li>
+    </ul>
+    <p>最后一篇讲把这些性能指标变成生产可用的系统——向量库的生产运维：索引重建、分片、副本、监控告警、灾备。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

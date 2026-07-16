@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -208,7 +206,7 @@
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
       <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
-      <a href="177-agent-sourcecode-parallel.html" class="active" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
+      <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
       <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
     </div>
     <div class="nav-group"><h3>★Skills技能</h3>
@@ -305,81 +303,281 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 177 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：并行工具调用</h1><p class="lead">一次推理返回多个工具调用、并行执行、结果聚合。race condition 与顺序保证。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>一次推理返回多个工具调用、并行执行、结果聚合。race condition 与顺序保证。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>一次推理返回多个工具调用、并行执行、结果聚合。race condition 与顺序保证。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 60 · Agent 源码深挖系列</span>
+      <h1>并行 Agent 执行<br>子 Agent spawn、结果聚合与 token 预算分配</h1>
+      <p class="lead">当任务复杂到一定程度——比如「重构这个有 50 个文件的模块」——单个 Agent 串行处理会很慢，而且 context 容易爆。一种高级模式是 <strong>并行 Agent</strong>：主 Agent 拆分任务，spawn 多个子 Agent 并行处理子任务，最后聚合结果。这能显著加速，但也带来协调、token 预算、结果合并等新挑战。本章我们讨论这套模式的工程设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-parallel"><span class="idx">★</span> 一、什么时候值得并行</h2>
+    <p>并行不是万能的，它有协调开销。值得并行的场景有几个特征：</p>
+    <p>第一，<strong>任务天然可分</strong>。比如「给这 10 个文件每个都加类型注解」——10 个文件互相独立，可以 10 路并行。而「修复这个 bug」通常不可分（诊断和修复有强依赖），强行并行反而乱。</p>
+    <p>第二，<strong>每个子任务足够重</strong>。如果子任务几秒就完成，并行的协调开销（spawn 子 Agent、聚合结果）可能比串行还慢。值得并行的子任务通常各自要几十秒到几分钟。</p>
+    <p>第三，<strong>context 独立</strong>。如果子任务之间不需要共享大量上下文，并行才高效。否则子 Agent 之间频繁通信，退化为串行。</p>
+    <p>典型适合并行的场景：批量文件修改、多模块独立测试、多方案探索（让几个子 Agent 各试一种方案，选最好的）。</p>
+
+    <h2 class="section" id="spawn"><span class="idx">★</span> 二、子 Agent 的 spawn 模型</h2>
+    <p>主 Agent spawn 子 Agent 的方式有几种模型，每种有不同的特性。</p>
+    <pre><code class="language-text">模型 1：独立 Session（完全隔离）
+主 Agent -&gt; 创建子 Session -&gt; 子 Agent 跑完 -&gt; 返回结果文本
+- 子 Agent 有独立的 context、独立的工具权限
+- 无法访问主 Agent 的对话历史
+- 适合：完全独立的子任务
+
+模型 2：共享上下文（只读继承）
+主 Agent -&gt; 创建子 Agent，传入当前 context 快照 -&gt; 子 Agent 基于快照工作
+- 子 Agent 能看到主 Agent 的历史（只读）
+- 子 Agent 的改动不直接影响主 Agent 的 context
+- 适合：需要理解整体但独立执行的任务
+
+模型 3：工具调用式（最轻量）
+主 Agent 调用一个 dispatch_agent 工具 -&gt; 工具内部跑一个迷你 Agent 循环 -&gt; 返回结果
+- 子 Agent 就是工具的一次调用
+- 生命周期短，结果就是一个返回值
+- 适合：小范围的探索性任务</code></pre>
+    <pre><code class="language-typescript">// 模型 3 的实现：dispatch_agent 工具（简化）
+export const dispatchAgentTool: Tool = {
+  name: "dispatch_agent",
+  description: `派生一个子 Agent 处理独立的子任务。
+适用于：需要聚焦处理但不需要主 Agent 持续关注的子任务。
+子 Agent 有自己的 context，执行完返回结果摘要。`,
+  schema: {
+    type: "object",
+    properties: {
+      task: {
+        type: "string",
+        description: "给子 Agent 的任务描述，要具体完整",
+      },
+      files: {
+        type: "array",
+        items: { type: "string" },
+        description: "子 Agent 需要访问的文件列表",
+      },
+    },
+    required: ["task"],
+  },
+  execute: async (params, ctx) =&gt; {
+    // 创建子 Agent（共享 cwd 和工具，但独立的 message 历史）
+    const subAgent = new SubAgent({
+      cwd: ctx.session.cwd,
+      tools: ctx.session.tools,  // 继承工具集
+      maxTurns: 10,              // 子 Agent 最多跑 10 轮
+      maxTokens: 5000,           // token 预算
+    });
+
+    // 给子 Agent 文件内容作为初始上下文
+    for (const file of params.files || []) {
+      const content = await readFile(file);
+      subAgent.injectContext(`文件 ${file}:\n${content}`);
+    }
+
+    // 跑子 Agent（阻塞，直到完成或预算耗尽）
+    const result = await subAgent.run(params.task);
+
+    // 返回结果摘要给主 Agent
+    return {
+      content: [{
+        type: "text",
+        text: `子 Agent 完成任务，结果摘要：\n${result.summary}\n\n` +
+              `修改的文件：${result.modifiedFiles.join(", ")}`,
+      }],
+    };
+  },
+};</code></pre>
+    <p>这种「dispatch_agent 工具」是最常见的子 Agent 模式——它把「派生子 Agent」包装成一个普通工具，主 Agent 像调用任何工具一样调用它。对主 Agent 来说，子 Agent 是个黑盒，它只看到一个 tool_call 和 tool_result。这种封装让并行 Agent 成为主 Agent 工具箱里的一项能力，而非特殊的架构。</p>
+
+    <h2 class="section" id="parallel-execution"><span class="idx">★</span> 三、真正的并行执行</h2>
+    <p>上面的 dispatch_agent 是串行的——主 Agent 调一次，等结果，再调下一次。真正的并行要求 <strong>同时 spawn 多个子 Agent，等它们都完成后聚合</strong>。</p>
+    <pre><code class="language-typescript">// 并行 spawn 多个子 Agent（简化）
+async function dispatchParallel(
+  tasks: SubTask[],
+  ctx: ToolContext,
+): Promise&lt;SubResult[]&gt; {
+  // 同时启动所有子 Agent
+  const promises = tasks.map(task =&gt; {
+    const subAgent = new SubAgent({
+      cwd: ctx.session.cwd,
+      maxTurns: task.maxTurns ?? 10,
+      maxTokens: task.maxTokens ?? 5000,
+    });
+    return subAgent.run(task.description).catch(err =&gt; ({
+      success: false,
+      summary: `子 Agent 失败：${err.message}`,
+      modifiedFiles: [],
+    }));
+  });
+
+  // 等所有完成
+  const results = await Promise.all(promises);
+
+  // 检查文件冲突（两个子 Agent 改了同一个文件？）
+  const fileOwners = new Map&lt;string, number&gt;();
+  for (let i = 0; i &lt; results.length; i++) {
+    for (const file of results[i].modifiedFiles) {
+      if (fileOwners.has(file)) {
+        console.warn(`文件冲突：${file} 被子 Agent ${fileOwners.get(file)} 和 ${i} 同时修改`);
+      }
+      fileOwners.set(file, i);
+    }
+  }
+
+  return results;
+}</code></pre>
+    <p>这里有个关键的工程问题：<strong>文件冲突</strong>。如果两个并行子 Agent 都修改了同一个文件，它们的结果可能互相覆盖（取决于执行顺序）或产生不一致的合并状态。上面的代码只检测并警告，不自动解决——因为自动合并代码改动是极难的问题（比 git merge 复杂，因为改动可能语义冲突）。实践中，并行子任务的设计应该 <strong>提前分配好各自负责的文件</strong>，避免冲突。</p>
+
+    <h2 class="section" id="budget"><span class="idx">★</span> 四、token 预算分配</h2>
+    <p>每个子 Agent 都要消耗 token（调 LLM、工具执行）。如果不限制，一个失控的子 Agent 可能把整个会话的预算烧光。所以子 Agent 必须有 <strong>token 预算</strong>。</p>
+    <pre><code class="language-typescript">// 带预算控制的子 Agent（简化）
+export class SubAgent {
+  private tokenUsed = 0;
+  private turnsUsed = 0;
+
+  constructor(private config: {
+    maxTokens: number;        // token 预算
+    maxTurns: number;         // 轮数预算
+    model: ModelConfig;
+  }) {}
+
+  async run(task: string): Promise&lt;SubResult&gt; {
+    const messages: Message[] = [
+      { role: "system", content: this.systemPrompt() },
+      { role: "user", content: task },
+    ];
+
+    while (this.turnsUsed &lt; this.config.maxTurns) {
+      // 预算检查
+      if (this.tokenUsed &gt;= this.config.maxTokens) {
+        return {
+          success: false,
+          summary: `子 Agent 达到 token 预算（${this.config.maxTokens}），中止。` +
+                   `已完成 ${this.turnsUsed} 轮。`,
+          modifiedFiles: this.collectModifiedFiles(),
+        };
+      }
+
+      // 调 LLM
+      const response = await this.callModel(messages);
+      this.tokenUsed += response.tokensUsed;
+      this.turnsUsed++;
+
+      // 没有工具调用，结束
+      if (!response.toolCalls) {
+        return {
+          success: true,
+          summary: response.text,
+          modifiedFiles: this.collectModifiedFiles(),
+        };
+      }
+
+      // 执行工具
+      for (const call of response.toolCalls) {
+        const result = await this.executeTool(call);
+        messages.push({ role: "tool", content: result.text, tool_call_id: call.id });
+      }
+    }
+
+    return {
+      success: false,
+      summary: `子 Agent 达到轮数上限（${this.config.maxTurns}）`,
+      modifiedFiles: this.collectModifiedFiles(),
+    };
+  }
+
+  private systemPrompt(): string {
+    return `你是一个子 Agent，负责处理主 Agent 分配的子任务。
+
+约束：
+- 你有 ${this.config.maxTokens} token 的预算，要高效使用
+- 你最多跑 ${this.config.maxTurns} 轮
+- 聚焦完成子任务，不要扩展到无关范围
+- 完成后给出简洁的结果摘要`;
+  }
+}</code></pre>
+    <p>注意 system prompt 里 <strong>明确告诉子 Agent 它的预算</strong>。这不是多余的——当 LLM 知道自己预算有限，它会更聚焦，减少不必要的探索。这种「把约束透明化」的策略，比默默限制更有效。</p>
+
+    <h2 class="section" id="aggregation"><span class="idx">★</span> 五、结果聚合：从多个摘要到一体视图</h2>
+    <p>子 Agent 都返回结果后，主 Agent 要把这些结果 <strong>聚合成一个一致的视图</strong>。这不是简单拼接——要识别矛盾、处理依赖、综合结论。</p>
+    <pre><code class="language-typescript">// 结果聚合（简化，实际可能再过一层 LLM）
+async function aggregateResults(
+  task: string,
+  subResults: SubResult[],
+): Promise&lt;string&gt; {
+  // 如果子任务有依赖顺序，按顺序整理
+  // 如果是探索性（多方案），综合选最佳
+
+  const summary = subResults.map((r, i) =&gt;
+    `【子任务 ${i + 1}】${r.success ? "完成" : "未完成"}
+${r.summary}
+${r.modifiedFiles.length &gt; 0 ? "修改文件：" + r.modifiedFiles.join(", ") : ""}`
+  ).join("\n\n");
+
+  // 让主 Agent 基于摘要做综合判断
+  return `任务「${task}」的并行子任务结果：
+
+${summary}
+
+请基于以上子任务结果，综合判断：
+- 整体任务是否完成？
+- 子任务之间是否有矛盾？
+- 还需要做什么收尾工作？`;
+}</code></pre>
+    <p>对于复杂场景，聚合本身可能需要一次 LLM 调用——让主 Agent 读所有子结果，做综合分析。这次调用的 context 包含所有子结果的摘要（而不是子 Agent 的完整历史，那会爆 context），这是子 Agent 返回「摘要」而非「完整日志」的价值。</p>
+
+    <h2 class="section" id="patterns"><span class="idx">★</span> 六、几种实用的并行模式</h2>
+    <p>除了「拆分独立子任务」，并行 Agent 还有几种实用模式：</p>
+    <p><strong>探索-利用（Exploration-Exploitation）</strong>：spawn 多个子 Agent 各探索一种方案，主 Agent 比较后选最佳的深入。适合「不确定该怎么做」的场景。</p>
+    <p><strong>Map-Reduce</strong>：一个主任务拆成 N 个相同的子任务（map），各自处理，结果合并（reduce）。适合批量操作，如「给每个 API 端点写文档」。</p>
+    <p><strong>专家咨询</strong>：spawn 几个不同「角色」的子 Agent（安全专家、性能专家、可读性专家），各自从自己角度审查同一段代码，主 Agent 综合意见。类似人类 code review 里多个 reviewer。</p>
+    <pre><code class="language-typescript">// 专家咨询模式（简化）
+async function multiPerspectiveReview(code: string): Promise&lt;string&gt; {
+  const perspectives = [
     {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+      role: "安全专家",
+      task: `从安全角度审查这段代码，关注：注入、XSS、认证绕过、敏感信息泄露。\n\n${code}`,
     },
     {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
-    }
-]
+      role: "性能专家",
+      task: `从性能角度审查，关注：时间复杂度、不必要的计算、内存分配、IO 次数。\n\n${code}`,
+    },
+    {
+      role: "可读性专家",
+      task: `从可维护性角度审查，关注：命名、复杂度、注释、是否符合项目风格。\n\n${code}`,
+    },
+  ];
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+  // 并行跑三个专家
+  const reviews = await Promise.all(
+    perspectives.map(p =&gt; dispatchSubAgent(p.task, { role: p.role }))
+  );
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+  // 主 Agent 综合
+  return `综合三位专家的审查意见：
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：并行工具调用"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="176-agent-sourcecode-mcp-deep.html"><div class="lbl">← 上一章</div><div class="ttl">176 · 源码级启示：MCP 集成</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="178-agent-sourcecode-testing.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">178 · 源码级启示：Agent 测试</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 177 章 · 源码级启示：并行工具调用</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+${reviews.map((r, i) =&gt; `【${perspectives[i].role}】\n${r.summary}`).join("\n\n")}
+
+请基于以上意见，决定优先修复哪些问题。`;
+}</code></pre>
+    <p>这种「多视角并行审查」比单个 Agent 做全面审查更深入——每个子 Agent 聚焦一个维度，不会因为 context 限制而浅尝辄止。代价是 token 成本是单 Agent 的 N 倍。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>并行 Agent 是处理复杂任务的高级模式。要点回顾：</p>
+    <ul>
+      <li><strong>适合场景</strong>：任务天然可分、子任务够重、context 独立，三者具备才值得并行。</li>
+      <li><strong>三种 spawn 模型</strong>：独立 Session（完全隔离）、共享上下文（只读继承）、dispatch_agent 工具（最轻量，最常用）。</li>
+      <li><strong>真正的并行</strong>：Promise.all 同时 spawn，但要处理文件冲突——实践中提前分配文件责任避免冲突。</li>
+      <li><strong>token 预算</strong>：子 Agent 必须有 maxTokens 和 maxTurns 限制，预算透明化让 LLM 更聚焦。</li>
+      <li><strong>结果聚合</strong>：子 Agent 返回摘要而非完整日志，主 Agent 基于摘要综合，复杂场景再过一次 LLM。</li>
+      <li><strong>实用模式</strong>：探索-利用（多方案选优）、Map-Reduce（批量操作）、专家咨询（多视角审查）。</li>
+    </ul>
+    <p>最后一章（178 章）我们讨论 Agent 的测试方法——怎么为一个「输出不确定」的系统写测试，这是 Agent 工程化最难的环节之一。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

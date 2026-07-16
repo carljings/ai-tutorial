@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -207,7 +205,7 @@
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
-      <a href="176-agent-sourcecode-mcp-deep.html" class="active" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
+      <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
       <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
       <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
     </div>
@@ -305,81 +303,316 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 176 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：MCP 集成</h1><p class="lead">MCP server 生命周期、工具发现、能力协商、多 server 聚合。stdio vs SSE 的实现差异。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>MCP server 生命周期、工具发现、能力协商、多 server 聚合。stdio vs SSE 的实现差异。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>MCP server 生命周期、工具发现、能力协商、多 server 聚合。stdio vs SSE 的实现差异。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 59 · Agent 源码深挖系列</span>
+      <h1>MCP 协议深度解析<br>JSON-RPC、四类能力与传输层</h1>
+      <p class="lead">我们在第 151 章从 OpenCode 的角度看过 MCP 集成。本章我们从协议本身出发，深入 MCP 的细节——JSON-RPC 消息格式、initialize 握手、tools/resources/prompts/sampling 四类能力的语义差异、stdio 与 SSE（以及 streamable HTTP）三种传输的取舍。理解了这些，你不仅能用好 MCP，还能自己写一个 MCP server。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="jsonrpc"><span class="idx">★</span> 一、MCP 基于 JSON-RPC 2.0</h2>
+    <p>MCP 的消息格式基于 JSON-RPC 2.0——一个轻量级的远程过程调用协议。JSON-RPC 定义了三种消息类型：<strong>request</strong>（请求，期待响应）、<strong>response</strong>（响应，成功或失败）、<strong>notification</strong>（通知，不期待响应）。</p>
+    <pre><code class="language-json">// Request（client -&gt; server）
+{
+  "jsonrpc": "2.0",
+  "id": 1,                          // 整数或字符串，用于匹配 response
+  "method": "tools/call",
+  "params": {
+    "name": "search_code",
+    "arguments": { "query": "authenticate" }
+  }
+}
+
+// Response - 成功（server -&gt; client）
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "result": {
+    "content": [{ "type": "text", "text": "找到 3 处..." }]
+  }
+}
+
+// Response - 失败
+{
+  "jsonrpc": "2.0",
+  "id": 1,
+  "error": {
+    "code": -32602,                 // JSON-RPC 标准错误码
+    "message": "Invalid params: missing 'query'"
+  }
+}
+
+// Notification（不期待响应）
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized",
+  "params": {}
+}</code></pre>
+    <p>JSON-RPC 的核心是 <strong>id 的匹配机制</strong>：每个 request 有唯一 id，对应的 response 用相同 id。这让 client 能把异步收到的 response 和它发的 request 配对——即使 response 乱序到达（在 SSE 等异步传输上可能发生），也能正确匹配。notification 没有 id，因为不需要匹配。</p>
+    <p>MCP 在 JSON-RPC 之上定义了自己的 method 命名空间，如 <code>initialize</code>、<code>tools/list</code>、<code>tools/call</code>、<code>resources/read</code> 等。这些 method 构成了 MCP 协议的 API 表面。</p>
+
+    <h2 class="section" id="handshake"><span class="idx">★</span> 二、Initialize 握手：版本与能力协商</h2>
+    <p>MCP 连接建立后的第一件事是 initialize 握手。双方交换协议版本、声明各自支持的能力（capabilities），确保兼容。这一步至关重要——MCP 协议在演进（从 2024-11-05 到 2025-03-26 等版本），client 和 server 可能支持不同版本。</p>
+    <pre><code class="language-json">// Client -&gt; Server: initialize request
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "method": "initialize",
+  "params": {
+    "protocolVersion": "2024-11-05",
+    "capabilities": {
+      "roots": { "listChanged": true },      // client 能提供 roots（工作目录）
+      "sampling": {},                         // client 支持 sampling 代理
+      "elicitation": {}                       // client 支持 elicit 用户输入
     },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+    "clientInfo": {
+      "name": "opencode",
+      "version": "1.2.0"
     }
-]
+  }
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+// Server -&gt; Client: initialize response
+{
+  "jsonrpc": "2.0",
+  "id": 0,
+  "result": {
+    "protocolVersion": "2024-11-05",          // 协商后的版本（可能降级）
+    "capabilities": {
+      "tools": { "listChanged": true },       // server 提供工具
+      "resources": { "subscribe": true },     // server 提供资源，支持订阅
+      "prompts": { "listChanged": true },     // server 提供 prompt 模板
+      "logging": {}                            // server 支持发日志
+    },
+    "serverInfo": {
+      "name": "github-mcp-server",
+      "version": "0.3.0"
+    }
+  }
+}
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+// Client -&gt; Server: initialized notification（无 id，无响应）
+{
+  "jsonrpc": "2.0",
+  "method": "notifications/initialized"
+}</code></pre>
+    <p>握手的关键是 <strong>capabilities 的双向声明</strong>。client 声明自己能提供什么（roots、sampling），server 声明自己提供什么（tools、resources、prompts）。握手后双方都知道对方的边界——client 不会向不支持 resources 的 server 发 resources/read 请求。这种「能力发现」机制让 MCP 协议既灵活（server 可以只实现部分能力）又安全（不会发不被支持的请求）。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：MCP 集成"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="175-agent-sourcecode-error-recovery.html"><div class="lbl">← 上一章</div><div class="ttl">175 · 源码级启示：错误恢复</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="177-agent-sourcecode-parallel.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">177 · 源码级启示：并行工具调用</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 176 章 · 源码级启示：MCP 集成</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="tools"><span class="idx">★</span> 三、tools：可执行的能力</h2>
+    <p>tools 是 MCP 最常用的能力——server 暴露的可执行函数，client 的 LLM 可以主动调用。tools 的发现通过 <code>tools/list</code>，调用通过 <code>tools/call</code>。</p>
+    <pre><code class="language-json">// Client -&gt; Server: 列出工具
+{ "jsonrpc": "2.0", "id": 1, "method": "tools/list" }
+
+// Server -&gt; Client: 工具列表
+{
+  "jsonrpc": "2.0", "id": 1,
+  "result": {
+    "tools": [
+      {
+        "name": "create_issue",
+        "description": "在 GitHub 仓库创建 issue",
+        "inputSchema": {
+          "type": "object",
+          "properties": {
+            "title": { "type": "string", "description": "issue 标题" },
+            "body": { "type": "string", "description": "issue 正文" },
+            "labels": { "type": "array", "items": { "type": "string" } }
+          },
+          "required": ["title"]
+        }
+      }
+    ]
+  }
+}
+
+// Client -&gt; Server: 调用工具
+{
+  "jsonrpc": "2.0", "id": 2, "method": "tools/call",
+  "params": {
+    "name": "create_issue",
+    "arguments": { "title": "登录按钮在 Safari 下错位", "labels": ["bug"] }
+  }
+}
+
+// Server -&gt; Client: 调用结果
+{
+  "jsonrpc": "2.0", "id": 2,
+  "result": {
+    "content": [
+      { "type": "text", "text": "已创建 issue #142: 登录按钮..." }
+    ],
+    "isError": false
+  }
+}</code></pre>
+    <p>tools 的 inputSchema 用 JSON Schema 描述参数——这和我们第 148 章讲的工具 schema 完全一致。这种格式对齐意味着 MCP server 的工具可以几乎零成本地映射成 LLM 的 function calling 格式，client 把它们直接塞进 tools 字段发给 LLM 即可。</p>
+
+    <h2 class="section" id="resources"><span class="idx">★</span> 四、resources：可读取的数据源</h2>
+    <p>resources 是 MCP 的第二类能力——server 暴露的 <strong>可读取数据</strong>，类似文件但更泛化。一个 resource 用 URI 标识（如 <code>github://repo/user/project/issues/142</code>），client 可以按需读取。</p>
+    <pre><code class="language-json">// 列出 resources
+{ "jsonrpc": "2.0", "id": 3, "method": "resources/list" }
+
+// 返回
+{
+  "jsonrpc": "2.0", "id": 3,
+  "result": {
+    "resources": [
+      {
+        "uri": "github://issues/142",
+        "name": "Issue #142",
+        "description": "登录按钮在 Safari 下错位",
+        "mimeType": "text/markdown"
+      },
+      {
+        "uri": "db://users/schema",
+        "name": "Users 表结构",
+        "mimeType": "application/json"
+      }
+    ]
+  }
+}
+
+// 读取一个 resource
+{
+  "jsonrpc": "2.0", "id": 4, "method": "resources/read",
+  "params": { "uri": "github://issues/142" }
+}
+
+// 返回内容
+{
+  "jsonrpc": "2.0", "id": 4,
+  "result": {
+    "contents": [
+      {
+        "uri": "github://issues/142",
+        "mimeType": "text/markdown",
+        "text": "# Issue #142: 登录按钮...\n\n## 描述\n..."
+      }
+    ]
+  }
+}</code></pre>
+    <p>resources 和 tools 的关键区别是 <strong>触发主体</strong>：tools 由 LLM 主动调用（模型决定什么时候需要），resources 由用户或 client 主动引用（用户在对话里 <code>@github://issues/142</code>）。这个区别决定了 client 怎么把它们暴露给交互——tools 进 LLM 的 tools 列表，resources 进 <code>@引用</code> 系统。</p>
+    <p>resources 还支持 <strong>订阅</strong>（如果 server 声明了 subscribe 能力）：client 可以订阅某个 resource 的变更，当 resource 内容变化时 server 主动推送通知。这对实时数据（如数据库状态、日志流）很有用。</p>
+
+    <h2 class="section" id="prompts"><span class="idx">★</span> 五、prompts：预定义的提示词模板</h2>
+    <p>prompts 是第三类能力——server 提供的 <strong>提示词模板</strong>，接受参数，展开成完整的 prompt。这适合「有固定套路」的任务，如代码审查、commit message 生成。</p>
+    <pre><code class="language-json">// 列出 prompts
+{ "jsonrpc": "2.0", "id": 5, "method": "prompts/list" }
+
+// 返回
+{
+  "jsonrpc": "2.0", "id": 5,
+  "result": {
+    "prompts": [
+      {
+        "name": "code-review",
+        "description": "审查一个 PR 的代码",
+        "arguments": [
+          {
+            "name": "pr_url",
+            "description": "PR 的 URL",
+            "required": true
+          },
+          {
+            "name": "focus",
+            "description": "审查重点：security/performance/style/all",
+            "default": "all"
+          }
+        ]
+      }
+    ]
+  }
+}
+
+// 获取（展开）一个 prompt
+{
+  "jsonrpc": "2.0", "id": 6, "method": "prompts/get",
+  "params": {
+    "name": "code-review",
+    "arguments": { "pr_url": "https://github.com/.../pull/142", "focus": "security" }
+  }
+}
+
+// 返回展开后的 messages
+{
+  "jsonrpc": "2.0", "id": 6,
+  "result": {
+    "description": "Security review of PR #142",
+    "messages": [
+      {
+        "role": "user",
+        "content": {
+          "type": "text",
+          "text": "请对以下 PR 进行安全审查...\n\nPR diff:\n..."
+        }
+      }
+    ]
+  }
+}</code></pre>
+    <p>prompts 的价值在于 <strong>封装领域知识</strong>。一个 GitHub MCP server 的 code-review prompt，内部知道怎么拉取 PR diff、怎么组织审查指令、关注哪些安全点——这些复杂逻辑被封装在 server 端，client 只需要传参数就能得到一个专业的审查 prompt。这降低了「写好 prompt」的门槛。</p>
+
+    <h2 class="section" id="sampling"><span class="idx">★</span> 六、sampling：server 反向请求 client 调 LLM</h2>
+    <p>sampling 是 MCP 里最特别的能力——它让 <strong>server 反向请求 client 帮它调一次 LLM</strong>。这听起来奇怪（client 不是调 server 的吗？），但有真实价值。</p>
+    <p>场景：一个 GitHub MCP server 在处理「总结这个 issue 的所有评论」时，需要 LLM 来做摘要。但 server 自己没有 LLM API key（也不应该有——key 应该由 client 持有）。sampling 让 server 发一个 <code>sampling/createMessage</code> 请求给 client，client 用自己配置的 LLM 生成回复，返回给 server。</p>
+    <pre><code class="language-json">// Server -&gt; Client: 请求 sampling
+{
+  "jsonrpc": "2.0", "id": 7, "method": "sampling/createMessage",
+  "params": {
+    "messages": [
+      { "role": "user", "content": { "type": "text", "text": "总结：..." } }
+    ],
+    "modelPreferences": {
+      "hints": [{ "name": "claude-sonnet" }],   // 偏好但不强制
+      "intelligencePriority": 0.8,               // 重视质量
+      "speedPriority": 0.2
+    },
+    "maxTokens": 200
+  }
+}
+
+// Client -&gt; Server: 返回 LLM 生成结果
+{
+  "jsonrpc": "2.0", "id": 7,
+  "result": {
+    "role": "assistant",
+    "content": { "type": "text", "text": "评论主要讨论了..." },
+    "model": "claude-sonnet-4",
+    "stopReason": "end_turn"
+  }
+}</code></pre>
+    <p>sampling 的精妙在于 <strong>它保持了「client 是 LLM 访问的唯一入口」这一架构</strong>。所有的 LLM 调用都通过 client 发起（client 持有 key、控制成本、记录审计），server 不直接接触 LLM API。这种设计让企业能集中管控 LLM 的使用，而不是让每个 MCP server 各自配 key。</p>
+
+    <h2 class="section" id="transports-compare"><span class="idx">★</span> 七、三种传输的深度对比</h2>
+    <p>MCP 支持三种传输，各有适用场景：</p>
+    <table>
+      <tr><th>维度</th><th>stdio</th><th>SSE (deprecated)</th><th>Streamable HTTP</th></tr>
+      <tr><td>运行模型</td><td>本地子进程</td><td>远程长连接</td><td>HTTP 请求/响应</td></tr>
+      <tr><td>消息方向</td><td>stdin/stdout 双向</td><td>SSE 下行 + POST 上行</td><td>单端点双向</td></tr>
+      <tr><td>状态保持</td><td>进程活着就有</td><td>连接活着就有</td><td>session ID 关联</td></tr>
+      <tr><td>断线恢复</td><td>重启进程，状态丢</td><td>重连，状态丢</td><td>带 session ID 可恢复</td></tr>
+      <tr><td>部署复杂度</td><td>低（本地跑）</td><td>中（要 SSE 支持）</td><td>低（标准 HTTP）</td></tr>
+      <tr><td>多客户端</td><td>一进程一客户端</td><td>多连接</td><td>多 session</td></tr>
+    </table>
+    <p>SSE 传输在较新的 MCP 规范里被标记为 deprecated，推荐迁移到 streamable HTTP。后者用单个 HTTP 端点处理双向消息——client POST 请求，server 可以在响应里返回 SSE 流（如果需要 server 主动推送）。这种设计更兼容现代基础设施（CDN、代理、负载均衡），且支持 session 恢复。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>MCP 是 Agent 接入外部能力的开放标准。要点回顾：</p>
+    <ul>
+      <li><strong>JSON-RPC 2.0</strong>：request/response/notification 三种消息，id 匹配机制支持异步乱序。</li>
+      <li><strong>initialize 握手</strong>：协商协议版本、双向声明 capabilities、initialized 通知后才正式可用。</li>
+      <li><strong>tools</strong>：LLM 主动调用的函数，inputSchema 用 JSON Schema，和 function calling 格式对齐。</li>
+      <li><strong>resources</strong>：用户引用的可读数据，URI 标识，支持订阅变更，区别于 tools 的触发主体。</li>
+      <li><strong>prompts</strong>：预定义模板，封装领域知识，接受参数展开成 messages。</li>
+      <li><strong>sampling</strong>：server 反向请求 client 调 LLM，保持 client 作为 LLM 唯一入口，集中管控。</li>
+      <li><strong>三种传输</strong>：stdio（本地子进程）、SSE（已 deprecated）、streamable HTTP（推荐，支持 session 恢复）。</li>
+    </ul>
+    <p>下一章（177 章）我们看并行 Agent 执行——子 Agent spawn、结果聚合、token 预算分配，这是处理复杂任务的高级模式。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

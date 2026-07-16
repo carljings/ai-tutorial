@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -201,7 +199,7 @@
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
-      <a href="170-agent-cursor-agent.html" class="active" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
+      <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
@@ -305,81 +303,195 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 170 章 · 开源 Agent 源码深挖</span>
-<h1>Cursor 的 Agent 模式</h1><p class="lead">IDE 原生集成、长任务 agent、多文件编辑。composer 多文件同步改。索引与检索的工程优化。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>IDE 原生集成、长任务 agent、多文件编辑。composer 多文件同步改。索引与检索的工程优化。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>IDE 原生集成、长任务 agent、多文件编辑。composer 多文件同步改。索引与检索的工程优化。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 53 · Agent 源码深挖系列</span>
+      <h1>Cursor 的 Agent 模式<br>从 Tab 到 Composer 到 Agent 的演进</h1>
+      <p class="lead">Cursor 是这波 AI 编程工具里最具商业代表性的产品。它的能力经历了三个阶段的演进：Cursor Tab（行内补全）→ Composer（多文件编辑）→ Agent（自主任务执行）。这三个阶段反映了「AI 在编程中角色」的深层变化——从打字助手到编码伙伴到自主工程师。虽然 Cursor 是闭源产品，但它公开的技术特征和 UX 设计深刻影响了整个开源 Agent 生态。本章我们基于公开信息，梳理这条演进路线背后的技术决策。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="tab"><span class="idx">★</span> 一、Cursor Tab：行内补全的技术突破</h2>
+    <p>Cursor 最早出圈的能力是 Cursor Tab——一个比 GitHub Copilot 更聪明的行内补全。它的技术突破不在模型大小（用的是专门微调的中等模型），而在 <strong>上下文构建和延迟优化</strong>。</p>
+    <p>普通的补全（包括早期 Copilot）只看当前文件的光标前后文。Cursor Tab 的特别之处是它能跨文件补全——当你在 A 文件里写 <code>import { User } from "./</code>，它能基于你最近编辑过的 B 文件里的 export，补全出 <code>models"</code>。这要求它维护一个「最近编辑历史」和「跨文件引用图」的轻量索引，在补全时快速检索相关上下文。</p>
+    <pre><code class="language-typescript">// Cursor Tab 的上下文构建（基于公开信息推断）
+function buildTabContext(editor: Editor): TabContext {
+  const cursorPrefix = editor.getTextBeforeCursor(2000);   // 当前文件前文
+  const cursorSuffix = editor.getTextAfterCursor(1000);    // 当前文件后文
+
+  // 关键：检索最近编辑过的相关文件
+  const recentFiles = editor.getRecentlyEditedFiles(5);
+  const relevantSnippets = [];
+  for (const file of recentFiles) {
+    // 找当前文件 prefix 里引用到的标识符
+    const identifiers = extractIdentifiers(cursorPrefix);
+    for (const ident of identifiers) {
+      const definition = index.findDefinition(ident, file.path);
+      if (definition) {
+        relevantSnippets.push({
+          file: file.path,
+          content: definition.snippet,
+          score: computeRelevance(ident, cursorPrefix),
+        });
+      }
     }
-]
+  }
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+  return {
+    prefix: cursorPrefix,
+    suffix: cursorSuffix,
+    // 用特殊标记把跨文件上下文注入
+    crossFileContext: relevantSnippets.slice(0, 3),
+  };
+}</code></pre>
+    <p>另一个关键优化是 <strong>投机补全（speculative completion）</strong>。Cursor 不是等用户停下来才补全，而是预测用户接下来可能打的几个方向，提前发起多个补全请求，用户真停下来了时已经有结果可显示。这种「预打」策略让感知延迟低于实际请求延迟，是 Tab 体感快的重要原因。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="composer"><span class="idx">★</span> 二、Composer：多文件编辑的交互革命</h2>
+    <p>Cursor Tab 是单文件、行内的。Composer 是 <strong>多文件、块级的编辑模式</strong>。用户在 Composer 面板描述「我要做什么」，Cursor 生成一个跨多个文件的 diff，用户审查后一键应用。</p>
+    <p>Composer 的核心交互创新是 <strong>diff-first UX</strong>。传统 Agent（包括 Aider、Cline）是边生成边应用——LLM 输出 SEARCH/REPLACE，工具立即改文件。Composer 不这样——它让 LLM 先生成完整的修改方案（所有文件的 diff），用户在 UI 里看到「要改这些文件、每个文件改这些地方」的预览，确认后才统一应用。这种「先预览后应用」的模式，让用户对 AI 的改动有完整掌控。</p>
+    <pre><code class="language-typescript">// Composer 的工作流（概念示意）
+interface ComposerProposal {
+  files: Array&lt;{
+    path: string;
+    changeType: "create" | "modify" | "delete";
+    diff: UnifiedDiff;          // 标准的 unified diff 格式
+    rationale: string;          // 为什么改这个文件
+  }&gt;;
+  summary: string;              // 整体修改说明
+}
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Cursor 的 Agent 模式"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="169-agent-cline-diff.html"><div class="lbl">← 上一章</div><div class="ttl">169 · Cline 的差异编辑</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="171-agent-roo-modes.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">171 · Roo Code 的多模式</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 170 章 · Cursor 的 Agent 模式</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+// 用户发起 Composer 任务
+async function runComposer(task: string, context: ContextItem[]) {
+  // 1. Agent 循环：理解任务、读相关文件、生成方案
+  const proposal = await agentLoop(task, context);
+
+  // 2. 展示 diff 预览给用户（不立即应用）
+  ui.showDiffPreview(proposal);
+
+  // 3. 等待用户决定
+  const decision = await ui.waitForUserDecision();
+  if (decision === "accept") {
+    await applyAllDiffs(proposal.files);
+  } else if (decision === "accept-partial") {
+    // 用户可以只接受部分文件的改动
+    await applyAllDiffs(decision.selectedFiles);
+  } else {
+    // 拒绝，什么都不改
+  }
+}</code></pre>
+    <p>Composer 还引入了一个重要概念：<strong>multi-file 编辑的原子性</strong>。如果一个修改方案涉及 5 个文件，其中第 3 个应用失败，前两个已经改的怎么办？Composer 的做法是「全有或全无」——先在临时空间准备所有改动，全部成功才提交到实际文件系统，任意一个失败就回滚。这种事务性保证了不会留下「改了一半」的不一致状态。</p>
+
+    <h2 class="section" id="agent"><span class="idx">★</span> 三、Agent 模式：自主任务执行</h2>
+    <p>Composer 的局限是它只做「代码修改」——读文件、生成 diff、应用。它不会跑测试、不会装依赖、不会迭代修复。Agent 模式补上了这一层——它不仅能改代码，还能 <strong>执行命令、观察结果、迭代修正</strong>，直到任务完成。</p>
+    <p>Agent 模式的循环和前面章节讲的通用 Agent 循环（OpenCode、Codex）本质上一样：调模型 → 模型请求工具（读文件/写文件/执行命令）→ 执行 → 反馈 → 继续。但 Cursor 的 Agent 在 UX 上有几个独到设计：</p>
+    <ul>
+      <li><strong>可见的思考过程</strong>：Agent 模式会把模型的「思考」展示在 UI 里，让用户看到它当前在干什么、计划下一步做什么。这借鉴了 Cline 的透明性设计（参见 168 章）。</li>
+      <li><strong>检查点回滚</strong>：每完成一个子步骤（如「装好了依赖」「跑通了测试」），Agent 创建一个检查点。用户可以随时回滚到任何检查点，不会因为 Agent 后面走错方向而前功尽弃。</li>
+      <li><strong>权限分级</strong>：和 Codex 类似（参见 149 章），Agent 模式支持 allow/ask/deny，用户可以配置哪些操作自动批准。</li>
+    </ul>
+
+    <h2 class="section" id="context-engineering"><span class="idx">★</span> 四、Cursor 的上下文工程</h2>
+    <p>Cursor 能在 Agent 模式表现出色，很大程度归功于它的 <strong>上下文工程</strong>——决定哪些信息进 context、以什么顺序、用什么格式。这是闭源产品里最难被复制的部分。</p>
+    <p>公开信息显示 Cursor 的上下文工程包含几个层次：</p>
+    <ol>
+      <li><strong>代码库索引</strong>：类似 Continue（参见 166 章），用 embedding + 关键词混合检索。但 Cursor 的索引规模和质量可能更高（有专门团队优化）。</li>
+      <li><strong>文档检索</strong>：@docs 能检索第三方库的官方文档。Cursor 预索引了大量流行库的文档，让 Agent 能引用准确的 API。</li>
+      <li><strong>Git 历史感知</strong>：@git 能让 Agent 看到 commit 历史、PR 讨论，理解代码的演进脉络。</li>
+      <li><strong>Web 检索</strong>：@web 让 Agent 联网搜索，解决「知识截止日期之后的信息」（如新版本的 API 变化）。</li>
+    </ol>
+    <pre><code class="language-typescript">// 上下文工程的拼装（概念示意）
+function buildAgentContext(task: string, mentions: Mention[]): Message[] {
+  const contextBlocks: ContextBlock[] = [];
+
+  for (const mention of mentions) {
+    switch (mention.type) {
+      case "@file":
+        contextBlocks.push({
+          type: "file",
+          content: readFile(mention.path),
+          priority: 10,   // 用户显式引用的优先级最高
+        });
+        break;
+      case "@codebase":
+        // 自动检索相关代码
+        const results = hybridSearch(task, topK=5);
+        contextBlocks.push({
+          type: "retrieved_code",
+          content: results.map(r =&gt; r.content).join("\n---\n"),
+          priority: 5,
+        });
+        break;
+      case "@docs":
+        const docs = searchDocs(mention.query);
+        contextBlocks.push({
+          type: "docs",
+          content: docs,
+          priority: 4,
+        });
+        break;
+      case "@web":
+        const webResults = webSearch(mention.query);
+        contextBlocks.push({
+          type: "web",
+          content: webResults,
+          priority: 3,
+        });
+        break;
+    }
+  }
+
+  // 按 priority 排序，高优先级放前面（lost-in-the-middle 效应让开头结尾更重要）
+  contextBlocks.sort((a, b) =&gt; b.priority - a.priority);
+
+  // 组装成消息
+  const contextText = contextBlocks
+    .map(b =&gt; formatBlock(b))
+    .join("\n\n");
+
+  return [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: `${contextText}\n\n任务：${task}` },
+  ];
+}</code></pre>
+    <p>注意 <strong>priority 排序</strong>这一步——它不是随意堆砌上下文，而是按重要性排序。这个排序考虑了 lost-in-the-middle 效应（模型对 context 开头和结尾的注意力高于中间），所以最相关的信息放前面或后面，次要的放中间。这种细节是上下文工程的精髓。</p>
+
+    <h2 class="section" id="custom-models"><span class="idx">★</span> 五、Cursor 的模型策略</h2>
+    <p>Cursor 不是简单调 OpenAI/Anthropic 的 API，它有复杂的模型组合策略。公开信息显示：</p>
+    <ul>
+      <li><strong>补全用自研小模型</strong>：Tab 补全用专门微调的中等模型，兼顾速度和质量。这是延迟和成本的关键。</li>
+      <li><strong>Chat/Agent 用前沿大模型</strong>：GPT-4、Claude Sonnet/Opus、Gemini 等，按用户订阅档位提供。</li>
+      <li><strong>路由策略</strong>：简单任务路由到便宜模型，复杂任务路由到强模型。这种「模型路由」是降低成本的常见手段。</li>
+      <li><strong>prompt caching</strong>：对不变的 system prompt 和长上下文用 caching，减少重复计算的开销。</li>
+    </ul>
+
+    <h2 class="section" id="impact"><span class="idx">★</span> 六、对开源生态的影响</h2>
+    <p>虽然 Cursor 闭源，它的 UX 设计深刻影响了开源 Agent。我们能在多个开源项目里看到 Cursor 的影子：</p>
+    <ul>
+      <li><strong>diff-first UX</strong>：Continue、Cline 后来都加入了「先预览 diff 再应用」的模式。</li>
+      <li><strong>跨文件补全</strong>：Continue 的 autocomplete 也加入了最近编辑文件的上下文。</li>
+      <li><strong>@引用语法</strong>：@file、@codebase、@docs 成了 Agent 的通用交互语法。</li>
+      <li><strong>检查点回滚</strong>：几乎所有 Agent 都有了某种形式的「撤销 AI 改动」能力。</li>
+      <li><strong>Agent 模式</strong>：从 Composer 到 Agent 的演进，定义了「AI 编程助手」的新形态。</li>
+    </ul>
+    <p>理解 Cursor 的演进，有助于你看懂整个 AI 编程工具赛道的趋势——从补全到编辑到自主，AI 的角色在不断加深。开源项目在追赶这条路线，而理解路线图能帮你判断一个开源项目的成熟度和方向。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Cursor 的三阶段演进定义了 AI 编程工具的成熟度阶梯。要点回顾：</p>
+    <ul>
+      <li><strong>Tab</strong>：行内补全，突破在跨文件上下文和投机补全（预打）降低感知延迟。</li>
+      <li><strong>Composer</strong>：多文件块级编辑，diff-first UX 先预览后应用，事务性保证不半改。</li>
+      <li><strong>Agent</strong>：自主任务执行，可见思考过程、检查点回滚、权限分级。</li>
+      <li><strong>上下文工程</strong>：codebase/docs/git/web 多源检索，按 priority 排序对抗 lost-in-the-middle。</li>
+      <li><strong>模型策略</strong>：补全用自研小模型，Chat/Agent 用前沿大模型，路由降成本，caching 省计算。</li>
+      <li><strong>生态影响</strong>：diff-first UX、@语法、检查点、Agent 模式成了开源 Agent 的标配。</li>
+    </ul>
+    <p>下一章（171 章）我们看 Roo Code——一个 Cline 的 fork，它在此基础上发展出了 architect/code/debug/ask 四模式切换的设计。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

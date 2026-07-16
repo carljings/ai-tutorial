@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -174,7 +172,7 @@
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
       <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
-      <a href="145-vec-prod-ops.html" class="active" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
+      <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
     </div>
     <div class="nav-group"><h3>★Agent源码</h3>
       <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
@@ -305,66 +303,210 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 145 章 · 向量索引与 RAG 原理深挖</span>
-<h1>向量库运维：重建、调优、成本</h1><p class="lead">索引随数据增长何时重建、HNSW 内存膨胀、embedding 模型升级的迁移。云服务 vs 自建 pgvector/Milvus 的成本对比。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>索引随数据增长何时重建、HNSW 内存膨胀、embedding 模型升级的迁移。云服务 vs 自建 pgvector/Milvus 的成本对比。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>索引随数据增长何时重建、HNSW 内存膨胀、embedding 模型升级的迁移。云服务 vs 自建 pgvector/Milvus 的成本对比。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 145 · 向量检索系列</span>
+      <h1>向量库生产运维<br>索引重建、分片、副本、监控与灾备</h1>
+      <p class="lead">在 demo 里跑得好的向量库，上了生产会被一堆工程问题拷打：向量持续写入怎么不重建索引？单机扛不下怎么分片？挂了怎么不丢数据？延迟抖动怎么定位？本章把向量库从"能跑"到"能扛生产"之间那些不性感但致命的运维问题一次讲清，给出可落地的工程清单。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="index-rebuild"><span class="idx">★</span> 索引重建：写入与检索的永恒矛盾</h2>
+    <p>HNSW、IVF 这些索引是为"静态数据"优化的——一次性构建好，查询高效。但生产环境的向量库会持续写入新向量（新文档、新图片、新行为日志），这就和索引的"静态"假设冲突。</p>
+    <p>几种应对策略：</p>
+    <ul>
+      <li><strong>原地插入（incremental insert）</strong>：HNSW 原生支持动态插入，新向量直接加进图。优点是实时性好，缺点是长期增量插入会让图质量下降（贪心插入不如批量构建的精修），需要定期重建。IVF 也支持增量，但 nlist 固定，分布漂移会让某些倒排列表膨胀。</li>
+      <li><strong>双 buffer + 后台重建</strong>：维护两个索引——活跃索引 A 服务查询，后台索引 B 重建。重建完成后原子切换。这是 Milvus/Qdrant 的做法，保证查询不中断。</li>
+      <li><strong>分段索引（segment）</strong>：借鉴 LSM-tree 的思路，新数据写到一个小的内存 segment，定期合并到大 segment。Elasticsearch、Vespa 用这种方案。</li>
+    </ul>
+    <p>选型要点：写入量小、实时性要求高 → 原地插入；写入量大、对图质量敏感 → 双 buffer 定期重建；超大规模写入 → 分段索引。无论哪种，都建议<strong>定期全量重建</strong>（比如每周或每月）保证索引质量，重建在后台不影响线上。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <pre><code class="language-python"># 双 buffer 索引重建的伪代码（无停机切换）
+import threading
+import time
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+class DualBufferVectorIndex:
+    def __init__(self, rebuild_interval=86400):   # 默认每天重建一次
+        self.active = build_hnsw(load_all_data())
+        self.writes_buffer = []                    # 重建期间累积的写入
+        self.lock = threading.RLock()
+        self.rebuild_interval = rebuild_interval
+        threading.Thread(target=self._rebuild_loop, daemon=True).start()
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"向量库运维：重建、调优、成本"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="144-vec-eval-benchmark.html"><div class="lbl">← 上一章</div><div class="ttl">144 · ANN 基准测试：ann-benchmark 实战</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="146-agent-opencode-arch.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">146 · OpenCode 架构：客户端/服务器分离</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 145 章 · 向量库运维：重建、调优、成本</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def search(self, q, k):
+        with self.lock:
+            # 先查活跃索引，再补查 buffer 里的新向量
+            hits = self.active.search(q, k * 2)
+            if self.writes_buffer:
+                buf_vecs = [w["vec"] for w in self.writes_buffer]
+                buf_sims = [cosine(q, v) for v in buf_vecs]
+                hits.extend(zip(buf_sims, [w["id"] for w in self.writes_buffer]))
+            return sorted(hits, reverse=True)[:k]
+
+    def insert(self, vec, doc_id):
+        with self.lock:
+            self.writes_buffer.append({"id": doc_id, "vec": vec})
+
+    def _rebuild_loop(self):
+        while True:
+            time.sleep(self.rebuild_interval)
+            self._rebuild()
+
+    def _rebuild(self):
+        print("开始后台重建索引...")
+        with self.lock:
+            data = load_all_data() + self.writes_buffer    # 含新写入
+            buffer_snapshot = list(self.writes_buffer)
+        # 在锁外构建（耗时操作不持锁）
+        new_index = build_hnsw(data)
+        # 原子切换
+        with self.lock:
+            # 切换后丢弃已合并进新索引的 buffer
+            self.writes_buffer = [w for w in self.writes_buffer
+                                  if w not in buffer_snapshot]
+            self.active = new_index
+        print("重建完成，已切换")
+</code></pre>
+
+    <h2 class="section" id="sharding"><span class="idx">★</span> 分片：水平扩展的必修课</h2>
+    <p>当单机的内存或 QPS 扛不住时，要分片（sharding）——把数据水平切分到多个节点。向量库分片的几个考量：</p>
+    <ul>
+      <li><strong>按什么切</strong>：最常见是按 hash 切（doc_id % N），均匀但查询要广播到所有分片。也可以按属性切（按租户、按时间），减少跨分片查询。</li>
+      <li><strong>查询路由</strong>：hash 切的话每次查询都要 N 个分片并行查，各取 top-k 再 merge。属性切的话能路由到单分片，省 N-1 倍计算。</li>
+      <li><strong>负载均衡</strong>：分片大小和查询热度要均衡。热点分片（如最近数据查得多）要单独扩容或再切分。</li>
+      <li><strong>动态分片</strong>：数据增长后要能 split 分片。Milvus 的 resource group、Elasticsearch 的 split 都支持。</li>
+    </ul>
+    <p>实战经验：先用单机 + 大内存扛到 1-2 亿，撑不住再分片。分片引入的分布式复杂度（一致性、跨分片 merge、故障切换）远超单机，没有规模压力不要轻易上。</p>
+
+    <h2 class="section" id="replication"><span class="idx">★</span> 副本与灾备</h2>
+    <p>单节点是单点故障——磁盘坏、机器宕、机房断电，向量库全没。生产必须有副本和灾备：</p>
+    <ul>
+      <li><strong>多副本（replica）</strong>：每个分片维护 N 个副本（通常 2-3），写操作同步/异步到所有副本，任一副本能服务读。副本数取决于可用性要求和成本。Milvus、Qdrant 都支持。</li>
+      <li><strong>持久化 + 快照</strong>：索引文件定期 snapshot 到对象存储（S3/OSS）。即便所有副本挂了，也能从快照恢复。</li>
+      <li><strong>跨可用区/跨机房</strong>：副本分布到不同可用区，单机房挂了仍能服务。代价是写延迟增加（跨机房同步）。</li>
+      <li><strong>写前日志（WAL）</strong>：写入操作先记日志再建索引，崩溃后从日志重放未索引的写入，保证不丢数据。</li>
+    </ul>
+    <p>RPO（能容忍丢多少数据）和 RTO（能容忍多久恢复）决定灾备方案。重要业务 RPO=0（不丢数据）需要同步副本 + WAL + 跨机房；非关键业务 RPO=分钟级可以靠定期快照。</p>
+
+    <h2 class="section" id="monitoring"><span class="idx">★</span> 监控告警：生产系统的眼睛</h2>
+    <p>向量库上线后必须监控的指标分四类：</p>
+
+    <h3>性能指标</h3>
+    <ul>
+      <li><strong>查询延迟 P50/P95/P99</strong>：P50 看整体，P99 看长尾。P99 突然飙升通常意味着 GC、磁盘 IO 瓶颈或某个分片过热。</li>
+      <li><strong>QPS</strong>：实际吞吐，和压测基线对比，下降要告警。</li>
+      <li><strong>recall@k（采样）</strong>：定期采样查询算 recall，掉到阈值（如 0.9）以下告警，通常是索引质量退化。</li>
+    </ul>
+
+    <h3>资源指标</h3>
+    <ul>
+      <li><strong>内存占用</strong>：向量库最易爆的资源，监控常驻 + 峰值，接近上限要扩容。</li>
+      <li><strong>磁盘 IO</strong>：DiskANN 或 segment 合并场景的关键，监控 IOPS 和吞吐。</li>
+      <li><strong>CPU</strong>：距离计算是 CPU 密集，高 QPS 下 CPU 是瓶颈。</li>
+    </ul>
+
+    <h3>业务指标</h3>
+    <ul>
+      <li><strong>写入速率 / 积压</strong>：消费 Kafka 的写入积压要监控，积压说明写入跟不上生产。</li>
+      <li><strong>索引新鲜度</strong>：最新写入多久后能被检索到（双 buffer 方案要特别关注）。</li>
+      <li><strong>查询成功率</strong>：超时、错误的查询占比。</li>
+    </ul>
+
+    <pre><code class="language-python"># 用 Prometheus + Grafana 监控向量库（以自建 HNSW 服务为例）
+from prometheus_client import Counter, Histogram, Gauge, start_http_server
+
+# 定义指标
+SEARCH_LATENCY = Histogram(
+    "vector_search_latency_seconds", "向量检索延迟",
+    buckets=(0.001, 0.005, 0.01, 0.05, 0.1, 0.5, 1.0))
+SEARCH_QPS = Counter("vector_search_total", "检索总次数")
+SEARCH_RECALL = Gauge("vector_search_recall_sampled", "采样 recall@10")
+INDEX_SIZE = Gauge("vector_index_size_bytes", "索引大小")
+INDEX_DOCS = Gauge("vector_index_docs", "索引向量数")
+WRITE_QPS = Counter("vector_write_total", "写入总次数")
+
+class MonitoredVectorIndex:
+    def __init__(self, inner_index):
+        self.inner = inner_index
+        start_http_server(9090)   # Prometheus 拉取端口
+
+    def search(self, q, k=10):
+        SEARCH_QPS.inc()
+        with SEARCH_LATENCY.time():
+            results = self.inner.search(q, k)
+        return results
+
+    def sample_recall(self, eval_queries, gt):
+        """定时采样 recall，掉到阈值以下告警"""
+        hits = sum(len(set(self.search(q, k=10)[0]) & set(g)) for q, g in eval_queries)
+        recall = hits / (len(eval_queries) * 10)
+        SEARCH_RECALL.set(recall)
+        if recall &lt; 0.9:
+            alert(f"recall 降到 {recall:.3f}，可能索引需重建")
+        return recall
+
+def alert(msg):
+    # 接入钉钉/Slack/PagerDuty
+    print(f"[ALERT] {msg}")
+</code></pre>
+
+    <h2 class="section" id="ops-checklist"><span class="idx">★</span> 生产上线清单</h2>
+    <p>把向量库从测试搬到生产，下面这张清单逐项打勾，能避开 80% 的线上事故：</p>
+
+    <pre><code class="language-text">向量库生产上线 Checklist
+□ 容量规划
+  □ 预估 1 年内的向量数 × 维度 × 4 字节 + 索引开销（HNSW 约 1.5-2x）
+  □ 内存富余 30% 以上，单机扛不下提前规划分片
+□ 索引策略
+  □ 选定索引类型（HNSW/IVFPQ/DiskANN）并压测过参数
+  □ 制定重建策略（双 buffer / 定期全量）和重建频率
+  □ 增量写入方案验证（插入不破坏 recall）
+□ 高可用
+  □ 副本数 ≥ 2，分布在不同可用区
+  □ 持久化 + 定期快照到对象存储，验证恢复流程
+  □ WAL 开启，验证崩溃恢复
+□ 性能
+  □ 压测过目标 QPS 下的 P99 延迟，留 2x 余量
+  □ 过滤场景压测（属性过滤常见组合）
+  □ 验证并发查询的吞吐和延迟
+□ 监控告警
+  □ 延迟 P50/P95/P99 + QPS + 错误率
+  □ 内存/CPU/磁盘 IO 资源监控
+  □ recall@k 定期采样告警
+  □ 写入积压 + 索引新鲜度监控
+□ 安全
+  □ 网络隔离（VPC/防火墙），不暴露公网
+  □ 鉴权（用户名密码 / mTLS）
+  □ 审计日志（谁查了什么）
+□ 运维
+  □ 灰度发布流程（先小流量验证）
+  □ 回滚方案（版本回退 + 索引版本兼容）
+  □ 应急预案（故障演练过）</code></pre>
+
+    <h2 class="section" id="common-issues"><span class="idx">★</span> 常见生产事故与应对</h2>
+    <ul>
+      <li><strong>P99 延迟飙升</strong>：通常是 GC stop-the-world、磁盘 IO 抖动、或某个分片过热。先看 GC 日志和 IO 监控，再查分片均衡。</li>
+      <li><strong>recall 突然下降</strong>：增量插入让索引退化、或新数据分布漂移。触发重建或检查 embedding 模型是否变了。</li>
+      <li><strong>内存 OOM</strong>：向量数超预期、或查询并发太高导致临时内存爆炸。前者扩容，后者限流。</li>
+      <li><strong>写入积压</strong>：消费跟不上生产。垂直扩（更强机器）或水平扩（更多消费线程/分片）。</li>
+      <li><strong>embedding 模型升级</strong>：换模型后旧向量和新向量不在一个空间，必须全量重新 embedding 重建索引。这是个大工程，要分批切换（双索引并存，灰度切流）。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>索引重建的三个策略：原地插入（实时但质量退化）、双 buffer 后台重建（无停机切换）、分段索引（LSM 思路）。无论哪种都建议定期全量重建。</li>
+      <li>分片：hash 切（均匀但广播）或属性切（可路由）。先用单机扛到亿级再分片，分布式复杂度不轻。</li>
+      <li>副本与灾备：多副本 + 持久化快照 + 跨可用区 + WAL，按 RPO/RTO 选方案。</li>
+      <li>监控告警四类：性能（延迟/QPS/recall）、资源（内存/IO/CPU）、业务（写入积压/新鲜度）、安全。</li>
+      <li>上线清单逐项打勾；常见事故：P99 飙升、recall 下降、OOM、写入积压、embedding 升级（要全量重建）。</li>
+    </ul>
+    <p>这是向量检索/RAG 系列的最后一篇。从 120 篇的 ANN 总览，到 HNSW/PQ/DiskANN 的算法深度，再到 RAG 架构、查询改写、评估、GraphRAG、ColBERT、SPLADE，最后落回生产运维，希望这套系列帮你建立起从算法原理到工程落地的完整图景。检索的世界很大，祝你在自己的项目里用得顺、扛得稳。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

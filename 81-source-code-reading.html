@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>开源项目源码导读合集 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>开源项目源码导读合集 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -97,7 +104,7 @@
     <div class="nav-group"><h3>参考</h3>
       <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
-      <a href="81-source-code-reading.html" class="active" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
       <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
@@ -295,15 +302,348 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>开源项目源码导读合集</h1><p class="lead">怎么读 AI 开源项目——源码阅读方法论</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么读源码</h2>
-    <p>用 API 只是"使用者"，读源码才能成为"理解者"。AI 开源项目（LangChain/vLLM/transformers）的源码是绝佳的学习材料——它们展示了生产级 AI 系统怎么设计和实现。但 AI 项目源码通常很庞大，盲目读会迷失。本章讲方法论。</p>
-    <h2><span class="idx"></span>读源码的五步法</h2>
-    <table class="data-table"><thead><tr><th>步骤</th><th>做什么</th><th>用时</th><th>产出</th></tr></thead><tbody><tr><td>1.跑通</td><td>按 README 跑起来</td><td>30min</td><td>感性认知</td></tr><tr><td>2.读架构</td><td>找入口→画模块图</td><td>1h</td><td>全局结构</td></tr><tr><td>3.读核心</td><td>只读最核心的1-2个模块</td><td>2-3h</td><td>核心机制</td></tr><tr><td>4.改一点</td><td>改个小功能+跑测试</td><td>1h</td><td>动手验证</td></tr><tr><td>5.写总结</td><td>用自己的话写笔记</td><td>30min</td><td>内化</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>读源码的最大误区：**从头到尾逐行读**。好的源码几万行，逐行读你会在第 500 行放弃。正确做法：先跑通→画架构图→只读最核心的模块（如 vLLM 的 PagedAttention 实现）→改一点试试→写总结。读源码是"抽样理解"不是"全文背诵"。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>读 AI 源码五步法：跑通（感性认知）→读架构（画模块图）→读核心（只读1-2个核心模块）→改一点（动手验证）→写总结（内化）。误区：不要逐行读。正确：抽样理解核心机制。推荐导读：vLLM(PagedAttention)、transformers(generation)、LangChain(chain)。</p>
-    <div class="chapter-nav">
-      <a href="80-product-growth.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 81 章 · 开源项目源码导读合集</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 81 · 实战案例系列</span>
+      <h1>源码导读<br>nanoGPT、MinBPE 与 tiktoken 的阅读指南</h1>
+      <p class="lead">读源码是提升技术深度的最快方式——比看 100 篇博客都管用。但很多人面对大项目不知从何读起。这一章选了三个规模适中、教学价值极高的开源项目：Karpathy 的 nanoGPT（最小可运行的 GPT）、MinBPE（最小 BPE 分词器）、tiktoken（OpenAI 的生产级分词器）。每个项目都给你阅读路线、核心代码解读、学到的设计思想。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-read-source"><span class="idx">★</span> 一、为什么读源码</h2>
+    <p>文档告诉你「怎么用」，源码告诉你「怎么实现」。读源码的价值：</p>
+    <ul>
+      <li><strong>理解底层原理</strong>：看真实代码怎么实现 attention、怎么做分词，比看公式直观 10 倍。</li>
+      <li><strong>学习工程实践</strong>：优秀的开源项目是最好的工程范本——代码组织、错误处理、性能优化。</li>
+      <li><strong>建立调试能力</strong>：遇到框架的诡异 Bug，能读源码的人能定位到具体行。</li>
+      <li><strong>面试加分</strong>：「我读过 nanoGPT 的源码并做了改造」比「我会用 transformers 库」有说服力得多。</li>
+    </ul>
+    <p>选这三个项目的原因：nanoGPT 是理解 GPT 架构的最佳教材（不到 300 行）；MinBPE 是理解分词原理的最佳入门（不到 200 行）；tiktoken 是生产级实现，展示了工程优化的极致。</p>
+
+    <h2 class="section" id="nanogpt"><span class="idx">★</span> 二、nanoGPT：300 行理解 GPT 的全部</h2>
+    <p>Andrej Karpathy（OpenAI 创始成员、前特斯拉 AI 总监）写的 nanoGPT，是理解 GPT 架构的黄金标准。它用最少的代码实现了一个可训练、可生成的 GPT，注释清晰，结构优雅。</p>
+
+    <h3 class="section">2.1 项目结构</h3>
+    <pre><code class="language-text">nanoGPT/
+├── model.py       # 核心：GPT 模型定义（约 300 行）
+├── train.py       # 训练脚本
+├── config/        # 配置文件（不同规模的模型配置）
+├── data/          # 数据准备脚本
+└── sample.py      # 生成脚本</code></pre>
+
+    <h3 class="section">2.2 核心代码解读</h3>
+    <pre><code class="language-python"># nanoGPT/model.py 的核心结构（简化解读）
+# 这是理解 GPT 的最佳教材
+
+import math
+import torch
+import torch.nn as nn
+from torch.nn import functional as F
+
+# --------------------------------------------------------
+# 第 1 部分：基础模块
+# --------------------------------------------------------
+
+class LayerNorm(nn.Module):
+    """LayerNorm：对每个样本的特征维度做归一化。"""
+    # 注意：nanoGPT 用了自己的 LayerNorm 而非 PyTorch 的，
+    # 因为它把权重和偏置分开管理，更灵活
+    def __init__(self, ndim, bias):
+        super().__init__()
+        self.weight = nn.Parameter(torch.ones(ndim))
+        self.bias = nn.Parameter(torch.zeros(ndim)) if bias else None
+
+    def forward(self, input):
+        return F.layer_norm(input, self.weight.shape, self.weight, self.bias, 1e-5)
+
+
+class CausalSelfAttention(nn.Module):
+    """因果自注意力：GPT 的核心。"""
+    def __init__(self, config):
+        super().__init__()
+        # 关键：QKV 用一个线性层一起算，比分开三个更高效
+        self.c_attn = nn.Linear(config.n_embd, 3 * config.n_embd, bias=config.bias)
+        # 输出投影
+        self.c_proj = nn.Linear(config.n_embd, config.n_embd, bias=config.bias)
+        # 正则化
+        self.attn_dropout = nn.Dropout(config.dropout)
+        self.resid_dropout = nn.Dropout(config.dropout)
+        self.n_head = config.n_head
+        self.n_embd = config.n_embd
+        # 因果掩码：上三角为 -inf，防止看到未来 token
+        self.register_buffer("bias", torch.tril(torch.ones(
+            config.block_size, config.block_size
+        )).view(1, 1, config.block_size, config.block_size))
+
+    def forward(self, x):
+        B, T, C = x.size()  # batch, 序列长度, 维度
+        # 一次性算出 Q, K, V（工程优化）
+        q, k, v = self.c_attn(x).split(self.n_embd, dim=2)
+        # reshape 成多头：(B, n_head, T, head_dim)
+        k = k.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        q = q.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        v = v.view(B, T, self.n_head, C // self.n_head).transpose(1, 2)
+        # 注意力计算：Q · K^T / √d_k
+        att = (q @ k.transpose(-2, -1)) * (1.0 / math.sqrt(k.size(-1)))
+        # 应用因果掩码
+        att = att.masked_fill(self.bias[:,:,:T,:T] == 0, float('-inf'))
+        att = F.softmax(att, dim=-1)
+        att = self.attn_dropout(att)
+        # 加权求和
+        y = att @ v
+        # 合并多头
+        y = y.transpose(1, 2).contiguous().view(B, T, C)
+        # 输出投影
+        y = self.resid_dropout(self.c_proj(y))
+        return y
+
+
+class MLP(nn.Module):
+    """前馈网络：注意力的补充。"""
+    def __init__(self, config):
+        super().__init__()
+        self.c_fc = nn.Linear(config.n_embd, 4 * config.n_embd, bias=config.bias)
+        self.gelu = nn.GELU()
+        self.c_proj = nn.Linear(4 * config.n_embd, config.n_embd, bias=config.bias)
+        self.dropout = nn.Dropout(config.dropout)
+
+    def forward(self, x):
+        x = self.c_fc(x)
+        x = self.gelu(x)
+        x = self.c_proj(x)
+        x = self.dropout(x)
+        return x
+
+
+class Block(nn.Module):
+    """一个 Transformer Block：LayerNorm → Attention → LayerNorm → MLP。"""
+    def __init__(self, config):
+        super().__init__()
+        self.ln_1 = LayerNorm(config.n_embd, bias=config.bias)
+        self.attn = CausalSelfAttention(config)
+        self.ln_2 = LayerNorm(config.n_embd, bias=config.bias)
+        self.mlp = MLP(config)
+
+    def forward(self, x):
+        # 关键：残差连接！x = x + attn(ln(x))
+        # 这是深层网络能训练的关键
+        x = x + self.attn(self.ln_1(x))
+        x = x + self.mlp(self.ln_2(x))
+        return x</code></pre>
+
+    <h3 class="section">2.3 阅读建议</h3>
+    <p>读 nanoGPT 的推荐顺序：先读 <code>model.py</code> 的 Block 类（理解整体结构），再深入 CausalSelfAttention（理解注意力），最后读 <code>train.py</code>（理解训练流程）。关键要理解的几个设计：<strong>QKV 合并计算</strong>（工程优化）、<strong>因果掩码</strong>（防止看到未来）、<strong>残差连接</strong>（深层网络能训练的基石）。</p>
+
+    <h2 class="section" id="minbpe"><span class="idx">★</span> 三、MinBPE：200 行理解分词原理</h2>
+    <p>分词（Tokenization）是把文本切分成模型能处理的最小单元。很多人忽略了它的重要性，但分词质量直接影响模型表现。MinBPE 用最少的代码实现了 BPE（Byte Pair Encoding）算法，是理解分词的最佳入门。</p>
+
+    <h3 class="section">3.1 BPE 算法原理</h3>
+    <pre><code class="language-python"># MinBPE 的核心算法解读
+
+# BPE 的核心思想：
+# 1. 开始时，每个字符是一个 token
+# 2. 统计哪两个相邻 token 出现频率最高
+# 3. 把它们合并成一个新 token
+# 4. 重复 N 次，得到一个词表
+
+def train_bpe(text, vocab_size):
+    """简化版 BPE 训练。"""
+    # 把文本转成 UTF-8 字节序列
+    ids = list(text.encode("utf-8"))
+    # 统计相邻 pair 的频率
+    merges = {}
+    num_merges = vocab_size - 256  # 256 是基础字节
+
+    for i in range(num_merges):
+        # 统计所有相邻 pair 的频率
+        stats = get_pair_counts(ids)
+        if not stats:
+            break
+        # 找频率最高的 pair
+        top_pair = max(stats, key=stats.get)
+        # 给这个 pair 分配一个新 token id
+        new_id = 256 + i
+        # 在序列里把这对 pair 替换成新 id
+        ids = merge(ids, top_pair, new_id)
+        merges[top_pair] = new_id
+
+    return merges
+
+def get_pair_counts(ids):
+    """统计相邻 token pair 的出现次数。"""
+    counts = {}
+    for pair in zip(ids, ids[1:]):  # 相邻两个一组
+        counts[pair] = counts.get(pair, 0) + 1
+    return counts
+
+def merge(ids, pair, new_id):
+    """把序列里的 pair 替换成 new_id。"""
+    new_ids = []
+    i = 0
+    while i < len(ids):
+        if i &lt; len(ids) - 1 and ids[i] == pair[0] and ids[i+1] == pair[1]:
+            new_ids.append(new_id)
+            i += 2
+        else:
+            new_ids.append(ids[i])
+            i += 1
+    return new_ids
+
+# 示例：在 "aaabdaaabac" 上训练 BPE
+text = "aaabdaaabac"
+# 第 1 轮：pair (a,a) 出现最多 → 合并成新 token Y
+# 序列变成：YabdYabac（a 用 Y 替代了 aa）
+# 第 2 轮：pair (Y,b) 出现最多 → 合并成 Z
+# 以此类推...</code></pre>
+
+    <h3 class="section">3.2 为什么 BPE 重要</h3>
+    <pre><code class="language-python"># 分词对模型的影响
+# 同一句话，不同分词策略的差异
+
+text = "我喜欢吃苹果"
+
+# 字符级分词：每个字一个 token
+# 我 / 喜 / 欢 / 吃 / 苹 / 果 → 6 个 token
+
+# BPE 分词（训练后）：
+# 我 / 喜欢 / 吃 / 苹果 → 4 个 token
+
+# BPE 的优势：
+# 1. 常见词能合并成一个 token，序列更短，推理更快
+# 2. 罕见词可以拆成子词，不会遇到「词表里没有」的问题
+# 3. 平衡了「字符级太碎」和「词级别 OOV 太多」两个极端
+
+# 这就是为什么所有主流大模型（GPT、Llama、Qwen）都用 BPE 或其变体</code></pre>
+
+    <h2 class="section" id="tiktoken"><span class="idx">★</span> 四、tiktoken：生产级分词的工程极致</h2>
+    <p>tiktoken 是 OpenAI 开源的生产级分词器，用于 GPT-3.5/4 等模型。它和 MinBPE 的区别展示了「教学实现」和「生产实现」的差距。</p>
+
+    <h3 class="section">4.1 工程优化的关键</h3>
+    <pre><code class="language-python"># tiktoken 的工程优化（对比 MinBPE）
+
+import tiktoken
+
+# 使用 OpenAI 的分词器
+enc = tiktoken.get_encoding("cl100k_base")
+tokens = enc.encode("Hello, world!")
+print(tokens)  # [9906, 11, 1917, 0]
+print(enc.decode(tokens))  # "Hello, world!"
+
+# tiktoken vs MinBPE 的工程差异
+engineering_differences = {
+    "性能": {
+        "MinBPE": "纯 Python，每次合并都遍历整个序列，O(n²) 复杂度",
+        "tiktoken": "用 Rust 实现，正则表达式预切分，并行处理",
+        "差距": "tiktoken 比 MinBPE 快 100 倍以上",
+    },
+    "正则预切分": {
+        "原理": """
+        tiktoken 不在整个文本上做 BPE，而是先用正则把文本切成「块」，
+        然后在每个块内部做 BPE。
+        好处：避免跨词边界的错误合并，且可以并行处理。
+        """,
+        "正则": r"""'s|'t|'re|'ve|'m|'ll|'d| ?\p{L}+| ?\p{N}+| ?[^\s\p{L}\p{N}]+|\s+""",
+    },
+    "特殊 token 处理": {
+        "原理": "预留给特殊用途的 token（如 <|endoftext|>)，不会被 BPE 拆分",
+        "价值": "支持 ChatML 等结构化格式",
+    },
+    "字节级回退": {
+        "原理": "所有文本先转成 UTF-8 字节再做 BPE，不会有「无法编码」的字符",
+        "价值": "支持任意语言、emoji、特殊符号",
+    },
+}</code></pre>
+
+    <h3 class="section">4.2 tiktoken 的使用</h3>
+    <pre><code class="language-python"># tiktoken 在实际项目中的使用
+import tiktoken
+
+class Tokenizer:
+    """封装 tiktoken，用于 LLM 应用的 token 管理。"""
+    def __init__(self, encoding_name="cl100k_base"):
+        self.enc = tiktoken.get_encoding(encoding_name)
+
+    def count_tokens(self, text: str) -> int:
+        """计算文本的 token 数（成本估算用）。"""
+        return len(self.enc.encode(text))
+
+    def truncate_to_tokens(self, text: str, max_tokens: int) -> str:
+        """截断文本到指定 token 数（防止超过上下文长度）。"""
+        tokens = self.enc.encode(text)
+        if len(tokens) &lt;= max_tokens:
+            return text
+        truncated = tokens[:max_tokens]
+        return self.enc.decode(truncated)
+
+    def split_by_tokens(self, text: str, chunk_size: int) -> list:
+        """按 token 数切分文本（RAG 的文档切分用）。"""
+        tokens = self.enc.encode(text)
+        chunks = []
+        for i in range(0, len(tokens), chunk_size):
+            chunk_tokens = tokens[i:i+chunk_size]
+            chunks.append(self.enc.decode(chunk_tokens))
+        return chunks
+
+# 实际应用
+tokenizer = Tokenizer()
+
+# 1. 成本估算
+input_text = "请总结以下文档..."
+token_count = tokenizer.count_tokens(input_text)
+cost = token_count / 1_000_000 * 5  # GPT-4 输入价格 $5/1M tokens
+
+# 2. 上下文长度保护
+long_text = "..." * 10000
+safe_text = tokenizer.truncate_to_tokens(long_text, max_tokens=8000)
+
+# 3. RAG 文档切分（比按字符切分更准确）
+chunks = tokenizer.split_by_tokens(document, chunk_size=500)</code></pre>
+
+    <h2 class="section" id="reading-strategy"><span class="idx">★</span> 五、高效的源码阅读策略</h2>
+    <pre><code class="language-text">读源码的系统方法：
+
+第 1 步：先读 README 和文档
+  - 理解项目要解决什么问题
+  - 了解整体架构和核心概念
+  - 跑通基本示例
+
+第 2 步：从入口点开始
+  - 找到 main 函数或 API 入口
+  - 跟踪一次完整的调用链
+  - 画出数据流图
+
+第 3 步：聚焦核心模块
+  - 不要试图读所有代码
+  - 找到最核心的那个文件（通常是 model.py/core.py/engine.py）
+  - 深入理解它的每个函数
+
+第 4 步：动手改
+  - 加 print 语句看中间状态
+  - 改一个参数看行为变化
+  - 尝试添加一个小功能
+
+第 5 步：写总结
+  - 用自己的话复述核心逻辑
+  - 画出架构图
+  - 记录学到的设计模式</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们导读三个经典的 LLM 相关开源项目。核心要点：</p>
+    <ul>
+      <li><strong>nanoGPT</strong>：300 行理解 GPT 全貌。关键设计：QKV 合并计算（工程优化）、因果掩码（防看未来）、残差连接（深层可训练）。阅读顺序：Block → Attention → train.py。</li>
+      <li><strong>MinBPE</strong>：200 行理解分词原理。BPE 核心是「频率最高的相邻 pair 合并」，平衡了字符级太碎和词级 OOV 的问题。</li>
+      <li><strong>tiktoken</strong>：生产级分词的工程极致。Rust 实现、正则预切分、特殊 token、字节级回退——展示了教学实现到生产实现的跨越。</li>
+      <li><strong>阅读策略</strong>：README → 入口点 → 核心模块 → 动手改 → 写总结。不要试图读所有代码，聚焦最核心的部分。</li>
+    </ul>
+    <p>读源码是技术深度提升的「作弊码」——你站在优秀工程师的肩膀上，直接吸收他们的设计思想。从这三个项目开始，逐步挑战更大的项目。下一章是 50 条最佳实践的合集。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

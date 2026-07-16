@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -202,7 +200,7 @@
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
-      <a href="171-agent-roo-modes.html" class="active" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
+      <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
@@ -305,81 +303,251 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 171 章 · 开源 Agent 源码深挖</span>
-<h1>Roo Code 的多模式</h1><p class="lead">Architect/Code/Ask/Debug 四模式，不同模式不同 system prompt 与工具集。模式切换的工作流。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>Architect/Code/Ask/Debug 四模式，不同模式不同 system prompt 与工具集。模式切换的工作流。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>Architect/Code/Ask/Debug 四模式，不同模式不同 system prompt 与工具集。模式切换的工作流。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 54 · Agent 源码深挖系列</span>
+      <h1>Roo Code 多模式<br>architect / code / debug / ask 的场景化切换</h1>
+      <p class="lead">Roo Code 是 Cline 的一个 fork（原叫 Roo Cline），它在 Cline 的基础上发展出了一套独特的 <strong>多模式系统</strong>：architect（只规划不改）、code（完整开发）、debug（专注排查 bug）、ask（纯问答）。用户可以根据当前任务切换模式，每种模式有定制的 system prompt 和工具集。本章我们看这套模式系统的设计，以及它相比 Cline 的 plan/act 双模式的进化。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-modes"><span class="idx">★</span> 一、从双模式到四模式：场景化的深化</h2>
+    <p>Cline 的 plan/act 双模式（参见 168 章）解决了「先想后做」的基本分离。但实际使用中，用户会发现「plan」这个模式太宽泛——有时候你只是想让 AI 回答一个关于代码的问题（不需要规划任何改动），有时候你想让它专注排查一个 bug（需要的是诊断而非规划）。把这些都塞进「plan」模式，system prompt 会变得臃肿而泛泛。</p>
+    <p>Roo Code 的解法是 <strong>进一步场景化</strong>，把 plan 拆成 architect（架构规划）、debug（调试）、ask（问答）三个独立模式，加上完整的 code 模式，共四种。每种模式有：</p>
+    <ul>
+      <li>独立的 system prompt，定义角色和行为准则。</li>
+      <li>定制的工具集，只给该模式需要的工具。</li>
+      <li>专属的 UX 提示，让用户清楚当前在什么模式下。</li>
+    </ul>
+    <p>这种「场景即模式」的设计哲学，让 Agent 在每个场景下都表现得「专精」，而不是「什么都行但什么都不精」。</p>
+
+    <h2 class="section" id="four-modes"><span class="idx">★</span> 二、四种模式的角色定义</h2>
+    <p>我们逐一拆解四种模式的定位和 system prompt 设计思路。</p>
+    <pre><code class="language-typescript">// Roo Code 的模式定义（简化）
+export type Mode = "architect" | "code" | "debug" | "ask";
+
+export const MODE_CONFIGS: Record&lt;Mode, ModeConfig&gt; = {
+  architect: {
+    name: "architect",
+    label: "架构师",
+    description: "分析需求、设计方案、规划技术实现",
+    allowedTools: ["read_file", "list_dir", "search_codebase", "list_code_definition_names"],
+    systemPrompt: `你是一位资深软件架构师。
+
+你的职责：
+- 理解用户的需求和技术约束
+- 阅读现有代码，分析架构和依赖关系
+- 设计技术方案，考虑可扩展性、可维护性、性能
+- 输出清晰的实施计划，列出要创建/修改的文件和步骤
+
+你不写代码。你的输出是方案和计划，由用户切换到 code 模式执行。
+即使被催促，也只规划不实现。`,
+  },
+
+  code: {
+    name: "code",
+    label: "开发者",
+    description: "完整开发：读写文件、执行命令、迭代修复",
+    allowedTools: ALL_TOOLS,  // 包括 write_file, execute 等
+    systemPrompt: `你是一位高效的全栈开发者。
+
+你的工作方式：
+- 按照（可能来自 architect 模式的）计划执行
+- 每次修改后运行相关测试验证
+- 遇到失败时分析原因并修复，不要绕过
+- 保持改动最小化，不引入不必要的重构
+- 完成后总结你做了什么`,
+  },
+
+  debug: {
+    name: "debug",
+    label: "调试专家",
+    description: "诊断 bug、分析根因、提出修复",
+    allowedTools: ["read_file", "execute", "search_codebase"],  // 能跑命令但谨慎写
+    systemPrompt: `你是一位专注的调试专家。
+
+你的诊断流程：
+1. 复现：先尝试复现 bug（运行测试或最小复现脚本）
+2. 定位：根据错误信息和堆栈，找到相关代码
+3. 假设：提出可能的根因假设
+4. 验证：通过加日志、读代码、跑实验验证假设
+5. 修复：确认根因后再改代码，不要盲目试错
+
+关键原则：
+- 不要在没理解根因前就改代码（那是在猜）
+- 改完后必须验证 bug 确实修复了`,
+  },
+
+  ask: {
+    name: "ask",
+    label: "问答助手",
+    description: "回答关于代码库的问题，不修改任何东西",
+    allowedTools: ["read_file", "search_codebase"],  // 纯只读
+    systemPrompt: `你是一位熟悉这个代码库的同事。
+
+用户会问你关于代码的问题。你的任务是：
+- 准确回答，基于实际代码而非猜测
+- 引用具体的文件和行号作为依据
+- 如果不确定，明确说「我不确定」而不是编造
+- 不修改任何文件，即使被要求（建议用户切换到 code 模式）`,
+  },
+};</code></pre>
+    <p>注意 debug 模式的一个微妙设计：<strong>它允许 execute 但限制 write_file</strong>。这是因为在调试中，运行测试、跑复现脚本、加临时日志都是必要的（要 execute），但在根因确认前不应该改业务代码（不给 write_file）。这种「按诊断流程阶段精细配置工具」的设计，比 Cline 的 plan（完全只读）更贴合调试场景。</p>
+
+    <h2 class="section" id="mode-switching"><span class="idx">★</span> 三、模式切换的 UX 与状态保持</h2>
+    <p>用户在四种模式间切换是高频操作，UX 必须顺滑。Roo Code 的设计是：</p>
+    <pre><code class="language-typescript">// 模式切换（简化）
+export class ModeManager {
+  private currentMode: Mode = "code";
+  private modeHistory: Mode[] = [];
+
+  switchTo(mode: Mode) {
+    if (mode === this.currentMode) return;
+    this.modeHistory.push(this.currentMode);
+    this.currentMode = mode;
+
+    // 关键：切换模式不重置对话历史
+    // 用户可以在 architect 模式规划，切到 code 模式时
+    // 之前的对话上下文仍然可见
+    this.notifyUI({
+      type: "mode_changed",
+      mode,
+      config: MODE_CONFIGS[mode],
+    });
+
+    // 在对话里插入一条系统消息，标记模式切换
+    this.messages.push({
+      role: "system",
+      content: `[模式切换：${this.modeHistory.slice(-1)[0]} → ${mode}]`,
+    });
+  }
+
+  // 快捷回到上一个模式
+  switchToPrevious() {
+    if (this.modeHistory.length &gt; 0) {
+      const prev = this.modeHistory.pop()!;
+      this.currentMode = prev;
+      this.notifyUI({ type: "mode_changed", mode: prev });
+    }
+  }
+}</code></pre>
+    <p>这里最关键的设计是 <strong>切换模式不重置对话</strong>。典型的工作流是：用户在 ask 模式问「这个 bug 在哪」→ AI 分析后给出假设 → 用户切到 debug 模式 → AI 继续基于刚才的分析深入诊断 → 用户切到 code 模式 → AI 执行修复。整个过程中对话是连续的，AI 在每个模式里都能看到之前的上下文。这种「模式特化 + 上下文连续」的组合，让多模式成为流畅的工作流而非割裂的工具。</p>
+
+    <h2 class="section" id="tool-guard"><span class="idx">★</span> 四、工具守卫：模式约束的硬执行</h2>
+    <p>和 Cline 的 plan/act 一样（参见 168 章），Roo Code 的模式约束是 <strong>硬执行</strong> 的——不是靠 system prompt 说「请不要改文件」，而是工具列表里根本没给 write_file，模型想用也用不了。我们看这个守卫怎么在循环里实现：</p>
+    <pre><code class="language-typescript">// 工具守卫（简化）
+export class ToolGuard {
+  constructor(private mode: Mode) {}
+
+  checkToolAllowed(toolName: string): { allowed: boolean; reason?: string } {
+    const config = MODE_CONFIGS[this.mode];
+    if (config.allowedTools.includes(toolName)) {
+      return { allowed: true };
+    }
+    return {
+      allowed: false,
+      reason: this.getRejectionMessage(toolName),
+    };
+  }
+
+  private getRejectionMessage(toolName: string): string {
+    const messages: Record&lt;string, string&gt; = {
+      write_file: `当前是 ${this.mode} 模式，不允许修改文件。` +
+                  `如需修改，请切换到 code 模式。`,
+      execute: `当前是 ${this.mode} 模式，不允许执行命令。` +
+               `如需执行，请切换到 code 或 debug 模式。`,
+    };
+    return messages[toolName] || `工具 ${toolName} 在当前模式下不可用。`;
+  }
+}
+
+// 在 Agent 循环里
+async function executeToolCall(call: ToolCall, guard: ToolGuard) {
+  const check = guard.checkToolAllowed(call.name);
+  if (!check.allowed) {
+    // 把拒绝原因作为 tool_result 返回，让 LLM 知道为什么不行
+    return {
+      content: `[权限拒绝] ${check.reason}`,
+      isError: true,
+    };
+  }
+  return await executeActualTool(call);
+}</code></pre>
+    <p>注意拒绝时的 <strong>引导性消息</strong>——它不只是说「不行」，还告诉 LLM「想干这个请切换到哪个模式」。这让 LLM 在被拒后能给出有用的建议（「我需要切到 code 模式才能帮你改这个文件，要切换吗？」），而不是干巴巴地报错。这种「拒绝即引导」的设计，提升了用户体验。</p>
+
+    <h2 class="section" id="auto-mode"><span class="idx">★</span> 五、自动模式建议</h2>
+    <p>用户有时候不知道该用哪个模式。Roo Code 有一个智能建议功能——根据用户的输入，推荐合适的模式：</p>
+    <pre><code class="language-typescript">// 自动模式建议（简化，实际可用规则或小模型）
+function suggestMode(userInput: string, currentMode: Mode): Mode | null {
+  const input = userInput.toLowerCase();
+
+  // 明确的模式信号
+  if (/^(设计|方案|架构|plan|design)/.test(input)) return "architect";
+  if (/^(修复|bug|报错|debug|为什么.*错)/.test(input)) return "debug";
+  if (/^(这是什么|解释|为什么|how|what|why)/.test(input)) return "ask";
+  if (/^(实现|添加|创建|写一个|refactor)/.test(input)) return "code";
+
+  // 当前模式不适配的信号
+  if (currentMode === "ask" &amp;&amp; /改|修改|实现/.test(input)) {
+    return "code";  // 想改文件但还在 ask，建议 code
+  }
+  if (currentMode === "code" &amp;&amp; /这是什么|解释一下/.test(input)) {
+    return "ask";   // 想问问题但还在 code，建议 ask
+  }
+
+  return null;  // 不建议切换
+}</code></pre>
+    <p>这种基于关键词的简单规则，就能覆盖大部分场景。更复杂的实现可以用一个小模型分类，但规则的简单和可预测性对 UX 更重要——用户能理解「我说『修复』它就建议 debug」的逻辑，而模型分类是个黑盒。</p>
+
+    <h2 class="section" id="prompt-custom"><span class="idx">★</span> 六、用户自定义模式</h2>
+    <p>Roo Code 还支持 <strong>用户自定义模式</strong>——用户可以创建自己的模式，定义 system prompt 和工具集。这让团队可以为特定工作流定制模式，比如：</p>
+    <pre><code class="language-json">{
+  "customModes": [
     {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+      "name": "reviewer",
+      "label": "代码审查员",
+      "allowedTools": ["read_file", "search_codebase"],
+      "systemPrompt": "你是严格的代码审查员。检查代码的风格、潜在 bug、安全漏洞、性能问题。给出具体的改进建议，引用行号。不改代码。"
     },
     {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+      "name": "doc-writer",
+      "label": "文档撰写",
+      "allowedTools": ["read_file", "write_file"],
+      "systemPrompt": "你专门为代码写文档。读取代码后生成清晰的注释、README、API 文档。只改文档文件（*.md），不改业务代码。",
+      "filePatternRestriction": "*.md"
     }
-]
+  ]
+}</code></pre>
+    <p>注意 doc-writer 模式的 <code>filePatternRestriction</code>——它限制了 write_file 只能写 .md 文件。这是比纯工具列表更细粒度的控制。这种「自定义模式 + 文件模式限制」的组合，让团队能为各种专项工作流建立安全护栏。</p>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="compare-cline"><span class="idx">★</span> 七、与 Cline 双模式的对比</h2>
+    <p>把 Roo Code 的四模式和 Cline 的双模式放在一起，能看出场景化程度的差异：</p>
+    <ul>
+      <li><strong>精细度</strong>：Cline 的 plan 涵盖了 architect + debug + ask 三个场景，system prompt 是折中；Roo Code 每个场景独立 prompt，更专精。</li>
+      <li><strong>工具配置</strong>：Cline 的 plan 完全只读；Roo Code 的 debug 允许 execute（运行测试）但不允许 write，更贴合调试需求。</li>
+      <li><strong>UX 复杂度</strong>：四模式比双模式选择成本高，但自动建议功能缓解了这个问题。</li>
+      <li><strong>可扩展性</strong>：Roo Code 支持自定义模式，Cline 是固定的 plan/act。</li>
+    </ul>
+    <p>总体来说，Roo Code 的多模式是对 Cline 双模式的「垂直深化」，适合对场景精细化有要求的团队。Cline 的双模式更简洁，适合不想做太多选择的用户。两种设计没有绝对优劣，是不同的产品哲学。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Roo Code 的多模式系统是「场景化 Agent」的典范。要点回顾：</p>
+    <ul>
+      <li><strong>四模式</strong>：architect（规划不改）、code（完整开发）、debug（诊断谨慎写）、ask（纯问答），每种有独立 prompt 和工具集。</li>
+      <li><strong>debug 的精细工具</strong>：允许 execute 跑测试但不给 write_file，贴合「先诊断后修复」的流程。</li>
+      <li><strong>模式切换不重置对话</strong>：上下文连续，多模式是流畅工作流而非割裂工具。</li>
+      <li><strong>工具守卫硬执行</strong>：不在 prompt 里说「别改」，而是工具列表里没给，拒绝时给引导性消息。</li>
+      <li><strong>自动模式建议</strong>：基于关键词规则推荐模式，简单可预测优于黑盒模型。</li>
+      <li><strong>自定义模式</strong>：用户创建专属模式，支持 filePatternRestriction 细粒度文件控制。</li>
+      <li><strong>对比 Cline</strong>：四模式更精细更可扩展，双模式更简洁，是垂直深化 vs 轻量通用两种哲学。</li>
+    </ul>
+    <p>接下来我们进入「通用 Agent 工程」系列——从系统提示词设计开始（172 章），讨论那些横跨所有 Agent 项目的工程主题。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Roo Code 的多模式"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="170-agent-cursor-agent.html"><div class="lbl">← 上一章</div><div class="ttl">170 · Cursor 的 Agent 模式</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="172-agent-sourcecode-prompt.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">172 · 源码级启示：系统提示工程</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 171 章 · Roo Code 的多模式</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

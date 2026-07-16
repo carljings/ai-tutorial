@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -203,7 +201,7 @@
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
-      <a href="172-agent-sourcecode-prompt.html" class="active" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
+      <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
@@ -305,81 +303,162 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 172 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：系统提示工程</h1><p class="lead">从这些 agent 的源码学系统提示设计：角色、工具说明、约束、输出格式、错误恢复。可复用的模式。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>从这些 agent 的源码学系统提示设计：角色、工具说明、约束、输出格式、错误恢复。可复用的模式。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>从这些 agent 的源码学系统提示设计：角色、工具说明、约束、输出格式、错误恢复。可复用的模式。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
-    }
-]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 55 · Agent 源码深挖系列</span>
+      <h1>System Prompt 设计原则<br>角色、工具、约束与 few-shot</h1>
+      <p class="lead">System prompt 是 Agent 的「宪法」——它定义了 Agent 是谁、能做什么、不能做什么、应该怎么思考。一个精心设计的 system prompt 能让模型的行为稳定可控，而一个糟糕的 prompt 会导致 Agent 跑偏、乱用工具、忽略安全约束。本章我们通过对比 OpenCode、Codex、Claude Code 等项目的 system prompt，总结出四类核心设计原则。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="four-parts"><span class="idx">★</span> 一、System Prompt 的四个组成部分</h2>
+    <p>分析多个开源 Agent 的 system prompt，会发现它们虽然措辞各异，但都包含四个核心部分：<strong>角色定义、能力描述、行为约束、风格示范</strong>。我们逐一拆解。</p>
+    <pre><code class="language-text">一个典型的编程 Agent system prompt 结构：
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+【角色定义】
+你是一位资深的软件工程师，正在协助用户开发软件。
+你熟悉多种编程语言和框架，能阅读、理解、修改代码。
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：系统提示工程"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="171-agent-roo-modes.html"><div class="lbl">← 上一章</div><div class="ttl">171 · Roo Code 的多模式</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="173-agent-sourcecode-streaming.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">173 · 源码级启示：流式输出处理</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 172 章 · 源码级启示：系统提示工程</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+【能力与工具】
+你可以使用以下工具：
+- read_file：读取文件内容
+- write_file：写入或修改文件
+- execute：执行 shell 命令
+- search_codebase：语义检索代码
+调用工具时，明确说明你为什么要调用它。
+
+【行为约束】
+- 修改代码前先阅读相关文件，理解上下文
+- 每次改动后运行测试验证
+- 不要猜测 API 的行为，不确定时查文档或读源码
+- 涉及破坏性操作（删除文件、git push）时先确认
+- 失败时分析原因，不要盲目重试
+
+【输出风格】
+- 简洁直接，先说结论再展开
+- 代码改动用 diff 格式展示
+- 解释关键决策的理由
+- 不确定时明确说「不确定」</code></pre>
+    <p>这四部分不是孤立的，它们共同塑造 Agent 的行为。角色定义影响「思维方式」，能力描述影响「工具使用」，行为约束影响「决策边界」，风格示范影响「输出质量」。缺任何一部分，Agent 的行为都会出现盲区。</p>
+
+    <h2 class="section" id="role"><span class="idx">★</span> 二、角色定义：锚定 Agent 的「自我认知」</h2>
+    <p>角色定义看似形式化，但它对模型行为有真实影响。LLM 是在大量人类文本上训练的，文本里隐含着「不同角色怎么说话」的模式。当你告诉模型「你是一位资深工程师」，它会激活和「资深工程师」相关的语言模式——更专业、更谨慎、更关注工程实践。</p>
+    <p>对比两种角色定义的效果差异：</p>
+    <pre><code class="language-text">// 弱角色定义
+你是一个 AI 助手。帮助用户完成任务。
+
+// 强角色定义（参考 Claude Code 的风格）
+你是一位务实的软件工程师，在用户的代码库里工作。
+你的首要目标是帮用户解决真实的工程问题，而不是展示知识。
+你偏好简单直接的方案，警惕过度设计。
+你像一位可靠的同事：守时（不啰嗦）、负责（改完验证）、
+坦诚（不确定就说）。</code></pre>
+    <p>强角色定义有几个特点：<strong>具体</strong>（不是泛泛的「助手」，而是「工程师」）、<strong>有价值倾向</strong>（「简单直接」「警惕过度设计」）、<strong>有人格化比喻</strong>（「可靠的同事」）。这些细节让模型在生成回答时有明确的行为参照，而不是按「通用助手」的模糊默认行事。</p>
+    <p>一个常被忽视的点：<strong>角色定义要和工具能力匹配</strong>。如果你给 Agent 的工具是只读的（像 ask 模式），角色定义说「你是资深工程师，负责修改代码」就会造成矛盾——模型会试图改代码但没有工具。Roo Code 的多模式（参见 171 章）之所以有效，正是因为每种模式的角色定义和工具集是协调的。</p>
+
+    <h2 class="section" id="constraints"><span class="idx">★</span> 三、行为约束：用「不要」划定边界</h2>
+    <p>行为约束是 system prompt 里最关键的安全层。它告诉模型 <strong>什么不能做、什么要谨慎做</strong>。好的约束有几个特征：</p>
+    <p>第一，<strong>具体而非抽象</strong>。「要安全」太抽象；「涉及 rm -rf、git push --force、DROP TABLE 时必须先确认用户意图」才具体可用。模型需要可执行的规则，不是原则。</p>
+    <p>第二，<strong>解释理由</strong>。不只说「不要」，还要说为什么。「不要在没读文件前就改——你可能改错地方或引入冲突」比单纯的「不要」更有效，因为模型理解了理由后能在边缘情况自行判断。</p>
+    <p>第三，<strong>正向替代</strong>。告诉模型「不要做什么」的同时，告诉它「应该做什么」。比如「不要猜测 API 行为——不确定时用 search_codebase 或 read_file 查源码」。</p>
+    <pre><code class="language-text">// Claude Code 风格的约束（参考）
+约束：
+1. 修改前先读。不要基于假设改代码，先 read_file 看实际内容。
+   理由：代码可能和你记忆中的不同，特别是大型项目。
+
+2. 小步前进。每次只做一个逻辑改动，改完验证再继续。
+   理由：大改动难调试，小改动易回滚。
+
+3. 诚实面对失败。命令失败时读错误信息，分析根因，不要盲目重试。
+   理由：盲目重试浪费 token 且可能加重问题。
+
+4. 保护用户。涉及删除、覆盖、推送等不可逆操作时，停下来确认。
+   理由：Agent 的错误操作可能造成数据丢失。
+
+5. 不假装全知。不确定时说「我不确定，让我查一下」，然后真的去查。
+   理由：编造的答案比承认无知更危险。</code></pre>
+
+    <h2 class="section" id="tool-desc"><span class="idx">★</span> 四、工具描述：在 prompt 里 vs 在 tools 字段里</h2>
+    <p>现代 LLM API 有专门的 <code>tools</code> 字段，每个工具有 name + description + schema（参见 148 章）。那 system prompt 里还要不要再描述工具？答案取决于 Agent 的复杂度。</p>
+    <p>简单 Agent（工具少、用途明确）可以完全依赖 tools 字段，system prompt 里不重复。但复杂 Agent 往往会在 system prompt 里加一段 <strong>工具使用指南</strong>——不是重复每个工具的描述，而是讲工具之间的协作策略：</p>
+    <pre><code class="language-text">工具使用指南：
+
+- 优先用 search_codebase 找相关代码，而不是盲目 read_file 试错。
+  这能快速定位到正确的文件，省 token。
+
+- 修改文件时，先 read_file 看完整内容，确保你理解了现有结构。
+  不要只看片段就改，容易遗漏上下文。
+
+- 改完代码后，立即用 execute 跑相关测试。不要等所有改动都做完再跑——
+  早跑早发现问题。
+
+- 当测试失败时，先读完整的错误输出，再决定怎么修。
+  不要看到第一个错误就动手，可能有多个相关问题。
+
+- 需要确认 API 用法时，优先 search_codebase 找项目里的现有用法，
+  其次 @docs 查官方文档，最后才考虑 @web 搜索。
+  项目里的现有用法最贴合当前代码风格。</code></pre>
+    <p>这段指南的核心是 <strong>工具间的优先级和协作</strong>，这是单个工具的 description 无法表达的。它教会模型「先做什么再做什么」，而不是孤立地理解每个工具。</p>
+
+    <h2 class="section" id="few-shot"><span class="idx">★</span> 五、Few-shot 示例：用范例校准输出</h2>
+    <p>对于复杂的输出格式或行为模式，纯文字描述不如具体范例有效。这就是 few-shot 示例的价值——在 system prompt 里放一两个「正确的输入-输出范例」，让模型模仿。</p>
+    <p>对于使用 SEARCH/REPLACE 格式的 Agent（Aider、Cline），few-shot 几乎是必须的：</p>
+    <pre><code class="language-text">代码修改格式示例：
+
+当你要修改代码时，使用以下格式：
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+def greet(name):
+    return "Hello"
+=======
+def greet(name):
+    return f"Hello, {name}"
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE
+
+注意事项（从示例中学习）：
+- SEARCH 块要包含足够的上下文（前后各 1-2 行），确保唯一匹配
+- 不要包含行号，工具会自己定位
+- 一次只改一处，多处改动用多个 SEARCH/REPLACE 块
+- REPLACE 块是替换后的完整内容，不是增量</code></pre>
+    <p>这种「范例 + 注意事项」的组合，比纯文字描述「SEARCH 块的格式是...」有效得多。模型看到具体范例后，能直接模仿格式，减少格式错误。Aider 的实践表明，加了 few-shot 后 SEARCH/REPLACE 的格式正确率从 ~70% 提升到 ~95%。</p>
+
+    <h2 class="section" id="versioning"><span class="idx">★</span> 六、Prompt 版本管理与迭代</h2>
+    <p>System prompt 是会演进的——发现 Agent 在某类任务上表现差，往往要改 prompt。所以 prompt 应该被 <strong>版本化管理</strong>，像代码一样迭代。一些最佳实践：</p>
+    <ul>
+      <li><strong>prompt 独立于代码</strong>：把 system prompt 放在单独的文件（如 prompts/system.md），而不是硬编码在源码字符串里。这样非工程师（如产品经理）也能参与 prompt 迭代。</li>
+      <li><strong>版本号</strong>：每个 prompt 版本打标签，配合评估集衡量版本间的效果差异。</li>
+      <li><strong>评估集</strong>：维护一组「标准任务 + 预期行为」的测试用例，每次改 prompt 后跑一遍，确保改进没有引入回归。</li>
+      <li><strong>差异化</strong>：不同模型可能需要不同的 prompt 措辞（Claude 对 XML 敏感，GPT 对 Markdown 敏感），支持按模型切换 prompt 变体。</li>
+    </ul>
+
+    <h2 class="section" id="anti-patterns"><span class="idx">★</span> 七、常见反模式</h2>
+    <p>最后总结几个 system prompt 的常见反模式，避免踩坑：</p>
+    <ul>
+      <li><strong>过度啰嗦</strong>：prompt 写了几千字，模型反而抓不住重点。研究表明 prompt 越长，模型对中间部分的遵循度越低（lost-in-the-middle）。保持 prompt 简洁，核心约束放前面。</li>
+      <li><strong>矛盾指令</strong>：一会儿说「要高效」一会儿说「要谨慎」，模型无所适从。确保指令间不冲突。</li>
+      <li><strong>空洞口号</strong>：「你要做到最好」「追求卓越」这种没有可操作性的话，对模型行为无影响。换成具体的「每次改动后跑测试」。</li>
+      <li><strong>忽略安全</strong>：只讲「要做什么」，不讲「不能做什么」。安全约束是 prompt 的必备部分。</li>
+      <li><strong>不可测试</strong>：写了 prompt 但没有评估集，改完不知道是变好还是变坏。prompt 迭代必须配合评估。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>System prompt 是 Agent 行为的源头。要点回顾：</p>
+    <ul>
+      <li><strong>四部分</strong>：角色定义（自我认知）、能力描述（工具）、行为约束（边界）、风格示范（few-shot），缺一不可。</li>
+      <li><strong>角色要具体</strong>：有价值观、有人格化比喻、和工具能力匹配，避免泛泛的「助手」。</li>
+      <li><strong>约束要可执行</strong>：具体而非抽象、解释理由、给正向替代，「不要猜测，去查源码」优于「要准确」。</li>
+      <li><strong>工具指南讲协作</strong>：不只重复 tools 字段，而是讲工具间的优先级和流程。</li>
+      <li><strong>few-shot 校准格式</strong>：复杂输出格式用范例比描述有效，正确率显著提升。</li>
+      <li><strong>版本化管理</strong>：prompt 独立成文件、打版本号、配评估集、支持模型差异化。</li>
+      <li><strong>避免反模式</strong>：啰嗦、矛盾、空洞、忽略安全、不可测试。</li>
+    </ul>
+    <p>下一章（173 章）我们看 system prompt 之外的另一个技术细节——流式输出实现，看 Agent 是怎么把 token-by-token 的流式响应渲染到界面的。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

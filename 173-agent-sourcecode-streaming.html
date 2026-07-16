@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -204,7 +202,7 @@
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
-      <a href="173-agent-sourcecode-streaming.html" class="active" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
+      <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
       <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
@@ -305,81 +303,228 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 173 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：流式输出处理</h1><p class="lead">SSE/JSON 流解析、增量渲染、工具调用边到边处理、取消机制。前端如何平滑展示流。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>SSE/JSON 流解析、增量渲染、工具调用边到边处理、取消机制。前端如何平滑展示流。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>SSE/JSON 流解析、增量渲染、工具调用边到边处理、取消机制。前端如何平滑展示流。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 56 · Agent 源码深挖系列</span>
+      <h1>流式输出实现<br>SSE 协议、token-by-token 渲染与中断处理</h1>
+      <p class="lead">用户敲下回车后，盯着界面等 AI 回复——这段等待时间的体验好坏，几乎决定了一个 Agent 产品的口碑。流式输出（token 一个个吐出来，而不是等全部生成完再显示）是关键优化。它背后涉及 SSE 协议、前端渲染、中断处理等多个技术点。本章我们把这些拆清楚，看一个流畅的「打字机效果」是怎么工程实现的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-stream"><span class="idx">★</span> 一、为什么必须流式：延迟心理学</h2>
+    <p>从纯技术角度看，流式和非流式（一次性返回）的总体延迟差不多——模型生成完所有 token 的时间是固定的。但用户体验差异巨大，这背后是 <strong>延迟心理学</strong>。</p>
+    <p>研究表明，用户对「立即开始有反馈」的容忍度，远高于「等待完整结果」。具体来说：</p>
+    <ul>
+      <li>&lt;100ms：感觉是即时的。</li>
+      <li>100ms-1s：感觉是在响应，但短暂卡顿可接受。</li>
+      <li>1s-10s：用户开始焦虑，需要进度反馈。</li>
+      <li>&gt;10s：用户认为系统可能挂了。</li>
+    </ul>
+    <p>模型生成一段 500 token 的回答通常要 5-15 秒。如果非流式，用户要盯着空白界面干等这么久，体验极差。流式让第一个 token 在 ~300ms 内出现（首 token 延迟），用户立即看到「AI 在说话」，焦虑感大减。后续 token 持续流出，用户边看边等，感知延迟大幅降低。</p>
+    <p>对流式场景还有一个特别的价值：<strong>提前发现方向错误</strong>。如果 AI 开头几句就偏离了用户意图，用户可以立即中断（按 Esc），不用等它说完再重来。这节省了 token 成本和用户时间。</p>
+
+    <h2 class="section" id="sse"><span class="idx">★</span> 二、SSE：服务端推送的标准协议</h2>
+    <p>流式输出的底层传输，HTTP 场景下最常用的是 SSE（Server-Sent Events）。它是一种简单的单向推送协议——服务端保持连接，持续往客户端发消息，客户端只接收不发送。</p>
+    <p>SSE 的格式极简，就是纯文本，每条消息以 <code>data:</code> 开头，以两个换行结束：</p>
+    <pre><code class="language-text">HTTP/1.1 200 OK
+Content-Type: text/event-stream
+
+data: {"token": "Hello"}
+
+data: {"token": ", "}
+
+data: {"token": "world"}
+
+data: {"token": "!"}
+
+data: [DONE]</code></pre>
+    <p>浏览器原生支持 SSE（通过 EventSource API），无需额外库。Node.js/Bun 服务端也能轻松生成 SSE 格式。OpenAI、Anthropic 等模型 API 都用 SSE 作为流式响应的协议。</p>
+    <pre><code class="language-typescript">// 服务端生成 SSE 流（简化，Bun 版）
+async function streamChat(req: Request): Promise&lt;Response&gt; {
+  const stream = new ReadableStream({
+    async start(controller) {
+      const encoder = new TextEncoder();
+      // 调用模型的流式 API
+      const llmStream = await callLLMStreaming(req.body);
+
+      for await (const chunk of llmStream) {
+        // 每个 chunk 包装成 SSE 格式
+        const data = JSON.stringify({ token: chunk.text });
+        controller.enqueue(encoder.encode(`data: ${data}\n\n`));
+      }
+
+      // 结束标记
+      controller.enqueue(encoder.encode("data: [DONE]\n\n"));
+      controller.close();
     },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+  });
+
+  return new Response(stream, {
+    headers: {
+      "Content-Type": "text/event-stream",
+      "Cache-Control": "no-cache",        // 关键：禁止缓存
+      "Connection": "keep-alive",
+    },
+  });
+}</code></pre>
+    <p>注意两个 HTTP 头。<code>Cache-Control: no-cache</code> 防止中间代理缓存流式响应（否则用户可能收到旧数据）。<code>Connection: keep-alive</code> 保持连接不提前关闭。这些细节看似不起眼，但少了任一个都可能导致流式中断或异常。</p>
+
+    <h2 class="section" id="client"><span class="idx">★</span> 三、客户端渲染：从 SSE 到屏幕</h2>
+    <p>客户端（浏览器、终端、IDE）收到 SSE 流后，要把它渲染成「打字机效果」。这比看起来复杂——你不能每收到一个 token 就立即更新 DOM/重绘终端，因为高频更新会导致性能问题。</p>
+    <pre><code class="language-typescript">// 客户端流式渲染（简化）
+class StreamRenderer {
+  private buffer = "";
+  private rafId: number | null = null;
+  private target: HTMLElement;
+
+  constructor(target: HTMLElement) {
+    this.target = target;
+  }
+
+  // 收到一个 token
+  onToken(token: string) {
+    this.buffer += token;
+    this.scheduleRender();
+  }
+
+  // 用 requestAnimationFrame 节流渲染
+  private scheduleRender() {
+    if (this.rafId !== null) return;  // 已有待执行的渲染
+    this.rafId = requestAnimationFrame(() =&gt; {
+      this.target.textContent = this.buffer;
+      this.rafId = null;
+      // 自动滚动到底部
+      this.target.scrollTop = this.target.scrollHeight;
+    });
+  }
+
+  // 流结束
+  onComplete() {
+    if (this.rafId !== null) {
+      cancelAnimationFrame(this.rafId);
     }
-]
+    this.target.textContent = this.buffer;  // 最终渲染
+  }
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+// 配合 SSE 客户端
+const renderer = new StreamRenderer(document.getElementById("output")!);
+const eventSource = new EventSource("/chat/stream");
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+eventSource.onmessage = (e) =&gt; {
+  if (e.data === "[DONE]") {
+    renderer.onComplete();
+    eventSource.close();
+    return;
+  }
+  const data = JSON.parse(e.data);
+  renderer.onToken(data.token);
+};</code></pre>
+    <p>这段代码的核心是 <strong>requestAnimationFrame 节流</strong>。如果每收到一个 token（模型可能每秒吐 50 个）就立即更新 DOM，浏览器会被 update 淹没，主线程卡顿。requestAnimationFrame 把渲染对齐到屏幕刷新率（通常 60fps，即每 16ms 一次），期间收到的多个 token 在 buffer 里累积，一次渲染。这让 token 流看起来平滑，又不拖垮性能。</p>
+    <p>对于终端 UI（如 OpenCode 的 Ink、Cline 的 WebView），原理类似——节流是通用的优化策略，只是具体 API 不同（Ink 用 React 的 batched updates，WebView 用 requestAnimationFrame）。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：流式输出处理"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="172-agent-sourcecode-prompt.html"><div class="lbl">← 上一章</div><div class="ttl">172 · 源码级启示：系统提示工程</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="174-agent-sourcecode-context-window.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">174 · 源码级启示：上下文管理</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 173 章 · 源码级启示：流式输出处理</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="markdown"><span class="idx">★</span> 四、Markdown 流式渲染的难题</h2>
+    <p>纯文本的流式渲染相对简单。但 Agent 的输出通常是 Markdown（代码块、列表、标题），流式渲染 Markdown 是个难题——因为 Markdown 是结构化的，但流式是碎片化的。</p>
+    <p>考虑这个场景：模型开始输出一个代码块，<code>```python</code> 后开始吐代码，但还没吐完 <code>```</code> 闭合。这时候界面上应该显示什么？如果把 <code>```python</code> 当普通文本显示，用户看到乱码；如果等闭合再渲染代码块，用户要等很久。</p>
+    <p>常见的解法是 <strong>增量解析</strong>——用一个容错的 Markdown 解析器，对不完整的输入也能渲染出「到目前为止的部分」：</p>
+    <pre><code class="language-typescript">// 增量 Markdown 渲染（概念示意）
+import { marked } from "marked";
+
+class MarkdownStreamRenderer {
+  private fullText = "";
+
+  onToken(token: string) {
+    this.fullText += token;
+    this.renderIncremental();
+  }
+
+  private renderIncremental() {
+    // marked 配置成容错模式：不完整的代码块也能渲染
+    // 实际实现会更复杂，要处理：
+    // - 未闭合的代码块（显示为进行中的代码）
+    // - 未闭合的行内代码
+    // - 未闭合的链接 [text](url...
+    try {
+      const html = marked.parse(this.fullText, { async: false });
+      this.target.innerHTML = html;
+    } catch {
+      // 解析失败时降级为纯文本
+      this.target.textContent = this.fullText;
+    }
+  }
+}</code></pre>
+    <p>更精细的实现会维护一个 <strong>解析状态机</strong>，记住「当前在一个代码块里」「当前在一个列表里」等状态，每收到新 token 时基于状态做增量更新，而不是每次全量重新解析。这对超长输出（如 Agent 解释一大段代码）的性能很重要。</p>
+
+    <h2 class="section" id="interrupt"><span class="idx">★</span> 五、中断处理：优雅地停下来</h2>
+    <p>用户在流式过程中按 Esc 想中断，Agent 必须能优雅地停下。这涉及三个层面的清理：</p>
+    <pre><code class="language-typescript">// 中断处理（简化）
+class StreamSession {
+  private abortController = new AbortController();
+  private renderer: StreamRenderer;
+
+  async start(prompt: string) {
+    try {
+      const response = await fetch("/chat/stream", {
+        method: "POST",
+        body: JSON.stringify({ prompt }),
+        signal: this.abortController.signal,  // 关键：绑定 abort
+      });
+
+      const reader = response.body!.getReader();
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        const text = new TextDecoder().decode(value);
+        this.parseSSEAndRender(text);
+      }
+    } catch (err) {
+      if (err.name === "AbortError") {
+        // 用户主动中断，不算错误
+        this.renderer.onComplete();  // 渲染已收到的部分
+        this.markAsInterrupted();
+      } else {
+        throw err;  // 真错误，向上抛
+      }
+    }
+  }
+
+  // 用户按 Esc 调用
+  interrupt() {
+    this.abortController.abort();
+  }
+
+  private markAsInterrupted() {
+    // 在 UI 上标注「已中断」
+    this.renderer.append("\n[已中断]");
+    // 关键：已经收到的部分要保存到对话历史
+    // 这样用户后续可以基于「说到一半」的内容继续
+    this.savePartialToHistory();
+  }
+}</code></pre>
+    <p>三个关键点：<strong>第一，AbortController 绑定到 fetch</strong>，abort 时 HTTP 请求立即终止，不再消耗 token（省钱）。<strong>第二，已收到的部分要保留并渲染</strong>，不要因为中断就清屏——用户可能想看已经生成的内容。<strong>第三，保存到历史</strong>，让后续对话能基于「说到一半」继续（这在 Codex 的协作式中断里也提到过，参见 154 章）。</p>
+
+    <h2 class="section" id="backpressure"><span class="idx">★</span> 六、背压：客户端消化不及怎么办</h2>
+    <p>一个容易被忽视的问题是 <strong>背压（backpressure）</strong>。模型吐 token 的速度可能快于客户端的渲染速度（特别是渲染复杂的 Markdown 时）。如果客户端不处理，token 会在 buffer 里堆积，内存涨，最终 OOM。</p>
+    <p>上面用 requestAnimationFrame 节流已经天然缓解了这个问题——渲染按帧率走，多余 token 在 buffer 里等。但如果 buffer 涨到很大（比如模型 1 秒吐了 500 个 token，渲染 1 秒只能处理 100 个），仍然有问题。</p>
+    <p>解法是 <strong>让客户端能告诉服务端慢一点</strong>。HTTP 流式天然支持这一点——如果客户端不 read，TCP 窗口会满，服务端的 write 会阻塞（这是 TCP 流控的机制）。但中间的代理或框架可能不传递这个背压（它们自己 buffer 了）。所以选择「传递背压」的 HTTP 客户端和框架很重要——fetch 的 ReadableStream 在这点上做得比 XMLHttpRequest 好。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>流式输出是 Agent 体验的基础设施。要点回顾：</p>
+    <ul>
+      <li><strong>延迟心理学</strong>：首 token 延迟 &lt;300ms 让用户感觉「立即响应」，流式让用户能提前发现方向错误并中断。</li>
+      <li><strong>SSE 协议</strong>：纯文本、data: 前缀、两个换行分隔，浏览器原生支持，Cache-Control: no-cache 必备。</li>
+      <li><strong>requestAnimationFrame 节流</strong>：token 累积到 buffer，按帧率批量渲染，避免高频 DOM 更新卡顿。</li>
+      <li><strong>Markdown 增量解析</strong>：容错解析器处理不完整输入，未闭合的代码块也要能部分渲染。</li>
+      <li><strong>中断三步</strong>：AbortController 绑 fetch 省钱、保留已收到部分、保存到历史支持续聊。</li>
+      <li><strong>背压</strong>：客户端渲染不及 token 时，靠 TCP 流控或主动节流，选传递背压的 HTTP 客户端。</li>
+    </ul>
+    <p>下一章（174 章）我们转向另一个通用主题——上下文窗口管理策略，看 token 计数、消息淘汰、压缩摘要是怎么协同工作的。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

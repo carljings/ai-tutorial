@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -206,7 +204,7 @@
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
       <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
-      <a href="175-agent-sourcecode-error-recovery.html" class="active" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
+      <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
       <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
       <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
       <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
@@ -305,81 +303,310 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 175 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：错误恢复</h1><p class="lead">工具执行失败、JSON 解析失败、超时的重试与降级。模型自纠循环。死循环检测。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>工具执行失败、JSON 解析失败、超时的重试与降级。模型自纠循环。死循环检测。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>工具执行失败、JSON 解析失败、超时的重试与降级。模型自纠循环。死循环检测。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 58 · Agent 源码深挖系列</span>
+      <h1>错误恢复策略<br>重试、死循环检测与 fallback chain</h1>
+      <p class="lead">Agent 在真实环境里会遇到各种失败：工具执行超时、API 返回错误、文件匹配失败、模型陷入死循环。一个健壮的 Agent 不是不失败，而是失败后能优雅恢复。本章我们梳理三类核心的错误恢复策略——重试、死循环检测、fallback chain——并看它们在不同开源项目里的具体实现。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="retry"><span class="idx">★</span> 一、重试：不是简单地再来一次</h2>
+    <p>最朴素的错误恢复是重试——失败了再来一次。但「再来一次」如果完全不改变输入，大概率还是失败（爱因斯坦对疯狂的定义：做同样的事期待不同结果）。有效的重试必须 <strong>改变某些条件</strong>。</p>
+    <p>对 Agent 来说，重试通常不是代码层面的自动重试（那是 API client 的活，如 axios-retry），而是 <strong>把错误反馈给 LLM，让它在下一轮自己修正</strong>。这是 Agent 比传统软件更灵活的地方——传统软件遇到错误只能按预设逻辑处理，Agent 能理解错误并创造性应对。</p>
+    <pre><code class="language-typescript">// Agent 层面的重试（反馈给 LLM）
+async function executeToolWithFeedback(
+  toolCall: ToolCall,
+  session: Session,
+): Promise&lt;ToolResult&gt; {
+  const result = await executeTool(toolCall);
+
+  if (!result.isError) return result;
+
+  // 失败了，把错误反馈给 LLM，让它在下一轮决定怎么办
+  session.addMessage({
+    role: "tool",
+    content: `[执行失败] ${result.content}\n\n` +
+             `请分析失败原因，可能需要：\n` +
+             `- 检查命令拼写或参数\n` +
+             `- 读取相关文件确认上下文\n` +
+             `- 换一种方法尝试`,
+    tool_call_id: toolCall.id,
+  });
+
+  // 不在这里自动重试，让 Agent 循环的下一轮由 LLM 决定
+  return result;
+}</code></pre>
+    <p>这段代码体现了一个重要原则：<strong>错误反馈要具体且可操作</strong>。不要只说「失败了，请重试」，要给出可能的排查方向。LLM 看到具体提示后，更可能采取正确的修正动作，而不是盲目重试同一个操作。</p>
+    <p>对于 <strong>代码层面的自动重试</strong>（针对网络抖动、临时性错误），策略是经典的指数退避：</p>
+    <pre><code class="language-typescript">// API 调用的指数退避重试
+async function callWithRetry&lt;T&gt;(
+  fn: () =&gt; Promise&lt;T&gt;,
+  options: { maxRetries?: number; baseDelay?: number } = {}
+): Promise&lt;T&gt; {
+  const maxRetries = options.maxRetries ?? 3;
+  const baseDelay = options.baseDelay ?? 1000;
+
+  for (let attempt = 0; attempt &lt;= maxRetries; attempt++) {
+    try {
+      return await fn();
+    } catch (err) {
+      // 只对可重试的错误重试（网络错误、5xx、429）
+      if (!isRetryable(err) || attempt === maxRetries) throw err;
+
+      const delay = baseDelay * Math.pow(2, attempt) +
+                    Math.random() * 1000;  // 加抖动避免雷同
+      await sleep(delay);
     }
-]
+  }
+  throw new Error("unreachable");
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+function isRetryable(err: any): boolean {
+  if (err.status &gt;= 500) return true;           // 服务端错误
+  if (err.status === 429) return true;          // 限流
+  if (err.code === "ECONNRESET") return true;   // 网络断开
+  if (err.code === "ETIMEDOUT") return true;    // 超时
+  return false;  // 4xx（除 429）不重试，是请求本身的问题
+}</code></pre>
+    <p>注意 <code>isRetryable</code> 的区分：<strong>只对临时性错误重试</strong>。4xx 错误（除了 429 限流）通常是请求本身的问题（参数错、鉴权失败），重试不会成功，应该立即反馈给 LLM。这种「区分错误类型」的策略避免了无意义的重试浪费。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="loop-detection"><span class="idx">★</span> 二、死循环检测：Agent 最怕的故障</h2>
+    <p>Agent 有一种特别危险的失败模式：<strong>死循环</strong>。模型反复调用同一个工具、同样的参数，永远不结束。这会疯狂消耗 token，且永远完不成任务。Codex 在 Agent 循环里用重复调用检测来防这个（参见 154 章），我们在这里更系统地讨论。</p>
+    <p>死循环有几种典型模式：</p>
+    <ul>
+      <li><strong>完全重复</strong>：连续 N 次调用完全相同的工具 + 参数。最明显，最容易检测。</li>
+      <li><strong>振荡</strong>：在两个状态间来回切换（A→B→A→B→...）。稍微隐蔽。</li>
+      <li><strong>渐近但不收敛</strong>：每次参数略有变化，但目标永远达不成（如反复微调一个永远不过的测试）。最难检测。</li>
+    </ul>
+    <pre><code class="language-typescript">// 死循环检测器（简化）
+export class LoopDetector {
+  private history: ToolCall[] = [];
+  private readonly windowSize = 10;
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：错误恢复"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="174-agent-sourcecode-context-window.html"><div class="lbl">← 上一章</div><div class="ttl">174 · 源码级启示：上下文管理</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="176-agent-sourcecode-mcp-deep.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">176 · 源码级启示：MCP 集成</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 175 章 · 源码级启示：错误恢复</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+  /** 检查当前调用是否构成循环 */
+  detect(call: ToolCall): LoopWarning | null {
+    this.history.push(call);
+    if (this.history.length &gt; this.windowSize) {
+      this.history.shift();
+    }
+
+    // 检测 1：连续重复（最近 3 次完全相同）
+    const recent = this.history.slice(-3);
+    if (recent.length === 3 &amp;&amp;
+        recent.every(c =&gt; this.sameCall(c, recent[0]))) {
+      return {
+        type: "repetition",
+        message: `连续 3 次相同的工具调用（${call.name}），可能是死循环`,
+      };
+    }
+
+    // 检测 2：振荡（A-B-A-B 模式）
+    if (this.history.length &gt;= 4) {
+      const last4 = this.history.slice(-4);
+      if (this.sameCall(last4[0], last4[2]) &amp;&amp;
+          this.sameCall(last4[1], last4[3]) &amp;&amp;
+          !this.sameCall(last4[0], last4[1])) {
+        return {
+          type: "oscillation",
+          message: `检测到振荡模式（${last4[0].name} ↔ ${last4[1].name}）`,
+        };
+      }
+    }
+
+    // 检测 3：同一工具调用次数过多
+    const toolCounts: Record&lt;string, number&gt; = {};
+    for (const c of this.history) {
+      toolCounts[c.name] = (toolCounts[c.name] || 0) + 1;
+    }
+    for (const [tool, count] of Object.entries(toolCounts)) {
+      if (count &gt;= 5) {
+        return {
+          type: "frequency",
+          message: `窗口内 ${tool} 被调用了 ${count} 次，异常频繁`,
+        };
+      }
+    }
+
+    return null;
+  }
+
+  private sameCall(a: ToolCall, b: ToolCall): boolean {
+    return a.name === b.name &amp;&amp;
+           JSON.stringify(a.params) === JSON.stringify(b.params);
+  }
+}</code></pre>
+    <p>检测到循环后怎么处理？有几种策略：<strong>软警告</strong>（把警告反馈给 LLM，让它自己调整）、<strong>硬中断</strong>（直接停止 Agent 循环，要求用户介入）、<strong>强制提示</strong>（在下一轮的 system 消息里强调「你似乎在重复，请尝试不同的方法」）。大多数项目用软警告 + 硬中断的组合——先软警告给 LLM 一次自我修正的机会，连续几次警告后升级为硬中断。</p>
+
+    <h2 class="section" id="fallback"><span class="idx">★</span> 三、Fallback Chain：一种不行换另一种</h2>
+    <p>有些任务有多种实现路径，一条走不通就换另一条。这就是 fallback chain——预先定义一组策略，按优先级尝试，第一个成功的为准。</p>
+    <p>对代码编辑 Agent，典型的 fallback chain 是我们第 169 章讲的 Cline 的策略：<strong>SEARCH/REPLACE 补丁 → 全文件重写 → 重新读取后再试</strong>。每一步失败触发下一步，而不是卡死在第一步。</p>
+    <pre><code class="language-typescript">// 通用的 fallback chain（简化）
+export class FallbackChain&lt;TInput, TResult&gt; {
+  constructor(private strategies: Array&lt;{
+    name: string;
+    attempt: (input: TInput) =&gt; Promise&lt;TResult&gt;;
+    shouldFallback: (err: any) =&gt; boolean;  // 这个错误要不要触发 fallback
+  }&gt;) {}
+
+  async run(input: TInput): Promise&lt;TResult&gt; {
+    const errors: string[] = [];
+    for (const strategy of this.strategies) {
+      try {
+        return await strategy.attempt(input);
+      } catch (err) {
+        errors.push(`${strategy.name}: ${err.message}`);
+        if (!strategy.shouldFallback(err)) {
+          // 不可 fallback 的错误，立即抛出
+          throw err;
+        }
+        // 可 fallback，继续下一个策略
+      }
+    }
+    throw new Error(`所有策略都失败：\n${errors.join("\n")}`);
+  }
+}
+
+// 文件编辑的 fallback chain
+const editChain = new FallbackChain([
+  {
+    name: "search-replace",
+    attempt: async (edit) =&gt; applySearchReplace(edit),
+    shouldFallback: (err) =&gt; err.code === "MATCH_NOT_FOUND",
+  },
+  {
+    name: "full-rewrite",
+    attempt: async (edit) =&gt; applyFullRewrite(edit),
+    shouldFallback: (err) =&gt; err.code === "SYNTAX_ERROR",
+  },
+  {
+    name: "read-then-edit",
+    attempt: async (edit) =&gt; {
+      // 先重新读文件，再试
+      const content = await readFile(edit.path);
+      return applySearchReplace({ ...edit, currentContent: content });
+    },
+    shouldFallback: () =&gt; false,  // 最后一步，不 fallback
+  },
+]);</code></pre>
+    <p>fallback chain 的关键是 <code>shouldFallback</code> 函数——它决定 <strong>哪些错误值得换策略，哪些应该立即抛出</strong>。比如 MATCH_NOT_FOUND 值得换全文件重写（匹配问题是补丁策略的弱点），但 PERMISSION_DENIED 不值得 fallback（换策略也绕不过权限）。这种「区分错误性质」的设计，避免了无意义的 fallback 浪费。</p>
+
+    <h2 class="section" id="timeout-recovery"><span class="idx">★</span> 四、超时的恢复策略</h2>
+    <p>超时（工具执行超过时限）是常见的失败。对超时的恢复不能简单重试——如果是命令本身慢（如跑大测试套件），重试只会再超时一次。恢复策略应该是：</p>
+    <ol>
+      <li><strong>识别超时原因</strong>：是命令慢、还是死锁、还是等待用户输入？</li>
+      <li><strong>如果是命令慢</strong>：询问用户是否加长超时，或建议拆分任务（跑单个测试而非全套）。</li>
+      <li><strong>如果是死锁</strong>：kill 进程，报告「可能死锁」，让 LLM 换方法。</li>
+      <li><strong>如果是等待输入</strong>：提示「命令需要交互输入，Agent 无法处理」，建议用户手动跑。</li>
+    </ol>
+    <pre><code class="language-typescript">// 超时恢复（简化）
+async function handleTimeout(
+  command: string,
+  session: Session,
+): Promise&lt;ToolResult&gt; {
+  // 分析命令特征
+  if (/test|spec/i.test(command)) {
+    return {
+      content: `[超时] 测试命令执行超时。可能测试套件太大。
+建议：
+- 用 -t 参数只跑相关测试
+- 或增加 timeout（当前 120s）后重试`,
+      isError: true,
+    };
+  }
+  if (/^(npm install|yarn|pnpm install)/.test(command)) {
+    return {
+      content: `[超时] 安装依赖超时。可能网络慢或依赖树太大。
+建议：
+- 检查网络（特别是公司代理）
+- 尝试 --registry 换源
+- 或增加 timeout 到 300s`,
+      isError: true,
+    };
+  }
+  // 通用超时反馈
+  return {
+    content: `[超时] 命令执行超过 120 秒被终止。
+如果这是预期的长时间命令，请告诉我加长超时。
+如果非预期，命令可能卡住了（死锁或等待输入）。`,
+    isError: true,
+  };
+}</code></pre>
+    <p>这种 <strong>按命令类型给定制建议</strong> 的反馈，比泛泛说「超时了」有效得多。LLM 看到具体建议，能更好地决定下一步。</p>
+
+    <h2 class="section" id="circuit-breaker"><span class="idx">★</span> 五、熔断：连续失败时停下来</h2>
+    <p>如果 Agent 连续多次失败（不管怎么重试都不行），继续尝试是浪费。这时候应该 <strong>熔断</strong>——停止尝试，把控制权交还给用户。这是从电路保护借鉴的思想：电流过载时保险丝熔断，防止起火。</p>
+    <pre><code class="language-typescript">// 熔断器（简化）
+export class CircuitBreaker {
+  private failureCount = 0;
+  private readonly threshold = 5;
+  private lastFailures: string[] = [];
+
+  recordSuccess() {
+    this.failureCount = 0;
+    this.lastFailures = [];
+  }
+
+  recordFailure(reason: string): boolean {
+    this.failureCount++;
+    this.lastFailures.push(reason);
+    return this.failureCount &gt;= this.threshold;
+  }
+
+  getFailures(): string[] {
+    return [...this.lastFailures];
+  }
+
+  isTripped(): boolean {
+    return this.failureCount &gt;= this.threshold;
+  }
+}
+
+// 在 Agent 循环里
+async function runAgentLoop(session: Session) {
+  const breaker = new CircuitBreaker();
+  for (let turn = 0; turn &lt; MAX_TURNS; turn++) {
+    const result = await runTurn(session);
+    if (result.success) {
+      breaker.recordSuccess();
+    } else {
+      const tripped = breaker.recordFailure(result.error);
+      if (tripped) {
+        // 熔断：停止循环，报告给用户
+        session.addMessage({
+          role: "system",
+          content: `[熔断] Agent 连续失败 ${breaker.getFailures().length} 次：
+${breaker.getFailures().map((f, i) =&gt; `${i+1}. ${f}`).join("\n")}
+
+已停止自动尝试。请用户介入：
+- 检查任务是否可行
+- 调整环境（权限、依赖等）
+- 或换一种方式描述任务`,
+        });
+        break;
+      }
+    }
+  }
+}</code></pre>
+    <p>熔断的核心价值是 <strong>防止 Agent 在死胡同里无限消耗</strong>。没有熔断，Agent 可能连续失败 50 次（每次都烧 token），直到达到 MAX_TURNS。有熔断，5 次失败就停，把资源还给用户做更有价值的事。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>错误恢复是 Agent 健壮性的核心。要点回顾：</p>
+    <ul>
+      <li><strong>Agent 层重试</strong>：把错误具体反馈给 LLM，让它创造性修正，而非盲目重试；API 层用指数退避 + 抖动，只重试临时性错误。</li>
+      <li><strong>死循环检测</strong>：完全重复（连续相同）、振荡（A-B-A-B）、频率异常（同工具调用过多）三种检测，软警告 + 硬中断组合。</li>
+      <li><strong>Fallback chain</strong>：多策略按优先级尝试，shouldFallback 决定哪些错误值得换策略，避免无意义 fallback。</li>
+      <li><strong>超时恢复</strong>：按命令类型给定制建议（测试慢、install 慢、死锁、等输入），优于泛泛报错。</li>
+      <li><strong>熔断</strong>：连续失败达阈值就停，把失败原因汇总报告用户，防止在死胡同无限烧 token。</li>
+      <li><strong>反馈要具体可操作</strong>：所有错误反馈都应给排查方向，不要只说「失败」。</li>
+    </ul>
+    <p>下一章（176 章）我们深入 MCP 协议本身——JSON-RPC、tool/resource/prompt/sampling 四类能力、stdio vs SSE 的传输细节。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

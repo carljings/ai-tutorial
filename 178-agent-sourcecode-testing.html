@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -209,7 +207,7 @@
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
       <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
       <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
-      <a href="178-agent-sourcecode-testing.html" class="active" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
+      <a href="178-agent-sourcecode-testing.html" title="源码级启示：Agent 测试"><span class="num">178</span>源码级启示</a>
     </div>
     <div class="nav-group"><h3>★Skills技能</h3>
       <a href="179-skills-skillmd-anatomy.html" title="SKILL.md 的解剖：一个技能的最小契约"><span class="num">179</span>SKILL.md 的</a>
@@ -305,81 +303,349 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 178 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：Agent 测试</h1><p class="lead">如何给 agent loop 写测试：mock LLM、固定工具响应、断言工具调用序列。回归测试夹具。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>如何给 agent loop 写测试：mock LLM、固定工具响应、断言工具调用序列。回归测试夹具。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>如何给 agent loop 写测试：mock LLM、固定工具响应、断言工具调用序列。回归测试夹具。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 61 · Agent 源码深挖系列</span>
+      <h1>Agent 测试方法<br>mock LLM、工具响应固定与工具调用序列断言</h1>
+      <p class="lead">测试一个函数，你给定输入断言输出。但 Agent 的输出是不确定的——同样的输入，LLM 每次可能给出不同的回答、调用不同的工具。这让传统的单元测试方法失灵。本章我们讨论 Agent 测试的特殊方法：mock LLM 让输出可预测、固定工具响应隔离外部依赖、断言工具调用序列而非文本输出、用回归测试集追踪质量变化。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="challenge"><span class="idx">★</span> 一、Agent 测试的根本困难</h2>
+    <p>传统的单元测试基于一个假设：<strong>给定相同输入，函数产生相同输出</strong>。这个假设让测试可重复、可自动化。但 Agent 打破了这个假设——LLM 是非确定性的，即使 temperature=0，不同版本的模型、不同的请求批次，输出都可能略有差异。</p>
+    <p>更麻烦的是，Agent 的「正确性」本身难以定义。对于「帮我修复这个 bug」的任务，什么是正确的测试断言？是断言 LLM 说了特定的话？是断言它调用了特定工具？是断言最终代码能通过测试？这些都是不同层面的正确性，需要不同的测试方法。</p>
+    <p>Agent 测试的核心策略转变是：<strong>从测试「输出」转向测试「行为」</strong>。不关心 LLM 说了什么具体的话，关心它是否调用了正确的工具、是否遵循了预期的流程、是否最终解决了问题。这种「行为级测试」比「输出级测试」更鲁棒，因为行为比文本更稳定。</p>
+
+    <h2 class="section" id="mock-llm"><span class="idx">★</span> 二、Mock LLM：让不可预测变可预测</h2>
+    <p>测试 Agent 的第一步是 <strong>mock 掉 LLM</strong>——用一个可控的假实现替代真实的 LLM 调用。这让测试不依赖网络、不消耗 token、且输出可预测。</p>
+    <pre><code class="language-typescript">// Mock LLM 的实现（简化）
+export class MockLLM implements LLMProvider {
+  private responses: MockResponse[];
+  private callIndex = 0;
+  public callLog: Array&lt;{ input: any; response: any }&gt; = [];
+
+  constructor(responses: MockResponse[]) {
+    this.responses = responses;  // 预设的响应序列
+  }
+
+  async complete(input: any): Promise&lt;any&gt; {
+    // 记录调用，供断言
+    this.callLog.push({ input, response: this.responses[this.callIndex] });
+
+    // 按顺序返回预设响应
+    const response = this.responses[this.callIndex];
+    this.callIndex++;
+
+    if (!response) {
+      throw new Error("MockLLM: 预设响应用完了，调用次数超出预期");
     }
-]
+    return response;
+  }
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+interface MockResponse {
+  text?: string;                  // 文本输出
+  toolCalls?: ToolCall[];         // 工具调用请求
+  tokensUsed?: number;
+}
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+// 测试用例：验证 Agent 会先读文件再修改
+test("Agent 先 read_file 再 write_file", async () =&gt; {
+  const mockLLM = new MockLLM([
+    // 第一轮：LLM 决定先读文件
+    {
+      toolCalls: [{
+        id: "call_1",
+        name: "read_file",
+        args: { filePath: "src/auth.py" },
+      }],
+    },
+    // 第二轮：读完文件后，LLM 决定修改
+    {
+      toolCalls: [{
+        id: "call_2",
+        name: "write_file",
+        args: {
+          filePath: "src/auth.py",
+          content: "def authenticate(): ...",
+        },
+      }],
+    },
+    // 第三轮：修改完，LLM 给出总结，不调工具
+    {
+      text: "已修复 authenticate 函数",
+    },
+  ]);
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：Agent 测试"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="177-agent-sourcecode-parallel.html"><div class="lbl">← 上一章</div><div class="ttl">177 · 源码级启示：并行工具调用</div></a><a href="179-skills-skillmd-anatomy.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">179 · SKILL.md 的解剖：一个技能的最小契约</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 178 章 · 源码级启示：Agent 测试</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+  const agent = new Agent({ llm: mockLLM, tools: [...builtinTools] });
+  await agent.run("修复 auth.py 里的 bug");
+});</code></pre>
+    <p>MockLLM 的核心是 <strong>预设响应序列</strong>——测试编写者预先准备好「LLM 第一轮会这么回应、第二轮那么回应」的序列。这让 Agent 的行为变得完全可预测，可以断言任何细节。代价是测试编写者要手动设计这些响应，工作量大。但这是 Agent 单元测试的必要投入。</p>
+    <p>注意 <code>callLog</code> 的记录——它捕获了每次 LLM 调用的输入和输出，供后续断言。你可以断言「LLM 被调用了 3 次」「第二次调用的 input 包含 read_file 的结果」等。</p>
+
+    <h2 class="section" id="mock-tools"><span class="idx">★</span> 三、Mock 工具：隔离外部依赖</h2>
+    <p>除了 mock LLM，还要 mock 工具——特别是有副作用的工具（execute、网络请求）。否则测试会真的执行命令、真的访问网络，既慢又不可控。</p>
+    <pre><code class="language-typescript">// Mock 工具的实现（简化）
+export class MockToolRegistry {
+  private responses: Map&lt;string, any[]&gt; = new Map();
+  public callLog: Array&lt;{ tool: string; args: any; result: any }&gt; = [];
+
+  // 为某工具预设响应序列
+  stub(toolName: string, responses: any[]): this {
+    this.responses.set(toolName, responses);
+    return this;
+  }
+
+  async execute(toolName: string, args: any): Promise&lt;any&gt; {
+    const queue = this.responses.get(toolName);
+    if (!queue || queue.length === 0) {
+      throw new Error(`MockToolRegistry: ${toolName} 没有预设响应`);
+    }
+    const result = queue.shift()!;  // 取第一个
+    this.callLog.push({ tool: toolName, args, result });
+    return result;
+  }
+}
+
+// 测试用例
+test("工具失败时 Agent 会重试或换方法", async () =&gt; {
+  const mockTools = new MockToolRegistry()
+    .stub("execute", [
+      // 第一次执行失败
+      { isError: true, content: "npm test 失败：SyntaxError" },
+      // 第二次（修正后）成功
+      { isError: false, content: "所有测试通过" },
+    ])
+    .stub("read_file", [
+      { content: "def authenticate():\n    pass" },
+    ]);
+
+  const mockLLM = new MockLLM([
+    // LLM 先跑测试
+    { toolCalls: [{ id: "1", name: "execute", args: { command: "npm test" } }] },
+    // 测试失败，LLM 决定读文件
+    { toolCalls: [{ id: "2", name: "read_file", args: { filePath: "auth.py" } }] },
+    // 读完，LLM 修改代码
+    { toolCalls: [{ id: "3", name: "write_file", args: { filePath: "auth.py", content: "..." } }] },
+    // 再跑测试
+    { toolCalls: [{ id: "4", name: "execute", args: { command: "npm test" } }] },
+    // 成功，结束
+    { text: "修复完成" },
+  ]);
+
+  const agent = new Agent({
+    llm: mockLLM,
+    tools: mockTools,
+  });
+  await agent.run("修复测试失败");
+
+  // 断言工具调用序列
+  expect(mockTools.callLog.map(c =&gt; c.tool)).toEqual([
+    "execute",    // 第一次测试（失败）
+    "read_file",  // 读文件
+    "write_file", // 修改
+    "execute",    // 第二次测试（成功）
+  ]);
+});</code></pre>
+    <p>这段测试展示了一个关键断言：<strong>工具调用序列</strong>。<code>expect(...).toEqual(["execute", "read_file", "write_file", "execute"])</code> 断言 Agent 按预期的顺序调用了这些工具。这是行为级测试的核心——不关心 LLM 说了什么，关心它「先测试 → 失败 → 读文件 → 修改 → 再测试」的流程是否符合预期。</p>
+
+    <h2 class="section" id="sequence-assertion"><span class="idx">★</span> 四、断言的层次：从严格到宽松</h2>
+    <p>工具调用序列的断言可以有几个层次，从最严格到最宽松：</p>
+    <pre><code class="language-typescript">// 层次 1：完全精确的序列（最严格，最脆弱）
+expect(tools.callLog.map(c =&gt; c.tool)).toEqual([
+  "read_file", "write_file", "execute"
+]);
+// 任何顺序变化、多一个少一个调用都失败
+
+// 层次 2：包含特定子序列（中等）
+expect(sequenceContains(
+  tools.callLog.map(c =&gt; c.tool),
+  ["read_file", "write_file"]   // 必须先读后写，但中间可以有别的
+)).toBe(true);
+
+// 层次 3：调用了特定工具（最宽松，最鲁棒）
+expect(tools.callLog.some(c =&gt; c.tool === "read_file")).toBe(true);
+expect(tools.callLog.some(c =&gt; c.tool === "write_file")).toBe(true);
+// 只要调过这两个工具就行，不管顺序和次数
+
+// 层次 4：最终状态断言（不看过程，只看结果）
+expect(await readFile("auth.py")).toContain("def authenticate");
+// 不管 Agent 怎么做的，文件最终改对了
+
+// 辅助函数：检查序列是否包含子序列
+function sequenceContains(seq: string[], sub: string[]): boolean {
+  for (let i = 0; i &lt;= seq.length - sub.length; i++) {
+    if (sub.every((s, j) =&gt; seq[i + j] === s)) return true;
+  }
+  return false;
+}</code></pre>
+    <p>选择哪个层次取决于测试目标。<strong>单元测试</strong>（测某个具体逻辑分支）适合严格断言。<strong>集成测试</strong>（测整体流程）适合宽松断言或最终状态断言。一个常见错误是 <strong>所有测试都用最严格的层次 1</strong>——这导致测试极其脆弱，任何 prompt 微调导致的流程变化都让一堆测试挂掉。合理的测试应该层次多样，严格断言只用于真正需要保证的精确流程。</p>
+
+    <h2 class="section" id="fixtures"><span class="idx">★</span> 五、固定 fixture：可重复的测试环境</h2>
+    <p>Agent 测试通常需要 <strong>固定的工作区状态</strong>——一组预先准备好的文件、git 历史、配置。这保证测试在每次运行时面对相同的输入，结果可重复。</p>
+    <pre><code class="language-typescript">// fixture 管理（简化）
+export class TestFixture {
+  private tempDir: string;
+
+  async setup(fixtureName: string) {
+    // 从 fixtures 目录复制到一个临时目录
+    this.tempDir = await mkdtemp(join(tmpdir(), "agent-test-"));
+    await copyDir(`tests/fixtures/${fixtureName}`, this.tempDir);
+    // 初始化 git（如果需要）
+    if (this.needsGit) {
+      await exec("git init", { cwd: this.tempDir });
+      await exec("git add .", { cwd: this.tempDir });
+      await exec('git commit -m "initial"', { cwd: this.tempDir });
+    }
+    return this.tempDir;
+  }
+
+  async teardown() {
+    // 清理临时目录
+    await rm(this.tempDir, { recursive: true });
+  }
+
+  // 辅助：断言文件内容
+  async expectFileContent(relPath: string, expected: string) {
+    const actual = await readFile(join(this.tempDir, relPath), "utf-8");
+    expect(actual).toBe(expected);
+  }
+
+  // 辅助：断言 git 有 N 个 commit
+  async expectCommitCount(n: number) {
+    const { stdout } = await exec("git rev-list --count HEAD", { cwd: this.tempDir });
+    expect(parseInt(stdout.trim())).toBe(n);
+  }
+}
+
+// 使用 fixture 的测试
+test("auto-commit 在每次修改后创建 commit", async () =&gt; {
+  const fixture = new TestFixture();
+  const cwd = await fixture.setup("simple-project");
+
+  const agent = new Agent({
+    llm: mockLLM,
+    tools: mockTools,
+    cwd,
+  });
+  await agent.run("给 main.py 加个 docstring");
+
+  // auto-commit 应该创建了一个新 commit（初始 1 个 + 修改 1 个 = 2）
+  await fixture.expectCommitCount(2);
+
+  await fixture.teardown();
+});</code></pre>
+    <p>fixture 的关键原则是 <strong>每个测试独立、可重复、不留痕</strong>。独立（每个测试自己的临时目录，互不影响）、可重复（fixture 内容固定）、不留痕（teardown 清理）。这三点保证了测试套件可以反复跑、并行跑，而不出诡异问题。</p>
+
+    <h2 class="section" id="regression"><span class="idx">★</span> 六、回归测试集：追踪质量变化</h2>
+    <p>单元测试能覆盖「特定流程」，但 Agent 的整体质量（回答得好不好、能不能解决任务）无法用单元测试衡量。这就需要 <strong>回归测试集</strong>——一组「标准任务 + 参考答案/参考行为」的集合，定期跑，追踪质量随时间的变化。</p>
+    <pre><code class="language-typescript">// 回归测试集（简化）
+interface RegressionCase {
+  id: string;
+  task: string;                    // 任务描述
+  fixture: string;                 // 用哪个 fixture
+  // 评估方式
+  evaluation: {
+    type: "tool_sequence" | "file_state" | "llm_judge" | "test_pass";
+    // tool_sequence: 检查工具调用序列
+    // file_state: 检查最终文件内容
+    // llm_judge: 用另一个 LLM 评分
+    // test_pass: 跑项目的测试套件看是否通过
+    expected?: any;
+  };
+}
+
+const REGRESSION_CASES: RegressionCase[] = [
+  {
+    id: "fix-syntax-error",
+    task: "main.py 有语法错误，修复它",
+    fixture: "syntax-error",
+    evaluation: {
+      type: "test_pass",   // 修复后测试应该通过
+    },
+  },
+  {
+    id: "add-type-annotation",
+    task: "给 utils.py 的所有函数加类型注解",
+    fixture: "no-types",
+    evaluation: {
+      type: "file_state",
+      expected: {
+        "utils.py": expect.stringMatching(/def \w+\(.*:.*\) -&gt;/),
+      },
+    },
+  },
+  {
+    id: "explain-bug",
+    task: "解释 auth 模块里的潜在 bug",
+    fixture: "buggy-auth",
+    evaluation: {
+      type: "llm_judge",   // 用 LLM 评估回答质量
+      expected: {
+        criteria: ["提到了 SQL 注入风险", "给出了修复建议"],
+        minScore: 0.7,
+      },
+    },
+  },
+];
+
+// 跑回归集
+async function runRegressionSuite() {
+  const results = [];
+  for (const testCase of REGRESSION_CASES) {
+    const fixture = new TestFixture();
+    const cwd = await fixture.setup(testCase.fixture);
+
+    try {
+      // 用真实 LLM 跑（不是 mock）
+      const agent = new Agent({
+        llm: realLLM,
+        tools: realTools,
+        cwd,
+      });
+      const outcome = await agent.run(testCase.task);
+
+      // 评估
+      const passed = await evaluate(testCase.evaluation, cwd, outcome);
+      results.push({ id: testCase.id, passed });
+    } finally {
+      await fixture.teardown();
+    }
+  }
+  return results;
+}</code></pre>
+    <p>回归测试集的评估方式里，<strong>llm_judge（LLM 评审）</strong> 值得特别说明。它用一个 LLM（通常是更强的模型）来评估另一个 LLM 的输出质量——给定评判标准，打分。这绕开了「输出不确定性」的问题，因为评审 LLM 能理解语义等价（「修复了 bug」和「解决了问题」是同样的意思）。这种「用 AI 测 AI」是 Agent 时代的新测试范式。</p>
+    <p>回归集的主要价值不是「现在是否通过」，而是 <strong>「相比上次是否退步」</strong>。每次改 prompt、换模型、加功能后跑一遍，对比通过率。如果通过率下降，说明改动引入了回归，要 investigate。这种「相对质量追踪」是 Agent 质量管理的核心手段。</p>
+
+    <h2 class="section" id="ci"><span class="idx">★</span> 七、CI 集成的考量</h2>
+    <p>把 Agent 测试放进 CI（持续集成）有几个特殊考量：</p>
+    <ul>
+      <li><strong>单元测试（mock LLM + mock 工具）</strong>：快速、确定性，每次 commit 都跑。这是 CI 的主力。</li>
+      <li><strong>回归测试（真实 LLM）</strong>：慢、花钱、非确定。不能每次 commit 跑。通常每天定时跑一次（ nightly），或合并 PR 前跑。</li>
+      <li><strong>金丝雀测试</strong>：选几个最关键的回归用例，每次 commit 跑，作为快速质量信号。比完整回归集快、便宜。</li>
+      <li><strong>预算控制</strong>：CI 里的真实 LLM 调用要设预算上限，防止失控烧钱。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Agent 测试是工程化最难的环节，需要方法论转变。要点回顾：</p>
+    <ul>
+      <li><strong>根本困难</strong>：LLM 输出非确定，传统断言失灵，要从测「输出」转向测「行为」。</li>
+      <li><strong>Mock LLM</strong>：预设响应序列让 Agent 行为可预测，记录 callLog 供断言。</li>
+      <li><strong>Mock 工具</strong>：隔离 execute 等副作用工具，固定响应，记录调用序列。</li>
+      <li><strong>断言四层次</strong>：精确序列（最严）→ 包含子序列 → 调用过特定工具 → 最终状态（最松），按测试目标选择。</li>
+      <li><strong>不要全用最严断言</strong>：会让测试极脆弱，prompt 微调就挂一堆。</li>
+      <li><strong>固定 fixture</strong>：预设工作区状态，独立、可重复、不留痕。</li>
+      <li><strong>回归测试集</strong>：标准任务 + 多种评估（test_pass / file_state / llm_judge），追踪质量相对变化。</li>
+      <li><strong>LLM judge</strong>：用 AI 评 AI，绕开输出不确定性，是 Agent 时代的新测试范式。</li>
+      <li><strong>CI 策略</strong>：单元测试每次跑，回归集 nightly，金丝雀每次跑，预算控制防烧钱。</li>
+    </ul>
+    <p>至此，我们的 30 篇开源 Agent 源码分析系列全部完成。从 OpenCode 的 TypeScript 架构，到 Codex 的 Rust 内核，到 Aider/Continue/Cline 的各异设计，再到通用工程主题——我们系统地拆解了现代 AI Agent 的技术全貌。希望这个系列能成为你理解和构建 Agent 的实用参考。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

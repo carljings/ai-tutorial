@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 产品运营与增长 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 产品运营与增长 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -96,7 +103,7 @@
     </div>
     <div class="nav-group"><h3>参考</h3>
       <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
-      <a href="80-product-growth.html" class="active" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
+      <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
       <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
@@ -295,14 +302,321 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 产品运营与增长</h1><p class="lead">AI 产品的获客/留存/变现——和传统产品有何不同</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 产品运营的独特性</h2>
-    <p>AI 产品运营和传统产品运营最大的区别：**用户预期管理**。传统产品"功能确定"，用户预期明确。AI 产品"能力模糊"，用户可能过度期望（"AI 应该什么都能做"）或信心不足（"AI 肯定不靠谱"）。运营的核心任务之一就是校准预期——让用户知道"AI 能做什么/不能做什么/怎么用最好"。</p>
-    <h2><span class="idx"></span>AI 产品的增长漏斗</h2>
-    <table class="data-table"><thead><tr><th>阶段</th><th>传统产品关注</th><th>AI 产品额外关注</th></tr></thead><tbody><tr><td>获客</td><td>渠道/转化</td><td>"AI 能做什么"的清晰传达</td></tr><tr><td>激活</td><td>首次使用</td><td>"第一次体验是否惊艳"（30秒决定）</td></tr><tr><td>留存</td><td>功能依赖</td><td>"AI 是否持续有价值"（避免新鲜感消退）</td></tr><tr><td>变现</td><td>付费意愿</td><td>"AI 省了多少时间/赚了多少钱"</td></tr><tr><td>推荐</td><td>口碑</td><td>"AI 做了不可思议的事"的传播性</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 产品运营核心是"预期管理"——校准用户对 AI 能力的认知。增长漏斗的特殊关注点：获客（清晰传达能力）、激活（30秒惊艳）、留存（持续价值，避免新鲜感消退）、变现（省时间/赚钱量化）。AI 产品的传播力来自"做了不可思议的事"的体验。</p>
-    <div class="chapter-nav">
-      <a href="79-debugging-handbook.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 80 章 · AI 产品运营与增长</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 80 · 实战案例系列</span>
+      <h1>产品增长<br>用户留存、A/B 测试与数据驱动决策</h1>
+      <p class="lead">做一个 AI 产品容易，让它在市场上增长很难。很多 AI 应用上线后用户量停滞不前，留存率惨不忍睹——用户来试一次就再也不回来。这一章是 AI 产品增长的实战手册：用户留存怎么做、A/B 测试怎么设计、怎么用 SQL 做数据驱动决策。无论你是产品经理还是工程师，这套增长方法论都直接可用。</p>
+      <div class="meta">
+        <span class="chip">阅读约 27 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="growth-fundamentals"><span class="idx">★</span> 一、AI 产品增长的特殊性</h2>
+    <p>AI 产品的增长和传统互联网产品有共性（都要拉新、促活、留存），但也有特殊性：<strong>AI 产品的价值是渐进式展现的</strong>。用户第一次用可能觉得惊艳，但如果没形成习惯，很快就会遗忘。所以 AI 产品的增长核心是「让用户把 AI 融入日常工作流」。</p>
+    <pre><code class="language-python"># AI 产品的增长模型
+ai_growth_model = {
+    "AARRR 漏斗": {
+        "Acquisition（获取）": "用户怎么知道你的产品？SEO、内容营销、口碑",
+        "Activation（激活）": "用户第一次使用就感受到价值（Aha Moment）",
+        "Retention（留存）": "用户持续回来用——AI 产品最难的环节",
+        "Revenue（变现）": "免费转付费，订阅或按量",
+        "Referral（传播）": "用户主动推荐给他人",
+    },
+    "AI 产品的特殊挑战": {
+        "激活难": "用户不知道怎么提问（prompt 门槛）",
+        "留存难": "没有形成使用习惯，用一次就忘",
+        "变现难": "用户觉得"免费的 ChatGPT 够用了，为什么要付费"",
+    },
+}</code></pre>
+
+    <h2 class="section" id="retention"><span class="idx">★</span> 二、用户留存：AI 产品生死线</h2>
+    <p>留存是 AI 产品最关键的指标。获取一个新用户的成本是留住一个老用户的 5-25 倍。如果你的次日留存只有 10%，说明 90% 的用户试一次就走了——这通常意味着产品没有持续价值。</p>
+
+    <h3 class="section">2.1 留存分析 SQL</h3>
+    <pre><code class="language-sql">-- 计算同期群留存率（Cohort Retention）
+-- 这是产品分析最核心的查询之一
+
+WITH user_cohorts AS (
+    -- 按用户首次使用日期分组（同期群）
+    SELECT
+        user_id,
+        DATE(first_use_time) AS cohort_date,
+        DATE(first_use_time) AS first_day
+    FROM user_events
+    WHERE event_type = 'first_use'
+),
+daily_active AS (
+    -- 每个用户的活跃日期
+    SELECT DISTINCT
+        user_id,
+        DATE(event_time) AS active_date
+    FROM user_events
+    WHERE event_type = 'session_start'
+)
+SELECT
+    cohort_date,
+    -- 第 N 天的留存率 = （第 N 天还活跃的用户数 / 同期群总人数）
+    COUNT(DISTINCT CASE WHEN active_date = first_day THEN user_id END) AS day_0,
+    COUNT(DISTINCT CASE WHEN active_date = first_day + INTERVAL '1 day' THEN user_id END) AS day_1,
+    COUNT(DISTINCT CASE WHEN active_date = first_day + INTERVAL '7 day' THEN user_id END) AS day_7,
+    COUNT(DISTINCT CASE WHEN active_date = first_day + INTERVAL '30 day' THEN user_id END) AS day_30,
+    -- 转化成百分比
+    ROUND(100.0 * COUNT(DISTINCT CASE WHEN active_date = first_day + INTERVAL '1 day' THEN user_id END)
+          / COUNT(DISTINCT CASE WHEN active_date = first_day THEN user_id END), 1) AS day1_retention_pct,
+    ROUND(100.0 * COUNT(DISTINCT CASE WHEN active_date = first_day + INTERVAL '7 day' THEN user_id END)
+          / COUNT(DISTINCT CASE WHEN active_date = first_day THEN user_id END), 1) AS day7_retention_pct
+FROM user_cohorts uc
+LEFT JOIN daily_active da ON uc.user_id = da.user_id
+GROUP BY cohort_date
+ORDER BY cohort_date DESC
+LIMIT 30;
+
+-- 解读：
+-- Day 1 留存 &lt; 20%：产品激活有问题，用户没感受到价值
+-- Day 7 留存 &lt; 10%：产品缺乏持续价值
+-- Day 30 留存 &lt; 5%：用户没有形成习惯
+-- 优秀 AI 产品：Day 1 > 40%, Day 7 > 20%, Day 30 > 10%</code></pre>
+
+    <h3 class="section">2.2 提升留存的策略</h3>
+    <pre><code class="language-python"># AI 产品提升留存的实战策略
+retention_strategies = {
+    "策略 1：缩短 Aha Moment": """
+    让用户在前 60 秒内感受到价值。
+    - 预置优质示例（不要让用户面对空白输入框）
+    - 新用户引导流程（3 步内完成第一次有效使用）
+    - 模板库（让用户一键开始，不用自己想 prompt）
+    """,
+
+    "策略 2：融入工作流": """
+    让 AI 成为用户日常工作的一部分。
+    - 浏览器插件（在任何网页调用 AI）
+    - IDE 集成（在编程环境里用 AI）
+    - 快捷键唤醒（降低使用门槛）
+    - 定时任务（每天早上自动生成日报）
+    """,
+
+    "策略 3：个性化": """
+    让 AI 越用越懂用户。
+    - 记忆用户的偏好和历史
+    - 学习用户的常用 prompt
+    - 基于历史交互优化推荐
+    """,
+
+    "策略 4：留存触发器": """
+    主动把用户拉回来。
+    - 邮件/推送：有价值的内容更新提醒
+    - 定期报告：每周自动生成使用总结
+    - 协作功能：别人@你或分享了内容
+    """,
+
+    "策略 5：习惯养成": """
+    利用行为设计让使用变成习惯。
+    - 连续使用奖励（streak 机制）
+    - 使用量可视化（"本周已节省 X 小时"）
+    - 社区互动（让用户看到其他人的用法）
+    """,
+}</code></pre>
+
+    <h2 class="section" id="ab-testing"><span class="idx">★</span> 三、A/B 测试：用数据做决策</h2>
+    <p>A/B 测试是数据驱动决策的核心工具。不要靠直觉判断哪个方案好——让真实用户的数据告诉你。但 AI 产品的 A/B 测试比传统产品复杂，因为输出质量本身是模糊的。</p>
+
+    <h3 class="section">3.1 AI 产品的 A/B 测试设计</h3>
+    <pre><code class="language-python"># AI 产品 A/B 测试的完整流程
+class ABTestFramework:
+    def __init__(self):
+        self.min_sample_size = 1000  # 每组最少样本量
+        self.significance_level = 0.05  # 统计显著性
+
+    def design_test(self, hypothesis, metric, variants):
+        """设计 A/B 测试。"""
+        return {
+            "假设": hypothesis,           # "版本 B 的留存率比 A 高 5%"
+            "核心指标": metric,           # "day7_retention"
+            "对照组": variants["A"],      # 当前版本
+            "实验组": variants["B"],      # 新版本
+            "样本量": self.calculate_sample_size(metric),
+            "持续时间": "至少 14 天（覆盖完整周期）",
+            "分流方式": "随机分桶，确保用户特征均衡",
+        }
+
+    def calculate_sample_size(self, metric, baseline_rate, mde=0.05):
+        """计算所需样本量（最小可检测效应 MDE）。"""
+        import math
+        # 简化的样本量计算（基于正态近似）
+        z_alpha = 1.96   # 95% 置信度
+        z_beta = 0.84    # 80% 统计功效
+        p = baseline_rate
+        n = ((z_alpha + z_beta) ** 2 * 2 * p * (1-p)) / (mde ** 2)
+        return int(math.ceil(n))
+
+# AI 产品的常见 A/B 测试场景
+test_scenarios = [
+    {
+        "场景": "对比两个 prompt 版本",
+        "指标": "用户满意度评分 + 留存率",
+        "注意": "不能只看自动指标，要看真实用户反馈",
+    },
+    {
+        "场景": "对比两个模型（GPT-4o vs Claude）",
+        "指标": "回答质量评分 + 单次成本",
+        "注意": "质量和成本要同时看，不能只优化一边",
+    },
+    {
+        "场景": "新功能（如新增记忆功能）对留存的影响",
+        "指标": "Day 7 留存率",
+        "注意": "给新功能足够的曝光时间再评估",
+    },
+]</code></pre>
+
+    <h3 class="section">3.2 A/B 测试结果分析 SQL</h3>
+    <pre><code class="language-sql">-- A/B 测试结果分析
+-- 假设：用户被随机分到 control 和 treatment 两组
+
+SELECT
+    experiment_group,
+    COUNT(DISTINCT user_id) AS total_users,
+    -- 留存率
+    ROUND(100.0 * COUNT(DISTINCT CASE
+        WHEN days_active >= 7 THEN user_id END) / COUNT(DISTINCT user_id), 2
+    ) AS day7_retention_pct,
+    -- 平均使用次数
+    ROUND(AVG(total_sessions), 1) AS avg_sessions,
+    -- 平均满意度（1-5 分）
+    ROUND(AVG(satisfaction_score), 2) AS avg_satisfaction,
+    -- 付费转化率
+    ROUND(100.0 * COUNT(DISTINCT CASE
+        WHEN is_paid THEN user_id END) / COUNT(DISTINCT user_id), 2
+    ) AS conversion_pct
+FROM experiment_results
+WHERE experiment_id = 'prompt_v2_test'
+  AND date_range BETWEEN '2026-06-01' AND '2026-06-14'
+GROUP BY experiment_group;
+
+-- 预期输出：
+-- experiment_group | total_users | day7_retention | avg_sessions | satisfaction | conversion
+-- control          | 5000        | 18.5           | 12.3         | 4.1          | 3.2
+-- treatment        | 5000        | 22.1           | 15.7         | 4.3          | 4.1
+--
+-- 结论：treatment 组在所有指标上都优于 control
+-- 还需做统计显著性检验（t-test 或 chi-square），确认差异不是偶然</code></pre>
+
+    <h2 class="section" id="data-decisions"><span class="idx">★</span> 四、数据驱动决策的完整流程</h2>
+    <p>数据驱动不是「看仪表盘」，而是「用数据回答业务问题」。这里用几个真实的产品分析查询来演示。</p>
+    <pre><code class="language-sql">-- 分析 1：找出高价值用户的行为特征
+-- 什么样的用户最容易付费？
+WITH user_stats AS (
+    SELECT
+        u.user_id,
+        u.is_paid,
+        COUNT(DISTINCT DATE(e.event_time)) AS active_days,
+        COUNT(*) FILTER (WHERE e.event_type = 'chat') AS total_chats,
+        AVG(e.session_duration) AS avg_session_duration,
+        MAX(DATE(e.event_time) - MIN(DATE(e.event_time))) AS lifespan
+    FROM users u
+    JOIN events e ON u.user_id = e.user_id
+    WHERE e.event_time >= NOW() - INTERVAL '30 days'
+    GROUP BY u.user_id, u.is_paid
+)
+SELECT
+    is_paid,
+    AVG(active_days) AS avg_active_days,
+    AVG(total_chats) AS avg_chats,
+    ROUND(AVG(avg_session_duration), 1) AS avg_session_min
+FROM user_stats
+GROUP BY is_paid;
+
+-- 发现：付费用户平均活跃天数是免费用户的 3 倍
+-- 启示：促活是转化的前提，先提升使用频次
+
+-- 分析 2：流失用户预测（谁最可能流失？）
+SELECT
+    user_id,
+    days_since_last_active,
+    total_sessions_30d,
+    last_satisfaction_score,
+    -- 简单的流失风险打分
+    CASE
+        WHEN days_since_last_active > 7 THEN '高风险'
+        WHEN days_since_last_active > 3 AND total_sessions_30d < 5 THEN '中风险'
+        ELSE '低风险'
+    END AS churn_risk
+FROM user_engagement_summary
+ORDER BY churn_risk, days_since_last_active DESC;
+
+-- 对高风险用户做定向召回（邮件/Push/优惠）</code></pre>
+
+    <h2 class="section" id="metrics"><span class="idx">★</span> 五、AI 产品的北极星指标</h2>
+    <pre><code class="language-python"># 不同类型 AI 产品的核心指标
+north_star_metrics = {
+    "AI 写作助手": {
+        "北极星": "每周生成的文档数 × 满意度",
+        "辅助指标": ["周活用户", "平均文档长度", "编辑采纳率", "分享率"],
+        "陷阱指标": "不要只看"生成次数"，要看"用户实际使用了多少输出"",
+    },
+    "AI 客服": {
+        "北极星": "问题自动解决率 × CSAT",
+        "辅助指标": ["平均响应时间", "转人工率", "重复联系率"],
+        "陷阱指标": "不要只追求"自动解决率高"，可能是该转人工的不转",
+    },
+    "AI 编程助手": {
+        "北极星": "代码采纳率 × 活跃开发者数",
+        "辅助指标": ["日均使用次数", "支持的编程语言覆盖", "Bug 率变化"],
+        "陷阱指标": "不要只看"建议次数"，要看"开发者是否采纳了建议"",
+    },
+    "AI 搜索": {
+        "北极星": "周活搜索用户 × 搜索满意度",
+        "辅助指标": ["人均搜索次数", "首次点击率", "零结果率"],
+        "陷阱指标": "不要只看"搜索量"，低质量搜索也会增加量",
+    },
+}</code></pre>
+
+    <h2 class="section" id="growth-loops"><span class="idx">★</span> 六、增长飞轮设计</h2>
+    <p>最好的增长不是持续投放获取流量，而是建立自运转的增长飞轮——产品本身就能带来新用户。</p>
+    <pre><code class="language-python"># AI 产品的增长飞轮案例
+growth_loops = {
+    "内容飞轮（如 AI 写作）": """
+    用户用 AI 生成优质内容 → 内容发布到社交平台 →
+    吸引新用户 → 新用户生成更多内容 → ...
+    关键：让生成的内容自带产品印记（水印/署名），成为免费广告
+    """,
+
+    "模板飞轮（如 AI PPT）": """
+    用户创建优质模板 → 模板进入公开模板库 →
+    新用户被模板吸引 → 使用并创建新模板 → ...
+    关键：降低模板创建门槛，让用户愿意分享
+    """,
+
+    "协作飞轮（如 AI 文档）": """
+    用户 A 用 AI 创建文档 → 分享给协作者 B →
+    B 接触到产品并注册 → B 再分享给 C → ...
+    关键：分享和协作体验必须极其顺滑
+    """,
+
+    "数据飞轮": """
+    更多用户 → 更多使用数据 → 模型更懂用户 →
+    体验更好 → 吸引更多用户 → ...
+    关键：合规地利用用户数据改善个性化
+    """,
+}</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们覆盖了 AI 产品增长的核心方法论。核心要点：</p>
+    <ul>
+      <li><strong>AARRR 漏斗</strong>：AI 产品的特殊挑战是激活难（prompt 门槛）、留存难（没形成习惯）、变现难（免费替代品多）。</li>
+      <li><strong>留存是生死线</strong>：用 Cohort SQL 分析留存率，优秀 AI 产品 Day1>40%、Day7>20%、Day30>10%。</li>
+      <li><strong>留存策略</strong>：缩短 Aha Moment、融入工作流、个性化、留存触发器、习惯养成。</li>
+      <li><strong>A/B 测试</strong>：让数据做决策，注意统计显著性，AI 产品要看质量指标不能只看行为指标。</li>
+      <li><strong>数据驱动</strong>：用 SQL 找高价值用户特征、预测流失、做定向召回。</li>
+      <li><strong>增长飞轮</strong>：内容飞轮、模板飞轮、协作飞轮、数据飞轮——让产品自带增长引擎。</li>
+    </ul>
+    <p>增长是科学和艺术的结合：数据驱动是科学，用户体验设计是艺术。下一章我们回到技术，看经典开源项目的源码导读。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

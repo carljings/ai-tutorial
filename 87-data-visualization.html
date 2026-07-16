@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 数据可视化实战 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 数据可视化实战 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -103,7 +110,7 @@
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
       <a href="85-product-ux-patterns.html" title="AI 产品设计模式深度"><span class="num">85</span>AI 产品设计模式深</a>
       <a href="86-appendix.html" title="全书附录与最终总结"><span class="num">86</span>全书附录与最终总结</a>
-      <a href="87-data-visualization.html" class="active" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
+      <a href="87-data-visualization.html" title="LLM 数据可视化实战"><span class="num">87</span>LLM 数据可视化实</a>
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
@@ -295,14 +302,181 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 参考</span><h1>LLM 数据可视化实战</h1><p class="lead">让AI帮你画图——数据可视化的AI范式</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI+数据可视化：三种模式</h2>
-    <table class="data-table"><thead><tr><th>模式</th><th>AI做什么</th><th>代表</th></tr></thead><tbody><tr><td>AI生成代码</td><td>自然语言→可视化代码</td><td>ChatGPT/Claude Code</td></tr><tr><td>AI选图类型</td><td>根据数据推荐最佳图表</td><td>Julius AI/Tableau AI</td></tr><tr><td>AI叙事</td><td>自动生成数据解读</td><td>自动写分析报告</td></tr></tbody></table>
-    <h2><span class="idx"></span>AI生成可视化代码的技巧</h2>
-    <p>让AI画好图的关键是"描述清楚"——不只说"画个柱状图"，而是说"用matplotlib画一个横向柱状图，X轴是销量，Y轴是产品名，按销量降序，加数据标签，颜色用蓝色渐变"。描述越具体，AI生成的代码越准。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI+数据可视化三模式：生成代码（自然语言→matplotlib/echarts代码）、选图类型（推荐最佳图表）、数据叙事（自动解读）。技巧：描述越具体（图表类型/轴/排序/颜色/标签），AI生成的代码越准。注意安全——生成的代码要在沙箱执行。</p>
-    <div class="chapter-nav">
-      <a href="86-appendix.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 87 章 · LLM 数据可视化实战</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 87 · 数据与可视化</span>
+      <h1>数据可视化<br>让 AI 时代的数据自己会说话</h1>
+      <p class="lead">分析做得再深,如果讲不出来,价值就打了对折。数据可视化就是把"分析结论"翻译成"一眼看懂的图"的艺术。在 AI 时代,可视化不仅是分析师的技能,更是与 AI 协作的界面——你给 AI 数据,它给你洞察和图。本章梳理 matplotlib、plotly、streamlit 三大工具的定位,并给出 AI 时代数据可视化的最佳实践。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-viz"><span class="idx">★</span> 可视化的本质:降低认知成本</h2>
+    <p>人类大脑对图形的处理速度远超对数字表格的处理。一张散点图揭示的相关性,你可能盯着表格看一小时都看不出来。可视化的本质,是用视觉编码(位置、长度、颜色、形状)把数据中的模式映射到人类视觉系统能高效识别的通道,从而降低"理解数据"的认知成本。</p>
+    <p>但可视化也容易做错。错误的图表类型(用饼图比比例悬殊的数据)、误导的坐标轴(截断 y 轴夸大差异)、混乱的色彩(用红绿这对色盲不友好的颜色),都会让可视化从"揭示真相"变成"制造误导"。好的可视化是克制和精准的,它服务于一个明确的论点,而不是把所有数据都堆上去。</p>
+    <p>在 AI 时代,可视化的角色在演变。过去做图是手动调参的精细活,现在 AI 能根据数据特征自动推荐图表类型、生成代码、甚至解读图表含义。这让可视化的门槛降低,但也对"判断什么图好、什么图不好"提出了更高要求——AI 能快速产图,但你要能判断它产得对不对。本章的另一半篇幅就在讲这种"人机协作"的最佳实践。</p>
+    <h2 class="section" id="matplotlib"><span class="idx">★</span> matplotlib:不可替代的基础</h2>
+    <p>matplotlib 是 Python 可视化的基石,几乎所有其他库(plotly、seaborn、pandas 的 plot)都建立在它之上或与它兼容。它的特点是<strong>控制力极强、能画任何图,但语法繁琐</strong>。学习曲线陡峭,但一旦掌握,你能精确控制图的每一个像素。</p>
+    <p>matplotlib 的适用场景是"出版级质量的静态图":论文、报告、演示文稿。它对细节的控制(字体、坐标轴、图例、注释)无出其右,导出 PDF/SVG 矢量图也清晰锐利。对探索性分析,matplotlib 的繁琐有时显得效率低,这时可以配合 seaborn(基于 matplotlib 的高级接口)或 pandas 内置的 plot 方法快速出图。</p>
+    <p>下面是一个完整的 matplotlib 示例,展示了多子图、样式定制、注释等常用技巧。这种"标准动作"在报告和论文里反复用到:</p>
+    <pre><code class="language-python">import matplotlib.pyplot as plt
+import numpy as np
+import pandas as pd
+
+# 全局样式设置,统一字体和大小
+plt.rcParams.update({
+    "font.sans-serif": ["SimHei", "Arial"],   # 中文支持
+    "axes.unicode_minus": False,
+    "figure.dpi": 120,
+})
+
+# 模拟数据:三组方法的指标随参数变化
+params = np.arange(1, 11)
+methods = {"方法A": "o-", "方法B": "s--", "方法C": "^:"}
+data = {m: np.sort(np.random.rand(10)) * 0.3 + i*0.15
+        for i, m in enumerate(methods)}
+
+fig, axes = plt.subplots(1, 2, figsize=(12, 4.5))
+
+# 左图:折线对比,带误差条
+ax = axes[0]
+for name, style in methods.items():
+    y = data[name]
+    err = np.random.rand(10) * 0.02
+    ax.errorbar(params, y, yerr=err, fmt=style, label=name, capsize=3)
+ax.set_xlabel("参数 k")
+ax.set_ylabel("准确率")
+ax.set_title("(a) 不同方法的准确率对比")
+ax.legend(loc="lower right")
+ax.grid(alpha=0.3)
+
+# 右图:分组柱状图
+ax = axes[1]
+bar_width = 0.25
+x = np.arange(len(params))
+for i, (name, _) in enumerate(methods.items()):
+    ax.bar(x + i*bar_width, data[name], bar_width, label=name)
+ax.set_xticks(x + bar_width)
+ax.set_xticklabels([f"k={p}" for p in params], rotation=45)
+ax.set_ylabel("准确率")
+ax.set_title("(b) 分组柱状对比")
+ax.legend()
+
+plt.tight_layout()
+plt.savefig("comparison.pdf", bbox_inches="tight")  # 矢量导出
+plt.show()
+</code></pre>
+    <h2 class="section" id="plotly"><span class="idx">★</span> plotly:交互式可视化的王者</h2>
+    <p>matplotlib 的图是静态的,而 plotly 生成的图是交互式的:鼠标悬停显示数值、点击图例切换系列、缩放、平移、框选。这种交互能力让 plotly 在探索性分析和仪表盘场景里如鱼得水——用户可以自己钻取感兴趣的细节,而不是被动看一张固定的图。</p>
+    <p>plotly 的优势还有:原生支持 3D 图、地图、动画;输出是 HTML,天然适合 Web 展示和分享;与 Dash 框架结合能快速搭建交互式仪表盘。它的语法比 matplotlib 更声明式(一次调用指定数据和映射),上手更快。下面是一个交互式散点图的例子,展示了悬停、颜色映射、缩放等特性:</p>
+    <pre><code class="language-python">import plotly.express as px
+import pandas as pd
+
+df = pd.DataFrame({
+    "GDP_per_capita": [8000, 12000, 25000, 45000, 65000, 80000],
+    "life_expectancy": [68, 72, 76, 80, 82, 84],
+    "population": [1400, 200, 130, 60, 50, 30],   # 单位百万
+    "country": ["国家A", "国家B", "国家C", "国家D", "国家E", "国家F"],
+    "continent": ["亚洲", "南美", "亚洲", "欧洲", "欧洲", "北美"],
+})
+
+fig = px.scatter(
+    df, x="GDP_per_capita", y="life_expectancy",
+    size="population",           # 点大小映射人口
+    color="continent",           # 颜色映射大洲
+    hover_name="country",        # 悬停显示国名
+    size_max=45,
+    title="人均 GDP 与预期寿命的关系",
+    labels={"GDP_per_capita": "人均GDP($)", "life_expectancy": "预期寿命"},
+    template="plotly_white",
+)
+fig.update_layout(legend_title_text="大洲")
+fig.show()
+# fig.write_html("scatter.html")  # 导出交互式 HTML
+</code></pre>
+    <p>这段代码产出的图,用户可以把鼠标移到任意一点看详细数据,点图例切换大洲,框选放大某个区域。这种交互性让数据探索效率大幅提升——尤其在数据量大、维度多时,交互比静态图能揭示更多。plotly 的局限是静态导出质量不如 matplotlib,且对中文支持和细节控制稍弱。</p>
+    <h2 class="section" id="streamlit"><span class="idx">★</span> streamlit:把分析变成应用</h2>
+    <p>当你做的可视化要分享给非技术的业务方,光有图还不够——他们需要一个能自己点、自己筛选、自己探索的界面。这时 streamlit 登场:它让你用纯 Python,几十行代码就能搭建一个交互式数据应用,无需前端知识。</p>
+    <p>streamlit 的设计哲学是"脚本即应用":你写一个 Python 脚本,streamlit 把它渲染成一个 Web 应用,自动处理前端、路由、状态管理。它提供丰富的组件(滑块、下拉、日期选择、文件上传),并与 pandas、plotly 等无缝集成。这让数据科学家能直接把分析成果"产品化",跳过传统前端开发环节。下面是一个完整的 streamlit 应用示例:</p>
+    <pre><code class="language-python">import streamlit as st
+import pandas as pd
+import plotly.express as px
+
+st.set_page_config(page_title="销售分析仪表盘", layout="wide")
+st.title("销售数据分析")
+
+# 1. 文件上传 + 缓存(避免重复计算)
+@st.cache_data
+def load_data(file):
+    return pd.read_csv(file)
+
+uploaded = st.sidebar.file_uploader("上传销售数据 CSV", type="csv")
+if uploaded is None:
+    st.info("请在左侧上传数据文件")
+    st.stop()
+
+df = load_data(uploaded)
+
+# 2. 侧边栏筛选器
+st.sidebar.header("筛选")
+regions = st.sidebar.multiselect("选择地区", df["region"].unique(),
+                                  df["region"].unique())
+date_range = st.sidebar.date_input("日期范围", [])
+
+# 应用筛选
+mask = df["region"].isin(regions)
+filtered = df[mask]
+
+# 3. 顶部 KPI 卡片
+col1, col2, col3 = st.columns(3)
+col1.metric("总销售额", f"¥{filtered['amount'].sum():,.0f}")
+col2.metric("订单数", f"{len(filtered):,}")
+col3.metric("客单价", f"¥{filtered['amount'].mean():,.0f}")
+
+# 4. 主图表:时间趋势 + 类别分布
+tab1, tab2 = st.tabs(["时间趋势", "类别分布"])
+with tab1:
+    trend = filtered.groupby("date")["amount"].sum().reset_index()
+    st.plotly_chart(px.line(trend, x="date", y="amount",
+                            title="每日销售额趋势"), use_container_width=True)
+with tab2:
+    cat = filtered.groupby("category")["amount"].sum().reset_index()
+    st.plotly_chart(px.bar(cat, x="category", y="amount",
+                           title="各类别销售额"), use_container_width=True)
+
+# 5. 原始数据表格(可排序)
+st.subheader("明细数据")
+st.dataframe(filtered, use_container_width=True)
+</code></pre>
+    <p>把这个脚本保存为 app.py,运行 streamlit run app.py,几秒钟后浏览器里就有一个完整的、可交互的销售分析仪表盘。业务方上传自己的数据,自己筛选、自己看图,无需分析师陪同。这种"分析即应用"的能力,正是 streamlit 在数据团队里迅速流行的原因。</p>
+    <h2 class="section" id="chart-selection"><span class="idx">★</span> 图表类型选择:一个实用指南</h2>
+    <p>工具再好,用错图表类型也白搭。可视化最难的不是画图,是选对图。这里给一个基于"你想表达什么"的选择指南,这是比工具更重要的知识。</p>
+    <p><strong>比较(Comparison)</strong>:比较几个类别的数值 → 柱状图;比较随时间的变化 → 折线图;比较多类别多指标 → 分组柱状图或热力图。</p>
+    <p><strong>分布(Distribution)</strong>:看单个变量的分布 → 直方图或密度图;看两个变量的联合分布 → 散点图或 2D 热力图;比较多个分布 → 箱线图或小提琴图。</p>
+    <p><strong>构成(Composition)</strong>:看部分占整体的比例 → 饼图(仅当类别少且比例悬殊)或堆叠柱状图;看构成随时间的变化 → 堆叠面积图。</p>
+    <p><strong>关系(Relationship)</strong>:两个变量的相关性 → 散点图;三个变量 → 气泡图(点大小编码第三维)或 3D 散点;层次关系 → 树状图或桑基图。</p>
+    <p>几个反模式要避免:不要用饼图比超过 5 个类别;不要用双 y 轴(易误导);不要用 3D 柱状图(透视扭曲数据);不要用截断的 y 轴(夸大差异);不要用红绿配色(色盲不友好)。这些是可视化的"卫生准则",违反它们会让图的可信度打折扣。</p>
+    <h2 class="section" id="ai-viz"><span class="idx">★</span> AI 时代的可视化:人机协作新范式</h2>
+    <p>大模型正在改变可视化的工作方式。几个新的人机协作模式正在成为最佳实践。</p>
+    <p><strong>用自然语言生成图表</strong>。你可以直接对 AI 说"画一张各地区销售额的柱状图,按降序排列,前 3 名标红",AI 生成对应的代码。这让不会编程的业务人员也能快速出图。但要注意:AI 生成的代码可能选错图表类型或误导样式,你要有能力 review。一个实用技巧是给 AI 明确的图表规范("用柱状图不要用饼图,坐标轴从 0 开始,用 ColorBrewer 的配色"),减少 AI 的自由发挥空间。</p>
+    <p><strong>用 AI 解读图表</strong>。把图(或底层数据)给视觉大模型,让它帮你发现模式、解释异常、生成结论文字。这在快速出报告时很有用,但要警惕 AI 的"过度解读"——它可能从随机噪声里"看出"不存在的模式。对 AI 给出的结论,要回到数据上验证。</p>
+    <p><strong>探索性可视化自动化</strong>。有些工具(如 ydata-profiling、pandas-profiling)能自动对数据集生成全套统计图,快速建立对数据的整体认识。AI 能进一步基于数据特征自动推荐该看哪些图。这让 EDA(探索性数据分析)的效率大幅提升。</p>
+    <p>一个值得培养的能力是<strong>"可视化审美"</strong>。多看优秀的数据新闻(纽约时报、FT、Economist 的图表)和信息可视化作品,建立对"好图"的直觉。这种审美会让你在和 AI 协作时,知道该要求什么、纠正什么。AI 能快速产图,但"什么是好图"的判断,暂时还是人类的领地。</p>
+    <h2 class="section" id="principles"><span class="idx">★</span> 三条可视化原则</h2>
+    <p>最后分享三条原则,它们适用于任何工具和场景。</p>
+    <p><strong>原则一:先想清楚要表达什么,再画图</strong>。很多人一上来就调 plt.plot,结果画出一堆没重点的图。正确顺序是:我想说的论点是什么 → 哪个图最能支持这个论点 → 怎么让这个图清晰有力。图服务于论点,而不是论点淹没在图里。</p>
+    <p><strong>原则二:做减法,不做加法</strong>。新手倾向于把所有数据都画上,结果图杂乱无重点。高手做的是减法:去掉无关的网格、合并冗余的图例、突出关键数据点。一张好图往往比初始版本"空"得多。Tufte 说的"data-ink ratio"(数据墨水比)就是这个意思——让每一滴墨水都为信息服务。</p>
+    <p><strong>原则三:站在读者的角度设计</strong>。读者第一次看你的图,能在 3 秒内 get 到你想说什么吗?坐标轴标签清楚吗?单位标了吗?图例是不是挡住了数据?颜色对色盲友好吗?这些细节决定了图是"专业"还是"业余"。把图给一个没看过的人看,观察他能否快速理解,是最好的检验。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>数据可视化的本质是用视觉编码降低理解数据的认知成本。三大工具各有定位:matplotlib 是基础,控制力强,适合出版级静态图;plotly 是交互式王者,适合探索和仪表盘;streamlit 把分析变成可分享的 Web 应用,适合给非技术用户使用。</p>
+    <p>图表选择基于"想表达什么":比较用柱/线,分布用直方/箱线/散点,构成用堆叠/饼(谨慎),关系用散点/气泡。要避免饼图过多类别、双 y 轴、3D 柱、截断 y 轴、红绿配色等反模式。</p>
+    <p>AI 时代,可视化进入人机协作新范式:AI 生成代码、解读图表、自动化探索。但 AI 能产图,判断"什么是好图"仍是人类的能力。坚持三条原则:先想论点再画图、做减法、站在读者角度。掌握这些,无论工具怎么变,你都能做出"让数据自己说话"的好图。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -205,7 +203,7 @@
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
       <a href="173-agent-sourcecode-streaming.html" title="源码级启示：流式输出处理"><span class="num">173</span>源码级启示</a>
-      <a href="174-agent-sourcecode-context-window.html" class="active" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
+      <a href="174-agent-sourcecode-context-window.html" title="源码级启示：上下文管理"><span class="num">174</span>源码级启示</a>
       <a href="175-agent-sourcecode-error-recovery.html" title="源码级启示：错误恢复"><span class="num">175</span>源码级启示</a>
       <a href="176-agent-sourcecode-mcp-deep.html" title="源码级启示：MCP 集成"><span class="num">176</span>源码级启示</a>
       <a href="177-agent-sourcecode-parallel.html" title="源码级启示：并行工具调用"><span class="num">177</span>源码级启示</a>
@@ -305,81 +303,233 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 174 章 · 开源 Agent 源码深挖</span>
-<h1>源码级启示：上下文管理</h1><p class="lead">长对话的截断、摘要、压缩。token 预算分配。工具结果何时精简。session 分页。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>长对话的截断、摘要、压缩。token 预算分配。工具结果何时精简。session 分页。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>长对话的截断、摘要、压缩。token 预算分配。工具结果何时精简。session 分页。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 57 · Agent 源码深挖系列</span>
+      <h1>上下文窗口管理策略<br>token 计数、消息淘汰与压缩摘要</h1>
+      <p class="lead">每个 Agent 都要面对一个铁律：context window 有限。无论模型支持 32K 还是 1M，对话一长、工具调用一多、读的文件一堆积，context 就会满。如何在有限窗口里塞下最有价值的信息，是 Agent 工程的核心课题之一。我们在 OpenCode（150 章）里讲过它的做法，本章我们从通用角度，系统梳理 token 计数、消息淘汰、压缩摘要三大策略。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="three-layers"><span class="idx">★</span> 一、上下文管理的三个层次</h2>
+    <p>一个成熟的上下文管理系统通常分三层，从粗到细：</p>
+    <ol>
+      <li><strong>计数层</strong>：实时知道当前 context 用了多少 token。这是所有决策的基础。</li>
+      <li><strong>淘汰层</strong>：当接近上限时，决定哪些消息可以删除或降级。这是被动的应急措施。</li>
+      <li><strong>压缩层</strong>：把多条历史消息合并成一条摘要，主动释放空间。这是更积极的整理。</li>
+    </ol>
+    <p>这三层不是互斥的，而是协同工作——计数层提供数据，淘汰层处理紧急情况，压缩层做长期维护。一个设计良好的 Agent 会同时部署三层。</p>
+
+    <h2 class="section" id="counting"><span class="idx">★</span> 二、token 计数：要快也要准</h2>
+    <p>token 计数的核心挑战是 <strong>速度和精度的权衡</strong>。最精确的计数是用模型 provider 官方的 tokenizer（如 OpenAI 的 tiktoken）逐 token 编码后数。但这对长 context（几万 token）来说要几十毫秒，频繁调用会影响响应速度。</p>
+    <pre><code class="language-typescript">// 三种计数策略（简化）
+export class TokenCounter {
+  // 策略 1：精确计数（慢但准）
+  precise(text: string): number {
+    return encode(text).length;  // tiktoken/类似
+  }
+
+  // 策略 2：字符数估算（快但粗）
+  estimate(text: string): number {
+    // 经验值：英文 ~4 字符/token，中文 ~2 字符/token，代码 ~3 字符/token
+    // 混合时取折中
+    const asciiChars = (text.match(/[\x00-\x7F]/g) || []).length;
+    const nonAsciiChars = text.length - asciiChars;
+    return Math.ceil(asciiChars / 4 + nonAsciiChars / 1.5);
+  }
+
+  // 策略 3：缓存 + 懒计算（推荐）
+  private cache = new Map&lt;string, number&gt;();
+  cached(text: string): number {
+    if (this.cache.has(text)) return this.cache.get(text)!;
+    // 短文本用估算（快），长文本用精确（重要）
+    const count = text.length &lt; 500 ? this.estimate(text) : this.precise(text);
+    this.cache.set(text, count);
+    return count;
+  }
+}</code></pre>
+    <p>实际系统通常用策略 3 的变体：<strong>对短消息用估算（省时间），对长消息（如文件内容、工具输出）用精确计数（避免误差累积）</strong>。还要注意每条消息有固定开销（角色标记、分隔符），通常加 4 token 作为 overhead。</p>
+    <p>一个常被忽视的细节：<strong>图片的 token 计数</strong>。多模态消息里的图片不经过 tokenizer，它的 token 数由模型 provider 按内部逻辑算（通常和分辨率有关），客户端拿不到。只能按经验估算（如 OpenAI vision 模型一张图约 750-1500 token）。</p>
+
+    <h2 class="section" id="eviction"><span class="idx">★</span> 二、消息淘汰：删什么留什么</h2>
+    <p>当 context 接近上限，最直接的应急措施是 <strong>淘汰</strong>——直接删掉某些消息。但删什么、留什么是个决策问题。通用的优先级（从最该删到最该留）：</p>
+    <ol>
+      <li><strong>工具调用的完整输出</strong>：特别是 execute 的长 stdout、read_file 的大文件内容。这些最占空间，且通常已被 Agent 消化（决策已做），原始数据价值低。</li>
+      <li><strong>早期的来回对话</strong>：比如「帮我看看这个函数」「这是代码...」「好的，问题在...」这种早期探讨。核心结论已被后续对话吸收。</li>
+      <li><strong>中期的 assistant 回复</strong>：已经做出的解释、分析。如果用户没追问，这些内容可能不再需要。</li>
+      <li><strong>最近的 2-3 轮对话</strong>：当前任务的核心上下文，几乎不淘汰。</li>
+      <li><strong>system prompt 和当前工作目录信息</strong>：每轮都保留，是 Agent 的世界观。</li>
+    </ol>
+    <pre><code class="language-typescript">// 消息淘汰策略（简化）
+export class EvictionPolicy {
+  evict(messages: Message[], targetTokens: number): Message[] {
+    let current = [...messages];
+
+    // 阶段 1：截断超长的工具输出（保留头尾）
+    current = current.map(msg =&gt; {
+      if (msg.role === "tool" &amp;&amp; countTokens(msg.content) &gt; 1000) {
+        const lines = msg.content.split("\n");
+        if (lines.length &gt; 50) {
+          const head = lines.slice(0, 20);
+          const tail = lines.slice(-20);
+          return {
+            ...msg,
+            content: head.join("\n") +
+                     `\n[... 省略 ${lines.length - 40} 行 ...]\n` +
+                     tail.join("\n"),
+          };
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+      }
+      return msg;
+    });
+
+    // 还不够？阶段 2：删除早期的工具调用对
+    while (countTokens(current) &gt; targetTokens &amp;&amp; current.length &gt; 6) {
+      // 找最早的一对 tool_call + tool_result，整对删掉
+      const toolCallIdx = current.findIndex(m =&gt; m.role === "assistant" &amp;&amp; m.tool_calls);
+      if (toolCallIdx === -1 || toolCallIdx &gt;= current.length - 4) break;
+      // 删 tool_call 和紧跟的 tool_result
+      current.splice(toolCallIdx, 2);
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 还不够？阶段 3：删除早期对话（保留最近 N 轮）
+    while (countTokens(current) &gt; targetTokens &amp;&amp; current.length &gt; 4) {
+      current.splice(1, 2);  // 删第 1、2 条（system 后最早的对话）
+    }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    return current;
+  }
+}</code></pre>
+    <p>注意阶段 2 删除工具调用时要 <strong>成对删</strong>——tool_call（assistant 请求）和 tool_result（工具返回）必须一起删，否则会破坏消息结构的完整性（API 会报错「tool_call 没有 result」或反之）。这种「成对操作」是工具调用消息管理的通用规则。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"源码级启示：上下文管理"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="173-agent-sourcecode-streaming.html"><div class="lbl">← 上一章</div><div class="ttl">173 · 源码级启示：流式输出处理</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="175-agent-sourcecode-error-recovery.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">175 · 源码级启示：错误恢复</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 174 章 · 源码级启示：上下文管理</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="compression"><span class="idx">★</span> 三、压缩摘要：把多条变成一条</h2>
+    <p>淘汰的代价是信息完全丢失。更温和的方式是 <strong>压缩</strong>——把多条历史消息合并成一条摘要，保留核心信息。和 OpenCode 的做法（150 章）类似：</p>
+    <pre><code class="language-typescript">// 消息压缩（简化）
+export class CompressionPolicy {
+  async compressIfNeeded(
+    messages: Message[],
+    threshold: number,      // 压缩阈值，如 0.7 * maxTokens
+    maxTokens: number,
+  ): Promise&lt;Message[]&gt; {
+    const currentTokens = countTokens(messages);
+    if (currentTokens &lt;= threshold) return messages;
+
+    // 保留最近 N 条不动
+    const RECENT_KEEP = 6;
+    const toCompress = messages.slice(0, -RECENT_KEEP);
+    const recent = messages.slice(-RECENT_KEEP);
+
+    if (toCompress.length &lt; 4) return messages;  // 太少不值得压
+
+    // 用 LLM 生成摘要
+    const summary = await this.summarize(toCompress);
+
+    // 用摘要替换原始消息
+    return [
+      {
+        role: "system",
+        content: `[早期对话摘要]\n${summary}`,
+      },
+      ...recent,
+    ];
+  }
+
+  private async summarize(messages: Message[]): Promise&lt;string&gt; {
+    const prompt = `请把以下对话和工具调用历史压缩成简洁摘要。
+保留：
+- 用户的核心需求和目标
+- 已做出的关键决定和理由
+- 已创建/修改的文件清单
+- 尚未解决的问题或待办
+
+丢弃：
+- 工具调用的原始输出（保留结论即可）
+- 重复的探讨
+- 不影响后续的细节
+
+对话历史：
+${JSON.stringify(messages.map(m =&gt; ({ role: m.role, content: m.content.slice(0, 500) })))}`;
+
+    return await callLLM({
+      model: "cheap-model",  // 用便宜模型做摘要
+      prompt,
+      temperature: 0.2,
+    });
+  }
+}</code></pre>
+    <p>这段代码揭示了几个关键设计。<strong>第一，保留最近 N 条</strong>——最近的上下文对当前决策最重要，不能被摘要稀释。<strong>第二，用便宜模型做摘要</strong>——摘要不需要最强模型，用 gpt-4o-mini 或类似的小模型即可，省成本。<strong>第三，摘要 prompt 要明确「保留什么丢什么」</strong>——否则模型可能把不重要的事也保留，压缩效果差。</p>
+
+    <h2 class="section" id="proactive"><span class="idx">★</span> 四、主动 vs 被动：什么时候触发</h2>
+    <p>压缩和淘汰可以在不同时机触发，各有优劣：</p>
+    <ul>
+      <li><strong>被动触发（接近上限才处理）</strong>：简单，只在必要时操作。缺点是压缩本身要花时间（一次 LLM 调用），可能让那一轮的响应变慢。</li>
+      <li><strong>主动触发（定期整理）</strong>：在对话间隙（用户阅读回复时）后台压缩。不阻塞用户，但逻辑复杂（要处理压缩期间新消息的到来）。</li>
+      <li><strong>混合策略</strong>：平时用被动（攒到阈值），但当 context 增长速度过快时（如一次读了 5 个大文件）提前主动压缩。</li>
+    </ul>
+    <p>大多数开源 Agent（OpenCode、Cline）用被动触发，因为简单且够用。主动触发更多见于需要长时间运行的 Agent（如后台 worker）。</p>
+
+    <h2 class="section" id="special"><span class="idx">★</span> 五、特殊场景：工具调用历史的处理</h2>
+    <p>工具调用的历史消息比普通对话更难管理，因为它们有严格的结构约束。几个注意事项：</p>
+    <ul>
+      <li><strong>tool_call 和 tool_result 必须成对</strong>：删除或压缩时不能拆散一对，否则 API 报错。</li>
+      <li><strong>tool_call 的 ID 要保持</strong>：压缩时如果要保留某个 tool_call，它的 ID 不能变，否则 tool_result 无法关联。</li>
+      <li><strong>assistant 的 tool_call 消息不要被摘要稀释</strong>：如果一条 assistant 消息同时有文本和 tool_calls，摘要时要明确「这一轮调用了 X 工具」，不能只摘要文本。</li>
+    </ul>
+    <pre><code class="language-typescript">// 工具调用安全的压缩（简化）
+function safeCompress(messages: Message[]): Message[] {
+  const result: Message[] = [];
+  let i = 0;
+  while (i &lt; messages.length) {
+    const msg = messages[i];
+    // 检测 tool_call -&gt; tool_result 对
+    if (msg.role === "assistant" &amp;&amp; msg.tool_calls &amp;&amp;
+        messages[i + 1]?.role === "tool") {
+      // 把这对合并成一条摘要消息
+      const toolCall = msg.tool_calls[0];
+      const toolResult = messages[i + 1];
+      result.push({
+        role: "system",
+        content: `[历史工具调用] 调用了 ${toolCall.function.name}，` +
+                 `结果摘要：${summarizeToolResult(toolResult.content)}`,
+      });
+      i += 2;  // 跳过这对
+    } else {
+      result.push(msg);
+      i += 1;
+    }
+  }
+  return result;
+}</code></pre>
+    <p>这种「成对合并成 system 摘要消息」的策略，既释放了空间，又保留了「调用过什么工具」的事实，还不破坏消息结构。</p>
+
+    <h2 class="section" id="strategies-compare"><span class="idx">★</span> 六、不同项目的策略对比</h2>
+    <p>把各项目的上下文管理策略放在一起对比：</p>
+    <ul>
+      <li><strong>OpenCode</strong>（150 章）：被动压缩 + 文件树注入，保留最近 4 条，工具输出就地截断。</li>
+      <li><strong>Codex</strong>：依赖 Responses API 的服务端状态，客户端 context 管理负担较轻（参见 155 章）。</li>
+      <li><strong>Cline</strong>：滑动窗口 + 摘要，和 OpenCode 类似但保留条数可配。</li>
+      <li><strong>Aider</strong>：repo map 作为常驻上下文（参见 163 章），对话历史用简单淘汰。</li>
+    </ul>
+    <p>这些策略的核心思想都是「最近优先 + 摘要回退」，差异在具体阈值和实现细节。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>上下文窗口管理是 Agent 能持续运行的基础。要点回顾：</p>
+    <ul>
+      <li><strong>三层管理</strong>：计数（基础数据）、淘汰（应急）、压缩（长期维护），协同工作。</li>
+      <li><strong>token 计数</strong>：短消息估算、长消息精确、缓存复用，图片按经验估算。</li>
+      <li><strong>淘汰优先级</strong>：工具输出 &gt; 早期对话 &gt; 中期回复 &gt; 最近对话 &gt; system prompt。</li>
+      <li><strong>工具输出截断</strong>：保留头尾各 20 行，中间省略，最省空间且保留关键信息。</li>
+      <li><strong>压缩摘要</strong>：保留最近 N 条，早期用便宜模型摘要，prompt 明确保留/丢弃规则。</li>
+      <li><strong>工具调用成对操作</strong>：tool_call 和 tool_result 必须一起删或一起合并，不能拆散。</li>
+      <li><strong>触发时机</strong>：被动（简单常用）、主动（后台复杂）、混合（增长过快时提前）。</li>
+    </ul>
+    <p>下一章（175 章）我们继续通用主题——错误恢复策略，看工具失败重试、死循环检测、fallback chain 这些让 Agent 更健壮的机制。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 伦理案例库 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 伦理案例库 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -107,7 +114,7 @@
       <a href="88-industry-cases-3.html" title="行业方案深度第三辑"><span class="num">88</span>行业方案深度第三辑</a>
       <a href="89-coding-cases-4.html" title="AI 编程实战第四辑"><span class="num">89</span>AI 编程实战第四辑</a>
       <a href="90-faq.html" title="LLM 常见 FAQ 与疑难解答"><span class="num">90</span>LLM 常见 FAQ</a>
-      <a href="91-ethics-cases.html" class="active" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
+      <a href="91-ethics-cases.html" title="AI 伦理案例库"><span class="num">91</span>AI 伦理深度案例集</a>
       <a href="92-config-environment.html" title="LLM 配置与环境管理"><span class="num">92</span>LLM 配置与环境管</a>
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
@@ -295,14 +302,125 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 参考</span><h1>AI 伦理案例库</h1><p class="lead">15个伦理两难——AI的道德边界在哪里</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI伦理不是理论——是每天面对的选择</h2>
-    <p>AI 伦理不是哲学课堂的讨论题，而是工程师每天要做的决策：AI生成的错误信息谁负责？AI面试官歧视了某个群体怎么办？AI画出的图模仿了某艺术家风格算不算抄袭？本章用15个真实案例讲清AI伦理的边界。</p>
-    <table class="data-table"><thead><tr><th>案例</th><th>伦理问题</th><th>当前共识</th></tr></thead><tbody><tr><td>自动驾驶电车难题</td><td>撞谁？</td><td>没有共识，需法规</td></tr><tr><td>AI绘画版权</td><td>训练数据含版权作品</td><td>诉讼中</td></tr><tr><td>Deepfake</td><td>换脸诈骗/色情</td><td>应禁止恶意使用</td></tr><tr><td>AI面试歧视</td><td>简历筛选偏见</td><td>需按人群评估+人工复核</td></tr><tr><td>AI医疗误诊</td><td>谁负责？</td><td>AI是辅助，医生负责</td></tr><tr><td>AI武器</td><td>致命自主武器</td><td>应国际禁止</td></tr><tr><td>隐私vs个性化</td><td>数据收集边界</td><td>最小必要原则</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>AI伦理的务实原则：**不是"能不能做"，而是"该不该做"**。技术中立不代表使用中立——工程师有责任考虑自己造的工具会被怎么用。三个底线：不伤害（安全）、不歧视（公平）、不欺骗（透明）。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>15个AI伦理案例覆盖：自动驾驶/版权/Deepfake/歧视/医疗责任/AI武器/隐私。核心原则：不是"能不能做"而是"该不该做"。三个底线：不伤害（安全）、不歧视（公平）、不欺骗（透明）。工程师有伦理责任。</p>
-    <div class="chapter-nav">
-      <a href="90-faq.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 91 章 · AI 伦理案例库</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 91 · AI 伦理</span>
+      <h1>AI 伦理案例<br>自动驾驶、Deepfake、偏见、就业的伦理拷问</h1>
+      <p class="lead">技术从来不是中立的。当 AI 能决定车祸中谁生谁死、能伪造任何人说话的视频、能放大社会偏见、能替代千万人的工作,伦理就成了和算法同等重要的议题。本章不给标准答案——很多伦理困境本就没有——而是给你一套分析框架,让你在面对这些难题时,能想得清楚、说得明白、做得负责。</p>
+      <div class="meta">
+        <span class="chip">阅读约 21 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-ethics"><span class="idx">★</span> 为什么 AI 伦理不是"想多了"</h2>
+    <p>很多工程师对"伦理"两个字的第一反应是"虚"——那是哲学家和法学家的事,我写好代码就行了。这种想法在 AI 时代是危险的,因为 AI 系统的决策正在越来越多地影响真实的人:能不能拿到贷款、能不能通过面试、会不会被误判为罪犯、甚至在事故中能不能活下来。这些影响不是"想多了",而是每天都在发生的现实。</p>
+    <p>AI 伦理之所以紧迫,有几个 AI 特有的原因。<strong>规模性</strong>:一个有偏见的招聘模型,可以同时影响几十万求职者,远超人类 HR 的影响范围。<strong>不透明性</strong>:深度学习是黑盒,决策理由难以解释,出了问题难以追责。<strong>自主性</strong>:AI 系统越来越多地自主决策,人类逐渐退出决策回路,这带来了失控风险。<strong>速度性</strong>:AI 的部署速度远超法规的制定速度,常常是"先出事再补监管"。</p>
+    <p>所以,讨论 AI 伦理不是"杞人忧天",而是"未雨绸缪"。一个有责任感的 AI 从业者,应该具备识别伦理问题的能力,并在设计阶段就把伦理考量纳入。本章通过四个经典案例,培养这种敏感度。</p>
+    <h2 class="section" id="framework"><span class="idx">★</span> 一个分析框架:四个维度提问</h2>
+    <p>在进入具体案例前,先介绍一个分析框架。面对任何 AI 伦理问题,可以从四个维度提问,这能帮你把模糊的"感觉不对"变成清晰的"哪里不对"。</p>
+    <p><strong>维度一:谁受益,谁受损?</strong>任何技术都重新分配利益。问题是:这项 AI 让谁获得了便利或利润?让谁承担了风险或成本?受益者和受损者是不是同一群人?如果受益的是大公司,受损的是普通用户,这种利益分配就值得审视。</p>
+    <p><strong>维度二:能否知情同意?</strong>受影响的人是否知道 AI 在做决策?是否有能力拒绝?知情同意是伦理的基石。如果用户不知道自己的数据被用来训练模型,或没有"不使用 AI"的选项,自主权就被侵犯了。</p>
+    <p><strong>维度三:能否解释和追责?</strong>出了问题时,能不能解释 AI 为什么这么决策?能不能找到负责人?如果答案是"模型自己决定的,谁也说不清",那问责机制就失效了——而无法追责的系统是危险的。</p>
+    <p><strong>维度四:是否放大了不平等?</strong>这项 AI 是在缩小还是在扩大社会差距?它是否对某些群体(弱势群体、少数族裔、低收入者)系统性地不利?AI 有"放大效应":训练数据里的微小偏见,会被规模化成系统性的歧视。</p>
+    <p>这四个维度不是教条,而是思考工具。后面每个案例,我们都会用它来拆解。</p>
+    <h2 class="section" id="case-autonomous"><span class="idx">★</span> 案例一:自动驾驶的电车难题</h2>
+    <p>自动驾驶是 AI 伦理最经典的案例。一辆自动驾驶汽车刹车失灵,前方是五个行人,方向盘打偏会撞墙导致车主死亡。该怎么选?这是古老的"电车难题"在 AI 时代的真实化:不再是一瞬间的本能反应,而是工程师要在事前写进算法的决策逻辑。</p>
+    <p>用我们的框架分析。<strong>谁受益谁受损</strong>:无论怎么选都有人受损,问题变成了"该优先保护车主还是行人"。一种观点认为,应该最小化总伤亡(功利主义),那应该撞墙牺牲车主;另一种观点认为,车主买了车,车有义务优先保护车主(契约论)。这两种立场都合理,但没有公认答案。</p>
+    <p><strong>能否知情同意</strong>:行人没有"同意被自动驾驶汽车路过"的明确同意。这意味着自动驾驶的普及,实际上让所有道路使用者都被动卷入了这场"算法博弈",哪怕他们根本没买自动驾驶车。这是否公平?</p>
+    <p><strong>能否追责</strong>:如果自动驾驶车撞了人,责任在谁?车主?车企?算法工程师?现行法律尚未明确。奔驰、沃尔沃等车企主动宣布"自动驾驶模式下事故由车企负责",这是积极的责任承担,但行业尚未形成共识。</p>
+    <p>这个案例的真正启示不是"该撞谁",而是<strong>伦理决策正在从人转移到算法</strong>。人类司机出事是"意外",算法出事是"设计"。这种从"随机"到"预先决定"的转变,把伦理责任摆在了明面上,逃避不了。MIT 的"道德机器"(Moral Machine)实验收集了全球数百万人对这类困境的选择,发现不同文化背景下的人们选择差异巨大——这说明根本没有"全球统一"的答案,算法的选择本质上是一种文化价值的编码。</p>
+    <h2 class="section" id="case-deepfake"><span class="idx">★</span> 案例二:Deepfake 与真实性的消亡</h2>
+    <p>Deepfake(深度伪造)指用生成式 AI 伪造人脸、声音、视频,达到以假乱真的程度。它的伦理冲击是深远的:当任何视频都可能是假的,"眼见为实"这个人类社会的认知基础就崩塌了。</p>
+    <p>用框架分析。<strong>谁受益谁受损</strong>:Deepfake 的合法用途(影视特效、教育、医疗模拟)让创作者受益,但它的滥用——伪造名人发言、伪造色情视频、伪造证据——让受害者承受巨大伤害,且让整个社会的信任成本上升。受损者远多于受益者。</p>
+    <p><strong>能否知情同意</strong>:被 Deepfake 的当事人,几乎都没有同意。把某个真实人物的脸换到色情视频里,是对其人格权的严重侵犯。这里的伦理红线很明确:未经同意的真人伪造,尤其是敏感内容,应该被严格禁止。</p>
+    <p><strong>能否追责</strong>:Deepfake 的制作和传播往往匿名、跨境,追责极难。这导致了一个困境:技术让伤害变得容易,法律却难以追究。对策之一是<strong>溯源技术</strong>——在生成内容里嵌入不可见水印(如 SynthID),或要求平台强制标注 AI 生成内容,让"假"至少能被识别出来。</p>
+    <p><strong>放大不平等</strong>:Deepfake 的受害者 disproportionately 是女性(色情伪造)、公众人物(政治伪造)、弱势群体(诈骗)。它放大了已有的权力不对等。一个令人不安的趋势是:Deepfake 让每个人潜在的"可信度"都下降——即使你没被伪造,别人也可以声称"那个视频是假的"来否认真实的证据。这种"骗子红利"(Liar's Dividend)是对真实性的系统性侵蚀。</p>
+    <p>应对 Deepfake 没有银弹,但有几个方向:技术上的水印和检测、法律上的禁止和追责、平台上的标注和限制、公众教育上的"批判性媒介素养"。每一层都不完美,但叠加起来能形成防御纵深。对从业者来说,核心伦理原则是:<strong>负责任地开发生成能力,把滥用风险纳入设计考量</strong>——比如只对授权用户开放、强制水印、提供检测工具。</p>
+    <h2 class="section" id="case-bias"><span class="idx">★</span> 案例三:算法偏见与歧视放大</h2>
+    <p>算法偏见是 AI 伦理里最系统、最隐蔽的问题。一个著名的案例是 Amazon 在 2014-2017 年开发的招聘工具,被发现对女性求职者系统性不利——它会惩罚简历里出现"women's"(如"women's chess club")的候选人,并把"男子棋社"等男性化词汇视为正面信号。原因是模型是用过去十年(男性主导)的招聘数据训练的,它"忠实地"学到了历史里的性别偏见。</p>
+    <p>用框架分析。<strong>谁受益谁受损</strong>:这种工具让公司"高效"筛选简历(受益),但让女性、少数族裔等历史上处于劣势的群体继续被边缘化(受损)。它把过去的歧视"自动化"并放大了。</p>
+    <p><strong>能否知情同意</strong>:求职者根本不知道自己的简历是被 AI 筛的,更不知道筛选标准是什么。他们没有机会质疑或申诉一个不透明的算法决策。</p>
+    <p><strong>能否解释</strong>:深度学习的决策难以解释。即使发现了歧视,也很难精确定位是哪些特征导致的,修复困难。Amazon 最终放弃了这个工具——因为偏见无法消除。这给行业一个重要教训:<strong>有些偏见不是 bug,而是数据本质的属性,靠算法修补无法解决</strong>。</p>
+    <p><strong>放大不平等</strong>:这是偏见问题最核心的伦理冲击。AI 不只是"反映"社会偏见,它"规模化"和"固化"了偏见。一个有偏见的人类 HR 影响有限,一个有偏见的 AI 系统影响成千上万人,而且因为是"算法决策",反而被赋予了客观性的光环,更难被质疑。</p>
+    <p>应对算法偏见有几个层面。<strong>数据层面</strong>:审查训练数据的代表性,确保弱势群体被充分代表。<strong>评估层面</strong>:不只看整体指标,要做分群评估(sliced evaluation),检查模型在不同性别、种族、年龄群体上的表现差异。<strong>设计层面</strong>:在高风险场景(招聘、信贷、司法)慎用或不用纯数据驱动的模型,引入人类复核。<strong>治理层面</strong>:建立算法审计机制,定期评估已上线系统的公平性。这些措施不能消除偏见,但能显著降低其危害。</p>
+    <p>公平性评估是可以落地的工程实践,不是空谈。下面这段代码演示了如何对分类模型做分群公平性审计——计算各子群体的准确率、错误率差异,以及不同性别上的"机会均等"(equal opportunity)指标。任何上线前的高风险模型,都应该跑一遍这样的审计:</p>
+    <pre><code class="language-python">import pandas as pd
+import numpy as np
+from sklearn.metrics import accuracy_score, confusion_matrix
+
+def fairness_audit(y_true, y_pred, groups, group_name="gender"):
+    """对模型预测做分群公平性审计
+    groups: 与 y_true 同长度的 Series, 标注每个样本的群体归属
+    返回各群体指标 + 群体间差异(公平性度量)
+    """
+    results = []
+    for g, mask in pd.Series(groups).groupby(groups).groups.items():
+        yt, yp = y_true[mask], y_pred[mask]
+        tn, fp, fn, tp = confusion_matrix(yt, yp, labels=[0,1]).ravel()
+        results.append({
+            group_name: g,
+            "n": len(mask),
+            "accuracy": round(accuracy_score(yt, yp), 4),
+            "false_positive_rate": round(fp / (fp + tn), 4),  # 误报率
+            "false_negative_rate": round(fn / (fn + tp), 4),  # 漏报率
+            "true_positive_rate":  round(tp / (tp + fn), 4),  # 召回率(机会)
+        })
+    report = pd.DataFrame(results)
+
+    # 公平性度量: 最大群体差异(80% rule / 均等差异)
+    tpr = report["true_positive_rate"]
+    fpr = report["false_positive_rate"]
+    report.attrs["tpr_disparity"] = round(tpr.max() - tpr.min(), 4)
+    report.attrs["fpr_disparity"] = round(fpr.max() - fpr.min(), 4)
+    report.attrs["disparate_impact"] = round(tpr.min() / tpr.max(), 4)
+    return report
+
+# 示例: 审计一个信贷审批模型在不同性别上的公平性
+np.random.seed(0)
+n = 1000
+y_true = np.random.randint(0, 2, n)
+y_pred = np.where(np.random.rand(n) < 0.7, y_true, 1 - y_true)
+# 故意构造: 对女性群体(1)误报率更高
+gender = np.where(np.random.rand(n) < 0.5, "male", "female")
+y_pred[(gender == "female") & (y_true == 0)] = 1   # 造假: 女性更容易被误判通过
+
+report = fairness_audit(y_true, y_pred, gender)
+print(report)
+print(f"\n召回率群体差异: {report.attrs['tpr_disparity']} (越小越公平)")
+print(f"误报率群体差异: {report.attrs['fpr_disparity']}")
+print(f"差异影响比(>0.8 视为合规): {report.attrs['disparate_impact']}")
+# 若 disparate_impact < 0.8, 触发"四分之三规则"告警, 需调查或调整模型
+</code></pre>
+    <p>这段代码体现了一个重要认知:<strong>公平性是可以测量的</strong>。把它纳入模型评估的标准流程,就像测试准确率一样自然。测量不到的偏见,就等于被默许的偏见。</p>
+    <h2 class="section" id="case-employment"><span class="idx">★</span> 案例四:AI 的就业冲击</h2>
+    <p>AI 替代工作不是新话题,但生成式 AI 让冲击范围从"重复劳动"扩大到"知识劳动",让很多原本以为"AI 做不了"的职业(程序员、律师、设计师、作家)也感受到威胁。这一次的就业冲击,广度和速度都是空前的。</p>
+    <p>用框架分析。<strong>谁受益谁受损</strong>:受益的是掌握 AI 的企业和个人,生产力大幅提升;受损的是被替代或贬值的劳动者,以及他们的家庭和社区。问题在于:受益者和受损者往往是不同的人,且这种分配的不均会加剧社会分化。</p>
+    <p><strong>能否知情同意</strong>:劳动者并没有"同意"被技术进步淘汰。这是一个"集体行动困境"——每个人都用 AI 提升自己的效率是理性的,但汇总起来却让一群人失去生计。这种个体理性与集体后果的张力,是技术性失业的伦理内核。</p>
+    <p><strong>能否追责</strong>:很难找到"责任人"。技术进步是分散的千万个决策的结果,没有"一个作恶者"可以追责。这让传统的伦理框架(基于责任主体)失效——这正是技术性失业难处理的根源。</p>
+    <p><strong>放大不平等</strong>:AI 的就业冲击是不对称的。高技能、能驾驭 AI 的人变得更值钱;低技能、做可自动化任务的人被压低甚至替代。这会扩大而非缩小收入差距。而且这种冲击往往是结构性的——一个被替代的工人很难"再培训"就转型,因为新岗位的要求更高了。</p>
+    <p>应对就业冲击没有简单方案,但有几个方向值得探讨。<strong>教育转型</strong>:教育体系要培养"AI 难替代"的能力——创造力、同理心、复杂判断、跨学科整合。<strong>社会保障</strong>:可能需要新的社会契约,如全民基本收入(UBI)、缩短工时、AI 税等,让技术红利惠及所有人。<strong>循序渐进</strong>:避免一夜之间大规模替代,给社会调整时间。<strong>人机协作</strong>:很多场景下,最佳方案不是 AI 替代人,而是 AI 增强人(Augmented Intelligence),让人做更有价值的事。从从业者角度,关键不是抵制 AI,而是主动学会用 AI,让自己成为"被 AI 放大的人"而非"被 AI 替代的人"。</p>
+    <h2 class="section" id="common-patterns"><span class="idx">★</span> 四个案例的共同模式</h2>
+    <p>这四个案例看似不同,但提炼出来有几个共同的伦理模式,理解它们能帮你举一反三。</p>
+    <p><strong>模式一:把伦理决策编码进算法</strong>。无论是自动驾驶的选择,还是招聘模型的偏好,人类社会的伦理决策正在被"固化"到算法里。这带来一个深刻问题:谁来决定这些编码?是工程师?企业?政府?还是某种民主协商?目前这个决策过程大多是不透明的,这是 AI 伦理最大的隐忧。</p>
+    <p><strong>模式二:规模化放大效应</strong>:AI 把个体的偏见、错误、伤害放大到社会规模。一个人的偏见影响有限,一个 AI 系统的偏见影响百万。这意味着同样的伦理问题,在 AI 语境下后果严重得多。</p>
+    <p><strong>模式三:不透明与问责真空</strong>:深度学习的黑盒性,让"为什么这么决策"难以回答,进而让"谁来负责"难以落实。这种问责真空是很多 AI 伦理问题的制度根源。</p>
+    <p><strong>模式四:利益分配的不对等</strong>:AI 的红利和风险往往由不同群体承担。受益者(科技公司、高技能劳动者)获得利润和便利,风险(失业、被歧视、隐私侵犯)却由相对弱势的群体承担。这种不对等是 AI 伦理的社会维度,光靠技术解决不了。</p>
+    <h2 class="section" id="practitioner-responsibility"><span class="idx">★</span> 从业者的责任:我们能做什么</h2>
+    <p>讨论伦理不能只停留在"反思",作为 AI 从业者,我们能在日常工作中做什么?这里给几条可操作的建议。</p>
+    <p><strong>在设计阶段就考虑伦理</strong>。伦理不是"做完再补"的事,而是设计的一部分。开始一个项目时就问:这个系统的决策会影响谁?可能有什么偏见?出错时谁来负责?把这些想清楚,比事后修补有效得多。这叫"价值敏感设计"(Value Sensitive Design)。</p>
+    <p><strong>做公平性评估</strong>。模型上线前,除了准确率,还要做分群公平性评估:在不同性别、种族、年龄群体上的表现差异有多大?这种评估应该成为标准流程的一部分,就像做单元测试一样自然。</p>
+    <p><strong>保留人类复核</strong>。在高风险场景(信贷、司法、医疗、招聘),永远保留人类在决策回路里。AI 给建议,人做最终决定。这不是低效,而是对"AI 会犯错"的必要容错。</p>
+    <p><strong>透明与可解释</strong>。尽可能让 AI 的决策可解释——用可解释模型、提供决策理由、向用户披露"这是 AI 决策"。透明度既是伦理要求,也是建立用户信任的必要条件。</p>
+    <p><strong>说不的勇气</strong>。如果你被要求开发一个你确信会造成伤害的系统(比如用于监控弱势群体的识别系统),要有说"不"的勇气和渠道。这是专业伦理的底线。很多科技公司已经建立了"伦理审查委员会"或"红队"机制,正是为了给这种"说不"提供制度支持。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>AI 伦理不是"想多了",而是 AI 系统规模化决策带来的真实挑战。我们用"谁受益谁受损、能否知情同意、能否解释追责、是否放大不平等"四个维度,分析了四个经典案例:自动驾驶的电车难题(伦理决策的编码)、Deepfake(真实性的消亡)、算法偏见(歧视的放大)、就业冲击(利益分配的不对等)。</p>
+    <p>四个案例揭示了共同模式:伦理决策被编码进算法、规模化放大效应、不透明导致的问责真空、利益分配不对等。这些模式会在未来的更多 AI 应用中反复出现。</p>
+    <p>作为从业者,我们能做的是:在设计阶段就考虑伦理、做公平性评估、保留人类复核、追求透明可解释、必要时勇敢说不。AI 伦理没有标准答案,但有一个核心原则贯穿始终——<strong>技术应该服务于人,而不是人服务于技术</strong>。记住这条,在具体的伦理困境里,你就有了判断的罗盘。技术让我们能做什么,和我们应该做什么,是两个截然不同的问题;而后者,最终定义了我们是谁。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>
