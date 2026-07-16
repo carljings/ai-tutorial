@@ -501,6 +501,77 @@ print("top-10 ids:", ids)
     </ul>
     <p>反过来，规模小、延迟要求极低、数据频繁变动，还是 HNSW 内存方案更合适。DiskANN 和 HNSW 不是替代关系，而是规模分层上的互补。</p>
 
+
+    <h2 class="section" id="diskann-variants"><span class="idx">★</span> DiskANN 的扩展：FreshDiskANN 与混合索引</h2>
+    <p>原始 DiskANN 是静态的（构建一次后只读），这限制了它的应用范围。学术界和工业界后续做了几个扩展。</p>
+<p><strong>FreshDiskANN</strong>（也叫 Vamana 的动态版）支持增量插入：新向量来了，在内存里维护一个小的"动态图"缓冲区，定期合并到 SSD 上的主图。合并时重新跑一遍局部 Vamana 修剪，保证增量后的图质量。这让 DiskANN 能用于流式数据场景，但实现复杂、合并有延迟。</p>
+<p><strong>SPANN（Microsoft）</strong>是另一个扩展：把数据按空间划分成多个"posting list"（类似 IVF 的簇），每个 list 内部用 DiskANN 风格的图。查询时只加载相关 list 的图到内存，实现"按需加载"的内存效率。SPANN 在 Azure 搜索里大规模部署，单集群扛千亿向量。</p>
+<p><strong>混合内存-SSD 索引</strong>：把高频访问的"热区"图缓存到内存，冷区留 SSD。这结合了 HNSW 的低延迟和 DiskANN 的大容量。Milvus、Qdrant 的新版本都有类似设计。</p>
+<pre><code class="language-python"># FreshDiskANN 的概念流程
+class FreshDiskANN:
+    def __init__(self, ssd_index, mem_buffer_size=10000):
+        self.ssd = ssd_index                  # SSD 上的主图
+        self.buffer = []                      # 内存缓冲新向量
+        self.buffer_size = mem_buffer_size
+
+    def insert(self, vec):
+        self.buffer.append(vec)
+        if len(self.buffer) >= self.buffer_size:
+            self._merge_to_ssd()              # 攒够一批合并
+
+    def _merge_to_ssd(self):
+        # 1. 把 buffer 里的向量加到 SSD 主图
+        # 2. 对新加入的节点做局部 Vamana 修剪（重新选邻居）
+        # 3. 清空 buffer
+        new_ids = self.ssd.add_and_prune(self.buffer)
+        self.buffer = []
+
+    def query(self, q, k):
+        # 同时查 SSD 主图和内存 buffer
+        ssd_hits = self.ssd.beam_search(q, k*2)
+        buf_hits = brute_force(self.buffer, q, k*2)
+        return merge_and_rerank(ssd_hits, buf_hits, k)
+</code></pre>
+<p>这些扩展说明 DiskANN 不是终点，而是一个可演进的架构基座。理解它的核心思想（Vamana 图 + beam search + 内外存分层），就能理解所有变体。</p>
+
+    <h2 class="section" id="diskann-deploy"><span class="idx">★</span> DiskANN 生产部署的实操经验</h2>
+    <p>把 DiskANN 部署到生产，几个实操经验值得分享。</p>
+<p><strong>SSD 选型很关键</strong>。DiskANN 的查询瓶颈是 SSD 随机读，所以要选高 IOPS 的 NVMe SSD（随机读 4K IOPS 至少 50 万）。便宜的 SATA SSD（几万 IOPS）会让 DiskANN 慢得不如纯内存方案。企业级 NVMe（如 Intel Optane）是 DiskANN 的最佳搭档。</p>
+<p><strong>beam_width 调参</strong>。beam_width 决定每次批量读多少节点，直接影响 SSD 利用率和延迟。典型值 4-8：太小（1-2）SSD 利用率低、延迟高；太大（&gt;16）单次查询读太多、QPS 掉。要根据你的 SSD IOPS 和查询 QPS 目标调。</p>
+<p><strong>PQ 压缩向量的精度</strong>。内存里放的 PQ 压缩向量用于粗排，它的精度决定 SSD 精排的命中率。PQ 太糙（m 小）会让粗排丢真近邻，SSD 精排也救不回。建议 m=64-128，宁可内存多占点。</p>
+<p><strong>监控 SSD 健康</strong>。DiskANN 对 SSD 写入不重（构建一次后主要读），但要监控 SSD 的磨损度和坏块。SSD 故障会让整个索引不可用，要有快照备份和快速重建流程。</p>
+<p><strong>延迟的 P99 抖动</strong>。SSD 偶尔的 GC 或坏块重映射会让单次查询延迟飙到几百毫秒。应对是设置超时 + 重试 + 多副本。对延迟敏感的核心查询，可以加一层内存缓存热区。</p>
+<p>这些经验说明 DiskANN 不是"装上就用"的方案，它对硬件和运维有特定要求。但它换来的"单机扛百亿、成本降一个数量级"的收益，对大规模场景是值得的。</p>
+
+    <h2 class="section" id="diskann-build"><span class="idx">★</span> Vamana 图构建的深度优化</h2>
+    <p>Vamana 图构建是 DiskANN 质量的根本，它的两阶段 α 修剪有几个深度细节值得展开。</p>
+<p><strong>第一阶段 α=1 的意义</strong>。等价于 HNSW 的启发式选择——保留方向多样的邻居。这一阶段建立的图局部连通性好，但全局可能有大距离的"孤岛"（某些区域之间没有长边连接）。</p>
+<p><strong>第二阶段 α&gt;1 的作用</strong>。用更大的 α（如 1.2）重新修剪，允许删除一些短边、保留长边。直觉：α&gt;1 时，"e 和已选邻居 r 的距离 &lt; α × e 到 q 的距离"才跳过 e，这意味着只有当 e 明显比已选邻居近（在 q 的方向上）才保留。结果是一些短边（连到很近但同向的邻居）被删，长边（连到稍远但跨区域的邻居）被保留。这提升了图的全局连通性——查询时能跨大距离跳。</p>
+<p><strong>为什么是两阶段而非直接用 α&gt;1</strong>。直接用大 α 构建会让图早期就丢失短边，局部连通性差，搜索时找不到候选。先 α=1 建立良好的局部图，再 α&gt;1 加长边，两阶段结合兼顾局部和全局。</p>
+<pre><code class="language-python"># Vamana 两阶段构建（教学版）
+def build_vamana(data, R=64, L_build=200, alpha1=1.0, alpha2=1.2):
+    N = len(data)
+    # 选 medoid 作为入口
+    medoid = find_medoid(data)
+    graph = {i: [] for i in range(N)}
+    # 第一阶段：α=1 构建所有边
+    for p in range(N):
+        candidates = greedy_search(graph, data[p], medoid, L_build, R)
+        neighbors = prune(candidates, data[p], R, alpha1)
+        for n in neighbors:
+            graph[p].append(n); graph[n].append(p)
+    # 第二阶段：用 α=1.2 重新修剪所有边
+    for p in range(N):
+        neighbors = prune(graph[p], data[p], R, alpha2)
+        # 重新连边（删旧的、加新的）
+        graph[p] = neighbors
+    return graph
+# 第一阶段约占总构建时间的 60%，第二阶段 40%
+# 最终图的搜索跳数比单阶段少 20-30%，这是 DiskANN 延迟优势的来源
+</code></pre>
+<p><strong>构建复杂度</strong>。Vamana 构建要对每个节点做一次搜索（找候选），复杂度 O(N · 搜索成本)。搜索成本是 O(log N · 跳数)，所以总构建是 O(N · log²N) 量级。1 亿节点要几小时，这是 DiskANN 构建慢的原因。优化手段：① 并行构建（多线程同时处理不同节点）；② 增量构建（新数据只做局部）；③ 用 GPU 加速搜索部分。</p>
+<p><strong>构建质量评估</strong>。怎么知道构建的图好不好？看"搜索跳数分布"：好图的平均跳数少且稳定，差图跳数方差大（有的查询几跳，有的几十跳）。还可以看图的度数分布——好图度数均匀（接近 R），差图有热门点（度数远超 R）或孤立点（度数极低）。</p>
+<p>这些深度细节说明 Vamana 不是"随便连个图"，它的每个设计选择都有明确目的。理解了这些，调 DiskANN 的 L_build、R 参数时就知道它们影响什么、怎么权衡。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>DiskANN 解决 HNSW 内存装不下的问题：图放 SSD，单机扛百亿，靠 beam search 把 SSD 随机读榨干。</li>

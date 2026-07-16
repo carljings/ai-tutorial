@@ -426,6 +426,122 @@ def retrieve_and_rerank(query, vector_index, reranker,
     </ul>
     <p>选型建议：中文开源首选 bge-reranker-large；英文预算够选 Cohere；要长文档选 jina；追求极致精度且不在乎成本可上 LLM as reranker。</p>
 
+
+    <h2 class="section" id="rerank-advanced"><span class="idx">★</span> 重排序的进阶：级联、长文档与成本控制</h2>
+    <p>基础重排序用单个 cross-encoder 对 top-K 打分，进阶系统会做更精细的优化。</p>
+<p><strong>级联重排</strong>。候选数很大（如 500）时，用大 cross-encoder 全打分太贵。级联做法：先用轻量 reranker（小模型或快速启发式）把 500 缩到 50，再用大 reranker 精排 50。两段都能用 cross-encoder，只是模型大小不同。这能在大候选量下保持精度同时控成本。</p>
+<p><strong>长文档处理</strong>。cross-encoder 的 max_length 通常 512 token，长文档（几千 token）超出要截断。粗暴截断前 512 会丢失后半部分信息。更好的做法：① 把长文档分块，每块单独打分取 max（或加权平均）；② 用支持长上下文的 reranker（jina-reranker 支持 8K）；③ 先用向量检索定位相关段，只对相关段 rerank。</p>
+<p><strong>批量与缓存</strong>。reranker 支持批量打分，一次传 50 对比循环单条快几倍。另外，同一文档对不同查询的 rerank 分数不缓存（依赖查询），但文档的预处理（tokenize、encode）可以缓存。对热点文档做 embedding 缓存能省一部分开销。</p>
+<pre><code class="language-python"># 级联重排：轻量 → 重量
+def cascade_rerank(query, candidates, light_model, heavy_model,
+                   light_k=50, final_k=10):
+    # 第一级：轻量 reranker 缩到 50
+    pairs = [[query, c.text] for c in candidates[:500]]
+    light_scores = light_model.compute_score(pairs, normalize=True)
+    top50 = [c for _, c in sorted(zip(light_scores, candidates[:500]),
+                                  key=lambda x:-x[0])[:light_k]]
+    # 第二级：重量 reranker 精排 50
+    pairs2 = [[query, c.text] for c in top50]
+    heavy_scores = heavy_model.compute_score(pairs2, normalize=True)
+    final = [c for _, c in sorted(zip(heavy_scores, top50),
+                                  key=lambda x:-x[0])[:final_k]]
+    return final
+</code></pre>
+<p><strong>长文档分块打分</strong>：</p>
+<pre><code class="language-python">def rerank_long_doc(query, doc, reranker, chunk_size=400):
+    chunks = [doc[i:i+chunk_size] for i in range(0, len(doc), chunk_size)]
+    pairs = [[query, c] for c in chunks]
+    scores = reranker.compute_score(pairs, normalize=True)
+    return max(scores)   # 取最相关段的分数代表整文档
+</code></pre>
+
+    <h2 class="section" id="rerank-cost"><span class="idx">★</span> 重排序的成本与延迟优化实战</h2>
+    <p>rerank 是 RAG 流水线里延迟和成本的大头（cross-encoder forward 几十毫秒、GPU 占用高），优化它对整体体验影响大。</p>
+<p><strong>延迟拆解</strong>。一次 rerank 50 个候选的延迟构成：tokenize ~2ms，模型 forward ~30-50ms（GPU），后处理 ~1ms。forward 是大头，且和候选数近似线性。所以延迟优化主要在减少 forward 次数和加速 forward。</p>
+<p><strong>GPU 利用</strong>。cross-encoder 在 GPU 上比 CPU 快 10-20 倍，生产必上 GPU。但 GPU 贵，要榨干利用率：批处理（攒多个查询的候选一起 forward）、FP16/INT8 量化（速度翻倍精度损失小）、TensorRT 加速。一个 GPU 卡能扛几百 QPS 的 rerank。</p>
+<p><strong>按需 rerank</strong>。不是所有查询都需要 rerank。简单事实查询（向量召回 top-3 分数远高于第 4）直接用召回结果即可；复杂或模糊查询才触发 rerank。用一个轻量分类器判断"要不要 rerank"，能省 30-50% 的 rerank 调用。</p>
+<p><strong>异步流水线</strong>。rerank 和后续的 LLM 生成可以部分重叠：rerank 出 top-3 就先开始 LLM 生成（用前 3 个），同时 rerank 继续算剩下的作为补充。这种流水线能把端到端延迟降 30%。</p>
+<pre><code class="language-python"># 按需 rerank：判断是否需要
+def maybe_rerank(query, candidates, reranker, threshold=0.1):
+    # 如果 top-1 和 top-4 的向量分数差距大，说明召回质量高，跳过 rerank
+    if candidates[0].score - candidates[3].score > threshold:
+        return candidates[:10]
+    # 否则触发 rerank
+    return reranker.rerank(query, candidates, top_k=10)
+# 实测：30-50% 的查询能跳过 rerank，整体延迟和成本显著下降
+</code></pre>
+<p>这些优化让 rerank 在生产里既精准又可控成本。RAG 系统的"快、准、省"三角，rerank 是关键调节点。</p>
+
+    <h2 class="section" id="rerank-business"><span class="idx">★</span> 重排序在不同业务场景的差异化应用</h2>
+    <p>重排序不是一刀切，不同业务场景对它的需求和配置不同。</p>
+<p><strong>场景一：客服问答 RAG</strong>。查询短、答案精确性要求高、延迟敏感（用户等着）。配置：召回 top-30，rerank 取 top-3，重排模型用 base 级（快），延迟预算 50ms 内。重点是精度而非覆盖。</p>
+<p><strong>场景二：法律/医疗文档检索</strong>。精度要求极高（错一个答案代价大）、延迟不敏感（专业用户愿意等）。配置：召回 top-100，级联 rerank（轻量缩到 30 + 重量精排 10），用 large 级重排模型，可接受 200ms 延迟。重点是极致精度。</p>
+<p><strong>场景三：电商商品搜索</strong>。召回量大、要兼顾个性化（用户偏好）、延迟极敏感（&lt;30ms）。配置：召回 top-50，rerank 用轻量模型 + 业务特征（点击率、转化率、库存），取 top-20。这里 rerank 模型常和业务排序模型融合。</p>
+<p><strong>场景四：长文档摘要 RAG</strong>。文档长（每块几百字）、要覆盖多个相关块。配置：召回 top-30，长文档 rerank 用支持长上下文的模型，取 top-5。重点是块的相关性而非关键词。</p>
+<pre><code class="language-python"># 不同场景的 rerank 配置模板
+RERANK_CONFIGS = {
+    "客服问答": {"recall_k": 30, "rerank_k": 3, "model": "base", "latency_budget_ms": 50},
+    "法律医疗": {"recall_k": 100, "rerank_k": 10, "model": "large", "latency_budget_ms": 200,
+                  "cascade": True, "light_k": 30},
+    "电商搜索": {"recall_k": 50, "rerank_k": 20, "model": "base",
+                  "extra_features": ["ctr", "conversion", "stock"], "latency_budget_ms": 30},
+    "长文档":   {"recall_k": 30, "rerank_k": 5, "model": "long_context", "latency_budget_ms": 100},
+}
+def rerank_for_scenario(query, candidates, scenario, configs):
+    cfg = configs[scenario]
+    model = load_reranker(cfg["model"])
+    if cfg.get("cascade"):
+        # 级联
+        light = load_reranker("base")
+        top = light.rerank(query, candidates[:cfg["recall_k"]], cfg["light_k"])
+        return model.rerank(query, top, cfg["rerank_k"])
+    pairs = [[query, c.text] for c in candidates[:cfg["recall_k"]]]
+    scores = model.compute_score(pairs, normalize=True)
+    return [c for _, c in sorted(zip(scores, candidates), reverse=True)[:cfg["rerank_k"]]]
+</code></pre>
+<p><strong>业务特征融合</strong>是电商/推荐场景的重点。纯相关性 rerank 模型不知道"这个商品卖得好不好"，要把业务特征（点击率、销量、新鲜度、库存）融合进排序。常见做法：rerank 分数 × 业务加权，或用 LambdaMART 学习融合权重。这让 rerank 既懂语义又懂业务。</p>
+<p><strong>个性化 rerank</strong>。同一查询不同用户应该看到不同结果。把用户特征（历史点击、偏好）作为 rerank 的额外输入，或用用户 embedding 和文档 embedding 交互。这是从"通用 rerank"到"个性化 rerank"的升级。</p>
+<p>这些差异化配置说明 rerank 没有"通用最优"，要根据业务的精度/延迟/个性化需求定制。盲目套用别人的配置，往往效果不好。</p>
+
+    <h2 class="section" id="rerank-finetune"><span class="idx">★</span> 重排序模型的微调与业务适配</h2>
+    <p>开源 rerank 模型（bge-reranker 等）是通用训练的，在特定业务上未必最优。微调能显著提升。</p>
+<p><strong>微调数据构建</strong>。需要 (query, doc, relevance) 三元组。来源：① 用户点击日志（点击=相关，展示未点击=负例）；② 人工标注（贵但准）；③ LLM 合成（用 GPT-4 生成训练对，量大但有噪声）。点击日志是最实用的来源——几乎免费的监督信号。</p>
+<p><strong>微调方法</strong>。rerank 模型本质是 cross-encoder，微调用交叉熵损失（相关/不相关的二分类）或 margin ranking loss（正例分数 &gt; 负例分数一定 margin）。后者更适合检索场景。学习率要小（1e-5 到 5e-5），epochs 少（1-3），避免过拟合。</p>
+<pre><code class="language-python"># 用点击日志微调 rerank 模型（概念流程）
+def finetune_reranker(base_model, click_logs):
+    """click_logs: [(query, clicked_doc, shown_not_clicked_docs), ...]"""
+    optimizer = AdamW(base_model.parameters(), lr=2e-5)
+    for epoch in range(2):
+        for query, pos, negs in click_logs:
+            pos_score = base_model.predict(query, pos)
+            for neg in negs:
+                neg_score = base_model.predict(query, neg)
+                # margin ranking loss：正例分数要比负例高 margin
+                loss = max(0, 0.3 - (pos_score - neg_score))
+                loss.backward(); optimizer.step()
+    return base_model
+</code></pre>
+<p><strong>微调的收益与风险</strong>。收益：在特定业务上，微调后的 rerank 比通用模型提升 5-15% 的 NDCG。风险：过拟合——训练数据少时，微调后在训练集好但泛化差。对策：留出验证集，监控验证集指标；用早停。</p>
+<p><strong>持续微调</strong>。业务变化（新商品、新术语）会让 rerank 模型过时。定期用最新点击数据增量微调，保持模型新鲜。但要防止灾难性遗忘——增量微调可能让模型忘了通用能力。对策：增量数据里混入部分原始训练数据。</p>
+
+    <h2 class="section" id="rerank-latency"><span class="idx">★</span> 重排序的延迟优化与异步流水线</h2>
+    <p>rerank 是延迟敏感环节，几个优化能让它在延迟预算内运行。</p>
+<p><strong>减少 rerank 候选数</strong>。最直接的优化。rerank top-50 比 top-200 快 4 倍。前提是召回质量够（top-50 里包含最终 top-10）。先用便宜的方法（如向量检索）粗排到 top-50，再 rerank。不要无脑 rerank top-200。</p>
+<p><strong>模型蒸馏</strong>。把大 rerank 模型（large 级）蒸馏成小的（base 级），延迟降一半、精度掉 2-5%。如果延迟预算紧，蒸馏是高 ROI 优化。用大模型当 teacher 蒸馏 student，student 上线。</p>
+<p><strong>异步流水线</strong>。rerank 不必阻塞主流程：先返回粗排结果给用户（快），后台 rerank 完后再更新（流式或推送）。这让用户感知延迟大降，代价是结果会"变"（从粗排换成精排），要 UI 提示。</p>
+<pre><code class="language-python"># 异步 rerank 流水线
+async def search_with_async_rerank(query):
+    # 1. 立即返回粗排结果（快）
+    coarse = await vector_search(query, k=20)
+    yield {"stage": "coarse", "results": coarse[:5]}   # 用户先看到
+    # 2. 后台 rerank
+    reranked = await rerank(query, coarse)
+    yield {"stage": "reranked", "results": reranked[:5]}  # 精排后更新
+# 用户 50ms 看到粗排结果，150ms 看到精排结果，感知延迟大降
+</code></pre>
+<p><strong>GPU 批处理</strong>。rerank 模型在 GPU 上批量跑，攒多个查询的候选一起 rerank，吞吐提升 5-10 倍。代价是攒批的延迟（10-20ms）。适合高并发场景，单查询低并发场景 CPU ONNX 更省。</p>
+<p><strong>缓存 rerank 结果</strong>。相同 (query, doc) 对的 rerank 分数不变，可缓存。命中率取决于查询和文档的重复率，热门文档场景能省 20-40%。用 LRU 缓存 + 限制大小（rerank 分数缓存比向量占内存少）。</p>
+<p>这些优化组合，能让 rerank 从"延迟瓶颈"变成"可承受的精排环节"。关键是按延迟预算倒推配置：先定延迟上限（如 100ms），再选模型大小、候选数、是否异步。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>bi-encoder 快但粗（独立编码 + 点积），用于全库检索；cross-encoder 慢但准（拼接 + 深度交互），用于少量候选重排。两阶段架构是 RAG 标准。</li>

@@ -448,6 +448,163 @@ for c in final_chunks:
       <li><strong>所有文档一种策略</strong>：FAQ 短文本、法律长文档、代码混用一套分块参数，必然有场景效果差。按文档类型分流。</li>
     </ul>
 
+
+    <h2 class="section" id="chunk-measure"><span class="idx">★</span> 分块质量的量化评估</h2>
+    <p>分块策略选哪个、参数怎么调，不能靠感觉，要量化评估。评估分块质量的两个维度：</p>
+<p><strong>块内聚度（intra-chunk coherence）</strong>：一个块内部的语义是否聚焦。可以用块内句子的平均 embedding 相似度衡量——相似度高说明块语义聚合，低说明块语义杂乱（被硬切了）。理想分块的块内聚度高。</p>
+<p><strong>块间区分度（inter-chunk distinctness）</strong>：不同块的语义是否可区分。用块向量之间的平均相似度衡量——相似度低说明块各自独立、不重复，高说明块之间冗余（overlap 太大或切分不合理）。理想分块的块间区分度高。</p>
+<p>这两个指标配合 recall@k（端到端检索效果）一起看，能诊断分块问题：块内聚度低 → 切得太碎或切在了语义转折处；块间区分度低 → overlap 太大或文档本身重复多；recall 低 → 综合问题，要具体分析。</p>
+<pre><code class="language-python"># 分块质量评估
+def evaluate_chunking(chunks, embed_model):
+    chunk_vecs = embed_model.encode(chunks, normalize_embeddings=True)
+    # 块内聚度：每个块内部句子的平均相似度
+    intra_coherences = []
+    for chunk in chunks:
+        sents = split_sentences(chunk)
+        if len(sents) &lt; 2: continue
+        sent_vecs = embed_model.encode(sents, normalize_embeddings=True)
+        sim = sent_vecs @ sent_vecs.T
+        intra_coherences.append(sim[np.triu_indices(len(sents), 1)].mean())
+    # 块间区分度：1 - 块向量间平均相似度
+    inter_sim = (chunk_vecs @ chunk_vecs.T)
+    inter_distinct = 1 - inter_sim[np.triu_indices(len(chunks), 1)].mean()
+    return {
+        "块内聚度": np.mean(intra_coherences),
+        "块间区分度": inter_distinct,
+    }
+# 对比不同 chunk_size 的分块质量
+for cs in [200, 400, 800]:
+    chunks = recursive_split(doc, chunk_size=cs)
+    print(f"chunk_size={cs}:", evaluate_chunking(chunks, model))
+</code></pre>
+<p>这种量化评估让分块调优从"试一试"变成"测一测"。结合端到端 recall，能找到最优分块配置。</p>
+
+    <h2 class="section" id="chunk-metadata"><span class="idx">★</span> 分块的元数据与上下文保留</h2>
+    <p>分块不只是切文本，还要保留让它能被正确检索和使用的<strong>元数据</strong>。这是常被忽视但极关键的一步。</p>
+<p>每个块应该带的元数据：</p>
+<ul>
+<li><strong>来源文档信息</strong>：文档 ID、标题、作者、发布时间。检索回来喂 LLM 时，这些信息让 LLM 能说"根据 2024 年 3 月的 Acme 财报..."而非泛泛回答。</li>
+<li><strong>结构位置</strong>：章节路径（H1/H2/H3）、页码、段号。让 LLM 知道这块内容在原文档的什么位置，理解上下文层级。</li>
+<li><strong>块前后文摘要</strong>：前一块和后一块的简短摘要。136 篇的 Contextual Retrieval 就是这个思路的极致版。即便不做到那个程度，简单的前后块标题也能帮 LLM 理解连贯性。</li>
+<li><strong>chunk_id 和 parent_id</strong>：parent-child 分块（136 篇）需要这两个 ID 建立映射。</li>
+</ul>
+<pre><code class="language-python"># 带完整元数据的分块
+def chunk_with_metadata(doc_text, doc_meta, chunk_size=400):
+    chunks = recursive_split(doc_text, chunk_size=chunk_size)
+    enriched = []
+    for i, chunk_text in enumerate(chunks):
+        enriched.append({
+            "text": chunk_text,
+            "metadata": {
+                **doc_meta,                      # 文档级元数据
+                "chunk_index": i,                # 块在文档里的序号
+                "total_chunks": len(chunks),
+                "prev_chunk_summary": summarize(chunks[i-1]) if i>0 else None,
+                "next_chunk_summary": summarize(chunks[i+1]) if i&lt;len(chunks)-1 else None,
+            }
+        })
+    return enriched
+# 检索回来时把元数据一起喂 LLM，答案质量和可信度显著提升
+</code></pre>
+<p>元数据保留得好，能让"检索回来的块"变成"有上下文的、可追溯的信息"，这对 RAG 答案的准确性和可解释性提升巨大。很多 RAG 效果差，根源不是模型不行，是元数据丢了导致 LLM 拿到的是"孤立碎片"。</p>
+
+    <h2 class="section" id="chunk-advanced"><span class="idx">★</span> 高级分块：基于文档结构的智能分块</h2>
+    <p>固定/递归/语义分块是基础，进阶系统会基于文档的<strong>语义结构</strong>做更智能的分块。</p>
+<p><strong>基于布局的分块</strong>。PDF/Word/HTML 文档有天然的布局结构（标题、段落、表格、图注）。用 layout 解析器（unstructured、LayoutLM）先识别这些结构单元，按结构单元分块。比如一个表格作为一个块（不切碎），一个图注和它的图作为一块。这种分块保留了文档的语义完整性，对含表格图的文档（财报、论文）效果远好于纯文本分块。</p>
+<p><strong>基于语义角色的分块</strong>。用 NLP 识别文本的语义角色（定义、例子、论证、结论），按角色边界分块。比如把"定义 + 它的例子"作为一块，"论证 + 它的论据"作为一块。这种分块让每块语义自洽，但需要语义角色标注模型，复杂度高，适合高价值场景。</p>
+<p><strong>滑动窗口 + 结构感知</strong>。在递归分块基础上，加入"结构感知"——遇到表格/代码块/列表时，不切分它们，整体作为一个块或跳过。LangChain 的某些 splitter 支持。</p>
+<pre><code class="language-python"># 基于 layout 的分块（用 unstructured）
+from unstructured.partition.pdf import partition_pdf
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+# 1. 解析 PDF 识别结构单元
+elements = partition_pdf("report.pdf")
+# elements 已经按标题、段落、表格分类
+structured_chunks = []
+for el in elements:
+    if el.category == "Table":
+        structured_chunks.append({"text": str(el), "type": "table"})  # 表格不切
+    elif el.category == "Title":
+        structured_chunks.append({"text": str(el), "type": "title"})
+    else:
+        # 正文用递归分块
+        sub = RecursiveCharacterTextSplitter(chunk_size=400, chunk_overlap=50).split_text(str(el))
+        for s in sub:
+            structured_chunks.append({"text": s, "type": "text"})
+# 这种分块保留了表格/标题的完整性，检索和回答质量显著提升
+</code></pre>
+<p><strong>分块后处理</strong>。分块后可以做几个增强：① <strong>块标题前置</strong>——把所属章节的标题加到块前面，让块脱离上下文也能被理解（类似 Contextual Retrieval 的轻量版）；② <strong>块摘要生成</strong>——用小模型给每个块生成一句话摘要，存摘要的 embedding（检索用摘要 embedding，返回用原文）；③ <strong>关键词提取</strong>——给每块提取关键词作为元数据，支持关键词过滤/混合检索。</p>
+<pre><code class="language-python"># 块标题前置 + 摘要 embedding
+def enrich_chunk(chunk, section_path):
+    """section_path: ['财报', '2024 Q3', '云服务']"""
+    title_prefix = " > ".join(section_path)
+    enriched = f"[{title_prefix}]
+{chunk}"
+    return enriched
+def chunk_with_summary(chunk, summary_model):
+    summary = summary_model.summarize(chunk)   # 一句话摘要
+    return {"text": chunk, "summary": summary,
+            "embed_text": summary,   # 用摘要 embed（更聚焦）
+            "retrieve_text": chunk}  # 检索命中后返回原文
+</code></pre>
+<p>这些智能分块让分块质量从"机械切分"上升到"语义感知"。投入产出比：layout 分块对含结构化元素的文档提升巨大（recall 涨 10-20%），块标题前置几乎零成本但提升明显（涨 5-8%）。建议按文档类型选合适的智能分块策略。</p>
+
+    <h2 class="section" id="chunk-tokens"><span class="idx">★</span> 分块与 Token 限制：理解 LLM 的真实输入约束</h2>
+    <p>分块的"chunk_size"常按字符设，但 LLM 的输入约束是 token。理解两者的换算和 token 预算分配很重要。</p>
+<p><strong>字符 vs Token</strong>。中文一个字≈1-1.5 token，英文一个单词≈1-1.5 token，代码 token 化不规则（一个运算符可能一个 token）。所以"chunk_size=500 字符"在中文≈500 token，在英文≈350 token，在代码可能更多。设 chunk_size 时要按目标语言的 token 比例算。</p>
+<p><strong>Token 预算分配</strong>。LLM 上下文窗口（如 128K）要分给：系统 prompt、用户查询、检索到的上下文、生成预留。分配示例（128K 窗口）：系统 prompt 2K、查询 1K、上下文 100K、生成预留 25K。所以上下文实际能用 100K token。如果每块 500 token，能塞 200 块——但塞这么多会触发 Lost in the Middle，实际塞 10-30 块最优。</p>
+<pre><code class="language-python"># Token 预算分配与块数计算
+def plan_context_budget(model_window=128000, chunk_tokens=500):
+    budget = {
+        "system_prompt": 2000,
+        "user_query": 1000,
+        "generation_reserve": 25000,
+    }
+    context_budget = model_window - sum(budget.values())
+    max_chunks = context_budget // chunk_tokens
+    # 实际推荐块数（考虑 Lost in the Middle）
+    practical_chunks = min(max_chunks, 20)
+    print(f"窗口 {model_window}: 上下文预算 {context_budget} token")
+    print(f"理论最多 {max_chunks} 块，实际推荐 {practical_chunks} 块")
+    return practical_chunks
+plan_context_budget()
+plan_context_budget(model_window=8192)   # 小窗口模型对比
+</code></pre>
+<p><strong>chunk_size 与检索粒度的关系</strong>。块小（200 token）→ 检索精准但信息碎片，LLM 要拼多块才能答；块大（1000 token）→ 信息完整但检索可能命中无关部分。折中是 300-500 token，配合 parent-child（小块检索、大块返回）兼顾两者。</p>
+<p><strong>不同内容类型的块大小</strong>。代码块要大（一个完整函数/类，避免切断逻辑）；对话/短文本块要小（按发言/段落）；长文档说明块中等。一刀切的 chunk_size 对混合内容不好——用结构感知分块（135 篇深入版讲过）按内容类型调整。</p>
+
+    <h2 class="section" id="chunk-eval"><span class="idx">★</span> 分块质量的量化评估方法</h2>
+    <p>分块好不好不能只凭感觉，要有量化评估方法。</p>
+<p><strong>评估维度一：检索召回率</strong>。固定 embedding 模型和查询，只变分块策略，看哪种分块的 recall@k 高。这是最直接的评估——分块是为了检索，检索好就是好。要在反映真实查询的评估集上测。</p>
+<p><strong>评估维度二：答案完整性</strong>。检索到块后，看 LLM 能否基于块完整回答问题。有些分块检索 recall 高但答案碎（块太小，信息不完整），有些 recall 中等但答案好（块大小合适，信息完整）。用 RAGAS 的 faithfulness 和 answer_relevancy 评估。</p>
+<p><strong>评估维度三：块的内聚度</strong>。每块是否语义自洽（不跨主题）。用 LLM 给每块打"内聚度分"（1-5），或用 embedding 算块内句子的平均相似度（高则内聚）。内聚度低的分块（如切断了定义和例子）检索和回答都差。</p>
+<pre><code class="language-python"># 分块质量的多维度评估
+def evaluate_chunking(chunks, eval_set, embed_model, llm):
+    results = {}
+    # 1. 检索召回
+    index = build_index([embed_model(c) for c in chunks])
+    recall = eval_recall(index, eval_set)
+    # 2. 答案完整性
+    faith_scores = []
+    for q, a_expected in eval_set[:50]:
+        retrieved = index.search(embed_model(q), k=5)
+        answer = llm.generate(q, retrieved)
+        faith_scores.append(ragas_faithfulness(q, answer, retrieved))
+    # 3. 块内聚度（块内句子平均相似度）
+    cohesions = []
+    for c in chunks[:200]:
+        sents = split_sentences(c)
+        if len(sents) > 1:
+            embs = [embed_model(s) for s in sents]
+            sim = avg_pairwise_similarity(embs)
+            cohesions.append(sim)
+    results["recall"] = recall
+    results["faithfulness"] = mean(faith_scores)
+    results["cohesion"] = mean(cohesions)
+    return results
+# 对比不同分块策略的三维度，选综合最优
+</code></pre>
+<p><strong>评估的坑</strong>。① 只看 recall 忽略完整性——小块 recall 高但答案碎，要综合看；② 评估集太小——几十条查询不足以区分分块策略差异，要几百条；③ 忽略块大小对延迟的影响——大块检索慢、上下文长，要纳入延迟成本。</p>
+<p><strong>分块策略的对比实验</strong>。固定其它环节，只变分块（固定 400 vs 递归 vs 语义 vs parent-child），跑评估。通常结论：parent-child 综合最优（小块检索准、大块返回完整），递归次之，固定最差。但具体数据集可能不同，必须自测。这个量化评估让分块从"凭经验"变成"数据驱动"。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>分块必要：embedding 有长度限制、长文本信息密度低、LLM 上下文要高效利用。目标是块语义自洽 + 适当重叠。</li>

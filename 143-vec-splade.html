@@ -446,6 +446,113 @@ results = hybrid_search("Acme Corp 云服务营收")
     </ul>
     <p>限制：编码要 GPU 推理（CPU 也能但慢），中文场景的开源 SPLADE 模型选择不如英文多（英文有 naver 官方版，中文可用 BGE-M3 的稀疏模式作为替代）。BGE-M3 实际上同时输出稠密、稀疏、多向量三种表示，是当前中文场景 dense+sparse 混合的便捷选择。</p>
 
+
+    <h2 class="section" id="splade-practice"><span class="idx">★</span> SPLADE 的工程落地与调优</h2>
+    <p>SPLADE 的原理清楚了，工程落地有几个实操要点。</p>
+<p><strong>稀疏度控制</strong>。SPLADE 的稀疏度（非零维度数）直接影响存储和精度：太稀疏（每文档几十个非零）丢失语义扩展能力，太稠密（几千个）失去稀疏优势。可控手段：训练时的 FLOPS 正则强度（λ）、推理时的 top-k 截断或阈值。经验上每文档 100-500 个非零维度是甜区。</p>
+<p><strong>查询端 vs 文档端的不同处理</strong>。文档可以接受较稠密的表示（离线编码、存储一次），但查询端要稀疏（在线编码、影响延迟）。所以常见做法是文档端用较弱稀疏约束（保留语义扩展），查询端用较强约束（快速编码）。SPLADE 的不同版本（Sparse/SPLADE++）就是这个权衡。</p>
+<p><strong>蒸馏加速</strong>。SPLADE 的 teacher 模型通常是大 BERT，推理慢。可以用知识蒸馏把大模型压缩成小模型（DistilBERT 大小），编码速度快 2-3 倍，精度损失小。naver/splade-cocondenser-ensembledistil 就是蒸馏版。</p>
+<pre><code class="language-python"># SPLADE 的稀疏度调优
+def encode_with_sparsity_control(model, text, max_activations=200):
+    """控制非零维度数"""
+    inputs = tokenizer(text, return_tensors="pt", truncation=True)
+    with torch.no_grad():
+        logits = model(**inputs).logits
+    activations = torch.log(1 + torch.exp(logits)).max(dim=1).values.squeeze(0)
+    # 只保留 top-k 高激活维度
+    if activations.nonzero().shape[0] > max_activations:
+        topk_vals, topk_idx = activations.topk(max_activations)
+        sparse = {i.item(): v.item() for i, v in zip(topk_idx, topk_vals)}
+    else:
+        nonzero = activations.nonzero().squeeze(-1)
+        sparse = {i.item(): activations[i].item() for i in nonzero}
+    return sparse
+# 对比不同稀疏度下的 recall 和存储
+for max_act in [50, 100, 200, 500, 1000]:
+    vecs = [encode_with_sparsity_control(model, d, max_act) for d in docs]
+    recall = eval_recall(vecs, queries, gt)
+    storage = sum(len(v) for v in vecs) * 8 / 1e6  # MB
+    print(f"max_act={max_act}: recall={recall:.3f} storage={storage:.0f}MB")
+</code></pre>
+<p><strong>中文 SPLADE 的选择</strong>。原版 SPLADE 是英文，中文场景的开源选择：① BGE-M3 的 sparse 模式（最便捷，中文优化好）；② 用中文 BERT 自行训练 SPLADE（需要中文训练数据）；③ 清华/哈工大的中文稀疏检索模型。BGE-M3 是当前中文 dense+sparse 的首选。</p>
+
+    <h2 class="section" id="splade-vs-bm25"><span class="idx">★</span> SPLADE vs BM25：何时升级</h2>
+    <p>BM25 是用了几十年的成熟方案，SPLADE 是新晋挑战者。何时该从 BM25 升级到 SPLADE？看几个维度的对比。</p>
+<p><strong>精度</strong>。在多数 benchmark 上，SPLADE 的 recall 显著高于 BM25（高 5-15 个点），尤其在语义相关但词形不同的查询上。BM25 对"同义词/相关词"完全盲，SPLADE 通过学习能激活相关词维度。</p>
+<p><strong>精确匹配</strong>。BM25 对精确词形匹配干脆利落，SPLADE 也能做（对应维度强激活），但偶尔会因为语义扩展把精确匹配的信号稀释。所以纯精确匹配场景（如错误码、产品 ID）BM25 仍占优。</p>
+<p><strong>成本</strong>。BM25 是纯算法（词频统计），无需 GPU；SPLADE 编码要 GPU 推理，离线编码成本和在线查询延迟都更高。BM25 的倒排索引也更轻（成熟的工程实现）。</p>
+<p><strong>可维护性</strong>。BM25 无需训练，开箱即用；SPLADE 要训练、要调稀疏度、要管理模型版本。BM25 的运维简单得多。</p>
+<pre><code class="language-text">BM25 vs SPLADE 选型
+┌──────────────┬──────────┬──────────┬────────────────────┐
+│ 维度         │ BM25     │ SPLADE   │ 结论               │
+├──────────────┼──────────┼──────────┼────────────────────┤
+│ 语义理解     │ 无       │ 强       │ SPLADE 完胜        │
+│ 精确匹配     │ 强       │ 中       │ BM25 略优          │
+│ GPU 需求     │ 无       │ 有       │ BM25 轻            │
+│ 训练需求     │ 无       │ 有       │ BM25 开箱即用      │
+│ 中文开源     │ 成熟     │ BGE-M3   │ BM25 更成熟        │
+└──────────────┴──────────┴──────────┴────────────────────┘</code></pre>
+<p><strong>升级建议</strong>：</p>
+<ul>
+<li>纯精确匹配场景（错误码、ID、专有名词）→ 继续 BM25，SPLADE 没必要。</li>
+<li>语义检索为主、预算充足 → 直接上 SPLADE（或 BGE-M3 sparse）。</li>
+<li>混合场景、想稳妥 → BM25 + 稠密向量 RRF（132 篇），先把这套做熟。</li>
+<li>追求极致召回 → BM25/Dense/SPLADE 三路 RRF，覆盖所有盲区。</li>
+</ul>
+<p>SPLADE 不是 BM25 的简单替代，而是"BM25 + 语义"的增强。它最适合的场景是"既需要精确匹配又需要语义扩展"——技术文档、产品规格、法律条款。这些场景 BM25 漏语义、纯向量漏精确，SPLADE 两手都硬。但它的训练和 GPU 成本是门槛，小团队或轻量场景 BM25 + 向量更划算。</p>
+
+    <h2 class="section" id="splade-training"><span class="idx">★</span> SPLADE 的训练与领域适配</h2>
+    <p>SPLADE 是学习型稀疏向量，它的效果强依赖训练。理解训练过程和领域适配，才能用好。</p>
+<p><strong>SPLADE 的训练目标</strong>。两个目标的加权组合：① <strong>对比学习目标</strong>——正样本对（相关 query-doc）的 MaxSim 分数高、负样本对低；② <strong>FLOPS 正则</strong>——惩罚稀疏向量的非零维度数（FLOPS = 非零维度数 × 平均激活值），让向量变稀疏。两者权衡由正则系数 λ 控制：λ 大则稀疏但精度低，λ 小则稠密但失去稀疏优势。</p>
+<p><strong>训练数据</strong>。SPLADE 用大规模弱监督对（如 MS MARCO 的 query-passage 对）预训练 + 对比学习微调。数据量和质量决定上限。中文场景的开源 SPLADE 训练数据不如英文多，这是中文 SPLADE 弱于英文的原因之一。</p>
+<p><strong>领域适配</strong>。通用 SPLADE 在特定领域（医疗、法律、技术）可能不如 BM25，因为没见过领域术语。适配方法：① <strong>继续预训练</strong>——用领域语料继续训练 MLM 头；② <strong>对比学习微调</strong>——用领域标注数据微调对比学习部分；③ <strong>困难负例挖掘</strong>——用领域数据挖困难负例，提升细粒度区分。投入几千标注对，领域适配能让 SPLADE 在该领域超过 BM25 和通用 SPLADE。</p>
+<pre><code class="language-python"># SPLADE 领域适配微调（概念流程）
+def finetune_splade_domain(base_model, domain_pairs, hard_negatives):
+    """domain_pairs: [(query, pos_doc), ...]"""
+    optimizer = AdamW(base_model.parameters(), lr=2e-5)
+    for epoch in range(3):
+        for query, pos_doc in domain_pairs:
+            # 构造 batch：1 正例 + N 困难负例
+            negs = sample_hard_negatives(query, hard_negatives, n=7)
+            batch_docs = [pos_doc] + negs
+            # SPLADE 编码
+            q_sparse = splade_encode(base_model, query)
+            d_sparse = [splade_encode(base_model, d) for d in batch_docs]
+            # 对比损失（in-batch negatives）
+            scores = [sparse_maxsim(q_sparse, d) for d in d_sparse]
+            loss = contrastive_loss(scores)   # 正例分数最高
+            # FLOPS 正则
+            flops_reg = compute_flops_regularization(q_sparse, d_sparse)
+            loss = loss + 0.1 * flops_reg
+            loss.backward(); optimizer.step()
+    return base_model
+</code></pre>
+<p><strong>稀疏度的训练时控制</strong>。训练时 λ（FLOPS 正则系数）决定最终稀疏度。naver 提供不同 λ 训练的版本：splade-pp-ed（ensembled distil，较稀疏、快）vs splade-pp-intermediate（较稠密、精度高）。按延迟预算选。</p>
+<p><strong>评估</strong>。SPLADE 训练后要在领域评测集上对比 BM25 和稠密向量，确认提升。注意 SPLADE 的强项是"精确 + 语义"混合查询，纯精确或纯语义场景未必最优。评估要用反映真实查询分布的评测集。</p>
+<p>训练和适配是 SPLADE 用好的关键。直接用开源模型可能不够——它们是通用数据训练的，领域表现可能不如 BM25。投入领域适配，SPLADE 的潜力才能发挥。这也是为什么 SPLADE 在有标注能力的大团队效果好，小团队直接用 BGE-M3 的 sparse 模式更省心。</p>
+
+    <h2 class="section" id="splade-deploy"><span class="idx">★</span> SPLADE 的部署与稀疏索引工程</h2>
+    <p>SPLADE 输出稀疏向量，存储和检索要用专门的稀疏索引。几个工程要点。</p>
+<p><strong>稀疏向量的存储</strong>。SPLADE 向量大部分维度是 0，只存非零 (维度, 值) 对。一个向量平均 50-200 个非零维度（vocab 通常 3 万）。存储 = 非零数 × (2 字节维度 ID + 4 字节值) ≈ 300-1200 字节/向量，比稠密（768×4=3KB）省。但要按非零数估算，别按稠密算。</p>
+<p><strong>稀疏倒排索引</strong>。和 BM25 的倒排一样：每个维度维护"哪些文档在这个维度非零"的倒排列表。查询时对查询向量的每个非零维度查倒排，累加分数。这和 BM25 的检索引擎本质相同——所以 SPLADE 可以复用 Lucene/Elasticsearch 的倒排基础设施。</p>
+<pre><code class="language-python"># SPLADE 稀疏索引的概念（类似 BM25 倒排）
+class SparseInvertedIndex:
+    def __init__(self, vocab_size=30000):
+        self.postings = defaultdict(list)   # dim_id -> [(doc_id, value)]
+    def add(self, doc_id, sparse_vec):
+        for dim_id, value in sparse_vec.items():   # 只存非零
+            self.postings[dim_id].append((doc_id, value))
+    def search(self, query_sparse, k=10):
+        scores = defaultdict(float)
+        for dim_id, q_val in query_sparse.items():
+            for doc_id, d_val in self.postings[dim_id]:
+                scores[doc_id] += q_val * d_val   # 内积累加
+        return sorted(scores.items(), key=lambda x: -x[1])[:k]
+</code></pre>
+<p><strong>SPLADE in Elasticsearch</strong>。ES 8.x 支持稀疏向量（text_expansion 查询）。把 SPLADE 输出存成稀疏向量字段，用 text_expansion 检索。这让 SPLADE 能复用 ES 的分布式、副本、过滤。但要装 ES 的 learning-to-rank 插件或用原生 sparse vector 支持。</p>
+<p><strong>SPLADE in Milvus</strong>。Milvus 2.4+ 支持 sparse_vector 字段，直接存 SPLADE 输出。可以和 dense vector 一起做混合检索（132 篇）。这是 SPLADE + 稠密混合的现代部署方式。</p>
+<p><strong>动态插入</strong>。SPLADE 的稀疏倒排支持高效增量插入（往倒排列表加条目）。但删除较麻烦（要从倒排列表删条目）。roaring bitmap 或 delta list 能优化。这点比 HNSW（删除留空洞）友好。</p>
+<p><strong>性能特点</strong>。SPLADE 检索延迟和"查询的非零维度数 × 倒排列表平均长度"成正比。查询稀疏（非零少）则快，稠密则慢。这也是 SPLADE 训练要加 FLOPS 正则的原因——让向量稀疏，既省存储又快检索。生产 SPLADE 通常控制在平均 50-100 非零维度。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>SPLADE 是学习型稀疏向量：用 transformer 的 MLM 头产生 vocab_size 维向量，通过 FLOPS 正则稀疏化，大部分维度为 0。</li>

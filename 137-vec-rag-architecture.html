@@ -485,6 +485,130 @@ app = g.compile()
     </ul>
     <p>不要一上来就堆 Modular——多数业务系统在 Advanced 阶段就能达到不错的效果，Modular 的复杂度只有在 query 类型高度多样、精度要求极高的场景才划算。先 Naive 跑通，按失败 case 增量演进，是更务实的路径。</p>
 
+
+    <h2 class="section" id="rag-failure"><span class="idx">★</span> RAG 系统的典型失败模式与诊断</h2>
+    <p>了解了 RAG 架构演进，看真实系统最常见的失败模式，以及怎么诊断它们。这能帮你在自己的系统出问题时快速定位。</p>
+<p><strong>失败模式一：检索没召回正确文档</strong>。症状是 LLM 答非所问或说"不知道"。诊断：把检索回的 top-k 打印出来，看正确文档在不在里面。不在 → 检索问题（embedding 差、分块烂、过滤错了）；在但排序靠后 → 重排问题。这是最常见的失败，占 60%。</p>
+<p><strong>失败模式二：召回了但 LLM 没用</strong>。症状是正确文档在 top-k 里，但 LLM 答案没用到它。诊断：看 LLM 的 prompt 里文档排在哪个位置——如果在中间，可能是 Lost in the Middle；如果在末尾但没用，可能是 prompt 没要求基于文档答。这是第二大失败，占 20%。</p>
+<p><strong>失败模式三：LLM 幻觉</strong>。症状是 LLM 编造了文档里没有的信息。诊断：用 RAGAS 的 faithfulness 指标量化，低分说明幻觉严重。对策是改 prompt（加引用要求、强调"不知道就说不知道"）、换更强模型、或加 Self-RAG 自反思。</p>
+<p><strong>失败模式四：查询理解错</strong>。症状是用户问 A，系统理解成 B。诊断：把查询改写后的结果打印出来看。多轮对话场景特别容易出现指代消解失败（"那个"指代错）。</p>
+<p><strong>失败模式五：延迟过高</strong>。症状是用户等不及。诊断：拆各阶段耗时——embedding、检索、rerank、LLM 生成。RAG 的延迟主要在 rerank 和 LLM 生成，优化重点在这里。</p>
+<pre><code class="language-python"># RAG 失败诊断工具：把每一步的中间结果记录下来
+def rag_with_diagnosis(query, history):
+    log = {}
+    log["original_query"] = query
+    # 1. 查询改写
+    rewritten = rewrite(query, history)
+    log["rewritten"] = rewritten
+    # 2. 检索
+    candidates = retrieve(rewritten, k=50)
+    log["retrieval_candidates"] = [c.id for c in candidates[:10]]
+    log["retrieval_scores"] = [c.score for c in candidates[:10]]
+    # 3. 重排
+    ranked = rerank(rewritten, candidates, k=5)
+    log["rerank_order"] = [c.id for c in ranked]
+    # 4. 生成
+    answer = generate(query, ranked)
+    log["answer"] = answer
+    # 5. 自动评分
+    log["faithfulness"] = quick_faithfulness(answer, ranked)
+    return answer, log
+# 失败时分析 log，定位是哪一步出问题
+</code></pre>
+<p>这个诊断思维——"先定位是哪一步失败，再针对性优化"——比盲目加模块有效得多。很多团队 RAG 效果差，不是缺模块，是没诊断清楚问题在哪。</p>
+
+    <h2 class="section" id="rag-cost-latency"><span class="idx">★</span> RAG 系统的成本与延迟优化</h2>
+    <p>Advanced/Modular RAG 模块多，成本和延迟容易失控。一个复杂查询可能调 3-5 次 LLM（改写、HyDE、生成、自反思）、跑 2-3 路检索、一次 rerank，端到端延迟几秒、成本几美分。生产化必须优化。</p>
+<p><strong>延迟优化的几个杠杆</strong>：</p>
+<ul>
+<li><strong>并行化</strong>：多路检索并行、查询改写和 embedding 预热并行、rerank 和 prompt 构建并行。把串行改并行能砍掉 30-50% 延迟。</li>
+<li><strong>缓存</strong>：查询改写结果、检索结果、甚至 LLM 生成都可缓存（相同查询直接返回）。RAG 场景缓存命中率 20-40%。</li>
+<li><strong>模型分级</strong>：简单任务用小模型（Haiku 改写、Haiku 生成简单答案），复杂任务才上大模型。Router 按难度分流。</li>
+<li><strong>流式输出</strong>：LLM 生成用流式，用户看到第一个 token 的延迟从几秒降到几百毫秒，体感快很多。</li>
+</ul>
+<p><strong>成本优化的几个杠杆</strong>：</p>
+<ul>
+<li><strong>按需触发模块</strong>：不是每个查询都需要 HyDE、Decomposition、Self-RAG。用分类器判断查询复杂度，简单的走轻量路径。</li>
+<li><strong>Prompt Caching</strong>：system prompt 和 few-shot 示例缓存，省 50-90% 的输入 token 费用。</li>
+<li><strong>批处理</strong>：非实时场景（如离线索引、批量评估）用 batch API，成本是实时的 1/2。</li>
+<li><strong>开源模型替代</strong>：部分环节（embedding、rerank、简单生成）用开源模型本地部署，省 API 费。</li>
+</ul>
+<pre><code class="language-python"># RAG 的成本延迟监控
+class RAGCostMonitor:
+    def __init__(self): self.costs = []
+    def track(self, step, llm_calls, tokens, latency_ms):
+        cost = tokens * 0.00001   # 简化计价
+        self.costs.append({"step": step, "calls": llm_calls,
+                           "tokens": tokens, "cost": cost, "latency_ms": latency_ms})
+    def summary(self):
+        total_cost = sum(c["cost"] for c in self.costs)
+        total_lat = sum(c["latency_ms"] for c in self.costs)
+        print(f"总成本: ${total_cost:.4f}  总延迟: {total_lat:.0f}ms")
+        for c in self.costs:
+            print(f"  {c['step']:15s} ${c['cost']:.4f} {c['latency_ms']:.0f}ms")
+# 用监控定位成本和延迟的大头，针对性优化
+</code></pre>
+<p>优化原则：<strong>先监控定位大头，再针对性优化</strong>。不要盲目优化所有模块——80% 的成本和延迟通常集中在 20% 的环节（往往是 LLM 生成和 rerank），优化这些收益最大。</p>
+
+    <h2 class="section" id="rag-modular-deep"><span class="idx">★</span> Modular RAG 的核心模块深入：Router 与 Self-RAG</h2>
+    <p>Modular RAG 里最关键的两个模块是 Router 和 Self-RAG，它们让系统从"固定流水线"变成"动态智能体"。</p>
+<p><strong>Router 的设计</strong>。Router 决定一个查询走哪条路径，是模块化的入口。实现方式：① <strong>规则路由</strong>——用关键词/长度/正则判断（如含"对比"走多路检索），简单但死板；② <strong>LLM 路由</strong>——让小 LLM 分类查询类型，灵活但有延迟和成本；③ <strong>学习路由</strong>——训练一个小分类器（如 FastText、小 BERT），快且准但要标注数据。生产中常用 LLM 路由（用 Haiku 这类便宜模型）+ 规则兜底的组合。</p>
+<p>Router 的关键决策点：要不要检索（闲聊不检索）、检索哪类（文档/FAQ/SQL）、检索深度（简单 top-5 vs 复杂多跳）、要不要 rerank、用哪个 LLM 生成。一个好的 Router 能把"对所有查询一视同仁"变成"按需分配资源"，整体成本和延迟大幅优化。</p>
+<p><strong>Self-RAG 的自反思</strong>。Self-RAG 让 LLM 在生成后自评：这个答案基于 context 吗？完整吗？如果不好，触发重新检索或重写。这把 RAG 从"一次检索+一次生成"变成"检索-生成-评估-必要时重来"的闭环。</p>
+<pre><code class="language-python"># Router + Self-RAG 的完整编排
+def modular_rag(query, chat_history):
+    # 1. Router 判断
+    route = router.classify(query, chat_history)
+    # route = {"need_retrieval": True, "type": "factual", "depth": "simple", "llm": "haiku"}
+    if not route["need_retrieval"]:
+        return llm.generate(query, model="haiku")
+    # 2. 按路由检索
+    if route["type"] == "multi_hop":
+        context = multi_hop_retrieve(query, hops=3)
+    elif route["type"] == "factual":
+        context = simple_retrieve(query, k=5)
+    else:
+        context = hybrid_retrieve(query, k=10)
+    # 3. 生成
+    answer = llm.generate(query, context, model=route["llm"])
+    # 4. Self-RAG 自反思
+    critique = self_rag.critique(query, answer, context)
+    if critique.needs_retry:
+        if critique.issue == "low_faithfulness":
+            # 幻觉：强化 prompt 重生成
+            answer = llm.generate(query, context, model="sonnet",
+                                  extra_instruction="严格基于 context")
+        elif critique.issue == "insufficient_context":
+            # 上下文不足：扩大检索重来
+            context = retrieve(query, k=20)
+            answer = llm.generate(query, context, model=route["llm"])
+    return answer
+</code></pre>
+<p><strong>Self-RAG 的 critique 设计</strong>。自反思要让 LLM 输出结构化判断：faithfulness（忠实度）、completeness（完整性）、needs_retry（要不要重来）。用专门的 critique prompt，让 LLM 逐项评估。要注意 critique 本身也可能错——过度自反思会让系统陷入"一直不满意一直重来"的死循环。要设最大重试次数（如 2 次）和置信阈值。</p>
+<p><strong>成本控制</strong>。Router 和 Self-RAG 都增加 LLM 调用，要控成本。Router 用最便宜的模型（Haiku/规则），Self-RAG 只对"边缘答案"（faithfulness 在 0.5-0.8 之间）触发，明确的答案（&gt;0.9 或 &lt;0.3）不 critique。这样把额外开销控制在 20-30%。</p>
+<p>这两个模块让 Modular RAG 真正"智能"——不是固定的 if-else，而是按查询动态决策。但智能也带来复杂度和不可预测性，要配合完善的监控和评估（140 篇）才能稳定运行。</p>
+
+    <h2 class="section" id="rag-cost-model"><span class="idx">★</span> RAG 系统的成本建模与优化</h2>
+    <p>RAG 系统的成本不透明，建个成本模型才能看清钱花在哪、怎么省。</p>
+<p><strong>成本构成</strong>。一次查询的成本 = embedding 编码 + 向量检索 + rerank + LLM 生成。其中 LLM 生成占大头（80-95%），rerank 次之，检索和 embedding 很少。优化重点在 LLM 生成。</p>
+<p><strong>LLM 生成的成本杠杆</strong>。① 模型分级——简单查询用 Haiku，复杂用 Sonnet/Opus，Router（137 篇）动态选；② 上下文压缩——rerank 后只传 top-3 而非 top-20，输入 token 减半；③ 缓存——相同查询的答案缓存，命中率 20-40% 能省大头；④ 批处理——非实时场景批量生成。</p>
+<pre><code class="language-python"># RAG 查询的成本计算与优化对比
+def query_cost(model, input_tokens, output_tokens, cached=False):
+    prices = {"haiku": (0.25, 1.25), "sonnet": (3, 15), "opus": (15, 75)}
+    ip, op = prices[model]
+    if cached: ip *= 0.1   # prompt caching
+    return input_tokens/1e6 * ip + output_tokens/1e6 * op
+# 朴素 RAG：Sonnet + 5000 token 上下文 + 300 token 答案
+naive = query_cost("sonnet", 5000, 300)
+# 优化 RAG：Router 分级（70% Haiku）+ rerank 压缩到 1500 token + 30% 缓存
+opt = 0.7 * query_cost("haiku", 1500, 300) + 0.3 * query_cost("sonnet", 1500, 300)
+opt_cached = opt * 0.7 + opt * 0.3 * 0.1   # 30% 查询命中缓存
+print(f"朴素: ${naive*1000:.2f}/千查询  优化: ${opt_cached*1000:.2f}/千查询")
+print(f"降本: {(1-opt_cached/naive)*100:.0f}%")
+</code></pre>
+<p><strong>rerank 成本</strong>。rerank 用 cross-encoder，10 个候选 × 100ms 延迟，如果自部署 GPU 成本可控。用 API（如 Cohere rerank）按调用收费，高频要算账。优化：只对 Router 判定为"需要精排"的查询 rerank，简单查询跳过。</p>
+<p><strong>检索与 embedding 成本</strong>。自建向量库主要是服务器成本，按 QPS 算。embedding 编码用 CPU ONNX 最省。这部分通常占总成本 &lt;10%，不是优化重点，但大规模下也要盯。</p>
+<p><strong>成本/质量权衡</strong>。降本会降质量，要找甜区。通常 Router 分级 + 上下文压缩能降 50-60% 成本而质量掉 &lt;5%，是高 ROI 优化。再往下（如全用 Haiku、砍 rerank）质量掉明显，要按业务容忍度。建成本模型 + 质量监控（140 篇），持续找甜区。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>Naive RAG 是三段式（embed→检索→生成），简单但召回差、无重排、上下文利用率低，只适合 demo。</li>

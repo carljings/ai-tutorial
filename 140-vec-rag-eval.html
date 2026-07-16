@@ -448,6 +448,131 @@ for metric in ["faithfulness", "answer_relevancy", "context_precision", "context
     <h3>评估用 LLM 的选择</h3>
     <p>RAGAS 内部用 LLM 做判断（拆论断、判相关性），评估 LLM 的强弱直接影响指标可靠性。建议：评估用比生成更强的模型——生成用 4o/Haiku，评估用 4o/Claude Sonnet。否则弱模型评估强模型，分数不准。中文场景评估模型必须中文好，否则反向问题生成、论断拆分会失真。</p>
 
+
+    <h2 class="section" id="ragas-advanced"><span class="idx">★</span> RAGAS 之外：更多评估维度</h2>
+    <p>RAGAS 的四个指标覆盖了检索和生成的核心，但真实系统还有其它重要维度值得评估。</p>
+<p><strong>答案完整性（completeness）</strong>。faithfulness 衡量"答案有没有幻觉"，但一个完全基于 context 的答案可能只回答了问题的一部分。completeness 衡量"答案是否覆盖了 ground_truth 的所有要点"。一个答案可以 faithfulness=1 但 completeness=0.5（只答了一半）。这个维度对多要点问题（"列出三个原因"）特别重要。</p>
+<p><strong>答案简洁性（conciseness）</strong>。啰嗦的答案用户体验差。可以用"答案长度 / 信息密度"衡量，或让评估 LLM 评分。理想答案是"刚好够说明问题、不多不少"。</p>
+<p><strong>引用准确性（citation accuracy）</strong>。如果答案标注了引用 [文档N]，要验证引用是否准确——标注的文档里真的有这个信息吗。幻觉的一种隐蔽形式是"标了引用但引用不支持论断"。这个维度可以单独评估。</p>
+<p><strong>端到端延迟和成本</strong>。RAG 是在线服务，延迟和成本也是质量的一部分。一个 recall 0.95 但延迟 10 秒的系统，不如 recall 0.90 但延迟 2 秒的系统实用。评估时要把这些工程指标纳入。</p>
+<pre><code class="language-python"># 扩展评估：完整性与引用准确性
+def eval_completeness(answer, ground_truth_points, llm_judge):
+    """ground_truth_points: 正确答案应包含的要点列表"""
+    covered = 0
+    for point in ground_truth_points:
+        if llm_judge.is_covered(point, answer):
+            covered += 1
+    return covered / len(ground_truth_points)
+
+def eval_citation_accuracy(answer, docs, llm_judge):
+    """验证每个引用是否被标注的文档支持"""
+    citations = extract_citations(answer)   # {claim_text: doc_id}
+    correct = 0
+    for claim, doc_id in citations.items():
+        doc = get_doc(doc_id, docs)
+        if llm_judge.is_supported(claim, doc):
+            correct += 1
+    return correct / len(citations) if citations else 1.0
+</code></pre>
+<p>这些扩展维度让评估更全面。但要注意评估本身的成本——每个维度都要调 LLM 判断，维度太多评估就慢且贵。建议核心用 RAGAS 四指标，扩展维度按业务重点选择性加上。</p>
+
+    <h2 class="section" id="ragas-llm-judge"><span class="idx">★</span> LLM-as-Judge 的可靠性与校准</h2>
+    <p>RAGAS 和多数 RAG 评估都依赖"LLM 当裁判"——用评估 LLM 判断答案质量、拆论断、判相关性。但 LLM 裁判本身有偏差，不理解这些偏差会让评估结果不可信。</p>
+<p><strong>已知偏差</strong>：</p>
+<ul>
+<li><strong>位置偏差</strong>：LLM 倾向于给排在前面的答案更高分（即便后面更好）。Pairwise 比较时要随机打乱顺序。</li>
+<li><strong>冗长偏差</strong>：LLM 倾向于给更长的答案更高分（即便短的更准）。要控制答案长度或用 length-normalized 评分。</li>
+<li><strong>自我偏好</strong>：LLM 偏好和自己风格相似的答案。GPT-4 评估时偏好 GPT 生成的答案。用不同模型族评估和生成能缓解。</li>
+<li><strong>一致性</strong>：同一输入多次评估，LLM 可能给不同分。要跑多次取平均，或用 temperature=0 降低方差。</li>
+</ul>
+<p><strong>校准方法</strong>。要让 LLM 裁判可信，需要校准：① 用人工标注一个子集，算 LLM 评估和人工评估的一致率（Cohen's Kappa），一致率 &gt; 0.7 才算可用；② 对 LLM 裁判的偏差做后处理修正（如已知冗长偏差，就按长度归一化）；③ 关键决策（如模型上线）不能只靠 LLM 评估，要配合人工 spot check。</p>
+<pre><code class="language-python"># LLM-as-Judge 的校准
+def calibrate_judge(judge_llm, eval_set_with_human_labels):
+    """算 LLM 评估和人工标注的一致率"""
+    llm_scores, human_scores = [], []
+    for sample in eval_set_with_human_labels:
+        llm_score = judge_llm.score(sample["answer"], sample["criteria"])
+        llm_scores.append(llm_score)
+        human_scores.append(sample["human_score"])
+    kappa = cohen_kappa(llm_scores, human_scores)
+    correlation = pearson(llm_scores, human_scores)
+    print(f"一致率 Kappa: {kappa:.3f}  相关性: {correlation:.3f}")
+    if kappa &lt; 0.7:
+        print("警告：LLM 裁判和人工一致率低，评估结果需谨慎")
+    return kappa
+
+# 对比多个评估 LLM 的可靠性
+for judge_model in ["gpt-4o", "claude-sonnet", "gpt-4o-mini"]:
+    kappa = calibrate_judge(load(judge_model), calibration_set)
+    print(f"{judge_model}: Kappa={kappa:.3f}")
+</code></pre>
+<p>这个校准意识很重要。很多人直接用 GPT-4 评估，得到漂亮的分数就信了，但没验证 GPT-4 评估和人类判断是否一致。一个不校准的 LLM 裁判可能让你优化错方向——分数涨了但实际体验没变好。评估的评估，是 RAG 质量工程的最后一公里。</p>
+
+    <h2 class="section" id="ragas-workflow-deep"><span class="idx">★</span> 评估驱动的 RAG 迭代工作流实战</h2>
+    <p>有了 RAGAS 指标和评估集，怎么把它们融入日常迭代？给一个完整的评估驱动工作流。</p>
+<p><strong>持续评估的基础设施</strong>。每次代码改动（改 prompt、换模型、调参数）都触发评估：CI 跑评估集、对比基线、指标下降则阻止合并。这需要：① 评估集版本管理（和代码一起 git）；② 评估脚本可复现（固定 LLM、固定随机）；③ 基线指标记录（每次合并更新）。这套基础设施让"评估"从"偶尔手动跑"变成"每次改动自动跑"。</p>
+<p><strong>指标分解定位瓶颈</strong>。RAGAS 四指标各自指向不同瓶颈：</p>
+<ul>
+<li>context_recall 低 → 检索没召回。子诊断：embedding 差？chunking 烂？过滤错了？</li>
+<li>context_precision 低 → 召回了但排序差。子诊断：rerank 没用？混合检索权重不对？</li>
+<li>faithfulness 低 → LLM 幻觉。子诊断：prompt 没强调基于 context？模型太弱？上下文太长 LLM 抓不住？</li>
+<li>answer_relevancy 低 → 答非所问。子诊断：查询理解错？rerank 把相关的排下去了？</li>
+</ul>
+<pre><code class="language-python"># 评估驱动的 CI 集成
+def ci_evaluate(pr_changes, baseline_metrics):
+    # 跑评估
+    current_metrics = run_ragas(eval_set, current_rag_system)
+    # 对比基线
+    report = {}
+    for metric in ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]:
+        delta = current_metrics[metric] - baseline_metrics[metric]
+        report[metric] = {"baseline": baseline_metrics[metric],
+                          "current": current_metrics[metric], "delta": delta}
+        if delta &lt; -0.02:   # 降超过 2% 阻止合并
+            report[metric]["block"] = True
+    # 定位最大瓶颈
+    weakest = min(report, key=lambda m: report[m]["current"])
+    print(f"最弱指标: {weakest} ({report[weakest]['current']:.3f})")
+    print(f"优化建议: {optimization_hint(weakest)}")
+    return report
+def optimization_hint(weakest_metric):
+    hints = {
+        "context_recall": "检查 embedding 模型、chunking 策略、过滤逻辑",
+        "context_precision": "检查 rerank 模型、混合检索权重",
+        "faithfulness": "强化 prompt（加引用要求）、换更强 LLM、缩短上下文",
+        "answer_relevancy": "检查查询改写、rerank 是否把相关的排下去了",
+    }
+    return hints.get(weakest_metric, "综合分析失败 case")
+</code></pre>
+<p><strong>失败 case 的深度分析</strong>。指标告诉你"平均怎样"，但改进要看"具体哪些 case 失败"。流程：① 从评估集里挑出低分样本（综合分 &lt;0.6）；② 人工分析每个失败 case 的根因（检索错？rerank 错？生成错？）；③ 把失败 case 按根因分类，找 pattern；④ 针对最大 pattern 优化。这个"指标定位大类、case 分析找细节"的组合是迭代的核心。</p>
+<p><strong>线上效果验证</strong>。离线评估集再好，也不完全等于线上。上线后要监控线上指标：用户满意度（点赞/点踩）、追问率（没解决再问）、人工接管率。这些比 RAGAS 更真实。定期把线上失败 case 加进评估集，让评估集越来越贴近线上分布。</p>
+<p><strong>评估的节奏</strong>。日常小改动看离线评估集；重大改动（换 embedding、重构架构）要看线上 A/B。不要等线上出问题才评估——主动的持续评估能在问题影响用户前发现。</p>
+<p>这个工作流让 RAG 调优从"凭感觉改、改完祈祷"变成"数据驱动、闭环验证"。成熟的 RAG 团队花在评估基础设施上的时间，往往和花在算法优化上的时间一样多——因为没有可靠的评估，优化就是盲目的。</p>
+
+    <h2 class="section" id="ragas-llm-judge"><span class="idx">★</span> LLM-as-Judge 的校准与陷阱</h2>
+    <p>RAGAS 用 LLM 当裁判（judge），但 LLM judge 有偏见和噪声，要校准。</p>
+<p><strong>LLM judge 的常见偏见</strong>。① <strong>位置偏见</strong>——judge 倾向选第一个或最后一个选项；② <strong>长度偏见</strong>——更长的答案被认为更好（即便有废话）；③ <strong>自我偏好</strong>——GPT-4 judge 偏好 GPT-4 生成的答案；④ <strong>过度宽容</strong>——judge 倾向给高分，faithfulness 普遍偏高。知道这些偏见才能设计 prompt 规避。</p>
+<p><strong>校准方法</strong>。① <strong>人工对齐</strong>——标注一批样本，看 judge 和人工的一致率（Cohen's κ），一致率低说明 judge 不可靠，要调 prompt 或换模型。② <strong>多 judge 投票</strong>——用 2-3 个不同 LLM 当 judge，取多数或平均，降噪。③ <strong>锚点样本</strong>——固定一组已知分数的样本，每次评估都跑，监控 judge 是否漂移。</p>
+<pre><code class="language-python"># LLM judge 校准：和人工标注对齐
+def calibrate_judge(judge_model, annotated_samples):
+    """annotated_samples: [(query, answer, context, human_score), ...]"""
+    judge_scores = []
+    for q, a, c, human in annotated_samples:
+        judge_score = judge_model.evaluate(q, a, c)   # faithfulness 等
+        judge_scores.append((judge_score, human))
+    # 算一致率
+    agreement = sum(1 for j, h in judge_scores if abs(j-h) &lt; 0.15) / len(judge_scores)
+    # Cohen's kappa（分类一致）
+    kappa = cohen_kappa([round(j) for j,_ in judge_scores], [round(h) for _,h in judge_scores])
+    print(f"一致率: {agreement:.3f}, Cohen κ: {kappa:.3f}")
+    if agreement &lt; 0.7:
+        print("judge 不可靠，需调 prompt 或换模型")
+    return agreement, kappa
+</code></pre>
+<p><strong>Judge prompt 的设计</strong>。好的 judge prompt 要：① 明确评分标准（faithfulness = 答案每个论断都能在 context 找到）；② 要求逐条分析（先列论断、再逐条验证、最后给分），减少跳步；③ 避免诱导（不要说"这个答案很好，你觉得呢"）；④ 加校准示例（few-shot，给几个已知分数的例子）。</p>
+<p><strong>Judge 模型的选择</strong>。用比生成模型更强的模型当 judge（如用 GPT-4 judge GPT-3.5 的答案）。同级或更弱的 judge 不可靠。成本上，judge 评估会花不少 token（逐条分析），要纳入评估成本。</p>
+<p><strong>Judge 的局限</strong>。LLM judge 对"明显对错"判断准，对"微妙差异"（两个都不错，哪个更好）判断不稳。所以 RAGAS 分数要看趋势（相对变化），别太纠结绝对值。多个 case 的平均比单个 case 的分数有意义。</p>
+<p>校准好的 LLM judge 是 RAG 评估的利器，但要清醒认识它的局限。把它当"参考信号"而非"绝对真理"，配合人工抽检，才是稳健的评估实践。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>RAG 评估的核心是把检索和生成拆开评，RAGAS 用四个互不重叠的指标实现。</li>

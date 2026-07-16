@@ -455,6 +455,81 @@ print(f"重排后 recall@10: {recall_rr:.4f}")
     <h2 class="section" id="opq"><span class="idx">★</span> 进阶：OPQ 旋转预处理</h3>
     <p>PQ 的一个隐含假设是"各段子向量独立"，但真实 embedding 的各维度往往强相关，直接切片会让某些段方差大、某些段方差小，方差大的段量化误差主导整体。优化乘积量化 OPQ 在 PQ 前加一个<strong>学习的正交旋转矩阵</strong>，把向量旋转到各段方差均衡的子空间，能再压低 20-40% 的量化误差。FAISS 里用 <code>RQ</code> 或 <code>OPQ</code> matrix 包装即可启用。</p>
 
+
+    <h2 class="section" id="pq-train-tricks"><span class="idx">★</span> PQ 训练的工程细节与坑</h2>
+    <p>PQ 的训练（K-means 聚码本）有几个工程细节直接决定最终召回质量，论文里往往一笔带过，实战却很关键。</p>
+<p>第一个是<strong>训练样本量</strong>。每段 K-means 要聚 256 个簇心（nbits=8），每个簇心至少需要 30-50 个样本才能统计稳定，所以每段至少要 256×40 ≈ 1 万样本，m 段独立训练但可共用同批样本，所以总训练样本至少 1-2 万。样本太少会出现"空簇"（某些簇心没有样本分配），导致那段的量化误差爆炸。FAISS 默认要求训练样本数 ≥ nlist×39（IVFPQ 场景），不够会报警。</p>
+<p>第二个是<strong>各段方差的均衡</strong>。PQ 假设各段独立同分布，但真实 embedding 的各维度方差往往差异巨大——某些主成分方向方差大、其它方向方差小。方差小的段量化误差小（本来信息就少），方差大的段量化误差大（信息多但比特不够）。这导致量化误差被方差大的段主导。OPQ（优化乘积量化）通过学习一个正交旋转矩阵把方差均衡到各段，能再压 20-40% 误差。</p>
+<p>第三个是<strong>码本的复用与刷新</strong>。线上 embedding 分布会随业务漂移（新内容、新话题），用旧码本量化新分布会引入额外误差。建议定期（如每月）用最新数据重训码本。重训成本不高（几万样本 K-meas 几分钟），但能保持量化质量。</p>
+<pre><code class="language-python"># 用 OPQ 包装 IVFPQ，再压量化误差
+import faiss
+# OPQ 旋转矩阵 + IVFPQ
+index_opq = faiss.IndexPreTransform(
+    faiss.OPQMatrix(d, m),   # 学习的正交旋转
+    faiss.IndexIVFPQ(faiss.IndexFlatL2(d), d, nlist, m, nbits)
+)
+index_opq.train(xb[:50000])
+index_opq.add(xb)
+# 对比召回：OPQ 通常比裸 IVFPQ 高 3-8 个点
+</code></pre>
+<p>第四个坑是<strong>归一化与距离度量的配合</strong>。PQ 默认优化 L2 距离，算内积/余弦要先归一化。但如果归一化后某段方差极小（因为归一化压缩了模长），量化误差会异常。常见做法是归一化后用 L2，配合 IP metric 的 quantizer，效果稳定。</p>
+
+    <h2 class="section" id="pq-applications"><span class="idx">★</span> PQ 在实际系统里的应用模式</h2>
+    <p>了解了原理，看 PQ 在真实系统里怎么用。最常见的三种模式：</p>
+<p><strong>模式一：IVFPQ 作为大库的主力索引</strong>。亿级向量 + 内存预算 100GB 以内的场景，IVFPQ 几乎是唯一选择。典型配置 nlist=16384、m=32、nbits=8，配合重排序，能跑出 recall@10=0.93、QPS 几千的成绩。这是大规模推荐系统、搜索引擎召回层的标配。</p>
+<p><strong>模式二：HNSW+PQ 作为内存优化的 HNSW</strong>。HNSW 速度无敌但内存重，把图里的向量换成 PQ 编码（FAISS 的 IndexHNSWPQ），内存省 8-32 倍，QPS 掉 20-40%，召回掉 2-5 个点。适合"HNSW 太贵但又想要 HNSW 的查询模式"的场景。</p>
+<p><strong>模式三：PQ 作为多阶段检索的粗排器</strong>。前面 122 篇讲的多阶段架构里，IVFPQ 常做第一段粗筛，top-N 召回后用原始向量重排。这种组合兼顾了 PQ 的内存优势和原始向量的精度。</p>
+<pre><code class="language-python"># HNSW + PQ 组合：内存优化版 HNSW
+index_hnsw_pq = faiss.IndexHNSWPQ(d, m=16, M=16)
+index_hnsw_pq.hnsw.efConstruction = 200
+index_hnsw_pq.train(xb[:50000])
+index_hnsw_pq.add(xb)
+# 内存：约 HNSWFlat 的 1/8，QPS 掉约 30%，召回掉 3-5 点
+# 适合"HNSW 太贵但纯 IVFPQ 又太慢"的中间地带
+</code></pre>
+<p>这三种模式覆盖了 90% 的 PQ 用法。选哪种取决于你的瓶颈是内存、延迟还是召回，按瓶颈对号入座。</p>
+
+    <h2 class="section" id="pq-faqs"><span class="idx">★</span> PQ 的常见疑问与误区澄清</h2>
+    <p>PQ 是个有点反直觉的方法，学习时常见的几个疑问这里集中澄清。</p>
+<p><strong>疑问一：PQ 为什么不直接对全向量做 K-meas？</strong>全向量 K-means 聚 K 个簇心，要存 K×d 个浮点。K=65536、d=768 时码本 192MB，且 65536 个簇心对 768 维空间远远不够（维度灾难）。PQ 分段后，m×k 个子簇心能组合出 k^m 个等效全向量，用极少存储表达极多码字——这是 PQ 的核心数学魔法。</p>
+<p><strong>疑问二：PQ 的距离是精确的还是近似的？</strong>近似的。PQ 用码字之间的距离近似原向量距离，有量化误差。误差大小取决于码本训练质量、m 和 nbits。ADC 的误差通常让 recall 掉 5-10 个点（相比 Flat），重排序能补回来。</p>
+<p><strong>疑问三：PQ 适合所有距离度量吗？</strong>默认优化 L2。算内积/余弦要先归一化。最大内积搜索（MIPS）不归一化时，PQ 的 L2 优化不直接适用——要用支持 IP 的量化（如 FAISS 的 IndexIVFPQ 配 METRIC_INNER_PRODUCT，内部做了适配）。</p>
+<p><strong>疑问四：m 越大越好吗？</strong>不是。m 大意味着每段维度小、量化细，但存储增加、查表次数增加。且 m 太大时每段维度太小（如 d/m=4），K-means 聚 256 个簇心在 4 维空间不稳定。经验：每段 8-64 维为宜，即 m ∈ [d/64, d/8]。</p>
+<pre><code class="language-python"># 验证：m 对精度和存储的影响
+for m in [4, 8, 16, 32, 64, 96]:
+    sub_d = d // m
+    idx = faiss.IndexIVFPQ(faiss.IndexFlatL2(d), d, 4096, m, 8)
+    idx.train(xb[:50000]); idx.add(xb); idx.nprobe=32
+    D, I = idx.search(xq, 10)
+    recall = sum(len(set(I[i])&set(gt[i])) for i in range(len(xq)))/(len(xq)*10)
+    storage = N * m * 1 / 1e6   # m 字节/向量
+    print(f"m={m:3d} sub_d={sub_d:3d}: recall={recall:.3f} storage={storage:.0f}MB")
+# m=16-32 通常是甜区，再大存储涨但 recall 提升小
+</code></pre>
+<p><strong>疑问五：PQ 能用于实时插入吗？</strong>能，但要小心。新向量用已有码本编码即可（K-means 码本不变）。问题是分布漂移——新数据的分布偏离训练码本时的分布，量化误差增大。定期重训码本能缓解。</p>
+<p>这些疑问澄清后，对 PQ 的理解就从"会用 API"上升到"知道每个参数的意义和边界"，调参时心里有数。</p>
+
+    <h2 class="section" id="pq-scalar"><span class="idx">★</span> 标量量化的补充：从 PQ 到 SQ8</h2>
+    <p>PQ 之外还有标量量化（SQ），它和 PQ 互补，常组合使用。</p>
+<p><strong>标量量化（Scalar Quantization, SQ）</strong>。把每个 float32 维度独立量化到 int8（SQ8）或 int4（SQ4）。SQ8：每维用 8 比特表示 [-max, max] 的均匀分桶。存储 768 维从 3KB 降到 768 字节（4:1 压缩），精度损失小（recall 掉 1-3%）。比 PQ 简单（不用训练码本）、精度更高，但压缩比不如 PQ（PQ 能 16:1+）。</p>
+<p><strong>SQ vs PQ 的选择</strong>。SQ：压缩比中等（4-8:1）、精度高、无需训练、实现简单。适合"想省存储但不想牺牲太多精度"。PQ：压缩比高（16-32:1）、精度中等、要训练。适合"存储极敏感、可接受精度损失"。很多场景 SQ8 就够了，不必上 PQ。</p>
+<pre><code class="language-python"># FAISS 里 SQ 和 PQ 的对比
+def compare_sq_pq(xb, xq, gt):
+    # SQ8
+    sq = faiss.IndexScalarQuantizer(d, faiss.ScalarQuantizer.QT_8bit, faiss.METRIC_L2)
+    sq.add(xb)
+    D, I = sq.search(xq, 10); r_sq = recall(I, gt)
+    # PQ (m=32, nbits=8)
+    pq = faiss.IndexPQ(d, 32, 8); pq.train(xb[:50000]); pq.add(xb)
+    D, I = pq.search(xq, 10); r_pq = recall(I, gt)
+    # 存储对比
+    print(f"SQ8: recall={r_sq:.3f} 存储={N*768/1e6:.0f}MB")
+    print(f"PQ:  recall={r_pq:.3f} 存储={N*32/1e6:.0f}MB")
+    # SQ8 recall 通常高 3-5%，PQ 存储省 8 倍
+</code></pre>
+<p><strong>SQ + PQ 组合（IVFPQ + SQ）</strong>。FAISS 支持先 SQ 再 PQ：SQ8 降精度到 int8，再对 int8 向量做 PQ。这能进一步压缩（SQ8 的 768 字节再 PQ 到 32 字节），且 PQ 在 int8 上训练更稳。适合"既要高压缩又要尽量保精度"。</p>
+<p><strong>FP16 半精度</strong>。最简单的"量化"——float32 直接转 float16。存储减半、精度几乎无损（recall 掉 &lt;0.5%）、GPU 原生支持。很多向量库默认就支持 FP16。如果只想要 2:1 压缩且无损，FP16 是首选，不必上 SQ/PQ。</p>
+<p><strong>量化选择决策</strong>：无损省一半 → FP16；省 4-8 倍、精度可接受 → SQ8；省 16+ 倍、可接受明显精度损失 → PQ；极致压缩 → SQ8+PQ 组合。按存储预算和精度容忍度选，别一上来就 PQ——很多人其实 SQ8 或 FP16 就够了。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>PQ 把 d 维向量切成 m 段独立 K-means 量化，每段 nbits 比特，存储 m·nbits/8 字节，压缩比 = 32d/(m·nbits)。768 维 m=16 时约 192:1。</li>

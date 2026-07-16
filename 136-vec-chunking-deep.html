@@ -466,6 +466,125 @@ print(len(results[0].page_content))   # 约 1000，而非 200
       <li><strong>三者可叠加</strong>：parent-child + Late Chunking + Contextual Retrieval 能叠加，但收益边际递减，按需取。</li>
     </ul>
 
+
+    <h2 class="section" id="contextual-cost"><span class="idx">★</span> Contextual Retrieval 的成本控制实战</h2>
+    <p>Contextual Retrieval 效果好但成本吓人——每个块调一次 LLM 生成上下文，百万块的语料要百万次 LLM 调用，按 GPT-4 价格算要几千到几万美元。这让很多人望而却步。但其实有几招能把成本压到可承受范围。</p>
+<p><strong>Prompt Caching</strong> 是最大杠杆。Anthropic 和 OpenAI 都支持缓存 prompt 的前缀部分。Contextual Retrieval 的 prompt 结构是"[长文档] + [当前块] + [生成上下文要求]"，其中"[长文档]"对同一文档的所有块是相同的。开启 caching 后，同一文档的 N 个块只算 1 次文档 token 费用 + N 次小块费用，成本降到原来的 1/10 甚至更低。</p>
+<p><strong>用便宜模型</strong>。生成上下文不需要顶级推理能力，用 Haiku/GPT-4o-mini 这种小模型即可，成本是 Sonnet/GPT-4 的 1/10。实测小模型生成的上下文摘要质量足够用于检索增强。</p>
+<p><strong>批量处理</strong>。把同一文档的多个块攒成一次 LLM 调用（一个 prompt 里列多个块，让 LLM 逐个生成上下文），减少调用次数。一次处理 10 个块，调用量降到 1/10。</p>
+<p><strong>选择性应用</strong>。不是所有块都需要 Contextual Retrieval。短文档（一块就够）不需要；高度自洽的块（如独立 FAQ 条目）不需要。只对"脱离上下文就难理解"的块应用，能省 50-70%。</p>
+<pre><code class="language-python"># 带 caching 的 Contextual Retrieval（Anthropic）
+def contextual_with_cache(doc, chunks, client):
+    results = []
+    for chunk in chunks:
+        resp = client.messages.create(
+            model="claude-3-5-haiku-latest",   # 便宜模型
+            max_tokens=150,
+            messages=[{"role": "user", "content": CONTEXTUAL_PROMPT.format(
+                document=doc, chunk=chunk)}],
+            # 关键：缓存 doc 部分
+            extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
+            system=[{"type": "text", "text": doc,    # 文档作为缓存前缀
+                     "cache_control": {"type": "ephemeral"}}]
+        )
+        results.append(f"{resp.content[0].text}
+
+{chunk}")
+    return results
+# 带 caching + haiku，成本约为无缓存 Sonnet 的 1/30
+</code></pre>
+<p>组合这些手段，百万块语料的 Contextual Retrieval 成本能从几千美元压到几十到一百美元，进入可承受范围。ROI 计算：如果它能把你 RAG 系统的失败率降 30%，省下的客服/人工纠错成本远高于这个 LLM 费用。</p>
+
+    <h2 class="section" id="late-chunking-practice"><span class="idx">★</span> Late Chunking 的工程落地细节</h2>
+    <p>Late Chunking 听起来优雅，但工程落地有几个细节要处理。</p>
+<p><strong>块边界怎么定</strong>。Late Chunking 是"先 embed 整篇再切"，但仍要决定在哪些 token 位置切。最稳的做法是先用传统分块器（递归/语义）确定<strong>句子的边界</strong>，然后在 token embedding 层面按这些句子边界切。直接在 token 层面硬切（如每 128 token 切一刀）会切断句子，违背"语义边界"的初衷。</p>
+<p><strong>长文档的 token 限制</strong>。即便 bge-m3 支持 8K token，一份 50 页财报可能 3 万 token 塞不进。对策：先按章节切到大块（每块 &lt; 8K），每个大块内做 Late Chunking 得到子块向量。这是"两阶段 Late Chunking"。</p>
+<p><strong>mean pooling 的细节</strong>。Late Chunking 对每个块的 token 向量做 mean pooling 得到块向量。但要注意：pooling 时应该排除特殊 token（[CLS]、[SEP]、padding），且对长块要考虑注意力衰减（中间 token 权重低）。jina 的实现里用了 attention-weighted pooling 缓解这个问题。</p>
+<p><strong>查询端要不要 Late</strong>。查询通常很短（几十 token），不需要 Late Chunking，正常 embed 即可。Late Chunking 只用于文档端。</p>
+<pre><code class="language-python"># 两阶段 Late Chunking：先章节切，再段内 Late Chunk
+def two_stage_late_chunking(long_doc, max_tokens=7000):
+    # 第一阶段：按章节/段落切成大块（&lt; max_tokens）
+    sections = split_by_section(long_doc, max_tokens=max_tokens)
+    all_chunk_vecs = []
+    for section in sections:
+        # 第二阶段：对每个 section 做 Late Chunking
+        token_vecs = encode_full(section)          # 整 section embed
+        # 用句子边界定块边界
+        sent_boundaries = find_sentence_token_boundaries(section)
+        for start, end in sent_boundaries:
+            chunk_vec = token_vecs[start:end].mean(dim=0)
+            all_chunk_vecs.append(chunk_vec)
+    return all_chunk_vecs
+</code></pre>
+<p>这些细节决定了 Late Chunking 在生产里是"效果好"还是"效果一般"。它的理论很美，但工程化需要细致处理，这也是为什么它还没有成为默认方案——多数团队还在用更简单的 parent-child。</p>
+
+    <h2 class="section" id="contextual-practice"><span class="idx">★</span> 上下文增强方法的组合与选型矩阵</h2>
+    <p>Late Chunking、Contextual Retrieval、parent-child 三种方法不是互斥的，可以组合。但组合越多越复杂，要按 ROI 选。给一个选型矩阵。</p>
+<p><strong>单方法选型</strong>：</p>
+<ul>
+<li>预算极敏感、追求简单 → parent-child（实现最简单、效果稳定）。</li>
+<li>长文档 + 长上下文 embedding 模型 → + Late Chunking（零 LLM 成本）。</li>
+<li>高价值低频场景 → Contextual Retrieval（效果最强但贵）。</li>
+</ul>
+<p><strong>组合策略</strong>：</p>
+<ul>
+<li>parent-child + Late Chunking：child 块用 Late Chunking 编码（带全文上下文），返回 parent。这是"上下文感知 + 大块返回"的强组合，几乎零 LLM 成本。</li>
+<li>parent-child + Contextual Retrieval：child 块加上下文摘要后再 embed，命中返回 parent。效果最强但成本最高。</li>
+<li>三者全上：边际收益递减，不推荐除非极致精度场景。</li>
+</p>
+<pre><code class="language-text">选型矩阵（按场景 × 预算）
+┌──────────────┬─────────────┬──────────────┬──────────────────┐
+│ 场景\预算    │ 低          │ 中           │ 高               │
+├──────────────┼─────────────┼──────────────┼──────────────────┤
+│ 短文档       │ 递归分块    │ +parent-child│ +Contextual      │
+│ 长文档       │ 递归+Late   │ parent+Late  │ parent+Contextual│
+│ 高价值(法律) │ -           │ Contextual   │ 全套+rerank      │
+│ 高频(客服)   │ 递归分块    │ +parent-child│ +Late Chunking   │
+└──────────────┴─────────────┴──────────────┴──────────────────┘</code></pre>
+<p><strong>评估组合效果</strong>。组合方法要用 RAGAS（140 篇）评估，确认提升且没回退。常见情况：A 方法单独提升 10%，B 方法单独提升 8%，A+B 组合提升 12%（不是 18%，因为有重叠收益）。所以组合的边际收益要实测，不能简单相加。</p>
+<pre><code class="language-python"># 组合方法的 A/B 评估
+methods = {
+    "baseline": naive_chunk_embed,
+    "parent-child": parent_child_embed,
+    "parent+Late": parent_child_with_late_chunking,
+    "parent+Contextual": parent_child_with_contextual,
+}
+for name, fn in methods.items():
+    chunks = fn(corpus)
+    index = build_index(chunks)
+    recall = eval_recall(index, eval_set)
+    faith = eval_faithfulness(index, eval_set)
+    print(f"{name:25s}: recall={recall:.3f} faithfulness={faith:.3f}")
+# 看 recall 涨幅是否值得增加的复杂度/成本
+</code></pre>
+<p><strong>实施节奏</strong>。不要一上来就上最复杂的组合。从 parent-child 开始（最简单），评估效果，按瓶颈再加。如果 parent-child 后瓶颈在"块脱离上下文难理解"，加 Late Chunking 或 Contextual；如果瓶颈在别的（如检索召回、rerank），先解决那个。增量演进比一步到位务实。</p>
+<p>这个选型思维——"按瓶颈选方法、增量演进、实测验证"——适用于 RAG 的所有优化环节。盲目堆方法不仅浪费，还可能因为复杂度引入新问题。</p>
+
+    <h2 class="section" id="contextual-cost"><span class="idx">★</span> Contextual Retrieval 的成本控制实战</h2>
+    <p>Contextual Retrieval 用 LLM 给每块加上下文，成本可能爆炸。几个实战控制方法。</p>
+<p><strong>成本测算</strong>。100 万块 × 平均 200 token 上下文 × Haiku 价格（$0.25/百万输入 token）≈ $50。看着不贵，但实际每块要"块原文 + 已生成上下文"作为输入，输出上下文，往返 token 更多。实测 100 万块要 $150-300。对大型知识库（千万块）是 $1500-3000，要规划预算。</p>
+<p><strong>Prompt Caching 降本</strong>。Claude/GPT 的 prompt caching 让重复前缀几乎免费。Contextual Retrieval 的 prompt 前缀（指令 + 文档背景）可以缓存——同一文档的所有块共享缓存，第二次起几乎免费。实测能降 70-90% 成本。这是 Anthropic 官方推荐的做法。</p>
+<pre><code class="language-python"># 用 prompt caching 的 Contextual Retrieval
+def contextual_with_cache(doc, chunks, cached_client):
+    # 文档背景作为缓存前缀（同一文档的块共享）
+    cache_prefix = [{"type": "text", "text": f"文档背景：
+{doc[:8000]}",
+                     "cache_control": {"type": "ephemeral"}}]
+    enriched = []
+    for chunk in chunks:
+        msg = cache_prefix + [{"type": "text",
+            "text": f"给下面这段加一句上下文：
+{chunk}"}]
+        resp = cached_client.messages.create(model="claude-haiku",
+            max_tokens=50, messages=[{"role": "user", "content": msg}])
+        enriched.append(f"{resp.content[0].text}
+{chunk}")
+    return enriched
+# 同文档的块第二次起命中缓存，成本降 90%
+</code></pre>
+<p><strong>批量处理</strong>。一次给 LLM 多个块，让它批量加上下文，减少 API 调用次数。比如一次处理 10 个块，往返开销摊薄。但要注意上下文窗口限制和 LLM 对多任务的质量下降——批量太多质量会掉，经验是 5-10 块一批。</p>
+<p><strong>选择性增强</strong>。不是所有块都需要加上下文——标题、表格、明确段落自解释的块不需要。只给"脱离上下文难理解"的块加（中间段落、碎片化块）。用规则或小模型预测哪些块需要，能省 40-60% 成本。</p>
+<p><strong>增量增强</strong>。新加入的块加上下文即可，老块不必重做。但 embedding 模型升级时要全量重做（上下文是模型无关的文本，但 embedding 编码会变）。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>传统分块的病是"上下文剥离"：块独立 embed 时丢失了文档全局信息，这是精度天花板。</li>

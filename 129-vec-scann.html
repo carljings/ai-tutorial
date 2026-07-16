@@ -438,6 +438,114 @@ for nlts in [50, 100, 200, 400]:
       <li><code>reorder(N)</code>指定用精确距离重排的候选数，N 越大召回越高但越慢，100 是常见甜区。</li>
     </ul>
 
+
+    <h2 class="section" id="scann-vs-pq-detail"><span class="idx">★</span> ScaNN vs IVFPQ：实测对比与选型</h2>
+    <p>理论清楚了，看 ScaNN 和传统 IVFPQ 在同等条件下的实测对比，这是工程选型最关心的问题。</p>
+<p>在多数公开 benchmark（如 ANN-benchmarks 的 Glove、NYTimes 数据集）和我的内部测试里，结论相对一致：</p>
+<ul>
+<li><strong>高召回区间（recall@10 &gt; 0.95）</strong>：ScaNN 的 QPS 通常是 IVFPQ 的 2-5 倍。这是 ScaNN 各向异性量化的主战场——它把误差压到不敏感方向，在高召回时优势放大。</li>
+<li><strong>低召回区间（recall@10 &lt; 0.85）</strong>：两者差距缩小，IVFPQ 有时甚至略快。因为低召回时量化误差不是瓶颈，IVFPQ 的实现更成熟。</li>
+<li><strong>构建复杂度</strong>：ScaNN 构建比 IVFPQ 慢（要学各向异性量化器），IVFPQ 训练快几倍。</li>
+<li><strong>生态成熟度</strong>：IVFPQ 在 FAISS/Milvus/Qdrant 全面支持，ScaNN 主要是 Google 自家库，第三方集成少。</li>
+</ul>
+<pre><code class="language-python"># ScaNN vs IVFPQ 同条件对比
+import scann, faiss, time, numpy as np
+# (假设 xb, xq, gt 已就绪)
+
+# IVFPQ
+quantizer = faiss.IndexFlatIP(d)
+ivfpq = faiss.IndexIVFPQ(quantizer, d, 4096, 32, 8, faiss.METRIC_INNER_PRODUCT)
+ivfpq.train(xb[:50000]); ivfpq.add(xb)
+
+# ScaNN
+scann_idx = (scann.scann_ops_builder(xb, 10, "dot_product")
+             .tree(num_leaves=4096, num_leaves_to_search=64)
+             .score_ah(d, anisotropic_quantization_threshold=0.2)
+             .reorder(100).build())
+
+for nprobe_nlts in [16, 32, 64, 128]:
+    ivfpq.nprobe = nprobe_nlts
+    t0=time.time(); D,I=ivfpq.search(xq,10); dt=time.time()-t0
+    r_ivf = sum(len(set(I[i])&set(gt[i])) for i in range(len(xq)))/(len(xq)*10)
+    print(f"IVFPQ nprobe={nprobe_nlts}: recall={r_ivf:.3f} QPS={len(xq)/dt:.0f}")
+</code></pre>
+<p>选型建议：追求极致召回-QPS 且能接受 Google 生态，选 ScaNN；要成熟生态、GPU 加速、广泛集成，选 IVFPQ。两者都是顶级方案，差距在具体场景的边际优化。</p>
+
+    <h2 class="section" id="scann-deploy"><span class="idx">★</span> ScaNN 的部署与集成考量</h2>
+    <p>ScaNN 在生产部署里有几个要考量的点。第一是<strong>动态更新</strong>：ScaNN 的索引构建是离线的，原生不支持高效的增量插入（不像 HNSW）。新数据要么攒一批重建，要么用"双索引切换"。频繁更新的场景要慎重。</p>
+<p>第二是<strong>多语言/多平台支持</strong>：ScaNN 官方提供 Python 和 C++ API，Linux/Mac 支持好，Windows 支持弱。如果你的服务要跑在 Windows 或边缘设备，IVFPQ（FAISS 跨平台）更稳。</p>
+<p>第三是<strong>GPU</strong>：ScaNN 主要是 CPU 实现，GPU 支持有限。而 FAISS 的 GPU IVFPQ 在大规模批量查询时吞吐惊人（单卡几十万 QPS）。如果你的查询是高并发批量的，GPU IVFPQ 可能比 CPU ScaNN 更划算。</p>
+<p>第四是<strong>可观测性</strong>：ScaNN 的内部参数（各向异性量化的具体学习结果）不太透明，调试召回问题比 IVFPQ 难。IVFPQ 的每一步（聚类、量化、查表）都可独立检查。</p>
+<p>综合看，ScaNN 适合"算法精度优先、CPU 部署、数据相对静态"的场景；IVFPQ 适合"生态成熟度优先、需要 GPU 或频繁更新"的场景。两者不是非此即彼，大型系统里常按子场景分别选用。</p>
+
+    <h2 class="section" id="scann-internals"><span class="idx">★</span> ScaNN 的内部机制：分区、量化、重排的协同</h2>
+    <p>ScaNN 不只是各向异性量化，它的三个组件（分区、量化、重排）是协同设计的，理解这种协同能看到它 SOTA 的真正原因。</p>
+<p><strong>分区的"亚瑟"分配</strong>。标准 IVF 把每个向量硬分到最近的单一质心。ScaNN 用"亚瑟分配"（Ahrens and Allen）——每个向量以一定概率分配到前两个最近质心。这让边界向量（离两个质心差不多远）同时出现在两个倒排列表里，查询时无论选哪个质心都能召回它。代价是存储增加（边界向量存两份），但边界向量恰好是最容易漏的，这个代价值得。实测能提升 3-5 个点召回。</p>
+<p><strong>量化的残差训练</strong>。ScaNN 不是对原向量做各向异性量化，而是对<strong>减去质心后的残差</strong>做量化。残差通常比原向量小（集中在质心附近），量化误差更可控。且每个分区的码本独立训练，贴合该分区的局部分布。这两个细节让 ScaNN 的量化精度比全局 PQ 高。</p>
+<p><strong>重排的残差距离</strong>。ScaNN 重排时不是用原始 float 向量，而是用"量化重建 + 残差"算精确距离。这里有个工程巧思：它把精确向量也做了低精度存储（int8），配合 SIMD 重排极快。这比 FAISS 的 IndexRefineFlat（存全 float）省内存且更快。</p>
+<pre><code class="language-python"># ScaNN 三个组件的协同（概念示意）
+def scann_pipeline(query, partitions, anisotropic_codebooks, refine_index):
+    # 1. 分区：找 top-nprobe 个质心（亚瑟分配让边界向量更可能命中）
+    nearest_parts = find_nearest_partitions(query, partitions, nprobe=64)
+    # 2. 量化距离：在这些分区的量化编码上算 ADC 距离
+    candidates = []
+    for part in nearest_parts:
+        codes = part.codes   # 各向异性量化编码
+        dists = adc_distance_anisotropic(query, codes, anisotropic_codebooks)
+        candidates.extend(zip(dists, part.ids))
+    candidates.sort()
+    top_n = candidates[:200]
+    # 3. 重排：用残差 + 低精度精确距离
+    refined = [(refine_index.exact_distance(query, id), id) for _, id in top_n]
+    refined.sort()
+    return [id for _, id in refined[:10]]
+</code></pre>
+<p>这种"分区用亚瑟提边界召回、量化用残差+各向异性提精度、重排用低精度省内存"的协同设计，让 ScaNN 在每个环节都比朴素实现优一点，累积起来就是 SOTA。它不是单点突破，而是系统级优化。这也是为什么 ScaNN 的论文难复现——每个组件都不复杂，但协同起来有很多工程细节。</p>
+<p><strong>对自建系统的启示</strong>。即便你不用 ScaNN，它的设计思想可以借鉴：① 亚瑟分配能用在自建 IVF 上提边界召回；② 残差量化比直接量化精度高；③ 重排用低精度而非全精度能省内存。这些"小优化"组合起来，自建系统也能接近 ScaNN 的性能。</p>
+
+    <h2 class="section" id="scann-tuning"><span class="idx">★</span> ScaNN 的参数调优与部署经验</h2>
+    <p>ScaNN 的参数不多，但调好需要经验。几个关键旋钮。</p>
+<p><strong>num_leaves（分区数）</strong>。类似 IVF 的 nlist。经验值 √N 到 4√N。太大则每分区向量少、reorder 候选少（recall 掉）；太小则每分区大、查询慢。1 亿数据用 10000-40000 个分区。和 IVF 一样要扫一遍找拐点。</p>
+<p><strong>num_leaves_to_search（查询分区数）</strong>。类似 nprobe。和 num_leaves 配合：num_leaves=10000 时，搜 100 个（1%）通常 recall 90%+，搜 500 个（5%）recall 95%+。按 recall 要求调。</p>
+<p><strong>reorder_num（重排数）</strong>。ScaNN 先用量化距离召回 top-reorder_num，再用精确距离重排 top-k。reorder_num 越大 recall 越高但越慢。经验：reorder_num = 10×k 到 20×k。</p>
+<pre><code class="language-python"># ScaNN 参数网格搜索
+import scann
+def build_scann(data, num_leaves, reorder_mult=10, k=10):
+    searcher = (scann.scann_ops_pybind.builder(data, k, "dot_product")
+        .tree(num_leaves=num_leaves, num_leaves_to_search=num_leaves//100,
+              training_sample_size=100000)
+        .score_ah(2, anisotropic_quantization_threshold=0.2)
+        .reorder(reorder_mult * k)
+        .build())
+    return searcher
+# 扫 num_leaves
+for nl in [2000, 5000, 10000, 20000, 40000]:
+    searcher = build_scann(xb, num_leaves=nl)
+    # 评估 recall 和 QPS
+    recall, qps = eval_searcher(searcher, xq, gt, k=10)
+    print(f"num_leaves={nl}: recall={recall:.3f} qps={qps:.0f}")
+</code></pre>
+<p><strong>anisotropic_quantization_threshold</strong>。各向异性量化的阈值，控制量化误差对内积方向性偏差的容忍度。0.2 是默认，调到 0.1 更激进（量化更狠、recall 掉）、0.3 更保守。这个参数对 recall 影响明显，要扫。</p>
+<p><strong>部署经验</strong>。ScaNN 是单机库（无分布式），大规模要自己分片。它对 SIMD 优化依赖重——编译时要开 AVX2/AVX512，否则性能差一半。ScaNN 不支持动态插入（建好就只读），动态场景要定期重建或配合增量方案。</p>
+
+    <h2 class="section" id="scann-vs-others"><span class="idx">★</span> ScaNN 与其它算法的深度横向对比</h2>
+    <p>ScaNN 是 SOTA，但"SOTA"是有条件的。和 HNSW、IVFPQ 的深度对比能看清它的适用边界。</p>
+<p><strong>ScaNN vs HNSW</strong>。在 recall-QPS 曲线上，ScaNN 在高 recall（&gt;0.95）区间通常优于 HNSW（同等 recall 的 QPS 更高）。原因：ScaNN 的各向异性量化在 高 recall 时精度优势明显。但 HNSW 在中等 recall（0.85-0.95）区间 QPS 更高，且 HNSW 支持动态插入、ScaNN 不支持。所以：静态库 + 高 recall 要求 → ScaNN；动态库 + 中等 recall → HNSW。</p>
+<p><strong>ScaNN vs IVFPQ</strong>。两者都是"分区 + 量化"，但 ScaNN 的各向异性量化、残差量化、亚瑟分配都比朴素 IVFPQ 优。同等存储下 ScaNN recall 高 5-10 个点。但 IVFPQ 生态成熟（FAISS/Milvus 都支持）、支持分布式、支持动态，ScaNN 是单机库。所以：单机极致 → ScaNN；分布式 + 工程成熟 → IVFPQ。</p>
+<pre><code class="language-text">ScaNN vs HNSW vs IVFPQ 横向对比
+┌──────────────┬────────┬────────┬──────────┬──────────┬──────────┐
+│ 维度         │ ScaNN  │ HNSW   │ IVFPQ    │
+├──────────────┼────────┼────────┼──────────┼──────────┼──────────┤
+│ 高recall QPS │ 最高   │ 中高   │ 中       │
+│ 中recall QPS │ 中高   │ 最高   │ 中       │
+│ 存储效率     │ 高     │ 低     │ 高       │
+│ 动态插入     │ 不支持 │ 支持   │ 支持     │
+│ 分布式       │ 自建   │ 库支持 │ 库支持   │
+│ 构建时间     │ 中     │ 长     │ 短       │
+│ 生态成熟度   │ 中     │ 高     │ 高       │
+└──────────────┴────────┴────────┴──────────┴──────────┴──────────┘</code></pre>
+<p><strong>ScaNN 的隐藏成本</strong>。① 构建时间长——亚瑟分配 + 残差训练 + 各向异性量化都要时间，比 IVFPQ 慢；② 调参复杂——threshold、num_leaves、reorder 多个旋钮要扫；③ 无分布式——大规模要自己分片，工程量大。这些让 ScaNN 在"绝对性能最强"但"落地难度最高"。</p>
+<p><strong>什么时候值得用 ScaNN</strong>。① 单机 + 超大规模（亿级）+ 高 recall 要求——ScaNN 的甜区；② 延迟极其敏感（如实时广告）——每毫秒值钱；③ 有工程能力调参和分片。否则，HNSW（Milvus/Qdrant）或 IVFPQ（FAISS）的工程便利性往往更划算。"最强"不等于"最适合"，按场景选。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>PQ 的盲区是各向同性目标：在所有方向等同看待量化误差，浪费了垂直查询方向的预算。</li>

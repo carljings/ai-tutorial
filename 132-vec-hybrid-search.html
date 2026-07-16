@@ -426,6 +426,122 @@ for _id, score, src in results:
     <p>RRF 是无权的（两路等权）。如果你的业务里某一路明显更强（比如技术文档场景，BM25 更可靠），可以用加权 RRF：score = Σ w_path / (k + rank)。但更工程化的做法是<strong>分别调两路的召回数</strong>——把弱的那路召回数调大，让它的好结果有机会排进融合窗口。</p>
     <p>多路扩展：除了 BM25 + 向量，可以加第三路 SPLADE（学习型稀疏向量，见 143 篇）或元数据精确匹配。RRF 天然支持，多加一项即可。三路融合通常比两路召回再涨 2-5 个点。</p>
 
+
+    <h2 class="section" id="hybrid-advanced"><span class="idx">★</span> 混合检索的进阶：多路融合与权重学习</h2>
+    <p>两路（BM25 + 向量）RRF 是基础形态，进阶系统会引入更多路检索和更智能的融合。</p>
+<p><strong>三路融合</strong>。除了 BM25 和稠密向量，加第三路 SPLADE（学习型稀疏向量，143 篇）或元数据精确匹配。三路 RRF 通常比两路再涨 2-5 个点召回，因为每路覆盖不同的盲区：BM25 抓精确词形，稠密抓语义，SPLADE 抓语义扩展的稀疏特征。RRF 天然支持多路，加一项即可。</p>
+<p><strong>加权 RRF</strong>。标准 RRF 是等权的，但业务里某一路可能更强。可以给每路加权重：score = Σ w_path / (k + rank)。但权重要怎么定是个难题——拍脑袋不准。更稳的做法是<strong>用一个小评测集学习权重</strong>：把权重当作超参，在 100-500 个标注查询上 grid search，找 recall 最高的组合。</p>
+<p><strong>学习型融合</strong>。更进一步，用一个轻量模型（如 XGBoost 或小 MLP）学习融合：输入是每个候选在每路的排名/分数/特征，输出是相关性。这能捕捉 RRF 无法表达的非线性关系（如"BM25 排名前 3 且向量排名前 5 时特别相关"）。代价是要标注数据和训练，适合高价值场景。</p>
+<pre><code class="language-python"># 学习型融合：用 LambdaMART 或 XGBoost 学习重排
+import xgboost as xgb
+# 特征：每路的排名、分数、文档长度、点击率等
+# 训练数据：(query, doc, features, relevance_label)
+features = build_features(bm25_ranks, vec_ranks, splade_ranks, doc_meta)
+dtrain = xgb.DMatrix(features, label=relevance_labels)
+model = xgb.train({'objective': 'rank:ndcg', 'max_depth': 6}, dtrain, num_boost_round=100)
+# 在线推理：对融合候选算特征，模型预测分数重排
+final_scores = model.predict(xgb.DMatrix(test_features))
+</code></pre>
+<p>选型建议：两路 RRF 是性价比最高的起点；要再涨点上加 SPLADE 三路；高价值场景且有标注数据时上学习型融合。多数业务到三路 RRF + rerank 就够了。</p>
+
+    <h2 class="section" id="hybrid-deploy"><span class="idx">★</span> 混合检索的部署与延迟控制</h2>
+    <p>混合检索要并行跑两路（或多路），延迟控制比单路复杂。几个工程要点：</p>
+<p><strong>并行执行</strong>。BM25 和向量检索必须并行（而非串行），否则延迟翻倍。Elasticsearch 的混合查询原生并行；自建系统要用 asyncio 或线程池并行两路，等慢的那路完成后融合。</p>
+<p><strong>召回数平衡</strong>。两路召回的候选数要协调：BM25 召回 50，向量也召回 50，RRF 融合后 top-10。如果一路召回 500 另一路 20，融合会被多的一路主导。常见做法是固定两路召回数相等，或按业务权重微调。</p>
+<p><strong>缓存</strong>。BM25 的倒排访问和向量的图遍历都可以缓存热查询。RAG 场景里重复查询不少（同一问题多人问），缓存命中率 20-40% 能显著降延迟。</p>
+<p><strong>降级策略</strong>。某一路故障（如向量库挂了）时，要能降级到单路（只剩 BM25），保证服务可用。这要在融合层做容错：某路超时或失败就用另一路结果，不阻塞。</p>
+<pre><code class="language-python"># 并行混合检索 + 容错降级
+import asyncio
+async def hybrid_search_parallel(query, k=10):
+    async def bm25():
+        try: return await bm25_search_async(query, 50)
+        except: return []   # 降级返回空
+    async def vec():
+        try: return await vec_search_async(query, 50)
+        except: return []
+    bm25_hits, vec_hits = await asyncio.gather(bm25(), vec())
+    if not bm25_hits and not vec_hits:
+        raise RuntimeError("两路都失败")
+    if not bm25_hits: return vec_hits[:k]   # 降级到向量
+    if not vec_hits:  return bm25_hits[:k]  # 降级到 BM25
+    return rrf_fusion([bm25_hits, vec_hits], top_n=k)
+</code></pre>
+<p>这些工程细节决定了混合检索在生产里能否稳定运行。算法对了但工程没做好，效果一样出不来。</p>
+
+    <h2 class="section" id="hybrid-realworld"><span class="idx">★</span> 混合检索的真实落地：Elasticsearch 与 Milvus 对比</h2>
+    <p>混合检索在不同向量库里的实现差异不小，选对工具能省很多事。</p>
+<p><strong>Elasticsearch 的混合检索</strong>。ES 的优势是 BM25 成熟（Lucene 倒排）+ 8.x 加了 dense_vector + RRF 原生支持，一条查询搞定两路+融合。劣势是 ES 本身不是为向量优化的，向量规模上去（千万级）性能不如专用向量库。适合"<strong>已有 ES 基础设施 + 中等向量规模 + 强关键词检索需求</strong>"的场景。</p>
+<p><strong>Milvus 的混合检索</strong>。Milvus 2.4+ 支持稠密 + 稀疏（BM25/SPLADE）混合检索，内部用 RRF 融合。优势是向量规模能扛到十亿级、性能强。劣势是 BM25 要用稀疏向量模拟（不如 ES 原生 BM25 成熟）。适合"<strong>大规模向量 + 专用向量库需求</strong>"。</p>
+<p><strong>Qdrant 的混合检索</strong>。Qdrant 原生支持 dense + sparse，API 简洁。优势是部署轻量、性能好。适合"<strong>中小规模 + 快速迭代</strong>"。</p>
+<p><strong>自建混合（BM25 系统 + 向量库分离）</strong>。BM25 用 ES/Lucene，向量用专用库（Milvus/Qdrant/hnswlib），应用层做 RRF 融合。优势是各组件最优、灵活。劣势是运维两套系统、融合层要自己写。适合"<strong>对每路性能都要求极致</strong>"的大型系统。</p>
+<pre><code class="language-python"># Milvus 的混合检索（dense + sparse）
+from pymilvus import Collection, AnnSearchRequest, WeightedRanker
+collection = Collection("kb_docs")
+# dense 检索请求
+dense_req = AnnSearchRequest(
+    data=[dense_vec], anns_field="dense_vector",
+    param={"metric_type": "IP", "params": {"ef": 64}}, limit=50)
+# sparse 检索请求（BM25 用稀疏向量）
+sparse_req = AnnSearchRequest(
+    data=[sparse_vec], anns_field="sparse_vector",
+    param={"metric_type": "IP", "params": {"drop_ratio_search": 0.2}}, limit=50)
+# RRF 融合
+results = collection.hybrid_search(
+    [dense_req, sparse_req], WeightedRanker(0.5, 0.5), limit=10)
+</code></pre>
+<p><strong>选型决策</strong>：</p>
+<ul>
+<li>已有 ES + 中等规模 → ES 混合检索（最少运维成本）。</li>
+<li>大规模向量 + 强关键词 → Milvus 混合。</li>
+<li>中小规模 + 快速迭代 → Qdrant。</li>
+<li>极致性能 + 有工程能力 → 自建分离。</li>
+</ul>
+<p>一个常见误区是"什么都要专用向量库"。如果你的关键词检索是主流（占 70% 查询），向量是辅助，用 ES 混合更合适——ES 的 BM25 经过几十年优化，比向量库里的稀疏模拟强。反之，向量为主、关键词为辅，专用向量库更合适。按查询类型的主次选工具，而非追潮流。</p>
+
+    <h2 class="section" id="hybrid-tuning"><span class="idx">★</span> 混合检索的权重调优与离线/在线策略</h2>
+    <p>RRF 的 k=60 是个"万能默认"，但权重融合（α）需要调。怎么科学地调权重？</p>
+<p><strong>离线网格搜索</strong>。最直接：在评估集上扫 α ∈ {0.1, 0.2, ..., 0.9}，选 recall 最高的。但要注意评估集的查询分布——如果评估集偏关键词查询，会选到偏 BM25 的权重；上线后向量查询多了就不准。评估集要反映真实查询分布。</p>
+<p><strong>在线多臂老虎机</strong>。更高级：把 α 当老虎机的臂，用 Thompson Sampling 或 UCB 动态探索每个 α 的效果，按用户反馈（点击/采纳）调整。这让权重随查询分布自适应，不需人工调。实现复杂但效果稳定，适合流量大的系统。</p>
+<p><strong>查询级动态权重</strong>。不同查询应该用不同权重：精确 ID/实体查询偏 BM25（α 大），语义/概念查询偏向量（α 小）。用一个小模型预测查询类型，动态选 α。这比全局固定 α 更精细。</p>
+<pre><code class="language-python"># 查询级动态权重：用查询分类器选 α
+class AdaptiveHybridRetriever:
+    def __init__(self):
+        self.bm25 = BM25Retriever(); self.vec = VectorRetriever()
+        self.query_clf = QueryTypeClassifier()   # 训练的分类器
+        # α 按查询类型预设
+        self.alpha_map = {"exact": 0.7, "semantic": 0.3, "hybrid": 0.5}
+    def search(self, query, k=10):
+        qtype = self.query_clf.predict(query)
+        alpha = self.alpha_map[qtype]
+        bm25_hits = self.bm25.search(query, k=50)
+        vec_hits = self.vec.search(query, k=50)
+        return weighted_fusion(bm25_hits, vec_hits, alpha, k)
+</code></pre>
+<p><strong>权重调优的陷阱</strong>。① 过拟合评估集——评估集小且偏，调出的权重上线反降。要有足够大的评估集，或用线上 A/B。② 忽略权重对延迟的影响——BM25 和向量检索不是同时完成的，权重融合要在两者都返回后，慢的那个决定延迟。③ 把权重当唯一旋钮——有时提升来自换更好的 embedding 或 rerank，而非调权重。</p>
+
+    <h2 class="section" id="hybrid-fail-modes"><span class="idx">★</span> 混合检索的失败模式与诊断</h2>
+    <p>混合检索看起来美好，但有几个典型失败模式，上线后要能诊断。</p>
+<p><strong>失败模式一：两路返回高度重叠</strong>。BM25 和向量检索返回几乎相同的文档，融合没有增益。诊断：算两路结果的 Jaccard 相似度，&gt;0.7 说明重叠严重。原因通常是查询太"精确"（如 ID 查询），两路都指向同一批文档。对策：对精确查询只用 BM25，跳过向量（省一半延迟）。</p>
+<p><strong>失败模式二：一路主导，另一路失效</strong>。融合结果几乎全是 BM25 的（或全是向量的），另一路的优质结果被淹没。诊断：看 top-10 里两路各贡献多少。对策：调权重，或用 RRF（对分数尺度不敏感）。如果是某路本身质量差（如向量召回差），要修那一路而非调融合。</p>
+<p><strong>失败模式三：延迟被慢路拖垮</strong>。BM25 和向量检索并行，但融合要等两者都返回。如果某路慢（如向量库高负载），整体延迟被拖。对策：设超时——某路 50ms 没返回就用另一路的结果兜底；或异步预热常用查询的两路结果。</p>
+<pre><code class="language-python"># 混合检索的诊断工具
+def diagnose_hybrid(bm25_hits, vec_hits, fused_hits, latency_bm25, latency_vec):
+    # 1. 重叠度
+    overlap = len(set(bm25_hits[:50]) & set(vec_hits[:50])) / 50
+    # 2. 各路贡献
+    bm25_contrib = len([h for h in fused_hits if h in bm25_hits]) / len(fused_hits)
+    vec_contrib = len([h for h in fused_hits if h in vec_hits]) / len(fused_hits)
+    # 3. 延迟平衡
+    print(f"重叠度: {overlap:.2f} (&gt;0.7 说明融合无增益)")
+    print(f"BM25 贡献: {bm25_contrib:.0%}, 向量贡献: {vec_contrib:.0%}")
+    print(f"延迟: BM25={latency_bm25}ms 向量={latency_vec}ms")
+    if overlap > 0.7: print("建议: 精确查询跳过向量检索")
+    if bm25_contrib > 0.8 or vec_contrib > 0.8: print("建议: 调权重或检查弱路质量")
+    if max(latency_bm25, latency_vec) > 2 * min(latency_bm25, latency_vec):
+        print("建议: 给慢路设超时兜底")
+</code></pre>
+<p><strong>失败模式四：权重对查询类型不普适</strong>。全局权重在某些查询上最优、在另一些上很差。诊断：按查询类型分组看融合效果，如果某类查询融合后比单路还差，说明该类要单独调权重或路由。对策：查询级动态权重（前面讲过）。</p>
+<p>诊断这些失败模式要靠监控：记录两路结果、融合结果、各路延迟，定期分析。混合检索不是"配好就忘"，要持续监控调优才能稳定发挥优势。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>纯向量抓不住精确词形，纯 BM25 抓不住语义，混合检索取长补短。</li>

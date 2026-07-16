@@ -307,24 +307,25 @@
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 124 · 向量检索系列</span>
       <h1>HNSW 插入算法详解<br>多层跳表、efConstruction 与邻居选择</h1>
-      <p class="lead">HNSW 是当今向量检索的事实标准，几乎所有主流向量库的默认索引都是它。但"会用"和"调好"之间隔着一整篇论文的距离。本文从插入算法这一最容易讲清楚也最关键的环节切入，拆解多层跳表结构、efConstruction 参数的作用，以及那个决定图质量的"启发式邻居选择"到底在做什么。</p>
+      <p class="lead">HNSW 是当今向量检索的事实标准，几乎所有主流向量库的默认索引都是它。但"会用"和"调好"之间隔着一整篇论文的距离。本文从插入算法这一最容易讲清楚也最关键的环节切入，拆解多层跳表结构、层级分配的指数衰减、efConstruction 参数的作用，以及那个决定图质量的"启发式邻居选择"到底在做什么，最后给出 M、efConstruction、mL 的实测调参方法。</p>
       <div class="meta">
-        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">阅读约 24 分钟</span>
         <span class="chip">难度 ★★★★</span>
       </div>
     </section>
 
     <h2 class="section" id="skip-list-intuition"><span class="idx">★</span> 一切的起点：跳表思想</h2>
     <p>HNSW 名字里的 "SW" 是 Small World（小世界图），前面的 "H" 是 Hierarchical（分层的）。要理解它，先回到一个更简单的数据结构：跳表（Skip List）。</p>
-    <p>跳表解决的问题是：在一个有序链表里查找，朴素做法要 O(n)。跳表的巧思是额外维护几层"稀疏的链表"，上层链表的节点是下层的一个子集，越往上越稀疏。查找时从最顶层开始，因为节点稀疏可以大步跳跃，逐层下沉做精细定位，整体复杂度降到 O(log n)。这就是"<strong>分层加速</strong>"的核心思想。</p>
+    <p>跳表解决的问题是：在一个有序链表里查找，朴素做法要 O(n)。跳表的巧思是额外维护几层"稀疏的链表"，上层链表的节点是下层的一个子集，越往上越稀疏。查找时从最顶层开始，因为节点稀疏可以大步跳跃，逐层下沉做精细定位，整体复杂度降到 O(log n)。这就是"<strong>分层加速</strong>"的核心思想，被 Redis 的有序集合、LevelDB 的 MemTable 广泛使用。</p>
     <p>HNSW 把这个思想搬到图上。它构建的不是一棵链表，而是一组近邻图，叠加成多层。最底层（layer 0）包含<strong>所有</strong>节点，边最密集，负责精细检索；上层节点逐层按指数衰减抽稀，边稀疏，负责跨大距离快速接近目标。查询时从最高层的入口点出发，每层做一次贪心搜索，逐层下沉到 layer 0 取最终结果。</p>
-    <p>插入算法要解决的核心问题就是：<strong>新向量来了，该放进哪一层？和谁连边？</strong>这两个问题的答案决定了整个图的质量和检索性能。</p>
+    <p>插入算法要解决的核心问题就是：<strong>新向量来了，该放进哪一层？和谁连边？</strong>这两个问题的答案决定了整个图的质量和检索性能。一个构建糟糕的 HNSW 图（比如邻居都聚在一个簇里、跨簇连通性差），查询时会陷入局部最优、召回塌方；而一个构建良好的图，几乎能保证 O(log N) 跳内到达任意目标。</p>
 
     <h2 class="section" id="layer-assignment"><span class="idx">★</span> 第一件事：新节点放进哪一层</h2>
     <p>HNSW 给每个节点分配一个"最大层级" l，它决定了节点出现在第 0 到第 l 层。l 的取值服从一个<strong>指数衰减分布</strong>，由参数 mL（level multiplier）控制：</p>
     <p style="font-family:monospace;background:#f4f4f4;padding:12px;border-radius:6px;">l = floor( -ln(uniform(0,1)) × mL )</p>
-    <p>论文推荐的 mL = 1/ln(M)，其中 M 是每个节点的邻居数。这样分配的结果是：layer 0 有 100% 的节点，layer 1 约有 1/ln(M)，layer 2 约有 1/ln(M)²，依此类推。M=16 时，每升一层节点数大约缩减到 1/2.77，所以一个千万级图可能只有 4-6 层。</p>
+    <p>论文推荐的 mL = 1/ln(M)，其中 M 是每个节点的邻居数。这样分配的结果是：layer 0 有 100% 的节点，layer 1 约有 1-ln(M) 的比例，layer 2 约有 (1/ln(M))²，依此类推。M=16 时，每升一层节点数大约缩减到 1/2.77，所以一个千万级图可能只有 4-6 层。</p>
     <p>这个设计的精妙之处在于<strong>它的随机性是结构性的</strong>。你不需要预先知道数据分布，随机抛硬币式的层级分配自然产生"上层稀疏、下层密集"的层次，保证了从顶层入口点出发的贪心搜索能在 O(log N) 跳内接近目标。类比来说，这就像城市道路网：高速公路（上层）连接大区域，主干道（中层）连接街区，小路（底层）连通每栋楼——天然分层，导航时从高速下来逐级细化。</p>
+    <p>为什么是 -ln(uniform) 这个公式？因为指数衰减正好匹配"分层抽稀"的几何需求——每层节点数是下层的固定比例，这和跳表的几何概率分布同构。换成线性分布（比如 l = uniform % 5）会让上层节点过多、失去稀疏加速效果。</p>
 
     <pre><code class="language-python"># 层级分配的概率模拟 —— 直观感受"指数衰减"
 import numpy as np
@@ -333,33 +334,37 @@ def assign_level(mL: float) -> int:
     return int(-np.log(np.random.uniform()) * mL)
 
 M = 16
-mL = 1.0 / np.log(M)
+mL = 1.0 / np.log(M)      # ≈ 0.36
 N = 1_000_000
 levels = [assign_level(mL) for _ in range(N)]
 
+print(f"mL = {mL:.4f}")
+print(f"{'layer':>6} {'节点数':>10} {'占比':>8}")
 for l in range(7):
     cnt = sum(1 for x in levels if x >= l)
-    print(f"layer {l}: {cnt:7d} 节点  ({cnt/N*100:5.2f}%)")
+    print(f"{l:>6d} {cnt:>10d} {cnt/N*100:>7.2f}%")
 # 输出会显示 layer 0 全部、layer 1 ~36%、layer 2 ~13%... 指数衰减
+# 这保证了上层稀疏，从顶层入口出发的跳数是 log 级
 </code></pre>
 
     <h2 class="section" id="insert-walkthrough"><span class="idx">★</span> 第二件事：从顶层下沉找到候选邻居</h2>
     <p>确定了新节点 q 的层级 l 后，插入过程分两段走：</p>
     <ol>
-      <li><strong>从最高层到 l+1 层</strong>：在这几层做贪心搜索，但<strong>不连边</strong>，只是用 ef=1 的窄候选集快速下沉，目的是找到一个好的入口点传给下层。可以理解为"先开车到目标城市附近"。</li>
-      <li><strong>从 l 层到 layer 0</strong>：在每一层都用 efConstruction 宽度的搜索找到 efConstruction 个最近候选，从中选出 M 个（或 2M 个，在 layer 0）作为邻居，双向连边。</li>
+      <li><strong>从最高层到 l+1 层</strong>：在这几层做贪心搜索，但<strong>不连边</strong>，只是用 ef=1 的窄候选集快速下沉，目的是找到一个好的入口点传给下层。可以理解为"先开车到目标城市附近，不下高速"。</li>
+      <li><strong>从 l 层到 layer 0</strong>：在每一层都用 efConstruction 宽度的搜索找到 efConstruction 个最近候选，从中选出 M 个（layer 0 是 2M 个）作为邻居，双向连边。</li>
     </ol>
     <p>这里的 efConstruction 是 HNSW 最关键的构建参数。它是<strong>搜索候选集的宽度</strong>：efConstruction 越大，每次连边时能挑选的候选越多，选出的邻居质量越高，最终图的导航性越好、召回越高；代价是构建慢、内存略增。论文推荐 efConstruction ∈ [100, 200]，实测 200 几乎是甜区上限，再大收益递减。</p>
+    <p>为什么连边要用宽候选集而不是直接取 ef=1 的贪心结果？因为贪心搜索会"抄近路"——它沿着最近的邻居走，找到的候选都聚集在一条路径上，方向单一。用 efConstruction 宽候选集，能覆盖更多方向的候选，配合下面要讲的启发式选择，保证邻居方向多样。</p>
 
     <h3>贪心搜索的具体动作</h3>
-    <p>在第 i 层搜索时，维护两个集合：候选集 C（待探索的节点，按距离排序）和已访问集 W（结果集）。从入口点 ep 开始：</p>
+    <p>在第 i 层搜索时，维护两个集合：候选集 C（待探索的节点，按距离排序的最小堆）和已访问集 W（结果集，最大堆）。从入口点 ep 开始：</p>
     <ol>
-      <li>从 C 中取出距离 q 最近的节点 c。</li>
-      <li>如果 c 比 W 中最远的还远，说明已经没有更近的了，停止。</li>
+      <li>从 C 中弹出距离 q 最近的节点 c。</li>
+      <li>如果 c 比 W 中最远的还远，说明已经没有更近的了（因为图是近邻图，c 的邻居只会更远），停止。</li>
       <li>否则遍历 c 的所有邻居，把没访问过的加入 C 和 W，W 超过 ef 就裁掉最远的。</li>
       <li>重复直到 C 空。</li>
     </ol>
-    <p>这个循环就是 HNSW 的搜索核心，插入和查询用的是同一套逻辑，只是 ef 宽度不同（插入用 efConstruction，查询用 efSearch）。</p>
+    <p>这个循环就是 HNSW 的搜索核心，插入和查询用的是同一套逻辑，只是 ef 宽度不同（插入用 efConstruction，查询用 efSearch）。这是 HNSW 设计上的一大优雅之处——理解了插入就理解了查询的 80%。</p>
 
     <pre><code class="language-python"># HNSW 插入的伪代码精简实现 —— 揭开黑盒
 def insert(hnsw, q, M, efConstruction, mL):
@@ -389,17 +394,20 @@ def insert(hnsw, q, M, efConstruction, mL):
 </code></pre>
 
     <h2 class="section" id="heuristic-select"><span class="idx">★</span> 启发式邻居选择：图质量的真正秘密</h2>
-    <p>上面伪代码里那个 <code>select_neighbors_heuristic</code> 是 HNSW 区别于早期 NSW 算法的核心创新。最朴素的邻居选择是"从 efConstruction 个候选里挑最近的 M 个"，但这个朴素策略会导致图退化。</p>
-    <p>问题出在"<strong>聚类簇内的过度连接</strong>"。假设 q 在一个密集簇里，它最近的 M 个邻居大概率都在同一个簇内，全连上之后，q 就被"困"在簇里，无法导航到别的簇——检索时一旦落到这个簇就出不去，召回塌方。</p>
-    <p>启发式选择的做法是：把候选按距离从近到远排序，逐个考虑加入。对每个候选 e，检查"e 到已选邻居集合里任意一个的距离，是否小于 e 到 q 的距离"。如果是，说明 e 和已选邻居太近（在同一个方向），跳过；否则加入。这样选出的 M 个邻居会<strong>分布在不同方向</strong>，保证图的全局连通性。形象地说，朴素策略选了 M 个"都站在你正北方的朋友"，启发式选了"M 个分布在东南西北的朋友"，后者显然更能帮你导航。</p>
+    <p>上面伪代码里那个 <code>select_neighbors_heuristic</code> 是 HNSW 区别于早期 NSW 算法的核心创新，也是论文最容易被忽视却最关键的部分。最朴素的邻居选择是"从 efConstruction 个候选里挑最近的 M 个"（叫 select_neighbors_simple），但这个朴素策略会导致图退化。</p>
+    <p>问题出在"<strong>聚类簇内的过度连接</strong>"。假设 q 在一个密集簇里，它最近的 M 个邻居大概率都在同一个簇内（因为簇内距离普遍小于跨簇距离），全连上之后，q 就被"困"在簇里，无法导航到别的簇——检索时一旦落到这个簇就出不去，召回塌方。这叫"图的局部连通性强但全局连通性差"。</p>
+    <p>启发式选择的做法是：把候选按距离从近到远排序，逐个考虑加入。对每个候选 e，检查"e 到已选邻居集合里任意一个的距离，是否小于 e 到 q 的距离"。如果是，说明 e 和已选邻居太近（在同一个方向，e 可以被那个已选邻居"代表"），跳过；否则加入。这样选出的 M 个邻居会<strong>分布在不同方向</strong>，保证图的全局连通性。形象地说，朴素策略选了 M 个"都站在你正北方的朋友"，启发式选了"M 个分布在东南西北的朋友"，后者显然更能帮你导航到任意方向。</p>
 
     <pre><code class="language-python"># 启发式邻居选择 vs 朴素选择 —— 直观对比
 import numpy as np
 
+def dist(a, b):
+    return np.linalg.norm(np.array(a) - np.array(b))
+
 def select_naive(q, candidates, M):
-    """朴素：直接取最近的 M 个"""
-    dists = [dist(q, c) for c in candidates]
-    return [c for _, c in sorted(zip(dists, candidates))[:M]]
+    """朴素：直接取最近的 M 个（容易聚簇）"""
+    ranked = sorted(candidates, key=lambda c: dist(q, c))
+    return ranked[:M]
 
 def select_heuristic(q, candidates, M):
     """启发式：保证多样性，避免同向聚集"""
@@ -408,22 +416,22 @@ def select_heuristic(q, candidates, M):
     for e in sorted_c:
         if len(selected) >= M:
             break
-        # 检查 e 是否离已选邻居太近（同向）
-        good = True
-        for r in selected:
-            if dist(e, r) < dist(e, q):
-                good = False
-                break
+        # 检查 e 是否离已选邻居太近（同向）—— e 到某已选 r 比 e 到 q 还近 → 同向
+        good = all(dist(e, r) >= dist(e, q) for r in selected)
         if good:
             selected.append(e)
     return selected
 
 # 模拟：q 在原点，候选分散在不同方向
-q = np.array([0.0, 0.0])
-candidates = [np.array(c) for c in [(0.1,0.1),(0.11,0.12),(0.1,0.2),(-0.9,0.1),(0.1,-0.95),(-0.8,-0.8)]]
-print("朴素:", select_naive(q, candidates, 3))     # 大概率全在第一象限
-print("启发式:", select_heuristic(q, candidates, 3)) # 会选不同象限的点
+q = (0.0, 0.0)
+candidates = [(0.1,0.1),(0.11,0.12),(0.1,0.2),   # 第一象限聚簇
+              (-0.9,0.1),(0.1,-0.95),(-0.8,-0.8)] # 其它方向
+print("朴素（聚簇风险）:", [(round(x,2),round(y,2)) for x,y in select_naive(q, candidates, 3)])
+print("启发式（方向多样）:", [(round(x,2),round(y,2)) for x,y in select_heuristic(q, candidates, 3)])
+# 启发式会选不同象限的点，图的全局连通性更好
 </code></pre>
+
+    <p>论文里还有个增强版启发式：允许在"同向但距离显著更近"时也保留候选（带 extendCandidates 和 keepPrunedConnections 参数），目的是在保证多样性的同时不浪费真正很近的邻居。FAISS 和 hnswlib 默认用的是带这些增强的版本。</p>
 
     <h2 class="section" id="efconstruction"><span class="idx">★</span> efConstruction 实测：构建质量 vs 速度</h2>
     <p>理论说了一堆，实测最有说服力。我们用 FAISS 构建不同 efConstruction 的 HNSW，对比构建时间、内存、最终召回。结论通常是：efConstruction 从 40 涨到 200，召回显著提升（可能从 0.88 到 0.97）；从 200 涨到 500，召回提升不到 1%，但构建时间翻倍——这是典型的边际递减。</p>
@@ -440,30 +448,66 @@ xq = np.random.randn(1000, d).astype(np.float32); faiss.normalize_L2(xq)
 flat = faiss.IndexFlatIP(d); flat.add(xb)
 _, gt = flat.search(xq, 10)
 
-for efc in [40, 80, 120, 200, 400]:
+print(f"{'efC':>5} {'build_s':>8} {'mem_MB':>8} {'recall@10':>10}")
+for efc in [40, 80, 120, 200, 400, 800]:
     idx = faiss.IndexHNSWFlat(d, 16)
     idx.hnsw.efConstruction = efc
     t0 = time.time()
     idx.add(xb)
     build_t = time.time() - t0
+    # 内存：图 + 向量
+    mem_mb = idx.storage.total_size() / 1e6 + xb.nbytes / 1e6
     idx.hnsw.efSearch = 64
     D, I = idx.search(xq, 10)
     recall = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
-    print(f"efC={efc:4d}  build={build_t:5.1f}s  recall@10={recall:.4f}")
+    print(f"{efc:>5d} {build_t:>8.1f} {mem_mb:>8.0f} {recall:>10.4f}")
 # 典型结果：efC=200 是甜区，再大不划算
 </code></pre>
 
-    <h2 class="section" id="m-param"><span class="idx">★</span> M 参数：邻居度数的权衡</h2>
-    <p>M 是每个节点（layer 0 之外）的最大邻居数，layer 0 的上限通常是 2M。M 越大，图越密集，连通性越好、召回越高，但内存和构建时间线性增长，查询时每跳要遍历更多邻居也会拖慢 QPS。经验值：M=16 是通用默认，对召回要求高或维度高时用 M=32 或 48；M 超过 64 几乎没收益，反而伤 QPS。</p>
-    <p>M 的选择还要和 efSearch 配合。一个粗略的关系是 efSearch ≥ 2·M，否则候选集太窄，M 个邻居的优势发挥不出来。</p>
+    <h2 class="section" id="m-param"><span class="idx">★</span> M 参数与 mL：邻居度数的权衡</h2>
+    <p>M 是每个节点（layer 0 之外）的最大邻居数，layer 0 的上限通常是 2M（因为 layer 0 承担精细检索，需要更多邻居）。M 越大，图越密集，连通性越好、召回越高，但内存和构建时间线性增长，查询时每跳要遍历更多邻居也会拖慢 QPS。经验值：M=16 是通用默认，对召回要求高或维度高时用 M=32 或 48；M 超过 64 几乎没收益，反而伤 QPS。</p>
+    <p>M 的选择还要和 efSearch 配合。一个粗略的关系是 efSearch ≥ 2·M，否则候选集太窄，M 个邻居的优势发挥不出来。比如 M=16 时 efSearch 至少 32；M=48 时 efSearch 至少 96。</p>
+    <p>mL 通常固定为 1/ln(M)，不用调。但理解它的作用：mL 决定层级衰减速度，mL 大则层数多、每层稀疏快（更激进的分层）；mL 小则层数少、接近单层图。论文的 1/ln(M) 是经过理论分析的最优值，偏离它通常让召回下降。</p>
+
+    <h2 class="section" id="dynamic-insert"><span class="idx">★</span> 动态插入与并发构建的工程考量</h2>
+    <p>插入算法在工程实现里还有两个常被忽视的问题：动态插入的质量退化和并发插入的正确性。</p>
+    <p>先说动态插入的质量退化。HNSW 原生支持动态插入（这是它比 DiskANN/Annoy 的一大优势），但增量插入会让图质量随时间下降。原因：每个新节点插入时，它的候选邻居只来自当时的图，而批量构建时所有节点都已就位、候选更全面。所以长期增量插入的 HNSW，召回会从 0.97 慢慢掉到 0.92。生产对策是<strong>定期全量重建</strong>（比如每周一次），重建在后台做、不影响线上。</p>
+    <p>再说并发。生产环境的插入和查询是并发的，HNSW 的图是共享数据结构，简单加全局锁会让查询 QPS 崩。hnswlib 和 FAISS 的做法是：用原子操作 + 标记位实现无锁读、细粒度写锁。具体地，插入新节点时先把它标记为"半可见"，连边完成后再原子翻转标记为"完全可见"，这样查询要么看不到新节点，要么看到完整连接的节点，不会读到"连了一半"的中间状态。删除更麻烦，通常用墓碑标记（tombstone）软删除，定期压缩清理。</p>
+    <pre><code class="language-python"># 并发插入的安全模式：标记位 + 原子翻转（概念示意）
+import threading
+
+class ConcurrentHNSW:
+    def __init__(self):
+        self.graph = {}
+        self.lock = threading.Lock()
+        self.visible = {}   # node_id -> bool，标记是否对查询可见
+
+    def insert(self, node_id, vec):
+        # 1. 先算邻居（持锁，但只占短时间）
+        with self.lock:
+            self.graph[node_id] = {"vec": vec, "neighbors": set(), "level": assign_level()}
+            self.visible[node_id] = False   # 插入时不可见
+        # 2. 搜索邻居、连边（可释放锁，但需防止邻居被并发删）
+        neighbors = self._search_neighbors(vec)
+        with self.lock:
+            for n in neighbors:
+                self.graph[node_id]["neighbors"].add(n)
+                self.graph[n]["neighbors"].add(node_id)
+            self.visible[node_id] = True    # 原子翻转，对查询可见
+
+    def query(self, q, k):
+        # 无锁读：只遍历 visible==True 的节点
+        return self._greedy_search(q, k, filter_fn=lambda n: self.visible.get(n, False))
+</code></pre>
+    <p>这两个工程细节决定了 HNSW 能否扛住真实生产负载。开源实现里，hnswlib 的并发模型相对成熟，FAISS 的 HNSW 并发支持较弱（更适合批量构建），Milvus/Qdrant 在分布式层做了额外封装。选型时如果你的写入很频繁且要求强一致，要特别关注目标向量库的并发实现质量。</p>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
-      <li>HNSW 借鉴跳表思想，构建多层近邻图：上层稀疏快速接近，下层密集精细定位，层级由指数衰减随机分配（mL=1/ln M）。</li>
-      <li>插入分两段：高层 ef=1 窄搜索下沉找入口，目标层及以下用 efConstruction 宽搜索选邻居并双向连边。</li>
-      <li>efConstruction 是构建质量的核心旋钮，推荐 100-200，再大边际递减；M=16 通用，高维/高召回需求可上 32-48。</li>
+      <li>HNSW 借鉴跳表思想，构建多层近邻图：上层稀疏快速接近，下层密集精细定位，层级由指数衰减随机分配（mL=1/ln M），保证 O(log N) 跳数。</li>
+      <li>插入分两段：高层 ef=1 窄搜索下沉找入口，目标层及以下用 efConstruction 宽搜索选邻居并双向连边。插入与查询共用同一套贪心搜索逻辑。</li>
+      <li>efConstruction 是构建质量的核心旋钮，推荐 100-200，再大边际递减；M=16 通用，高维/高召回需求可上 32-48，需配合 efSearch ≥ 2M。</li>
       <li>启发式邻居选择（select_neighbors_heuristic）是 HNSW 相对 NSW 的关键创新，保证邻居方向多样、图全局连通，避免簇内困死。</li>
-      <li>插入与查询共用同一套贪心搜索逻辑，只是 ef 宽度不同——理解了插入就理解了查询的 80%。</li>
+      <li>动态插入会让图质量随时间下降，生产需定期全量重建（双 buffer 后台切换）。</li>
     </ul>
     <p>下一篇我们专门拆解 HNSW 的查询算法：入口点怎么选、efSearch 候选集怎么收敛、为什么它能在毫秒内跑完亿级图。</p>
 

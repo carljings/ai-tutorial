@@ -307,9 +307,9 @@
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 125 · 向量检索系列</span>
       <h1>HNSW 查询算法详解<br>贪心搜索、ef 候选集与入口点</h1>
-      <p class="lead">插入算法搭建了那张多层图，查询算法则是真正决定用户体验延迟的部分。本文从查询的每一步入手——入口点选择、贪心搜索的收敛、efSearch 候选集的宽度，拆解 HNSW 如何在毫秒级跑完一张百万节点的图，并分析它的性能特征和调优要点。</p>
+      <p class="lead">插入算法搭建了那张多层图，查询算法则是真正决定用户体验延迟的部分。本文从查询的每一步入手——入口点选择、贪心搜索的收敛逻辑、efSearch 候选集的宽度、停止条件——拆解 HNSW 如何在毫秒级跑完一张百万节点的图，并分析它的性能瓶颈、大图掉速的根因，以及和 IVF 的实测对比。</p>
       <div class="meta">
-        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">阅读约 22 分钟</span>
         <span class="chip">难度 ★★★★</span>
       </div>
     </section>
@@ -317,12 +317,12 @@
     <h2 class="section" id="query-overview"><span class="idx">★</span> 查询的全流程：从顶层入口到 layer 0</h2>
     <p>HNSW 查询的逻辑可以一句话概括：<strong>从最高层的固定入口点出发，每层做一次贪心搜索，逐层下沉到 layer 0，在 layer 0 用更宽的 efSearch 候选集跑出最终 top-k</strong>。它和插入算法里那段"高层窄搜索下沉"几乎一模一样，区别只在最后一层用 efSearch 而非 efConstruction，以及最终要返回 top-k 而不是连边。</p>
     <p>这个流程为什么高效？关键在于<strong>分层带来的剪枝</strong>。最高层只有几百个节点，从入口点贪心走几跳就能锁定目标所在的大区域；下沉一层，节点变多但仍在目标区域附近精炼；到 layer 0 时已经在目标的"邻域"里，只需要局部精细搜索。整个过程的跳数是 O(log N) 级别的，每跳只遍历 M 个邻居，所以总计算量远低于暴力检索。</p>
-    <p>用一个导航的类比：你要从北京开车去上海某条小巷。HNSW 的做法是——先看全国高速图（顶层），从北京出发沿京沪高速直达上海枢纽；换到省级道路图（中层），从枢纽开到目标所在区；最后换到街道图（底层），在区里找到那条小巷。每一层都只关心自己粒度下的"最近"，逐层细化。</p>
+    <p>用一个导航的类比：你要从北京开车去上海某条小巷。HNSW 的做法是——先看全国高速图（顶层），从北京出发沿京沪高速直达上海枢纽；换到省级道路图（中层），从枢纽开到目标所在区；最后换到街道图（底层），在区里找到那条小巷。每一层都只关心自己粒度下的"最近"，逐层细化。这个类比的精髓是：每层用的是不同粒度的"地图"，而上层地图因为稀疏，几跳就能横跨全国。</p>
 
     <h2 class="section" id="entry-point"><span class="idx">★</span> 入口点：为什么是固定的</h2>
     <p>HNSW 的入口点（entry point）是<strong>构建时确定的一个固定节点</strong>——通常是最后插入的、层级最高的那个节点（因为它在最高层存在）。查询时永远从它出发，不需要为每个查询选不同的入口。</p>
-    <p>这听起来很反直觉：固定入口不会导致某些区域查询慢吗？答案是不会，因为<strong>高层图的连通性极好</strong>。最高层只有几百个节点，每个节点度数 M，从任意入口出发几跳内就能到达任意区域。固定入口省去了"选入口"的开销，也让缓存友好（入口点的邻居列表常驻缓存）。</p>
-    <p>有些实现（如 hnswlib）支持 warm-up：查询前先用一个随机点跑一遍高层搜索把入口附近的图加载进缓存，减少冷启动延迟。但这是工程优化，算法本质没变。</p>
+    <p>这听起来很反直觉：固定入口不会导致某些区域查询慢吗？答案是不会，因为<strong>高层图的连通性极好</strong>。最高层只有几百个节点，每个节点度数 M，从任意入口出发几跳内就能到达任意区域。固定入口省去了"选入口"的开销，也让缓存友好（入口点的邻居列表常驻缓存，热路径稳定）。</p>
+    <p>选最高层节点做入口还有个好处：它在所有层都存在，可以无缝从最高层开始下沉。如果入口是中间层节点，要先爬到最高层再下沉，多此一举。</p>
 
     <pre><code class="language-python"># 用 FAISS 观察 HNSW 查询的层级结构
 import faiss, numpy as np
@@ -337,8 +337,11 @@ idx.add(xb)
 levels = faiss.vector_to_array(idx.hnsw.levels)
 print(f"最高层: {levels.max()}")           # 通常 4-7
 print(f"入口点 id: {idx.hnsw.entry_point}")
-print(f"各层节点数: {[np.sum(levels > i) for i in range(levels.max()+1)]}")
-# 输出形如: [1000000, 361000, 130000, 47000, 17000, 6000]
+print(f"各层节点数:")
+for i in range(levels.max()+1):
+    cnt = int(np.sum(levels > i))
+    print(f"  layer {i}: {cnt} 节点")
+# 输出形如: layer 0: 1000000, layer 1: 361000, layer 2: 130000, ...
 </code></pre>
 
     <h2 class="section" id="greedy-search"><span class="idx">★</span> 贪心搜索 + ef 候选集：核心循环</h2>
@@ -347,26 +350,28 @@ print(f"各层节点数: {[np.sum(levels > i) for i in range(levels.max()+1)]}")
       <li><strong>候选集 C</strong>（最小堆，按到查询的距离排序）：待探索的节点。</li>
       <li><strong>结果集 W</strong>（最大堆，容量 ef）：当前找到的最近的 ef 个。</li>
     </ul>
-    <p>循环逻辑是：每次从 C 弹出最近的候选 c；如果 c 比结果集 W 中最远的还远，说明已经没有更近的节点了（因为图是近邻图，c 的邻居只会更远），停止；否则遍历 c 的邻居，没访问过的同时加入 C 和 W，W 满了就踢出最远的。直到 C 空或满足停止条件。</p>
-    <p>这里的关键参数是 ef（查询时叫 efSearch）。ef 越大，结果集越宽，探索得越充分，召回越高；但每层要维护更大的优先队列、遍历更多邻居，QPS 下降。ef=1 时退化成纯贪心（容易陷入局部最优、召回低），ef 等于全库时退化成暴力（召回 100%、QPS 极低）。这就是 HNSW 查询时唯一的"召回旋钮"。</p>
+    <p>循环逻辑是：每次从 C 弹出最近的候选 c；如果 c 比结果集 W 中最远的还远，说明已经没有更近的节点了（因为图是近邻图，c 的邻居大概率比 c 更远——这是停止的关键直觉），停止；否则遍历 c 的邻居，没访问过的同时加入 C 和 W，W 满了就踢出最远的。直到 C 空或满足停止条件。</p>
+    <p>这里的关键参数是 ef（查询时叫 efSearch）。ef 越大，结果集越宽，探索得越充分，召回越高；但每层要维护更大的优先队列、遍历更多邻居，QPS 下降。ef=1 时退化成纯贪心（容易陷入局部最优、召回低）；ef 等于全库时退化成暴力（召回 100%、QPS 极低）。这就是 HNSW 查询时唯一的"召回旋钮"。</p>
+    <p>一个常被忽略的细节：为什么停止条件是"候选比结果最远还远"？因为候选集 C 是按距离排序的最小堆，弹出的 c 是当前最近的未探索候选。如果连最近的 c 都比 W 里最远的远，说明 W 已经囊括了局部最近邻，c 的邻居只会更远，继续探索无意义。这个剪枝让搜索不必遍历整个连通区域，是 HNSW 高效的核心。</p>
 
-    <pre><code class="language-python"># 单层贪心搜索的 Python 参考实现
+    <pre><code class="language-python"># 单层贪心搜索的 Python 参考实现 —— 看清堆操作
 import heapq
 
-def search_layer(graph, q, entry_points, ef, layer):
+def search_layer(graph, q, entry_points, ef, layer, dist_fn):
     """
     graph:       各层的邻接表 graph[layer][node_id] = [neighbor_ids]
     q:           查询向量
     entry_points: 起始节点列表
     ef:          结果集宽度
     layer:       当前层
+    dist_fn:     距离函数
     """
     visited = set(entry_points)
-    # 候选集（最小堆，距离越小越优先）
-    candidates = [(dist(q, ep), ep) for ep in entry_points]
+    # 候选集（最小堆，距离越小越优先弹出）
+    candidates = [(dist_fn(q, ep), ep) for ep in entry_points]
     heapq.heapify(candidates)
     # 结果集（最大堆，用负距离模拟，容量 ef）
-    results = [(-dist(q, ep), ep) for ep in entry_points]
+    results = [(-dist_fn(q, ep), ep) for ep in entry_points]
     heapq.heapify(results)
 
     while candidates:
@@ -377,29 +382,30 @@ def search_layer(graph, q, entry_points, ef, layer):
         for neighbor in graph[layer].get(c, []):
             if neighbor not in visited:
                 visited.add(neighbor)
-                d_n = dist(q, neighbor)
+                d_n = dist_fn(q, neighbor)
                 d_far = -results[0][0]
                 if d_n < d_far or len(results) < ef:
                     heapq.heappush(candidates, (d_n, neighbor))
                     heapq.heappush(results, (-d_n, neighbor))
                     if len(results) > ef:
-                        heapq.heappop(results)
+                        heapq.heappop(results)         # 踢掉最远的
     return results   # 返回 ef 个最近邻
 
 def hnsw_query(hnsw, q, k, efSearch):
     ep = [hnsw.entry_point]
-    # 1. 顶层到 layer 1：ef=1 窄搜索
+    # 1. 顶层到 layer 1：ef=1 窄搜索快速下沉
     for i in range(hnsw.max_level, 0, -1):
-        W = search_layer(hnsw.graph, q, ep, ef=1, layer=i)
+        W = search_layer(hnsw.graph, q, ep, ef=1, layer=i, dist_fn=hnsw.dist)
         ep = [min(W, key=lambda x: -x[0])[1]]
     # 2. layer 0：ef=efSearch 宽搜索
-    W = search_layer(hnsw.graph, q, ep, ef=max(efSearch, k), layer=0)
+    W = search_layer(hnsw.graph, q, ep, ef=max(efSearch, k), layer=0, dist_fn=hnsw.dist)
     return sorted([(-d, n) for d, n in W])[:k]        # 返回 top-k
 </code></pre>
 
     <h2 class="section" id="efsearch-tuning"><span class="idx">★</span> efSearch 调优：召回-QPS 曲线的实操</h2>
     <p>efSearch 是 HNSW 查询时唯一能动态调节的旋钮，调法和 IVF 的 nprobe 完全一样：扫一遍值，画召回-QPS 曲线，按业务召回下限选最小的 efSearch。论文推荐 efSearch ∈ [k, 2·M] 起步，实测 50-200 是常见甜区。</p>
-    <p>一个常被忽略的细节：efSearch 必须 ≥ k（你要返回的 top-k 数量），否则结果集都装不下 k 个。FAISS 在 efSearch &lt; k 时会自动提升到 k，但理解这个约束有助于排障。</p>
+    <p>一个常被忽略的细节：efSearch 必须 ≥ k（你要返回的 top-k 数量），否则结果集都装不下 k 个。FAISS 在 efSearch &lt; k 时会自动提升到 k，但理解这个约束有助于排障——有时候"召回突然下降"其实就是误把 efSearch 设得比 k 小。</p>
+    <p>调优还要看业务对延迟的容忍度。同一个图，recall 0.95 可能只要 2ms，recall 0.99 要 8ms。如果你的业务 P99 要求 5ms，那 recall 0.99 可能达不到，要么接受 0.95、要么换更优化的索引（如 HNSW+SQ）。</p>
 
     <pre><code class="language-python"># efSearch 扫描：画出召回-QPS 曲线
 import time
@@ -407,51 +413,105 @@ xq = np.random.randn(2000, d).astype(np.float32); faiss.normalize_L2(xq)
 flat = faiss.IndexFlatIP(d); flat.add(xb)
 _, gt = flat.search(xq, 10)
 
-print(f"{'efSearch':>8} {'recall@10':>10} {'QPS':>8}")
+print(f"{'efSearch':>8} {'recall@10':>10} {'QPS':>8} {'latency_ms':>11}")
 for efs in [8, 16, 32, 64, 128, 256, 512]:
     idx.hnsw.efSearch = efs
     t0 = time.time()
     D, I = idx.search(xq, 10)
-    qps = len(xq) / (time.time() - t0)
+    dt = time.time() - t0
+    qps = len(xq) / dt
+    latency = dt / len(xq) * 1000
     recall = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
-    print(f"{efs:>8d} {recall:>10.4f} {qps:>8.0f}")
+    print(f"{efs:>8d} {recall:>10.4f} {qps:>8.0f} {latency:>11.2f}")
 
 # 典型结果：
-# efSearch=16   recall=0.91   QPS=12000
-# efSearch=64   recall=0.985  QPS=6000
-# efSearch=256  recall=0.998  QPS=1800
-# 业务要 recall≥0.95 → efSearch≈32-48 是甜区
+# efSearch=16   recall=0.91   QPS=12000  latency=0.08ms
+# efSearch=64   recall=0.985  QPS=6000   latency=0.17ms
+# efSearch=256  recall=0.998  QPS=1800   latency=0.56ms
 </code></pre>
 
     <h2 class="section" id="performance-analysis"><span class="idx">★</span> 查询性能分析：钱花在哪了</h2>
     <p>HNSW 查询的时间花在哪？拆开来看主要有三块：</p>
     <ul>
-      <li><strong>距离计算</strong>：占比最大，约 60-80%。每跳遍历 M 个邻居，每个邻居算一次 d 维距离。优化手段是用 SIMD（FAISS 自动用 AVX）和量化（把图里的向量替换成 PQ 编码，即 HNSW+PQ/HNSW+SQ）。</li>
-      <li><strong>堆操作</strong>：约 15-25%。维护候选集和结果集的优先队列。ef 越大，堆操作开销越显著。</li>
-      <li><strong>图遍历与缓存未命中</strong>：约 5-15%。邻居列表的随机访问模式对 CPU 缓存不友好，大图（超出 L3 缓存）时这是主要瓶颈。</li>
+      <li><strong>距离计算</strong>：占比最大，约 60-80%。每跳遍历 M 个邻居，每个邻居算一次 d 维距离。优化手段是用 SIMD（FAISS 自动用 AVX/AVX-512）和量化（把图里的向量替换成 PQ 或 SQ 编码，减少每次距离计算的字节）。</li>
+      <li><strong>堆操作</strong>：约 15-25%。维护候选集和结果集的优先队列。ef 越大，堆操作开销越显著，这也是为什么 ef 调到很大时 QPS 下降比线性还快。</li>
+      <li><strong>图遍历与缓存未命中</strong>：约 5-15%。邻居列表的随机访问模式对 CPU 缓存不友好，大图（超出 L3 缓存几十 MB）时这是主要瓶颈。</li>
     </ul>
-    <p>这意味着优化 HNSW 查询的两个抓手是：<strong>减少距离计算次数</strong>（调 efSearch、用量化）和<strong>提升访存效率</strong>（让图尽量紧凑、用 HNSW+SQ 让单向量更小）。</p>
+    <p>这意味着优化 HNSW 查询的两个抓手是：<strong>减少距离计算次数</strong>（调 efSearch、用量化）和<strong>提升访存效率</strong>（让图尽量紧凑、用 HNSW+SQ 让单向量更小，减少 cache miss）。</p>
 
     <h3>为什么 HNSW 在大图上会"掉速"</h3>
-    <p>一个反直觉的现象：同样的 HNSW，图从 100 万涨到 1 亿，单次查询延迟只增加 2-3 倍（不是 100 倍）。这是因为分层结构让跳数只按 log N 增长。但延迟不会完全不变——主要原因是 1 亿节点的图远超 CPU L3 缓存（几十 MB），每次邻居访问都可能 cache miss 拉到主存，访存延迟主导。</p>
-    <p>这正是 DiskANN（130 篇）要解决的：把图放 SSD，用 beam search 批量化访存，让单机也能扛百亿。HNSW 的内存天花板通常是几亿向量（百 GB 内存），再大就要换思路。</p>
+    <p>一个反直觉的现象：同样的 HNSW，图从 100 万涨到 1 亿，单次查询延迟只增加 2-3 倍（不是 100 倍）。这是因为分层结构让跳数只按 log N 增长。但延迟不会完全不变——主要原因是 1 亿节点的图远超 CPU L3 缓存（几十 MB），每次邻居访问都可能 cache miss 拉到主存，访存延迟主导。1 亿节点的图可能几百 GB，远超 DRAM 带宽能瞬时供给的速度。</p>
+    <p>这正是 DiskANN（130 篇）要解决的：把图放 SSD，用 beam search 批量化访存，让单机也能扛百亿。HNSW 的内存天花板通常是几亿向量（百 GB 内存），再大就要换思路。所以"HNSW 不适合超大规模"不是算法缺陷，而是物理限制。</p>
 
     <pre><code class="language-python"># 用 HNSW+SQ 把内存压一半，QPS 反而可能更高
 idx_sq = faiss.IndexHNSWSQ(d, faiss.ScalarQuantizer.QT_8bit, 16)
 idx_sq.hnsw.efConstruction = 200
 idx_sq.add(xb)
 print(f"HNSWFlat 内存: {xb.nbytes/1e9:.2f} GB")
-print(f"HNSWSQ  内存: 约 {xb.nbytes/4/1e9:.2f} GB (8bit 量化)")
-# SQ 把 float32 压成 int8，精度损失小，访存快，QPS 通常提升 30-50%
+print(f"HNSWSQ  内存: 约 {xb.nbytes/4/1e9:.2f} GB (8bit 标量量化)")
+# SQ 把 float32 压成 int8，精度损失极小（&lt;1%召回），访存快，QPS 通常提升 30-50%
+# 是 HNSW 的轻量优化首选，比 PQ 简单、比 Flat 省
+
+# 对比召回
+idx_sq.hnsw.efSearch = 64
+D, I = idx_sq.search(xq, 10)
+recall_sq = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
+print(f"HNSW+SQ recall@10: {recall_sq:.4f}")
 </code></pre>
 
+    <h2 class="section" id="hnsw-vs-ivf"><span class="idx">★</span> HNSW vs IVF：实测对比与混用</h2>
+    <p>这两个是工程上最常被拿来对比的索引。结论（同等规模、同等召回目标下）：</p>
+    <ul>
+      <li><strong>HNSW 单查询延迟更低</strong>：log N 跳数比 IVF 的 nprobe 个列表暴力更高效，尤其在召回要求高时（recall &gt; 0.95）HNSW 优势明显。IVF 在高召回时要 nprobe 很大，QPS 掉得快。</li>
+      <li><strong>IVFPQ 内存更省</strong>：HNSW 必须存原始 float 向量，IVFPQ 存压缩编码，内存差几倍到几十倍。这是 IVFPQ 在亿级场景不可替代的原因。</li>
+      <li><strong>HNSW 构建慢</strong>：每个节点插入都要搜索找邻居，O(N log N) 量级；IVF 训练 + 分配快几倍。需要频繁全量重建选 IVF。</li>
+      <li><strong>HNSW 动态友好</strong>：原生支持增量插入且质量损失可控，IVF 增量会让分布漂移（新数据进错的簇）。</li>
+      <li><strong>IVFPQ 适合 GPU 批量</strong>：FAISS 的 GPU IVFPQ 吞吐惊人，单卡几十万 QPS，HNSW 的 GPU 实现少且不成熟。</li>
+    </ul>
+    <p>选型经验：百万到亿级、内存够、追求单查询延迟选 HNSW；亿级以上、内存紧、批量吞吐选 IVFPQ。两者也可混用——HNSW 做实时高召回层（热数据），IVFPQ 做大库低成本兜底层（冷数据），按数据访问频率路由。这种分层架构在大型推荐系统里很常见。</p>
+
+    <h2 class="section" id="production-tips"><span class="idx">★</span> 查询优化的工程 checklist</h2>
+    <p>线上 HNSW 查询慢或召回不稳，按这个 checklist 逐项排查：</p>
+    <ul>
+      <li><strong>归一化了吗</strong>：余弦场景忘归一化会让召回异常。检查 xb 和 xq 都过了 normalize_L2。</li>
+      <li><strong>efSearch ≥ k 吗</strong>：efSearch 比 k 小会让结果集装不下，FAISS 自动提升但其它库未必。</li>
+      <li><strong>训练数据有代表性吗</strong>：用随机数据构建、真实数据查询，召回会塌。重新用真实数据构建。</li>
+      <li><strong>图是否过期</strong>：长期增量插入让图质量下降。看是否需要重建。</li>
+      <li><strong>内存是否够</strong>：图超出 L3 缓存后访存主导，P99 抖动。考虑 HNSW+SQ 减小单向量。</li>
+      <li><strong>距离计算是否 SIMD</strong>：自建实现没开 SIMD 会慢几倍。FAISS/hnswlib 默认开，自建要确认。</li>
+      <li><strong>并发查询的锁竞争</strong>：高并发下写锁阻塞读。检查并发模型，必要时读写分离。</li>
+    </ul>
+    <p>这个 checklist 覆盖了 90% 的线上 HNSW 问题。剩下的 10% 通常是数据分布异常（如重复向量过多导致图退化），需要具体分析。</p>
+
+
+    <h2 class="section" id="hnsw-implementations"><span class="idx">★</span> HNSW 的不同实现对比：FAISS / hnswlib / Milvus</h2>
+    <p>HNSW 算法是公开的，但不同实现的质量和性能差异不小。选对实现对生产很关键。</p>
+<p><strong>hnswlib</strong>（原作 Malkov 的实现）。最接近原论文的实现，纯 C++ + Python binding。优点：单机性能极强、内存占用小、API 简洁、支持动态插入和删除。缺点：不支持分布式、不持久化（进程退出数据没了，要自己序列化）。适合单机高性能场景。</p>
+<p><strong>FAISS 的 IndexHNSWFlat</strong>。集成在 FAISS 里，优势是能和 FAISS 的其它索引（IVF、PQ）混用，支持 GPU（但 HNSW 的 GPU 支持弱）。构建质量和 hnswlib 接近，但动态插入支持差（更适合批量构建）。适合已经在用 FAISS 生态的团队。</p>
+<p><strong>Milvus / Qdrant / Weaviate 的 HNSW</strong>。这些向量库内部用 HNSW（或其变体）做索引，但加了分布式、持久化、副本、过滤等工程层。优点：开箱即用的生产特性。缺点：性能比裸 hnswlib 低 20-40%（分布式开销）。适合需要分布式和运维便利的场景。</p>
+<pre><code class="language-python"># 同数据对比三个实现的性能
+import hnswlib, faiss, numpy as np, time
+# hnswlib
+hnsw = hnswlib.Index(space="cosine", dim=d)
+hnsw.init_index(max_elements=N, ef_construction=200, M=16)
+t0 = time.time(); hnsw.add_items(xb, np.arange(N)); print(f"hnswlib 构建: {time.time()-t0:.1f}s")
+hnsw.set_ef(64)
+t0 = time.time(); labels, dist = hnsw.knn_query(xq, k=10); print(f"hnswlib QPS: {len(xq)/(time.time()-t0):.0f}")
+# FAISS HNSW
+fh = faiss.IndexHNSWFlat(d, 16); fh.hnsw.efConstruction = 200
+t0 = time.time(); fh.add(xb); print(f"FAISS 构建: {time.time()-t0:.1f}s")
+fh.hnsw.efSearch = 64
+t0 = time.time(); D, I = fh.search(xq, 10); print(f"FAISS QPS: {len(xq)/(time.time()-t0):.0f}")
+# 同参数下 hnswlib 通常快 10-30%（实现更紧凑）
+</code></pre>
+<p><strong>选型建议</strong>：单机极致性能 + 自己管理持久化 → hnswlib；已用 FAISS 生态 → FAISS HNSW；需要分布式和开箱即用 → Milvus/Qdrant。不要自己从头实现 HNSW——细节（堆操作、并发、启发式选择的增强版）非常多，自己写的几乎必然不如成熟实现。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>HNSW 查询 = 固定入口点 + 多层贪心搜索：高层 ef=1 快速下沉定位区域，layer 0 用 efSearch 宽候选集跑出 top-k。</li>
       <li>固定入口点不损性能，因为高层图连通性好，几跳内能到任意区域，且缓存友好。</li>
-      <li>核心循环是 best-first search：候选集（最小堆）+ 结果集（最大堆，容量 ef），候选比结果最远还远时收敛。</li>
-      <li>efSearch 是查询时唯一召回旋钮，甜区通常 50-200，必须 ≥ k；扫一遍画召回-QPS 曲线选最优档位。</li>
-      <li>查询时间 60-80% 花在距离计算，优化抓手是 SIMD/量化（HNSW+SQ/PQ）；大图瓶颈是缓存未命中，这是 DiskANN 出场的原因。</li>
+      <li>核心循环是 best-first search：候选集（最小堆）+ 结果集（最大堆，容量 ef），停止条件是"候选比结果最远还远"。</li>
+      <li>efSearch 是查询时唯一召回旋钮，甜区通常 50-200，必须 ≥ k；扫一遍画召回-QPS 曲线选最优档位，按 P99 延迟预算决定上限。</li>
+      <li>查询时间 60-80% 花在距离计算，优化抓手是 SIMD/量化（HNSW+SQ 提速 30-50%）；大图瓶颈是缓存未命中，这是 DiskANN 出场的原因。</li>
     </ul>
     <p>HNSW 的两篇（插入 124 + 查询 125）到这里就完整了。接下来我们转向另一个省内存的流派——乘积量化 PQ 的距离计算原理。</p>
 

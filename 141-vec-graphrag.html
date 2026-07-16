@@ -513,6 +513,103 @@ graphrag query --root ./my-graphrag \
     </ul>
     <p>反之，事实问答为主、语料频繁变动、预算敏感，传统向量 RAG 更合适。两者也可以混合：向量 RAG 处理具体事实查询，GraphRAG 处理全局/多跳查询，按 Router 路由。</p>
 
+
+    <h2 class="section" id="graphrag-cost"><span class="idx">★</span> GraphRAG 的成本控制与增量更新</h2>
+    <p>GraphRAG 的最大障碍是成本——构建索引要给每个文本块调 LLM 抽取实体、给每个社区调 LLM 生成摘要，一份 10 万块的语料可能要几十万次 LLM 调用，成本几千到几万美元。这让 GraphRAG 在很多场景"理论好用实际用不起"。下面是几个控成本的实战手段。</p>
+<p><strong>分层抽取</strong>。不是所有文本块都值得用最强模型抽取实体。用一个轻量分类器先判断"这块是否信息密集"，密集的（如财报正文）用 Sonnet 抽取，稀疏的（如页眉页脚、过渡句）用 Haiku 或直接跳过。这能砍掉 40-60% 的抽取成本。</p>
+<p><strong>实体缓存</strong>。同一实体在不同块里反复出现（如"Acme Corp"出现几百次），它的描述抽取一次后缓存复用。第二次遇到只验证不重新抽取。配合 prompt caching，相关实体上下文也缓存。</p>
+<p><strong>社区摘要的批量生成</strong>。把多个小社区的实体关系合并成一个大 batch，一次 LLM 调用生成多份摘要（让 LLM 输出 JSON 列表）。这比逐个社区调用省 N 倍调用次数。</p>
+<p><strong>增量更新</strong>是长期控本的关键。GraphRAG 不必每次数据变动都全量重建——新文档来了，只抽取新文档的实体关系，合并进已有图，对受影响的社区重新生成摘要（而非全部社区）。这把更新成本从 O(全库) 降到 O(增量)。</p>
+<pre><code class="language-python"># GraphRAG 增量更新
+def incremental_update(new_docs, existing_graph, existing_reports):
+    # 1. 只抽取新文档的实体关系
+    new_entities, new_rels = extract_from_docs(new_docs)
+    # 2. 合并进已有图（含消歧）
+    affected_nodes = merge_into_graph(existing_graph, new_entities, new_rels)
+    # 3. 找到受影响的社区（新节点加入或边变化）
+    affected_communities = find_affected_communities(existing_graph, affected_nodes)
+    # 4. 只重新生成受影响社区的摘要
+    for cid in affected_communities:
+        existing_reports[cid] = regenerate_report(existing_graph, cid)
+    # 大部分社区不受影响，摘要复用，成本远低于全量重建
+</code></pre>
+<p>组合这些手段，GraphRAG 的成本能降一个数量级，进入可承受范围。但即便如此，GraphRAG 仍比传统向量 RAG 贵得多，所以它只适合"全局理解价值高、值得这个投入"的场景。</p>
+
+    <h2 class="section" id="graphrag-vs-vector"><span class="idx">★</span> GraphRAG vs 向量 RAG vs 混合架构的决策</h2>
+    <p>理解了 GraphRAG 的能力和成本，最后的工程问题是：我的场景到底该用哪种？这不是非此即彼，而是按查询类型路由的混合架构。</p>
+<p><strong>查询类型与最佳架构的对应</strong>：</p>
+<ul>
+<li>具体事实查询（"Acme Corp CEO 是谁"）→ 向量 RAG 或 GraphRAG Local Search 都行，向量 RAG 更便宜，优先选。</li>
+<li>多跳推理（"Acme 的供应商的总部在哪"）→ GraphRAG Local Search 强于向量 RAG，因为图能沿关系链跳。</li>
+<li>全局总结（"总结这份财报的主要战略主题"）→ GraphRAG Global Search 完胜，向量 RAG 几乎做不了。</li>
+<li>对比分析（"对比 A 和 B 在多个维度的差异"）→ GraphRAG Global + 向量 RAG 混合，前者给全局后者补细节。</li>
+<li>精确关键词（"GPT-4o 错误码 E001"）→ 向量 RAG 或 BM25，GraphRAG 不擅长精确匹配。</li>
+</ul>
+<p><strong>混合架构</strong>是大型系统的常态。一个 Router 判断查询类型，分流到不同引擎：简单事实走向量 RAG（快、便宜），多跳走 GraphRAG Local（中等成本），全局总结走 GraphRAG Global（贵但能做），关键词走 BM25。每个查询用最合适的工具，整体性价比最高。</p>
+<pre><code class="language-text">混合架构
+                    ┌─ 简单事实 ──▶ 向量 RAG (快、便宜)
+                    │
+   query ──▶ Router ┼─ 多跳推理 ──▶ GraphRAG Local (中等)
+                    │
+                    ├─ 全局总结 ──▶ GraphRAG Global (贵)
+                    │
+                    └─ 精确关键词 ─▶ BM25 (最快)</code></pre>
+<p><strong>落地节奏</strong>。不要一上来就上混合架构——复杂度太高。建议：第一阶段只上向量 RAG，覆盖 80% 查询；第二阶段发现"全局总结类查询效果差"，再加 GraphRAG Global 作为补充；第三阶段按 Router 路由。增量演进比一步到位更务实。</p>
+<p><strong>GraphRAG 的适用门槛</strong>。GraphRAG 不是所有团队都该用。它的前提是：① 查询里有相当比例的全局/多跳类（&gt;20%）；② 语料相对静态（频繁更新成本高）；③ 预算充足（能承担索引构建）；④ 有工程能力维护图数据库和社区检测。不满足这些，老老实实用向量 RAG + rerank 效果更好、成本更低。</p>
+<p>这个决策框架能帮你避免"为了用 GraphRAG 而用 GraphRAG"的陷阱。技术选型的核心是匹配场景，而非追逐新潮。</p>
+
+    <h2 class="section" id="graphrag-build-detail"><span class="idx">★</span> GraphRAG 构建的工程细节：实体消歧与质量保障</h2>
+    <p>GraphRAG 构建里最棘手的工程问题是实体消歧和质量保障，处理不好图谱就是垃圾。</p>
+<p><strong>实体消歧的挑战</strong>。LLM 从不同块抽取的实体，同一个现实实体可能有不同名字："Acme Corp"、"Acme Corporation"、"Acme"、"ACME"。如果都当作不同节点，图会碎片化，社区检测失败。消歧要做：</p>
+<ul>
+<li><strong>别名归并</strong>：用字符串相似度 + LLM 判断"这两个名字是不是同一实体"。高相似度的合并。</li>
+<li><strong>上下文消歧</strong>：同名不同实体（如两个叫"John Smith"的人）要用上下文（所在公司、时间）区分。</li>
+<li><strong>实体链接</strong>：链接到知识库（如 Wikidata）的标准实体，用标准 ID 消歧。</li>
+</ul>
+<pre><code class="language-python"># 实体消歧：字符串相似 + LLM 验证
+def disambiguate_entities(entities):
+    """合并指向同一现实实体的别名"""
+    merged = {}
+    for ent in entities:
+        name = ent["name"]
+        # 1. 找已有实体里相似的
+        candidates = [n for n in merged if string_similarity(n, name) > 0.85]
+        if candidates:
+            # 2. LLM 判断是否同一实体
+            best = max(candidates, key=lambda n: string_similarity(n, name))
+            if llm_confirm_same_entity(name, best, ent["description"], merged[best]["description"]):
+                merged[best]["aliases"].append(name)
+                continue
+        merged[name] = {**ent, "aliases": [name]}
+    return list(merged.values())
+</code></pre>
+<p><strong>抽取质量的保障</strong>。LLM 抽取实体关系会出错（幻觉出不存在的关系、漏掉重要实体）。几个保障手段：</p>
+<ul>
+<li><strong>多轮抽取 + 投票</strong>：对同一块用 LLM 抽取多次，只保留多次都抽到的实体/关系（高置信）。</li>
+<li><strong>schema 约束</strong>：给 LLM 明确的实体类型 schema（组织/人物/地点/概念），减少类型混乱。</li>
+<li><strong>交叉验证</strong>：A 块说"X 是 Y 的子公司"，B 块说"Y 收购了 X"——这两个关系应该指向同一事实，交叉验证能发现矛盾。</li>
+</ul>
+<p><strong>社区检测的调参</strong>。Leiden 算法的 resolution 参数控制社区粒度：高 resolution → 小社区（细粒度），低 resolution → 大社区（粗粒度）。GraphRAG 通常建多层：顶层用低 resolution（3-5 个大主题），下层用高 resolution（每主题若干子主题）。层数和 resolution 要按数据规模调，没有通用最优值。</p>
+<p><strong>图谱质量评估</strong>。构建完怎么知道图谱好不好？几个指标：① <strong>连通性</strong>——最大连通分量占比，低说明有孤岛；② <strong>度数分布</strong>——好的图谱度数相对均匀，差的有明星节点（度数极高）；③ <strong>社区模块度</strong>（modularity）——Leiden 的优化目标，高说明社区划分清晰；④ <strong>实体覆盖率</strong>——重要实体是否都被抽取（人工抽查）。</p>
+<pre><code class="language-python"># 图谱质量评估
+import networkx as nx
+def evaluate_graph_quality(graph):
+    # 连通性
+    largest_cc = max(nx.connected_components(graph), key=len)
+    connectivity = len(largest_cc) / graph.number_of_nodes()
+    # 度数分布
+    degrees = [d for _, d in graph.degree()]
+    degree_gini = gini(degrees)   # 基尼系数，高说明不均
+    # 模块度（用 community 库算）
+    import community
+    partition = community.best_partition(graph)
+    modularity = community.modularity(partition, graph)
+    print(f"连通性: {connectivity:.3f} (越接近1越好)")
+    print(f"度数基尼: {degree_gini:.3f} (越低越均匀)")
+    print(f"模块度: {modularity:.3f} (越高社区越清晰)")
+    return {"connectivity": connectivity, "modularity": modularity}
+</code></pre>
+<p>这些工程细节决定了 GraphRAG 的成败。理论优雅，但"实体消歧错了一半、抽取漏了 30%"的图谱，用起来比纯向量 RAG 还差。所以 GraphRAG 不是"调个库就能用"，它需要认真的数据工程和质量把控。这也是为什么 GraphRAG 适合有工程能力的大团队。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>向量 RAG 的盲区是全局理解：总结主题、跨文档对比、多跳推理这类任务召回局部片段解决不了。</li>

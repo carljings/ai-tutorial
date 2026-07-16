@@ -495,6 +495,94 @@ def alert(msg):
       <li><strong>embedding 模型升级</strong>：换模型后旧向量和新向量不在一个空间，必须全量重新 embedding 重建索引。这是个大工程，要分批切换（双索引并存，灰度切流）。</li>
     </ul>
 
+
+    <h2 class="section" id="prod-scaling"><span class="idx">★</span> 向量库的水平扩展与容量规划</h2>
+    <p>单机扛不住时，向量库要水平扩展。这是生产运维里最复杂的部分，有几个关键决策。</p>
+<p><strong>分片策略</strong>。前面提过 hash 切（均匀但查询广播）和属性切（可路由但可能不均）。还有第三种：<strong>基于聚类切</strong>——先用 K-means 把向量聚成 N 簇，每簇一个分片。这样同一分片内的向量语义相近，查询时只搜最相关的几个分片（类似 IVF 的 nprobe 思想），减少广播。代价是新增向量要重新分配簇，维护复杂。</p>
+<p><strong>副本与一致性</strong>。多副本带来一致性问题：写入时是同步还是异步？同步副本保证强一致但延迟高（等所有副本确认），异步副本快但可能有短暂不一致（某副本还没同步到最新数据）。向量库通常选最终一致（异步），因为检索场景对强一致要求不高——一个向量晚几秒被检索到，业务能接受。</p>
+<p><strong>容量规划公式</strong>。向量库的内存 = 向量数 × 维度 × 4 字节 × 索引开销系数。HNSW 的开销系数约 1.5-2（图的边），IVFPQ 约 0.1（压缩）。算出内存后，留 30% 余量给查询时的临时数据。例：1 亿条 768 维 HNSW，内存 = 1e8 × 768 × 4 × 1.8 / 1e9 ≈ 550GB，加余量约 720GB，需要 1TB 内存的机器或分片。</p>
+<pre><code class="language-python"># 容量规划计算器
+def plan_capacity(n_vectors, dim, index_type="hnsw",
+                  growth_factor=2.0, utilization=0.7):
+    overhead = {"flat": 1.0, "hnsw": 1.8, "ivf_flat": 1.1,
+                "ivfpq": 0.1, "diskann_mem": 0.15}[index_type]
+    raw_bytes = n_vectors * dim * 4
+    index_bytes = raw_bytes * overhead
+    # 考虑未来增长
+    future_bytes = index_bytes * growth_factor
+    # 实际需要的内存（留余量）
+    needed_mem = future_bytes / utilization
+    print(f"当前索引: {index_bytes/1e9:.1f} GB")
+    print(f"{growth_factor}x 增长后: {future_bytes/1e9:.1f} GB")
+    print(f"推荐内存配置: {needed_mem/1e9:.1f} GB (含 {1-utilization:.0%} 余量)")
+    # 分片建议
+    if needed_mem > 200e9:   # 单机超 200GB 考虑分片
+        n_shards = int(np.ceil(needed_mem / 200e9))
+        print(f"建议分 {n_shards} 片，每片约 {needed_mem/n_shards/1e9:.0f} GB")
+plan_capacity(100_000_000, 768, "hnsw")
+</code></pre>
+<p><strong>扩容的平滑性</strong>。数据增长要扩容时，重新分片是大工程（数据要迁移）。平滑做法：① 用一致性哈希，扩容时只迁移一部分数据；② 预留分片（一开始建好空分片，数据增长时填充）；③ 在线迁移（边查边迁，双写过渡）。不要等到满了才扩，提前规划。</p>
+
+    <h2 class="section" id="prod-monitoring-deep"><span class="idx">★</span> 深度监控与故障演练</h2>
+    <p>基础监控（延迟、QPS、内存）不够，生产向量库需要深度监控和主动故障演练。</p>
+<p><strong>recall 在线监控</strong>。线下 benchmark 的 recall 不能代表线上——线上数据分布会漂移。建议在线上做<strong>影子 recall 监控</strong>：随机抽 1% 的查询，用暴力检索算 ground truth，对比线上索引的 recall。这个 recall 下降时告警，能在用户感知前发现问题。代价是 1% 的暴力检索开销，可接受。</p>
+<p><strong>延迟的细粒度拆解</strong>。不只看端到端延迟，要拆成：网络往返、序列化、索引查询、反序列化。哪段慢优化哪段。常见瓶颈是序列化（向量大的话序列化慢）和网络（跨机房）。</p>
+<p><strong>资源热点</strong>。监控每个分片的负载，发现热点分片（查询特别多）。热点要再分片或加副本。冷分片可以缩容省成本。</p>
+<p><strong>故障演练</strong>。上线前主动制造故障，验证系统的容错：① 杀掉一个节点，看服务是否自动切换、延迟是否飙升；② 模拟网络分区，看一致性策略是否生效；③ 模拟 SSD 故障（DiskANN 场景），看是否能从快照恢复；④ 压测到极限，看降级策略。不演练的容错在真故障时往往失效。</p>
+<pre><code class="language-python"># 在线 recall 影子监控
+class OnlineRecallMonitor:
+    def __init__(self, index, sample_rate=0.01):
+        self.index = index
+        self.flat = build_flat_index()   # 暴力索引，用于影子对比
+        self.sample_rate = sample_rate
+    def maybe_check(self, query, online_result):
+        if random.random() &lt; self.sample_rate:
+            # 暴力算 ground truth
+            gt = self.flat.search(query, k=10)
+            recall = len(set(online_result) & set(gt)) / 10
+            self.record(recall)
+            if recall &lt; 0.90:
+                alert(f"在线 recall 降到 {recall:.3f}")
+    def record(self, recall):
+        # 记录到 Prometheus，按时间窗口聚合
+        ONLINE_RECALL.observe(recall)
+</code></pre>
+<p><strong>告警阈值</strong>。不要把阈值设太紧（频繁误报，让人麻木）或太松（真问题不报）。经验：P99 延迟超基线 2 倍告警、recall 低于 0.90 告警、错误率超 0.1% 告警。每个告警都要有 runbook（处置手册），否则告警来了不知道怎么办。</p>
+<p><strong>SLO 与错误预算</strong>。定义 SLO（如"99.9% 查询 P99 &lt; 100ms"），算错误预算（一个月允许 43 分钟违规）。错误预算用完就停止发新功能、专注稳定性。这个框架让稳定性决策有数据依据，而非拍脑袋。</p>
+<p>这些深度监控和演练把向量库从"能跑"变成"扛得住"。生产系统的高可用不是天上掉下来的，是靠这些看不见的工程功夫堆出来的。</p>
+
+    <h2 class="section" id="prod-realworld"><span class="idx">★</span> 生产向量库的真实事故案例与教训</h2>
+    <p>讲了理论和 checklist，最后用几个真实事故案例说明这些工程细节为什么重要。这些案例都是脱敏后的真实生产事故。</p>
+<p><strong>案例一：embedding 模型升级导致全库失效</strong>。某团队把 embedding 模型从 v1 升到 v2（"为了更好的 recall"），直接部署。上线后召回率从 95% 掉到 40%。原因：v1 和 v2 的向量空间完全不同，旧向量和新查询向量不在一个空间，检索全错。教训：embedding 模型升级必须全量重新 embed 所有数据，且要灰度切（新老并存，逐步切流）。这个团队停服 6 小时重 embed 才恢复。</p>
+<p><strong>案例二：HNSW 图过期导致 recall 缓慢下降</strong>。某系统上线时 recall 97%，三个月后掉到 88%，但没人发现（没监控 recall）。排查发现是高频增量插入让图质量退化。教训：① 增量插入的 HNSW 要定期全量重建；② recall 要在线监控（影子暴力对比），不能等用户投诉。这个团队加了每周自动重建 + recall 监控后稳定。</p>
+<p><strong>案例三：过滤场景在低命中率时崩盘</strong>。某电商系统上线时用 post-filter，测试时过滤命中率 30% 表现良好。大促时某品类过滤命中率降到 0.5%（爆款其它品类），post-filter 召回不到 top-10，QPS 也崩（不断放大 K）。教训：过滤策略要按命中率分级，低命中率用 in-filter 或分库。这个团队把高频过滤维度（品类）改成分库后解决。</p>
+<pre><code class="language-python"># 这些事故的防范：监控 + 自动化
+class VectorDBHealthMonitor:
+    def __init__(self):
+        self.alerts = []
+    def check_embedding_drift(self, new_vecs, baseline_dist):
+        """检测 embedding 分布漂移（模型升级或数据变化）"""
+        current_dist = compute_distribution_stats(new_vecs)
+        drift = distribution_distance(current_dist, baseline_dist)
+        if drift > 0.3:
+            self.alert("embedding 分布严重漂移，可能需要重 embed")
+    def check_recall_degradation(self, online_recall):
+        """recall 持续下降告警"""
+        if online_recall &lt; 0.90:
+            self.alert(f"recall 降到 {online_recall:.3f}，可能需要重建索引")
+    def check_filter_health(self, filter_ratios):
+        """过滤命中率监控"""
+        for scenario, ratio in filter_ratios.items():
+            if ratio &lt; 0.01:
+                self.alert(f"{scenario} 过滤命中率 {ratio:.3%} 过低，考虑分库")
+    def alert(self, msg):
+        self.alerts.append(msg)
+        send_to_oncall(msg)   # 推送值班
+</code></pre>
+<p><strong>案例四：SSD 故障导致 DiskANN 全库不可用</strong>。某团队用 DiskANN 存百亿向量在单 NVMe SSD 上，没做副本。SSD 坏块激增导致索引损坏，全库不可用，从快照恢复要 12 小时。教训：DiskANN 要多副本 + 快照 + 异地备份，单 SSD 是单点。这个团队加了 RAID + 每日快照 + 跨机房副本。</p>
+<p><strong>案例五：rerank 模型 OOM</strong>。某系统用大 rerank 模型（large 级），高并发时 GPU 显存爆（OOM）。原因：没控制并发，多个 rerank batch 同时在 GPU 上。教训：rerank 要控制 GPU 并发（信号量限制同时运行的 batch 数），或用批处理服务统一调度。这个团队加了 GPU 信号量 + 请求队列后稳定。</p>
+<p><strong>通用教训</strong>。这些案例的共同点：<strong>都是工程问题，不是算法问题</strong>。算法选对了但工程没做好，一样出事故。生产向量库的稳定性，90% 取决于监控、告警、灾备、灰度这些"无聊"的工程功夫，而非算法的精妙。</p>
+<p>所以这一系列从 120 篇的算法原理讲到 145 篇的运维，是一个完整闭环：<strong>懂算法才能选对，懂工程才能扛住</strong>。希望这套系列帮你在向量检索/RAG 的路上，既选得对、又扛得稳。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>索引重建的三个策略：原地插入（实时但质量退化）、双 buffer 后台重建（无停机切换）、分段索引（LSM 思路）。无论哪种都建议定期全量重建。</li>

@@ -425,6 +425,140 @@ def build_prompt_with_citation(query, docs):
 # 实测：加引用后，faithfulness（见 140 篇）通常提升 10-15 个点
 </code></pre>
 
+
+    <h2 class="section" id="context-engineering"><span class="idx">★</span> 上下文工程：从打包到提示词设计</h2>
+    <p>上下文打包不只是排序和截断，它和提示词设计紧密结合，统称"上下文工程"。这是 RAG 里最考验工程艺术的部分。</p>
+<p><strong>提示词结构</strong>。一个优秀的 RAG prompt 不只是"文档 + 问题 + 回答"，而是有清晰结构：</p>
+<ul>
+<li><strong>角色定义</strong>：让 LLM 扮演专家角色（"你是一个严谨的技术文档助手"），提升答案的专业性。</li>
+<li><strong>约束规则</strong>：明确告诉 LLM 怎么用文档（"只基于提供的文档"、"不确定就说不知道"、"每个事实标注来源"）。</li>
+<li><strong>文档呈现</strong>：用清晰分隔符和编号呈现文档，让 LLM 容易引用（"[文档1] ... [文档2] ..."）。</li>
+<li><strong>问题重述</strong>：把用户问题用清晰的语言重述，避免歧义。</li>
+<li><strong>输出格式</strong>：要求结构化输出（要点列表、引用标注），便于用户阅读和验证。</li>
+</ul>
+<pre><code class="language-python"># 结构化 RAG prompt 模板
+RAG_PROMPT_TEMPLATE = """你是一个严谨的{domain}助手。请基于下面提供的文档回答用户问题。
+
+【回答规则】
+1. 只基于【提供的文档】回答，不要编造文档外的信息。
+2. 如果文档中没有相关信息，直接说"提供的文档中没有相关信息"。
+3. 每个事实性论断后用 [文档N] 标注来源。
+4. 答案要点化，重点突出。
+
+【提供的文档】
+{numbered_docs}
+
+【用户问题】
+{question}
+
+【你的回答】
+"""
+def build_rag_prompt(query, docs, domain="技术"):
+    numbered = "
+
+".join([f"[文档{i+1}] {d}" for i, d in enumerate(docs)])
+    return RAG_PROMPT_TEMPLATE.format(
+        domain=domain, numbered_docs=numbered, question=query)
+</code></pre>
+<p><strong>动态上下文</strong>。不同查询类型的 prompt 应该不同：事实查询用简洁 prompt（要精确）、解释性查询用引导 prompt（要展开）、对比查询用结构 prompt（要分点对比）。Router 在分流时不仅选检索路径，也选 prompt 模板。</p>
+<p><strong>Few-shot 示例</strong>。在 prompt 里加 1-2 个"问题-文档-答案"的示例，能显著提升答案格式和引用质量。但示例要精挑细选，覆盖典型场景，且不能太多（占上下文）。</p>
+<p>上下文工程的核心认知：<strong>检索回来的文档质量再好，prompt 写得烂也白搭</strong>。很多团队花大力气优化检索，却用最简陋的 prompt，效果出不来。prompt 和检索是 RAG 的两条腿，要协同优化。</p>
+
+    <h2 class="section" id="context-fallback"><span class="idx">★</span> 上下文不足时的兜底策略</h2>
+    <p>有时检索回来的上下文确实不够回答问题——可能库里就没相关文档，或检索失误。这时硬让 LLM 答只会幻觉。需要兜底策略。</p>
+<p><strong>置信度判断</strong>。让 LLM（或单独的分类器）判断"基于这些文档能不能回答这个问题"。如果不能，明确告诉用户"我没有足够信息"，而非编造。这比幻觉好得多——用户至少知道要换种问法或找别处。</p>
+<p><strong>追问澄清</strong>。当查询模糊或上下文不足时，LLM 反问用户澄清："你是指 Acme Corp 的 API 还是 SDK？" 这把"答不好"转化为"获取更多信息后再答"，提升最终解决率。</p>
+<p><strong>多轮检索</strong>。第一轮检索不足时，让 LLM 基于已有上下文生成"追问查询"，再检索一轮。这是 Self-RAG / Flare 的思路——动态决定要不要再检索。多轮检索能捞回第一轮漏的相关文档。</p>
+<p><strong>降级到通用知识</strong>。某些场景（如闲聊、常识问题）可以允许 LLM 用通用知识回答，但要明确标注"以下是基于通用知识的回答，未从知识库检索"。这区别于"基于文档的回答"，避免混淆。</p>
+<pre><code class="language-python"># 兜底策略：判断 + 追问 + 多轮检索
+def rag_with_fallback(query, retriever, llm, max_rounds=2):
+    context = []
+    for round_i in range(max_rounds):
+        new_docs = retriever.search(query if round_i==0 else followup_query, k=10)
+        context.extend(new_docs)
+        # 让 LLM 判断能否回答
+        can_answer = llm.judge(query, context)
+        if can_answer.confident:
+            return llm.generate(query, context)
+        if round_i == 0:
+            # 第一轮不足，生成追问查询
+            followup_query = llm.generate_followup(query, context)
+    # 多轮还不行，降级
+    if query_is_factual(query):
+        return "提供的知识库中没有足够信息回答这个问题。"
+    else:
+        return llm.generate_with_disclaimer(query)  # 通用知识 + 免责声明
+</code></pre>
+<p>这些兜底策略让 RAG 系统"知道自己不知道"，避免硬答导致的幻觉。一个成熟的 RAG 系统，处理"答不了"的能力和处理"答得好"的能力一样重要——用户对"诚实地说不知道"的容忍度，远高于对"自信地胡说"的容忍度。</p>
+
+    <h2 class="section" id="context-streaming"><span class="idx">★</span> 流式生成与上下文的动态管理</h2>
+    <p>现代 LLM 支持流式输出（token by token），这改变了上下文管理的思路——不必等所有上下文就绪才开始生成，可以动态填充。</p>
+<p><strong>流式 RAG 的思路</strong>。传统 RAG 是"检索完 → 拼 prompt → 一次性生成"。流式 RAG 可以：先用第一批检索结果（top-3）开始生成，同时后台继续检索更多（top-10）和 rerank。生成过程中如果发现需要更多信息，动态追加。这样用户看到第一个 token 的延迟从"检索+rerank+生成"降到"检索 top-3 + 生成首 token"。</p>
+<p><strong>Speculative RAG</strong>。更激进的流式：用一个快的小 LLM 基于 top-3 快速生成草稿，同时用慢的大 LLM 基于 rerank 后的 top-10 生成。如果两者一致，用草稿（快）；如果不一致，用大 LLM 的（准）。这是借鉴 speculative decoding 的思路，能显著降延迟。</p>
+<pre><code class="language-python"># 流式 RAG：边检索边生成
+async def streaming_rag(query):
+    # 1. 快速检索 top-3，立即开始生成
+    top3 = await quick_retrieve(query, k=3)
+    stream = llm.stream_generate(query, top3)
+    first_chunk = await stream.__anext__()
+    yield first_chunk   # 用户立刻看到首 token
+    # 2. 后台继续 rerank + 补充检索
+    full_context = await rerank_and_expand(query, k=10)
+    # 3. 如果 top3 不够，用 full_context 重新生成剩余部分
+    if needs_more_info(first_chunk, full_context):
+        async for chunk in llm.stream_generate(query, full_context):
+            yield chunk
+    else:
+        async for chunk in stream:
+            yield chunk
+</code></pre>
+<p><strong>上下文的动态追加</strong>。生成过程中 LLM 可能发现"需要某个具体数据"，这时可以中断生成、触发定向检索（用已生成内容作为新查询）、追加到上下文、继续生成。这是 agentic RAG 的雏形——LLM 主动决定何时检索什么。</p>
+<p><strong>上下文窗口的智能分配</strong>。长上下文模型（128K）不代表要把 128K 填满。智能分配：核心证据（rerank top-3）放前 20%、支持信息（top-10）放中间、背景（top-30 摘要）放后。配合 Lost in the Middle 的重排策略（前面讲过），让最重要的信息在注意力强的位置。</p>
+<pre><code class="language-python"># 上下文窗口的智能分配
+def smart_context_packing(ranked_docs, window_tokens=32000):
+    # 分层：核心 / 支持 / 背景
+    core = ranked_docs[:3]           # top-3，最重要
+    support = ranked_docs[3:10]      # top-10，支持
+    background = [summarize(d) for d in ranked_docs[10:30]]  # 摘要
+    # 分配 token 预算：核心 40%、支持 40%、背景 20%
+    core_budget = int(window_tokens * 0.4)
+    support_budget = int(window_tokens * 0.4)
+    bg_budget = window_tokens - core_budget - support_budget
+    # 按预算截断 + 交错重排（核心放两端）
+    packed = interleave_reorder(
+        truncate(core, core_budget) + truncate(support, support_budget) + truncate(background, bg_budget)
+    )
+    return packed
+</code></pre>
+<p>这些动态上下文管理技术是 RAG 的前沿。它们让 RAG 从"静态流水线"变成"动态智能体"，能用更低的延迟、更精准的上下文产出更好的答案。但复杂度也高，适合追求极致体验的成熟系统，初学者先用基础的打包策略。</p>
+
+    <h2 class="section" id="context-cite"><span class="idx">★</span> 上下文中的引用与可追溯性</h2>
+    <p>除了怎么打包上下文，还要考虑怎么让 LLM 在答案中引用来源——可追溯性是 RAG 可信度的关键。</p>
+<p><strong>为什么引用重要</strong>。用户（尤其专业场景）要验证答案。没有引用，用户不知道答案哪来的，不敢信。有引用，用户能点开看原文，建立信任。法律/医疗/金融场景，引用几乎是硬性要求。</p>
+<p><strong>实现引用的方法</strong>。① <strong>编号引用</strong>——上下文里的每块标 [1][2][3]，prompt 要求 LLM 答案里用 [1] 这样的标记引用。这是最常用的方法，简单有效。② <strong>XML 标签</strong>——每块用 &lt;source id="1"&gt;...&lt;/source&gt; 包裹，要求 LLM 输出 &lt;cite&gt;1&lt;/cite&gt;。结构化更强，便于解析。③ <strong>后处理匹配</strong>——不要求 LLM 引用，生成后用文本匹配找出答案句子对应哪些块。鲁棒但实现复杂。</p>
+<pre><code class="language-python"># 编号引用的 prompt 构建
+def build_prompt_with_citations(query, ranked_docs):
+    context = "
+
+".join([f"[{i+1}] {doc.text}" for i, doc in enumerate(ranked_docs)])
+    prompt = f"""基于以下资料回答问题。每个论断后用 [编号] 标注来源。
+
+{context}
+
+问题：{query}
+
+要求：1. 只基于上面资料回答 2. 每个事实论断后用 [编号] 引用 3. 资料不足时说明"""
+    return prompt
+# 解析引用
+def parse_citations(answer):
+    import re
+    return {int(n) for n in re.findall(r'\[(\d+)\]', answer)}
+# 引用覆盖率高的答案更可信，可作为质量信号
+</code></pre>
+<p><strong>引用质量</strong>。LLM 可能乱引用（标了 [1] 但内容其实来自 [3]）。检查方法：把答案的每个引用句子和被引块做相似度匹配，相似度低说明引用错。这能自动检测幻觉引用。</p>
+<p><strong>引用与上下文打包的配合</strong>。打包时给每块清晰的编号/标签，LLM 才能正确引用。如果上下文被打乱或截断，引用编号会错。所以打包策略（重排、截断）要保证块的编号在 prompt 里清晰可数。</p>
+<p><strong>UI 层的引用展示</strong>。答案里的 [1] 要能点击跳转到原文块。这需要前端把引用编号映射回块的元数据（原文、来源文档、页码）。好的引用 UI 让 RAG 从"给答案"升级到"给可信答案"，用户体验质的飞跃。</p>
+<p>引用是 RAG 区别于纯 LLM 的核心价值——<strong>可追溯、可验证</strong>。设计上下文打包时要同步考虑引用机制，让 RAG 的可信度从一开始就内建。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>Lost in the Middle：LLM 对 prompt 中间位置的信息关注度低，呈 U 型曲线，导致中间的文档被忽略。</li>

@@ -444,6 +444,83 @@ if cand:
     </ul>
     <p>但 LSH 不是没价值。它在<strong>理论分析</strong>（次线性时间保证）、<strong>位图指纹去重</strong>（MinHash/_simhash 之于文档）、<strong>海量粗筛</strong>（先 LSH 桶筛再精确）等场景仍有用武之地。理解 LSH 也能帮你理解后续 ScaNN、PQ 这些更现代方法的设计动机。</p>
 
+
+    <h2 class="section" id="lsh-variants"><span class="idx">★</span> LSH 的变体：MinHash、SimHash 与场景适配</h2>
+    <p>前面讲的 p-stable LSH 是为欧氏距离设计的。不同的距离度量需要不同的 LSH 函数族，理解这个对应关系能帮你在特殊场景选对工具。</p>
+<p><strong>Jaccard 距离 → MinHash</strong>。当你的数据是集合（如文档的词集合、用户的兴趣标签集合），相似度用 Jaccard（交集/并集）衡量时，MinHash 是对应的 LSH。原理：对集合做若干次随机哈希，记录每次哈希的最小元素，两个集合的 MinHash 签名相同的概率恰好等于它们的 Jaccard 相似度。MinHash 在大规模文档去重、近义句聚类里仍是经典工具。</p>
+<p><strong>余弦距离 → SimHash</strong>。SimHash（随机超平面 LSH）对余弦相似度敏感：用一组随机超平面把向量投影到 ±1 的比特签名，两个向量签名相同的比特比例反映它们的余弦相似度。SimHash 在网页去重（Google 早期用过）、近似文本检测里广泛使用。</p>
+<p><strong>海明距离 → 比特采样 LSH</strong>。当数据本身已经是二进制签名（如 SimHash 的输出），直接采样若干比特作为哈希，海明距离小的签名大概率采样到相同比特。</p>
+<pre><code class="language-python"># MinHash 文档去重示例
+from datasketch import MinHash, MinHashLSH
+m1 = MinHash(num_perm=128)
+for word in "the quick brown fox jumps".split(): m1.update(word.encode())
+m2 = MinHash(num_perm=128)
+for word in "the quick brown dog runs".split(): m2.update(word.encode())
+print("估计 Jaccard:", m1.jaccard(m2))
+# LSH 索引：把签名相近的文档分到同桶，只对同桶算精确 Jaccard
+lsh = MinHashLSH(threshold=0.5, num_perm=128)
+lsh.insert("doc1", m1); lsh.insert("doc2", m2)
+print("近邻:", lsh.query(m1))
+</code></pre>
+<p>这些变体说明 LSH 是一个<strong>框架</strong>而非单一算法——选对距离度量对应的哈希族，LSH 就能为任意相似度检索提供次线性时间保证。这也是为什么即便主流向量库不用 LSH，理解它仍有价值。</p>
+
+    <h2 class="section" id="lsh-modern"><span class="idx">★</span> 为什么 LSH 的思想在现代系统里仍有回响</h2>
+    <p>虽然纯 LSH 在主流向量库退场，但它的核心思想——"用哈希把相似性检索降维"——在现代系统里以变体形式延续。</p>
+<p>第一个回响是<strong>学习型哈希</strong>。传统 LSH 的哈希函数是随机采样的（p-stable 的 a 是随机高斯），不针对数据优化。学习型哈希用神经网络学哈希函数，让哈希桶更贴合数据分布，召回更高。这其实就是 SPLADE（143 篇）和很多二值哈希网络的思路——它们都可看作"LSH 的学习版"。</p>
+<p>第二个回响是<strong>粗筛加速</strong>。即便用 HNSW 做主检索，有些系统会在前面加一层 LSH 粗筛：先用廉价哈希把候选从亿级缩到百万级，再让 HNSW 精筛。这在大规模广告召回里见过，因为广告库极大、延迟极紧。</p>
+<p>第三个回响是<strong>指纹与去重</strong>。文档/图片/音频的近重复检测，至今仍以 SimHash/MinHash 为主力，因为它们对"完全相同的副本"和"轻微修改的版本"都能稳定检测，且支持海量数据。</p>
+<p>所以理解 LSH 不是为了"用 LSH"，而是为了掌握"相似性哈希"这个工具箱，在合适的场景调出合适的工具。算法会过时，思想不会。</p>
+
+    <h2 class="section" id="lsh-theory-deep"><span class="idx">★</span> LSH 的理论保证：为什么 ρ 决定一切</h2>
+    <p>LSH 的理论优雅在于它有严格的次线性时间保证，理解这个保证能让你看清 LSH 的本质和局限。</p>
+<p>核心定理：对 (r, cr, p1, p2)-敏感的 LSH，经过恰当的 AND/OR 构造（K 和 L 选择），能在 O(d·N^ρ) 时间内以高概率找到 c-近似最近邻，其中 ρ = ln(1/p1) / ln(1/p2) &lt; 1。这个 ρ 是 LSH 的"难度指数"——它由 p1、p2（即哈希函数族对近/远的区分能力）决定，越小越快。</p>
+<p>ρ 的物理意义：N^ρ 是相比暴力 O(N) 的加速比。ρ=0.5 时是 √N 加速（百万数据加速 1000 倍），ρ=0.9 时只有 N^0.9 加速（百万数据加速不到 10 倍）。所以 LSH 的速度完全取决于 ρ，而 ρ 取决于哈希函数族的质量。</p>
+<p>对欧氏距离的 p-stable LSH，ρ ≈ 1/c（c 是近似比）。c=2 时 ρ≈0.5，理论加速明显；c=1.5 时 ρ≈0.7，加速减弱；c 接近 1（要求精确最近邻）时 ρ 接近 1，LSH 退化。这就是 LSH 的根本局限：<strong>它只能做"近似"（c&gt;1），要求越精确加速越弱</strong>。</p>
+<pre><code class="language-python"># 计算不同 c 下的 ρ 和理论加速比
+import numpy as np
+def lsh_rho(c, w=4.0):
+    """p-stable LSH 的 ρ，近似为 1/c"""
+    return 1.0 / c
+for c in [1.1, 1.5, 2.0, 3.0, 5.0]:
+    rho = lsh_rho(c)
+    for N in [10**6, 10**8]:
+        speedup = N ** (1 - rho)
+        print(f"c={c} ρ={rho:.2f}: N={N:.0e} 加速比={speedup:.0f}x")
+# c=2 是 LSH 的甜区：精度可接受，加速明显
+# c 接近 1 时 LSH 失去优势 → 这是它输给 HNSW 的根本原因
+</code></pre>
+<p><strong>和图方法的对比</strong>。HNSW 没有这种"ρ 随 c 变化"的理论保证，但实践里它在 c 接近 1（高召回）时仍很快。这是因为 HNSW 用图的连通性而非概率剪枝，不依赖"近/远的概率差异"。所以 HNSW 在高召回区间碾压 LSH——LSH 的理论保证在高召回时变弱，HNSW 没这个弱点。</p>
+<p>理解了这个理论，就明白为什么"LSH 理论优雅但工程输给图方法"——它的优势区间（c 大、召回要求低）不是主流业务需求，主流需求是高召回（c 接近 1），正好是 LSH 的弱区。但 LSH 的理论框架仍是相似性检索的基石，后续很多算法（包括 ScaNN 的某些分析）都借鉴了它的思路。</p>
+
+    <h2 class="section" id="lsh-modern"><span class="idx">★</span> LSH 思想的现代回响：SimHash 与 MinHash 的工程价值</h2>
+    <p>通用向量检索里 LSH 输给图方法，但 LSH 的特定变体（SimHash、MinHash）在细分场景仍是首选。</p>
+<p><strong>SimHash（Charikar）</strong>。针对"二进制/稀疏特征"的 LSH，输出固定长度的二进制指纹（如 64 bit）。相似文档的 SimHash 指纹汉明距离小。用于：网页去重（Google 早期用）、抄袭检测、近似文档聚类。优势：指纹极小（8 字节），比对极快（XOR + popcount）。这是大规模去重的工业标准。</p>
+<p><strong>MinHash</strong>。针对集合相似度（Jaccard）的 LSH。把集合哈希成多个最小值签名，签名相似度近似 Jaccard。用于：大规模集合去重（如 URL 集、用户行为集）、推荐系统协同过滤。配合 LSH 的 AND/OR 构造，能在海量集合里快速找相似对。</p>
+<pre><code class="language-python"># SimHash 文档去重（经典工程场景）
+import hashlib
+def simhash(text, hashbits=64):
+    """算文档的 SimHash 指纹"""
+    v = [0] * hashbits
+    for feature in text.split():   # 简单用词作特征
+        h = int(hashlib.md5(feature.encode()).hexdigest(), 16)
+        for i in range(hashbits):
+            bitmask = 1 &lt;&lt; i
+            if h & bitmask: v[i] += 1
+            else: v[i] -= 1
+    fingerprint = 0
+    for i in range(hashbits):
+        if v[i] &gt; 0: fingerprint |= (1 &lt;&lt; i)
+    return fingerprint
+def hamming(a, b):
+    x = a ^ b; dist = 0
+    while x: dist += 1; x &= x - 1
+    return dist
+# 海量文档去重：算指纹、按指纹分桶、桶内比汉明距离
+# 比 embedding + 向量检索快几个数量级，且存储极小
+</code></pre>
+<p><strong>为什么这些场景不用向量</strong>。① <strong>相似度定义不同</strong>——去重要的是"几乎相同"（汉明/Jaccard），不是"语义相似"，用 embedding 是杀鸡用牛刀且不准；② <strong>规模极大</strong>——网页去重是百亿级，SimHash 8 字节/文档 vs embedding 几 KB/文档，存储差千倍；③ <strong>比对要极快</strong>——汉明距离一个 CPU 指令，向量距离要 SIMD。</p>
+<p><strong>现代系统的组合用法</strong>。一个大系统里，不同场景用不同方法：语义检索用 HNSW、精确去重用 SimHash、集合相似用 MinHash。不要用一种方法覆盖所有——每种 LSH 变体都有它不可替代的细分场景。</p>
+<p>所以"LSH 过时了"是误解。通用向量检索里图方法赢了，但 SimHash/MinHash 在去重和集合相似场景仍是 SOTA，且短期内不会被替代。理解 LSH 的这个"细分霸主"地位，能让你在对的场景用对工具。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>LSH 的定义是"近的点碰撞概率高、远的低"，形式化为 (r, cr, p1, p2)-敏感，p1&gt;p2。</li>

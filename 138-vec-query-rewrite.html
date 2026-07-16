@@ -467,6 +467,135 @@ print("step-back 问题:", stepback_rewrite(question))
       <li><strong>Decomposition 拆得过细</strong>：一个 query 拆成 10 个子问题，检索成本爆炸。限制最多拆 3-4 个。</li>
     </ul>
 
+
+    <h2 class="section" id="rewrite-multi-turn"><span class="idx">★</span> 多轮对话场景的查询改写</h2>
+    <p>前面讲的 HyDE、Decomposition、Step-back 都是单轮查询的改写。但真实 RAG 很多是多轮对话，用户会说"那个怎么用"、"它支持吗"，充满了指代和省略。多轮改写是另一门学问。</p>
+<p><strong>指代消解</strong>是最基本的多轮改写。把"它"、"那个"替换成上文提到的具体实体。比如：</p>
+<pre><code class="language-text">用户: Acme Corp 的 API 怎么调用？
+系统: [回答]
+用户: 它支持流式输出吗？
+→ 改写: Acme Corp 的 API 支持流式输出吗？</code></pre>
+<p>指代消解的 prompt 要带上最近 2-3 轮对话历史，让 LLM 理解指代关系。这是多轮 RAG 必须做的第一步，不做的话第二轮查询几乎一定召回失败。</p>
+<p><strong>上下文融合</strong>更深一层。有时用户的后续查询不是简单指代，而是基于上文的复杂追问："那相比竞品呢？"——这里"那"指代上文讨论的某个特性，"竞品"是隐含的对比对象。要把这些隐含信息显式化："Acme Corp 的 API 在流式输出方面相比 Competitor X 和 Y 怎么样？"</p>
+<p><strong>对话状态跟踪</strong>是终极形态。维护一个结构化的"对话状态"（用户在问什么主题、关注哪些维度、已确认哪些信息），每次查询基于状态改写。这接近任务型对话系统的做法，复杂但效果最好。</p>
+<pre><code class="language-python"># 多轮指代消解的 prompt
+CONDENSE_PROMPT = """给定下面的对话历史和用户的最新问题，把最新问题改写成一个独立的、不依赖上下文就能理解的完整问题。
+只输出改写后的问题，不要解释。
+
+对话历史：
+{chat_history}
+
+最新问题：{question}
+
+独立问题："""
+
+def condense_question(question, chat_history):
+    resp = client.messages.create(
+        model="claude-3-5-haiku-latest", max_tokens=100,
+        messages=[{"role": "user", "content": CONDENSE_PROMPT.format(
+            chat_history=chat_history, question=question)}])
+    return resp.content[0].text.strip()
+# 这个独立问题再去检索，召回质量比原问题高得多
+</code></pre>
+<p>多轮改写的成本意识：每次查询都调一次 LLM 改写有延迟和成本。可以用规则快速判断"这个问题是否需要改写"——如果包含明确实体且无指代词，跳过改写；有指代词或太短才触发 LLM 改写。这能省 50% 的改写调用。</p>
+
+    <h2 class="section" id="rewrite-eval"><span class="idx">★</span> 查询改写效果的评估与调优</h2>
+    <p>加了查询改写后怎么知道有没有效果？不能只看"感觉变好了"，要量化评估。</p>
+<p><strong>评估方法一：端到端 recall 提升</strong>。构建一个评测集，对比"原 query 检索的 recall@k"和"改写后 query 检索的 recall@k"。如果改写有效，recall 应该提升。这是最直接的评估。</p>
+<p><strong>评估方法二：改写质量人工评分</strong>。随机抽 100 个改写结果，人工判断"改写是否合理"（1-5 分）。这能发现 LLM 改写跑偏的问题（如 HyDE 生成的假设答案完全错误）。</p>
+<p><strong>评估方法三：A/B 测试</strong>。线上分流量，一半用改写一半不用，对比用户满意度（点赞率、追问率、解决率）。这是最终评判，但周期长。</p>
+<pre><code class="language-python"># 改写效果评估：对比 recall
+def eval_rewrite(rewrite_fn, eval_set, index, k=10):
+    """eval_set: [(original_query, ground_truth_doc_ids)]"""
+    recalls_orig, recalls_rewrite = [], []
+    for q, gt in eval_set:
+        # 原查询
+        hits_orig = index.search(embed(q), k=k)
+        r_orig = len(set(hits_orig) & set(gt)) / k
+        # 改写后
+        rewritten = rewrite_fn(q)
+        hits_rw = index.search(embed(rewritten), k=k)
+        r_rw = len(set(hits_rw) & set(gt)) / k
+        recalls_orig.append(r_orig); recalls_rewrite.append(r_rw)
+    print(f"原查询 recall@{k}: {np.mean(recalls_orig):.3f}")
+    print(f"改写后 recall@{k}: {np.mean(recalls_rewrite):.3f}")
+    print(f"提升: {np.mean(recalls_rewrite)-np.mean(recalls_orig):+.3f}")
+</code></pre>
+<p>调优经验：改写不是万能的，对简单精确查询（如"Acme Corp"）改写可能反而跑偏、降低 recall。所以 Router 判断很关键——只对"该改写的查询"改写。一个简单规则：query &lt; 10 字符或包含代词（它/那/这）才触发改写，长且明确的查询直接用。</p>
+<p>最后，改写策略本身要持续迭代。上线后收集失败 case（改写后 recall 反而下降的），分析原因（HyDE 假设答案离谱？Decomposition 拆错？），针对性调 prompt 或加规则约束。改写是 RAG 里最容易"过度优化"的环节——加得越多不一定越好，要克制。</p>
+
+    <h2 class="section" id="rewrite-router"><span class="idx">★</span> 查询改写的路由：什么时候改写、改写成什么</h2>
+    <p>前面讲了三种改写策略，但实战中最大的挑战是"<strong>什么时候该改写、该用哪种</strong>"。盲目改写会让简单查询变复杂、增加延迟。需要一个智能的路由机制。</p>
+<p><strong>改写触发的判断信号</strong>。什么时候查询需要改写？几个信号：</p>
+<ul>
+<li>查询过短（&lt;5 字符）——信息量不足，可能需要扩展（HyDE）。</li>
+<li>包含代词（它/那/这）——多轮指代，需要消解。</li>
+<li>包含"对比/总结/列举"——多跳/汇总，可能需要 Decomposition。</li>
+<li>检索召回率低（先试一次原查询，recall 低于阈值）——需要改写提升召回。</li>
+<li>包含很具体的实体（错误码、ID）但第一次没召回——可能需要 Step-back 找背景。</li>
+</ul>
+<pre><code class="language-python"># 查询改写的智能路由
+def smart_rewrite_router(query, chat_history, retrieval_index):
+    # 1. 先试原查询
+    q_vec = embed(query)
+    initial_hits = retrieval_index.search(q_vec, k=10)
+    initial_confidence = initial_hits[0].score if initial_hits else 0
+    # 2. 按信号判断是否改写
+    if len(query) &lt; 5 or has_pronoun(query):
+        return condense_question(query, chat_history)   # 指代消解
+    if any(kw in query for kw in ["对比", "总结", "分别", "列举"]):
+        return decompose_and_recompose(query)            # 拆解
+    if initial_confidence &lt; 0.5:                         # 原查询召回差
+        if is_too_specific(query):
+            return stepback_rewrite(query)               # 太具体 → 抽象
+        else:
+            return hyde_rewrite(query)                    # 一般 → HyDE
+    # 3. 原查询够好，不改写
+    return query
+</code></pre>
+<p><strong>多策略组合</strong>。复杂查询可能需要多种改写组合。比如"对比 Acme 和 Competitor 在 2024 年的云服务营收增长"——既要 Decomposition（拆成多个子查询），又对每个子查询用 HyDE（提升召回）。组合时要注意成本：每个子查询的 HyDE 是一次 LLM 调用，4 个子查询就是 4 次，要权衡。</p>
+<p><strong>改写的失败兜底</strong>。改写可能跑偏（LLM 理解错），比原查询更差。对策：改写后同时检索原查询和改写查询，合并结果（RRF 融合）。这样即便改写跑偏，原查询的结果还在，不会比不改写差。这是个稳健的工程实践。</p>
+<pre><code class="language-python"># 改写 + 原查询融合（稳健做法）
+def rewrite_with_fallback(query, chat_history, index):
+    rewritten = smart_rewrite_router(query, chat_history, index)
+    if rewritten == query:
+        return index.search(embed(query), k=10)
+    # 改写后：两路检索 + RRF 融合
+    orig_hits = index.search(embed(query), k=50)
+    rewrite_hits = index.search(embed(rewritten), k=50)
+    return rrf_fusion([orig_hits, rewrite_hits], top_n=10)
+# 即便改写跑偏，原查询兜底，整体不会比不改写差
+</code></pre>
+<p><strong>改写的 A/B 评估</strong>。改写策略上线前必须 A/B 测试：一部分流量用改写，一部分不用，对比 recall 和最终答案质量。我见过改写在某些数据集上提升 15%，在另一些上反而降 5%——非常依赖查询分布。不要假设改写总是有效，要数据说话。</p>
+<p>这个路由思维——"按信号判断、组合策略、兜底融合、A/B 验证"——把查询改写从"无脑上 HyDE"变成"智能按需"。生产 RAG 系统的查询改写层通常是这样的复杂决策系统，而非单一策略。</p>
+
+    <h2 class="section" id="rewrite-few-shot"><span class="idx">★</span> 查询改写的 Few-shot 示例工程</h2>
+    <p>查询改写用 LLM，few-shot 示例的质量决定改写质量。怎么构建好的示例库？</p>
+<p><strong>Few-shot 示例的作用</strong>。给 LLM 几个"原查询 → 改写查询"的例子，让它学会改写模式。好的示例能：① 规范改写格式（避免 LLM 自由发挥跑偏）；② 传递业务特定的改写逻辑（如某领域的术语归一化）；③ 提升一致性（同样查询每次改写接近）。</p>
+<p><strong>示例库的构建</strong>。来源：① 人工编写（高质量、针对业务）；② 从成功 case 挖（改写后 recall 提升的查询，自动收集）；③ LLM 合成 + 人工筛选。示例要覆盖各种查询类型（短查询、多跳查询、含代词查询、领域术语查询），每个类型 3-5 个例子。</p>
+<pre><code class="language-python"># 动态 few-shot：按查询类型选最相关的示例
+class FewShotRewriter:
+    def __init__(self, example_store):
+        # example_store: 按类型分类的示例库
+        self.store = example_store
+    def rewrite(self, query, chat_history):
+        # 1. 判断查询类型
+        qtype = classify_query(query)   # multi_hop / pronoun / domain / short
+        # 2. 选该类型最相关的 3 个示例（按相似度）
+        examples = self.select_relevant(query, qtype, k=3)
+        # 3. 构建 few-shot prompt
+        prompt = self.build_prompt(query, examples, chat_history)
+        return llm.generate(prompt)
+    def select_relevant(self, query, qtype, k):
+        """从示例库选 k 个最相似的示例"""
+        candidates = self.store[qtype]
+        scored = [(similarity(query, ex["input"]), ex) for ex in candidates]
+        scored.sort(reverse=True)
+        return [ex for _, ex in scored[:k]]
+</code></pre>
+<p><strong>动态示例选择（ retrieval-augmented few-shot）</strong>。不固定用同一组示例，而是按当前查询从示例库检索最相关的几个。这让 few-shot 对各种查询都精准。示例库本身做成一个小向量库（用 embedding 检索相似示例），这是"用检索优化 prompt 工程"的元应用。</p>
+<p><strong>示例的维护</strong>。示例库要随业务演进——新术语、新查询模式出现时加新示例。定期审查老示例是否还有效（业务变了，某些示例可能误导）。把示例库当代码维护，版本管理、评审。</p>
+<p><strong>避免过拟合示例</strong>。示例太多或太特定，LLM 会机械模仿而非理解。原则：示例精（每类型 3-5 个够）、泛（示例覆盖模式而非具体查询）、新（定期更新）。一个好的示例库能让改写质量提升 10-20%，是查询改写工程的高 ROI 投入。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>原始 query 经常不适合直接检索：口语化、指代、问题/文档句式不匹配、复杂多跳、太具体或太抽象。</li>

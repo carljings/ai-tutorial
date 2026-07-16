@@ -416,6 +416,125 @@ assert all(categories[i] == 2 for row in I for i in row if i >= 0)
       <li><strong>忘记放大 ef/nprobe</strong>：开了 in-filter 还用默认参数，低命中率时召回会掉，要把 efSearch 或 nprobe 适当调大补偿。</li>
     </ul>
 
+
+    <h2 class="section" id="filter-advanced"><span class="idx">★</span> 过滤的进阶：复杂条件与多租户</h2>
+    <p>真实业务的过滤条件往往不是简单的等值，而是复杂组合，处理不好会让前面选的策略失效。</p>
+<p><strong>区间过滤</strong>（如价格 100-500、时间 2024-Q3）。最直接的做法是离散化：把连续值预先分桶（按月、按价格段），转成等值过滤。这样能用 bitset 高效表达。不分桶直接范围扫的话，bitset 要遍历整个区间构建，开销大。Milvus/Qdrant 都支持原生范围过滤，内部就是分桶 + bitset。</p>
+<p><strong>多条件组合</strong>（AND/OR/NOT）。bitset 天然支持集合运算：AND 是交集、OR 是并集、NOT 是补集。所以多条件组合可以分解成多个单条件 bitset 的布尔运算。但嵌套太深的组合（如 (A AND B) OR (NOT C AND D)）会让 bitset 运算开销累积，建议在数据建模阶段尽量简化过滤条件。</p>
+<p><strong>多租户</strong>是过滤的高频场景。SaaS 系统里每个租户的数据要严格隔离，每次查询都带 tenant_id 过滤。如果用 in-filter，命中率 = 1/租户数，大租户场景命中率极低、QPS 崩。正确做法是<strong>按租户分库存</strong>：每个租户一个独立 collection/索引，物理隔离，查询时直接路由到对应库，完全绕过过滤。这是多租户向量库的标准架构。</p>
+<pre><code class="language-python"># 多租户分库架构
+class MultiTenantVectorStore:
+    def __init__(self):
+        self.tenant_indexes = {}   # tenant_id -> vector_index
+
+    def ensure_tenant(self, tenant_id):
+        if tenant_id not in self.tenant_indexes:
+            self.tenant_indexes[tenant_id] = build_hnsw_index()
+        return self.tenant_indexes[tenant_id]
+
+    def insert(self, tenant_id, vec, doc_id):
+        idx = self.ensure_tenant(tenant_id)
+        idx.add(vec, doc_id)       # 直接入对应租户的库
+
+    def search(self, tenant_id, q, k):
+        idx = self.tenant_indexes.get(tenant_id)
+        if idx is None: return []
+        return idx.search(q, k)    # 无需过滤，物理隔离
+</code></pre>
+<p>这个架构把"过滤"问题转化成"路由"问题，从根本上避开了低命中率陷阱。代价是租户多时索引数量膨胀（每个索引有固定开销），小租户场景要合并。一个折中：大租户独立库，小租户共享库 + tenant_id 过滤。</p>
+
+    <h2 class="section" id="filter-perf"><span class="idx">★</span> 过滤性能的量化分析与调优</h2>
+    <p>开了 in-filter 后性能到底怎么样，需要量化分析。核心指标是"有效候选率"：过滤命中的候选数 / 遍历的候选数。这个比率越低，说明为了凑够 k 个满足条件的，索引要遍历越多无效候选，QPS 越低。</p>
+<p>实测规律（HNSW + in-filter，N=1000万）：命中率 50% 时 QPS 几乎无损；10% 时 QPS 掉 30%；1% 时 QPS 掉 70%；0.1% 时 QPS 掉 90% 且 P99 抖动严重。这说明 in-filter 在 1% 以上可用，更低就要考虑分库。</p>
+<p>调优手段：① 增大 efSearch（让索引遍历更广，补偿过滤造成的候选流失），代价是 QPS 进一步下降；② 把高选择性过滤条件前置（先过滤掉大部分，再做向量检索）；③ 用分库把低命中率场景拆成高命中率子场景。</p>
+<pre><code class="language-python"># 量化过滤对性能的影响
+def benchmark_filter(idx, xq, allowed_ratios, k=10):
+    """allowed_ratios: 不同过滤命中率"""
+    for ratio in allowed_ratios:
+        allowed = set(np.random.choice(N, int(N*ratio), replace=False))
+        selector = build_selector(allowed)
+        idx.hnsw.efSearch = 64
+        t0 = time.time()
+        D, I = idx.search_with_filter(xq, k, selector)
+        qps = len(xq) / (time.time()-t0)
+        recall = compute_recall(I, gt, k, allowed)
+        print(f"命中率 {ratio*100:5.1f}%: QPS={qps:.0f} recall={recall:.3f}")
+benchmark_filter(idx, xq, [1.0, 0.5, 0.1, 0.01, 0.001])
+</code></pre>
+<p>这个量化分析能帮你判断"这个过滤场景该用 in-filter 还是分库"。没有数据支撑的选型都是拍脑袋。</p>
+
+    <h2 class="section" id="filter-realworld"><span class="idx">★</span> 真实业务的复杂过滤场景与方案</h2>
+    <p>前面讲了三种基础过滤策略，真实业务的过滤更复杂，需要组合方案。</p>
+<p><strong>场景一：时序数据 + 时间窗过滤</strong>。日志、新闻、交易类数据要按时间窗过滤（"最近 7 天"、"2024 年 Q3"）。方案：按时间分库（月库、季度库），查询时直接路由到对应时间库，绕过过滤。这是时序向量库（如 Pinecone 的 namespace、Milvus 的 partition）的标准设计。</p>
+<p><strong>场景二：用户权限过滤</strong>。企业知识库要按用户权限过滤（用户只能看自己部门或授权的文档）。方案：把权限标签作为元数据，查询时带权限过滤。权限场景的过滤命中率通常 1-10%，用 in-filter 配合 bitset。要注意权限变更的及时性——用户权限变了，缓存的过滤结果要失效。</p>
+<p><strong>场景三：多维度组合过滤</strong>。电商场景"品牌=X 且 价格 100-500 且 类别=Y 且 有货"。这种多维组合的 bitset 要做交集，且范围条件要预分桶。实测：3 维以上组合过滤的 QPS 会显著下降，要权衡——要么简化过滤（去掉低选择性维度），要么预计算常见组合的候选集。</p>
+<pre><code class="language-python"># 多维组合过滤的优化：预计算常见组合
+class MultiDimFilterIndex:
+    def __init__(self):
+        self.main_index = build_hnsw()       # 主向量索引
+        self.prefilter_cache = {}            # 常见过滤组合的候选集缓存
+    def search(self, query, filters, k=10):
+        cache_key = hash(sorted(filters.items()))
+        if cache_key in self.prefilter_cache:
+            # 常见组合：用预计算的候选集
+            candidates = self.prefilter_cache[cache_key]
+            return rerank_in_subset(query, candidates, k)
+        # 罕见组合：in-filter
+        return self.main_index.search_with_filter(query, k, build_selector(filters))
+    def warmup_cache(self, common_filter_combos):
+        """离线预计算常见组合的候选集"""
+        for combo in common_filter_combos:
+            candidates = scan_all_match(combo)  # 全扫一次
+            self.prefilter_cache[hash(sorted(combo.items()))] = candidates
+</code></pre>
+<p><strong>场景四：否定过滤</strong>。"排除某个类别"、"不含某个关键词"。bitset 的补集运算开销大（要遍历全集）。优化：把否定转成肯定（"非 A 类"转成"在 B,C,D 类"），用正向过滤。这要求类别体系设计时要考虑查询模式。</p>
+<p><strong>场景五：模糊过滤</strong>。"价格 100 左右"（允许 ±20）。方案：把价格离散化成桶（80-120 一个桶），过滤时取目标桶及相邻桶。这把模糊过滤转成精确过滤，工程上可控。</p>
+<p>这些场景说明过滤不是孤立问题，它和数据建模、分库策略、查询模式紧密相关。好的过滤设计要在数据建模阶段就考虑，而非上线后硬补。一个设计良好的分库（按租户/时间/类别）能把 80% 的复杂过滤简化成路由问题。</p>
+
+    <h2 class="section" id="filter-memory"><span class="idx">★</span> 向量过滤的内存与索引开销分析</h2>
+    <p>过滤不是免费的，它有内存和索引开销，设计时要算清楚这笔账。</p>
+<p><strong>元数据存储开销</strong>。每个向量要存它的属性（类别、时间、价格等）。10 亿向量 × 10 个属性 × 平均 20 字节 = 200GB 元数据。这不比向量本身小。优化：属性用紧凑编码（枚举用 int、时间用 timestamp、布尔用 bit）；高频过滤属性建倒排；低频属性只在需要时加载。</p>
+<p><strong>过滤索引开销</strong>。in-filter 需要属性倒排（每个属性值 → 满足的向量 ID 列表）。一个有 1000 个值的类别属性，要存 1000 个 ID 列表。用 roaring bitmap 压缩能省 5-10 倍内存。但属性越多、过滤维度越多，索引开销越大。</p>
+<pre><code class="language-python"># 过滤索引的内存估算
+def estimate_filter_memory(n_vectors, n_attrs, avg_values_per_attr):
+    """估算过滤索引内存"""
+    total_ids = n_vectors * n_attrs  # 总 ID 引用数
+    # roaring bitmap 压缩后约 2-5 字节/ID
+    bitmap_bytes = total_ids * 3
+    # 属性值倒排的键开销
+    keys_bytes = n_attrs * avg_values_per_attr * 50  # 键+元数据
+    total = bitmap_bytes + keys_bytes
+    return total
+mem = estimate_filter_memory(n_vectors=10**8, n_attrs=8, avg_values_per_attr=50)
+print(f"1亿向量×8属性的过滤索引: {mem/1e9:.1f}GB")
+# 这是个不小的开销，设计时要把过滤索引纳入内存预算
+</code></pre>
+<p><strong>构建时间开销</strong>。建过滤索引（倒排、bitset）要扫全量数据一遍。10 亿向量建索引要几小时。增量数据要更新索引——roaring bitmap 支持高效增量更新，但属性值变化（商品换类目）要删旧加新，开销大。</p>
+<p><strong>设计取舍</strong>。不是所有属性都值得建索引。原则：① 高频过滤属性（类别、租户）建索引；② 低频或高基数属性（如唯一 ID）不建索引，用 post-filter；③ 范围属性（价格、时间）预分桶后建索引。按 80/20 原则——20% 的属性覆盖 80% 的过滤需求，只给这 20% 建索引。</p>
+
+    <h2 class="section" id="filter-anti-patterns"><span class="idx">★</span> 向量过滤的反模式与避坑</h2>
+    <p>过滤有几个常见反模式，踩了就性能崩或结果错。</p>
+<p><strong>反模式一：对高基数属性用 post-filter</strong>。如对"用户 ID"（千万级唯一值）做 post-filter，过滤后命中率极低（0.001%），要放大 K 到百万级才能凑够 top-10，QPS 崩。对策：高基数属性用分库（按用户 ID 哈希分片），查询路由到对应分库，绕过过滤。</p>
+<p><strong>反模式二：运行时计算过滤条件</strong>。如过滤"价格 &gt; 平均价格"，每次查询实时算平均。这不只慢，还不可复现（平均随数据变）。对策：预计算并物化（存"是否高于平均"的布尔属性），过滤用物化属性。</p>
+<p><strong>反模式三：OR 条件用 bitset 并集爆炸</strong>。如"类别=A OR 类别=B OR ... OR 类别=Z"（26 个类别），bitset 并集后候选集几乎等于全集，过滤没起到剪枝作用。对策：转成"类别 IN (A,...,Z)"的成员判断，或反过来用"排除法"（排除不在列表的）。</p>
+<pre><code class="language-python"># 过滤反模式的检测与修复建议
+def check_filter_anti_pattern(filters, stats):
+    issues = []
+    for attr, cond in filters.items():
+        cardinality = stats[attr]["unique_values"]
+        selectivity = stats[attr]["avg_selectivity"]
+        if cardinality > 100000 and cond["type"] == "post_filter":
+            issues.append(f"{attr} 高基数({cardinality})用 post-filter，建议分库")
+        if selectivity > 0.5:
+            issues.append(f"{attr} 选择率{selectivity:.0%}过高，过滤无剪枝效果")
+        if cond.get("runtime_compute"):
+            issues.append(f"{attr} 运行时计算，建议物化预计算")
+    return issues
+# 上线前跑一遍检查，能避免大多数过滤性能事故
+</code></pre>
+<p><strong>反模式四：忽略时区/时间的过滤</strong>。如过滤"创建时间在 2024-01-01 之后"，但时间戳存的是 UTC、查询用本地时区，差几小时导致边界文档漏掉或重复。对策：时间统一存 UTC、查询时显式转换，边界用闭区间明确。</p>
+<p><strong>反模式五：过滤条件依赖外部状态</strong>。如过滤"库存&gt;0"，但库存实时变，缓存的过滤结果可能过期（查的时候有货，用的时候没了）。对策：对时效敏感的属性，过滤不做缓存或短 TTL，或用 post-filter 实时校验。</p>
+<p>这些反模式说明过滤不是"加个 where 条件"那么简单。设计过滤要考虑基数、选择率、时效性、物化成本。上线前用上面的检查清单过一遍，能避免大部分性能事故。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>向量 + 属性过滤有三种策略：post-filter（最简单，低命中率塌方）、pre-filter（召回稳但实现重）、in-filter（主流，把过滤嵌进图遍历）。</li>

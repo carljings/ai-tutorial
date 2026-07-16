@@ -501,6 +501,121 @@ benchmark(idx, "efSearch", [16, 32, 64, 128, 256],
 # 输出一张表，按业务需要的 recall 下限选最优 efSearch
 </code></pre>
 
+
+    <h2 class="section" id="benchmark-design"><span class="idx">★</span> 设计自己的 benchmark：数据集与场景设计</h2>
+    <p>自建 benchmark 不是随便跑跑，要设计得能反映真实场景。几个设计要点。</p>
+<p><strong>数据集的真实性</strong>。最理想是用你自己的业务 embedding 和真实查询。退而求其次，用和业务相近的公开数据集：文本检索用 BEIR 的子集、代码检索用 CodeSearchNet、多语言用 MIRACL。不要用 SIFT/GIST 这种图像特征数据集测文本 RAG——分布差太远，结果没参考价值。</p>
+<p><strong>查询集的多样性</strong>。查询要覆盖真实场景的各种类型：事实查询、对比查询、模糊查询、长尾词查询、多跳查询。只测事实查询会让 benchmark 偏向某类算法（如精确匹配强的）。建议按业务真实查询的分布抽样。</p>
+<p><strong>规模梯度</strong>。不要只测一个规模。测 10 万、100 万、1000 万三档，看算法在不同规模下的表现变化。有些算法小规模强、大规模崩（如 HNSW 的内存），有些相反。</p>
+<p><strong>过滤场景</strong>。如果你的业务有属性过滤（绝大多数有），一定要测过滤场景下的性能。很多算法无过滤时很强，加了过滤就崩。</p>
+<pre><code class="language-python"># 设计覆盖多场景的 benchmark
+def design_benchmark(business_data, query_types):
+    scenarios = []
+    # 1. 不同规模
+    for scale in [100_000, 1_000_000, 10_000_000]:
+        data = business_data.sample(scale)
+        # 2. 不同查询类型
+        for qtype, queries in query_types.items():
+            # 3. 有/无过滤
+            for filter_ratio in [1.0, 0.1, 0.01]:   # 无过滤、10%、1% 命中
+                scenarios.append({
+                    "scale": scale, "query_type": qtype,
+                    "filter_ratio": filter_ratio,
+                    "data": data, "queries": queries,
+                })
+    return scenarios
+# 跑所有场景，画矩阵图，看算法在哪个场景强/弱
+</code></pre>
+<p><strong>评估指标的全面性</strong>。不只看 recall@k 和 QPS，还要看：P99 延迟（长尾体验）、内存占用（成本）、构建时间（迭代速度）、索引大小（存储成本）。一个算法 recall 高但 P99 抖，可能不适合在线服务。</p>
+<p><strong>可复现性</strong>。benchmark 要能复现：固定随机种子、记录硬件配置、版本号、参数档位。否则结果不可比较，调优就失去依据。建议把 benchmark 脚本和数据集版本一起管理（git + DVC）。</p>
+
+    <h2 class="section" id="benchmark-pitfalls"><span class="idx">★</span> benchmark 的常见误读与陷阱</h2>
+    <p>即便跑了 benchmark，结果也可能误导。几个常见陷阱要警惕。</p>
+<p><strong>陷阱一：单点比较</strong>。只比一个参数档位（如 HNSW efSearch=64 vs IVF nprobe=16）就下结论。正确做法是扫参数画曲线比，因为不同算法的最优档位不同，单点比可能恰好比的 unfavorably。</p>
+<p><strong>陷阱二：忽略硬件差异</strong>。在自己机器测 HNSW，在论文里抄 ScaNN 数据，对比不公平。ScaNN 对 AVX-512 优化深，老 CPU 上表现差；HNSW 对缓存敏感，大内存机器上更强。必须同一硬件对比。</p>
+<p><strong>陷阱三：数据分布偏差</strong>。用均匀随机数据测，结果和真实业务差很远。真实 embedding 往往高度聚簇（同类内容挤在一起），这种分布下不同算法表现可能反转。一定要用真实数据测。</p>
+<p><strong>陷阱四：忽略查询分布</strong>。benchmark 的查询如果都是"容易的"（明确、有明确答案），会高估所有算法。真实查询里有大量"难的"（模糊、长尾、多跳），这些查询才是区分算法的关键。查询集要包含足够比例的难查询。</p>
+<p><strong>陷阱五：过度优化 benchmark</strong>。在 benchmark 上调到最优，上线后效果没变好——因为 benchmark 和线上分布有差异。对策：定期用线上真实流量回放更新 benchmark，保持它和线上一致。</p>
+<pre><code class="language-python"># 避免 benchmark 陷阱的检查清单
+benchmark_checklist = [
+    "□ 扫参数画曲线，而非单点比较",
+    "□ 同一硬件、同一数据集对比",
+    "□ 用真实业务数据，非均匀随机",
+    "□ 查询集含足够比例的难查询",
+    "□ 测了过滤场景（如业务有过滤）",
+    "□ 看了 P99 延迟，不只平均",
+    "□ 考虑了内存/构建时间，不只 recall/QPS",
+    "□ benchmark 定期用线上流量更新",
+]
+for item in benchmark_checklist: print(item)
+</code></pre>
+<p><strong>正确态度</strong>。benchmark 是工具不是真理。它的作用是"<strong>排除明显差的选项</strong>"和"<strong>量化权衡</strong>"，而非"<strong>给出唯一最优解</strong>"。最终选型要结合 benchmark 数据 + 业务约束 + 团队能力综合判断。一个 benchmark 第三名但团队熟悉的算法，可能比 benchmark 第一名但没人会维护的算法更适合你。</p>
+<p>这种务实态度能让 benchmark 真正发挥作用，而非成为"为了好看的数字而调参"的形式主义。评估的最终目的是决策，不是数字本身。</p>
+
+    <h2 class="section" id="benchmark-vector-db"><span class="idx">★</span> 主流向量库产品的 benchmark 对比与解读</h2>
+    <p>VectorDBBench 跑出来的产品对比怎么解读？看几个关键维度和常见误读。</p>
+<p><strong>关键对比维度</strong>。看向量库 benchmark 不要只看 recall 和 QPS，要综合：</p>
+<ul>
+<li><strong>加载/构建时间</strong>：亿级数据建索引要多久。Milvus 较快，Qdrant 中等，DiskANN 慢。</li>
+<li><strong>并发 QPS</strong>：多客户端并发下的真实吞吐。Qdrant 单机并发强，Milvus 分布式扩展好。</li>
+<li><strong>延迟分布</strong>：P99/P999 长尾。Weaviate P99 抖动较大，Milvus/Qdrant 较稳。</li>
+<li><strong>过滤性能</strong>：带属性过滤时表现。这是产品差异最大的维度——有些库过滤后崩，有些稳。</li>
+<li><strong>资源效率</strong>：每 QPS 的 CPU/内存消耗。影响成本。</li>
+</ul>
+<pre><code class="language-text">主流向量库产品对比（VectorDBBench 风格，示意）
+┌──────────┬────────┬────────┬────────┬──────────┬────────────────┐
+│ 产品     │ QPS    │ P99延迟 │ 过滤QPS│ 构建时间 │ 强项           │
+├──────────┼────────┼────────┼────────┼──────────┼────────────────┤
+│ Milvus   │ 高     │ 稳     │ 中     │ 快       │ 分布式、大规模 │
+│ Qdrant   │ 极高   │ 极稳   │ 高     │ 中       │ 单机性能、过滤 │
+│ Weaviate │ 中高   │ 抖     │ 中     │ 中       │ 混合检索、模块 │
+│ pgvector │ 中     │ 稳     │ 高     │ 快       │ PostgreSQL集成 │
+│ Chroma   │ 低中   │ 中     │ 低     │ 快       │ 轻量、原型     │
+│ ES       │ 中     │ 中     │ 极高   │ 慢       │ BM25、生态     │
+└──────────┴────────┴────────┴────────┴──────────┴────────────────┘</code></pre>
+<p><strong>常见误读</strong>：</p>
+<ul>
+<li><strong>"QPS 最高的最好"</strong>——错。QPS 高但 P99 抖，在线服务体验差。要看延迟分布。</li>
+<li><strong>"recall 最高的最好"</strong>——错。recall 99% 但构建要 10 小时，迭代慢。要综合构建时间。</li>
+<li><strong>"benchmark 第一的就选它"</strong>——错。benchmark 用通用数据，你的业务分布可能不同。要自测。</li>
+<li><strong>"过滤 QPS 不重要"</strong>——大错。绝大多数业务有过滤，过滤性能差的产品上线就崩。</li>
+</ul>
+<p><strong>按场景选型</strong>：</p>
+<ul>
+<li>大规模 + 分布式 + 团队能运维 → Milvus</li>
+<li>单机高性能 + 强过滤 + 简单部署 → Qdrant</li>
+<li>已有 PostgreSQL + 中等规模 → pgvector（最少引入新组件）</li>
+<li>已有 ES + 关键词为主 → Elasticsearch</li>
+<li>原型/小规模 + 快速迭代 → Chroma（轻量）</li>
+<li>混合检索 + 模块化 → Weaviate</li>
+</ul>
+<p><strong>自测的重要性</strong>。VectorDBBench 的结果用通用数据，你的业务数据分布可能让排名反转。务必用自己数据在 2-3 个候选库上跑同样的 benchmark，再决策。这比看任何榜单都靠谱。144 篇前面讲了自建 benchmark 的方法，这里强调：<strong>选向量库一定要自测，榜单只是起点</strong>。</p>
+<p><strong>长期考量</strong>。选向量库不只是选当下的性能，还要看：① 社区活跃度（Milvus/Qdrant 活跃，bug 修复快）；② 生态成熟度（连接器、监控、文档）；③ 升级路径（数据迁移成本）。一个当下第二但生态成熟的库，可能比当下第一但小众的库更适合长期投入。</p>
+
+    <h2 class="section" id="benchmark-data-prep"><span class="idx">★</span> Benchmark 数据集的准备与质量管理</h2>
+    <p>benchmark 的质量很大程度取决于数据集。怎么准备和管理高质量的 benchmark 数据集？</p>
+<p><strong>查询集的代表性</strong>。benchmark 用的查询要反映真实业务分布。来源：① 真实查询日志（去敏后）；② 人工构造（覆盖各种查询类型）；③ LLM 合成（量大但可能偏离真实）。最佳是真实查询日志采样 + 人工补充边缘 case。几百到几千条查询够用，贵精不贵多。</p>
+<p><strong>ground truth 的质量</strong>。recall@k 依赖准确的 ground truth。获取方法：① 全量暴力检索（最准但慢，大库不可行）；② 人工标注（贵）；③ 多算法交叉（用多个 ANN 算法各自召回 top-k，并集作为近似 ground truth）。第三种实用——HNSW + IVF + 暴力的并集，漏真近邻的概率低。</p>
+<pre><code class="language-python"># 多算法交叉生成近似 ground truth
+def build_ground_truth(data, queries, k=100):
+    # 三个不同算法各自召回
+    gt_hnsw = hnsw_search(data, queries, k*3)
+    gt_ivf = ivf_search(data, queries, k*3, nprobe=128)
+    gt_brute = brute_force_sample(data, queries, k*3, sample_ratio=0.1)
+    # 并集 + 暴力精排
+    gt = []
+    for i in range(len(queries)):
+        union = set(gt_hnsw[i]) | set(gt_ivf[i]) | set(gt_brute[i])
+        # 对并集做暴力精排取 top-k
+        dists = [(dist(data[q_idx], queries[i]), idx) for idx in union]
+        dists.sort()
+        gt.append([idx for _, idx in dists[:k]])
+    return gt
+# 这样漏真近邻的概率远低于单算法
+</code></pre>
+<p><strong>数据集的版本管理</strong>。数据集要和代码一起 git，每次改动记录原因。数据集变了（加查询、改 ground truth），历史 benchmark 结果不能直接比——要在同一数据集版本上对比。用数据集 hash 标记版本。</p>
+<p><strong>评估集的隔离</strong>。benchmark 数据集不能用于调参（否则过拟合 benchmark）。要有独立的调参集和评估集。调参集用来选参数，评估集只用来报告最终指标。这是机器学习的 ABC，但 RAG 实践里常被忽略。</p>
+<p><strong>数据分布监控</strong>。业务数据会变（新术语、新内容），benchmark 数据集要定期更新以反映新分布。但不频繁更新（成本高、历史不可比）。折中：核心查询集稳定，定期加新查询反映变化。</p>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>recall@k = |ANN top-k ∩ 真实 top-k| / k，是 ANN 评估的基石。注意 k/距离/查询独立/样本量四个细节，否则数字虚高。</li>
