@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>模型注册与版本管理 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>模型注册与版本管理 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -245,7 +252,7 @@
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
       <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
       <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
-      <a href="213-mlops-model-registry.html" class="active" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
+      <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
       <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
@@ -295,17 +302,141 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>模型注册与版本管理</h1><p class="lead">管理你的模型资产——从 chaos 到 order</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>模型多了就是灾难</h2>
-    <p>一个成熟的 AI 团队会有几十上百个模型：不同基座（Llama/Qwen/Mistral）、不同微调版本（SFT v1/v2/v3）、不同量化版本（FP16/INT8/INT4）、不同用途（通用/代码/医疗）。没有模型注册中心，这些模型会散落在各种 S3 桶/本地磁盘/同事电脑里，没人知道哪个是最新版、哪个能用、哪个已废弃。模型注册中心（Model Registry）就是解决这个混乱的。</p>
-    <div class="callout"><strong>💡 要点</strong><br>模型注册中心的核心价值：**单一事实来源（single source of truth）**——任何人在任何环境用到模型，都从注册中心拉取，保证版本一致。配合元数据（训练数据/指标/用途），让模型可追溯、可回滚、可审计。</div>
-    <h2><span class="idx"></span>模型注册的标准元数据</h2>
-    <table class="data-table"><thead><tr><th>字段</th><th>示例</th><th>用途</th></tr></thead><tbody><tr><td>model_id</td><td>qwen2.5-7b-sft-v3</td><td>唯一标识</td></tr><tr><td>base_model</td><td>Qwen/Qwen2.5-7B</td><td>基座来源</td></tr><tr><td>training_data</td><td>dataset_v12.jsonl</td><td>可复现性</td></tr><tr><td>metrics</td><td>MMLU=72%, HumanEval=65%</td><td>质量基线</td></tr><tr><td>quantization</td><td>INT4 (GPTQ)</td><td>部署选型</td></tr><tr><td>status</td><td>staging/production/archived</td><td>生命周期</td></tr><tr><td>created_by/date</td><td>zhangsan/2026-03-01</td><td>可追溯</td></tr></tbody></table>
-    <h2><span class="idx"></span>主流工具</h2>
-    <table class="data-table"><thead><tr><th>工具</th><th>定位</th><th>特点</th></tr></thead><tbody><tr><td>MLflow</td><td>开源全流程</td><td>免费、生态全、UI 一般</td></tr><tr><td>Hugging Face Hub</td><td>模型仓库</td><td>开源模型标配、git-lfs</td></tr><tr><td>Weights &amp; Biases</td><td>实验追踪+模型注册</td><td>UI 好、收费</td></tr><tr><td>自建</td><td>S3+数据库+API</td><td>灵活、维护成本高</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>模型注册中心是 LLMOps 的基石——单一事实来源，管理几十上百个模型版本。标准元数据包括基座/训练数据/指标/量化/状态。主流工具：MLflow（开源）、HF Hub（开源模型标配）、W&amp;B（付费 UI 好）。配合模型路由实现灰度发布和 A/B 测试。</p>
-    <div class="chapter-nav">
-    <a href="212-mlops-monitoring.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 213 章 · 模型注册与版本管理</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 213 · MLOps系列</span>
+      <h1>模型注册中心<br>让模型像代码一样有版本、有血统、有出处</h1>
+      <p class="lead">代码有 Git,数据有 DVC,那模型呢?一个跑了半年的项目里,往往堆积着几百个 .pkl、.pt、.onnx 文件,命名从 model_final 到 model_final_final_v2_real,谁也说不清线上跑的是哪个。模型注册中心(Model Registry)就是为解决这个问题而生的:它给模型赋予版本号、阶段标签、血缘信息和元数据,让模型的发布、回滚、审计都有据可查。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-registry"><span class="idx">★</span> 为什么需要模型注册中心</h2>
+    <p>先看一个真实的尴尬场景:某团队的风控模型线上效果突然下降,工程师想回滚到上个版本,却发现在共享盘上找不到对应的文件,更想不起它当时是用哪份数据、哪个 commit、什么超参数训练出来的。排查花了三天,期间的损失由业务承担。这种"模型失忆症"在没有注册中心的团队里非常普遍。</p>
+    <p>模型注册中心要解决的核心问题有三个。<strong>第一是版本管理</strong>:每个模型有唯一标识和版本号,能清楚地说出"线上跑的是 ctr-gbm v7",而不是"那个 final 的"。<strong>第二是溯源</strong>:每个模型能追溯到训练它的代码、数据、超参数和实验记录,出现问题时能快速定位原因。<strong>第三是生命周期管理</strong>:模型从 Staging 到 Production 到 Archived 的状态变迁被显式记录,谁能发布、谁能回滚有明确的流程。</p>
+    <p>可以说,模型注册中心是 MLOps 流水线里的"中央枢纽":训练阶段产出的模型先进入注册中心,评估通过后被提升到 Production,部署服务从注册中心拉取指定版本,监控发现问题时回滚也通过注册中心完成。它让"模型"这个资产像"代码"一样可治理。</p>
+    <h2 class="section" id="core-features"><span class="idx">★</span> 注册中心该有哪些核心能力</h2>
+    <p>一个合格的模型注册中心,至少要提供以下能力。理解这些能力,能帮你评估不同工具的优劣,也能指导你自建时的设计。</p>
+    <p><strong>版本化存储</strong>是基础。每个模型是一个独立的"模型对象",包含二进制权重、推理代码或环境描述、以及元数据。每次新训练产出一个新版本,版本号单调递增或语义化命名,旧版本不被覆盖。底层存储通常是对象存储(S3、GCS、MinIO),元数据存在关系数据库。</p>
+    <p><strong>阶段标签(Stage Tags)</strong>是管理生命周期的关键。业界惯例是把模型标注为 None、Staging、Production、Archived 几种状态。一个版本同一时刻在一个阶段标签下通常只允许一个模型(避免"两个 Production"的混乱),提升到 Production 是一个需要权限审批的操作。这种机制让"线上跑什么"一目了然。</p>
+    <p><strong>血缘追溯(Lineage)</strong>把模型和它的"上游"关联起来:训练用的数据版本、代码 commit、超参数、父模型(如果是微调的)。有了血缘,就能回答"这个模型是怎么来的",这是 debug 和审计的基础。</p>
+    <p><strong>模型卡(Model Card)</strong>提供人类可读的描述:模型的用途、训练数据概述、性能指标、公平性评估、已知局限、联系方式。模型卡既是技术文档,也是合规要求,在金融、医疗等强监管行业几乎是必备。</p>
+    <p><strong>访问控制与审计</strong>确保模型变更可追溯、可追责。谁能创建版本、谁能提升到 Production、谁能归档,都应该有 RBAC 权限控制,并且每次操作都有日志。这不仅是安全需求,也是合规审计的硬性要求。</p>
+    <h2 class="section" id="mlflow"><span class="idx">★</span> MLflow Model Registry:开源首选</h2>
+    <p>MLflow 是目前最流行的开源 MLOps 平台之一,它的 Model Registry 组件提供了上述核心能力的开箱即用实现,上手成本最低,适合大多数团队作为起点。</p>
+    <p>MLflow 的模型注册流程非常直观:实验追踪阶段用 mlflow.sklearn.log_model 记录模型时,通过 registered_model_name 参数就能自动注册。之后可以用 UI 或 API 把模型从一个阶段提升到另一个阶段。每个 Registered Model 是一棵版本树,每个 Version 对应一次 log_model 调用。</p>
+    <p>下面这段代码演示了完整的注册和生命周期管理流程,从注册到提升到 Production 再到部署时拉取:</p>
+    <pre><code class="language-python">import mlflow
+from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+
+# 1. 注册一个新模型版本(通常在训练脚本里完成)
+result = mlflow.register_model(
+    model_uri="runs:/abc123def456/model",
+    name="ctr-gbm"
+)
+print(f"Registered ctr-gbm v{result.version}")
+
+# 2. 撰写模型卡:写入用途、训练数据、指标、局限
+client.set_registered_model_tag("ctr-gbm", "team", "growth")
+client.set_model_version_tag(
+    name="ctr-gbm", version=result.version,
+    key="data_version", value="train_2026_06"
+)
+client.set_model_version_tag(
+    name="ctr-gbm", version=result.version,
+    key="val_auc", value="0.872"
+)
+
+# 3. 评估通过后,提升到 Production(通常由审批流程触发)
+client.transition_model_version_stage(
+    name="ctr-gbm",
+    version=result.version,
+    stage="Production",
+    archive_existing_versions=True,  # 自动归档旧的 Production 版本
+)
+
+# 4. 部署服务从这里拉取当前 Production 版本
+prod_versions = client.get_latest_versions(
+    "ctr-gbm", stages=["Production"]
+)
+model_uri = f"models:/ctr-gbm/Production"
+model = mlflow.pyfunc.load_model(model_uri)
+# 此时 model 即为线上使用的最新 Production 版本
+</code></pre>
+    <p>MLflow 的优势是开箱即用、与实验追踪深度集成、UI 直观。它的局限在于权限控制和审计日志相对简单,对超大规模团队(几十个团队共用一个 registry)的支持不够强。但对于绝大多数中小团队,MLflow Registry 已经足够覆盖需求。</p>
+    <h2 class="section" id="wandb"><span class="idx">★</span> Weights & Biases:协作与可视化的强者</h2>
+    <p>Weights & Biases(简称 W&B)是商业产品,以出色的可视化、协作功能和易用性著称。它的 Model Registry 同样提供版本管理、阶段标签、血缘追溯,但在团队协作体验上做得更精细。</p>
+    <p>W&B 的特色是"Linked Artifacts":模型作为 Artifact 存在,可以和上游的数据集 Artifact、训练脚本 Artifact 关联,自动形成一张可视化的血缘图。团队成员可以在 UI 上对模型版本评论、发起 review,流程类似 GitHub 的 PR。这种社交化的协作体验,对跨团队、跨职能(数据科学家 + 工程师 + 业务)的协作非常友好。</p>
+    <p>W&B 的代价是它是商业产品,且模型和数据需要上云,对数据敏感的行业(金融、医疗)需要评估合规性。它更适合追求体验、预算充足、希望快速建立协作流程的团队。</p>
+    <h2 class="section" id="dvc"><span class="idx">★</span> DVC:与 Git 深度融合的轻量方案</h2>
+    <p>DVC(Data Version Control)走了一条不同的路线:它不提供一个独立的 Registry 服务,而是把模型当成 Git 仓库里的特殊文件来管理。模型的元数据(.dvc 文件)存在 Git 里,实际的二进制存在远程存储,通过 git 标签和分支来表达版本和阶段。</p>
+    <p>DVC 的优势是与 Git 工作流无缝融合:模型的版本就是 Git 的 commit,模型的"阶段"可以用分支或标签表示,review 流程就是 code review。对已经熟练使用 Git 的团队,学习成本几乎为零。DVC 还能和其数据版本化能力结合,让模型和训练数据的版本严格对应。</p>
+    <p>DVC 的局限是没有独立的 UI 和细粒度的权限控制,更像"开发者的工具"而非"组织的平台"。它适合小团队或对 Git 工作流有强偏好的团队。在大型组织里,DVC 常被用作底层数据/模型版本化引擎,上层再叠加自研的 Registry 服务。</p>
+    <h2 class="section" id="comparison"><span class="idx">★</span> 三大工具横向对比</h2>
+    <p>选型没有标准答案,取决于团队规模、预算、技术栈和对体验的要求。下表把它们放在几个关键维度上对比,帮你做判断。</p>
+    <p><strong>MLflow</strong>:开源免费,自部署,功能完整,实验追踪深度集成。适合中小团队、希望掌控基础设施、预算有限。缺点是 UI 较朴素、协作功能弱、权限简单。</p>
+    <p><strong>W&B</strong>:商业 SaaS,体验一流,可视化强大,协作流畅。适合预算充足、追求体验、跨团队协作多的团队。缺点是成本和数据上云的合规考量。</p>
+    <p><strong>DVC</strong>:开源免费,与 Git 深度融合,轻量。适合小团队、Git 重度用户、对独立服务无需求。缺点是无独立 UI、权限弱、不适合大型组织。</p>
+    <p>一个务实的建议:如果纠结不定,从 MLflow 开始。它的概念最通用、迁移成本最低,未来想换到 W&B 或自研,MLflow 沉淀的元数据也容易导出。先用起来,再根据真实痛点决定是否升级。</p>
+    <h2 class="section" id="model-card"><span class="idx">★</span> 模型卡:让模型会"自我介绍"</h2>
+    <p>模型卡(Model Card)是 Google 在 2018 年提出的一种实践,后来成为行业标准。它本质上是一份关于模型的"说明书",用非技术语言描述模型的关键信息,服务于三类读者:开发者(怎么用、有什么限制)、业务方(能解决什么问题、效果如何)、审计者(数据来源、公平性、合规性)。</p>
+    <p>一份完整的模型卡通常包含以下内容:模型概览(名称、版本、架构、用途)、训练数据(来源、规模、时间范围、人口统计)、评估方法(指标、测试集、分群表现)、公平性分析(在不同子群体上的表现差异)、已知局限(不适用场景、潜在风险)、维护信息(owner、更新频率、联系方式)。下面是一个简化版的模型卡 YAML 示例,你可以把它作为注册中心元数据的模板:</p>
+    <pre><code class="language-yaml"># model_card.yaml —— 作为模型版本的元数据存入注册中心
+model:
+  name: ctr-gbm
+  version: "7"
+  owner: growth-ml@company.com
+  updated: 2026-07-15
+
+intended_use:
+  primary: 商品详情页点击率预估,用于推荐排序
+  out_of_scope: 不可用于跨站点投放或用户画像定价
+
+training_data:
+  source: 用户行为日志 + 商品属性表
+  period: 2026-04-01 至 2026-06-30
+  size: 12 亿条样本
+  demographics: 全国一二三线城市,18-55 岁用户
+
+evaluation:
+  metrics:
+    val_auc: 0.872
+    val_logloss: 0.412
+  sliced_performance:
+    male: { auc: 0.869 }
+    female: { auc: 0.874 }
+    age_18_24: { auc: 0.841 }   # 年轻群体表现略低,持续关注
+
+fairness:
+  test: group_auc_parity
+  result: 各性别 AUC 差异 < 1%,通过
+
+limitations:
+  - 新商品(冷启动)表现较差
+  - 大促期间流量结构剧变时需谨慎
+  - 不适用于跨语言场景
+
+monitoring:
+  drift_alert: PSI > 0.2 持续 1h
+  retrain_cadence: 每周一次
+</code></pre>
+    <h2 class="section" id="best-practices"><span class="idx">★</span> 最佳实践与避坑要点</h2>
+    <p>第一,<strong>命名规范要统一</strong>。模型名应该反映业务和任务,如 ctr-gbm、fraud-xgb-v2,避免 my_model、test123 这种无意义命名。版本号建议用单调递增整数或语义化版本,不要用日期或随机串,便于沟通。</p>
+    <p>第二,<strong>权限分离</strong>。能训练(注册新版本)的未必能发布(提升到 Production)。发布操作应该有审批, ideally 是 PR 式的 review,避免一个人误操作把坏模型推上线。</p>
+    <p>第三,<strong>定期清理</strong>。实验产生的版本会迅速堆积,需要制定归档策略:比如只保留每个阶段的最近 N 个版本,其余自动归档甚至删除。否则注册中心会变成无人维护的垃圾场。</p>
+    <p>第四,<strong>和环境联动</strong>。不同环境(dev/staging/prod)的 Production 模型可能是不同的版本,注册中心要支持按环境隔离,避免测试模型污染生产。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>模型注册中心是 MLOps 的中央枢纽,它给模型赋予版本号、阶段标签、血缘和元数据,让模型资产像代码一样可治理。核心能力包括版本化存储、阶段标签、血缘追溯、模型卡和访问控制。</p>
+    <p>工具选型上,MLflow 适合中小团队作为起点,W&B 适合追求协作体验的团队,DVC 适合 Git 重度用户。模型卡是连接技术与业务、合规的桥梁,应该作为注册中心的标准元数据。</p>
+    <p>落地时牢记几条原则:统一命名、权限分离、定期清理、环境隔离。一个运转良好的注册中心,能让团队在"线上跑的是什么模型、它怎么来的、出了问题怎么回滚"这三个问题上永远有清晰的答案——这恰恰是 MLOps 成熟度的关键标志。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -188,7 +186,7 @@
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
-      <a href="157-agent-codex-sandbox-landlock.html" class="active" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
+      <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
       <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
@@ -305,81 +303,225 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 157 章 · 开源 Agent 源码深挖</span>
-<h1>Codex 沙箱：Linux Landlock + seccomp</h1><p class="lead">Landlock 限制文件系统访问、seccomp 过滤系统调用。两层防御。与 macOS Seatbelt 的对应关系。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>Landlock 限制文件系统访问、seccomp 过滤系统调用。两层防御。与 macOS Seatbelt 的对应关系。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>Landlock 限制文件系统访问、seccomp 过滤系统调用。两层防御。与 macOS Seatbelt 的对应关系。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 42 · Agent 源码深挖系列</span>
+      <h1>Linux Landlock 沙箱<br>syscall 程序化的文件系统访问控制</h1>
+      <p class="lead">Linux 没有 sandbox-exec，但有 Landlock——一个从 5.13 内核开始合入的安全模块。和 Seatbelt 的「profile 文件描述规则」不同，Landlock 是 <strong>程序化</strong> 的：你的程序在运行时通过 syscall 创建规则、绑定到自己，限制后续所有文件操作的可见性。Codex 在 Linux 上用 Landlock 实现了和 macOS Seatbelt 对等的隔离。本章我们看 Landlock 的 API 设计，并和 Seatbelt 做正面对比。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="what-is-landlock"><span class="idx">★</span> 一、Landlock 的设计哲学：程序化而非声明式</h2>
+    <p>Landlock 的设计哲学和 Seatbelt 截然不同。Seatbelt 是声明式的——你写一份 profile 文件，用一种专门的 DSL 描述规则，然后由 sandbox-exec 解析执行。Landlock 是程序化的——你直接在代码里调用 syscall，用 C/Rust 的 API 一条条加规则。</p>
+    <p>这种差异有几个深层原因。第一，Linux 内核社区更偏爱「程序化、可组合」的接口（看 io_uring、eBPF 的设计），而非引入新的 DSL。第二，Landlock 的规则是 <strong>绑定到进程的</strong>——你的程序自己创建 ruleset，然后把自己关进去，不需要外部 daemon 或 wrapper 命令。第三，Landlock 是非特权用户也能用的——不需要 root，任何进程都能给自己加限制，这降低了使用门槛。</p>
+    <p>一个关键特性：<strong>Landlock 规则一旦应用（enforce），就不可撤销</strong>。进程无法自己解除限制，子进程继承父进程的限制且只能加更多。这种「单向收紧」保证了沙箱的不可逃逸性——即使进程被攻陷，也无法提权解除限制。</p>
+
+    <h2 class="section" id="landlock-api"><span class="idx">★</span> 二、Landlock 的核心 syscall 流程</h2>
+    <p>使用 Landlock 大致分四步：创建 ruleset → 添加规则 → 应用 ruleset → 此后受约束。我们用 C 风格的伪代码展示这个流程（Codex 在 Rust 里通过 libc crate 调用这些 syscall）：</p>
+    <pre><code class="language-c">// landlock 的使用流程（C 伪代码）
+#include &lt;linux/landlock.h&gt;
+#include &lt;sys/syscall.h&gt;
+#include &lt;fcntl.h&gt;
+
+int main() {
+    // 【1】创建一个 ruleset，声明要管哪些类型的访问
+    struct landlock_ruleset_attr attr = {
+        .handled_access_fs = LANDLOCK_ACCESS_FS_WRITE_FILE |
+                             LANDLOCK_ACCESS_FS_REMOVE_FILE |
+                             LANDLOCK_ACCESS_FS_REMOVE_DIR |
+                             LANDLOCK_ACCESS_FS_MAKE_DIR,
+        // 注意：没列的类型（如 read）不受约束
+    };
+    int ruleset_fd = syscall(SYS_landlock_create_ruleset,
+                             &amp;attr, sizeof(attr), 0);
+
+    // 【2】添加规则：允许写项目目录
+    int proj_fd = open("/home/me/project", O_PATH);
+    struct landlock_path_beneath_attr path_attr = {
+        .allowed_access = LANDLOCK_ACCESS_FS_WRITE_FILE |
+                          LANDLOCK_ACCESS_FS_MAKE_DIR,
+        .parent_fd = proj_fd,
+    };
+    syscall(SYS_landlock_add_rule, ruleset_fd,
+            LANDLOCK_RULE_PATH_BENEATH, &amp;path_attr, 0);
+    close(proj_fd);
+
+    // 【3】应用 ruleset 到当前进程
+    prctl(PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0);  // 必须：禁止获取新特权
+    syscall(SYS_landlock_restrict_self, ruleset_fd, 0);
+    close(ruleset_fd);
+
+    // 【4】此后，所有文件写操作都受约束
+    // 只能在 /home/me/project 下写文件，其他地方写会 EPERM
+    int fd = open("/etc/passwd", O_WRONLY);  // 失败，EPERM
+    int fd2 = open("/home/me/project/test.txt", O_WRONLY | O_CREAT, 0644);  // 成功
+}</code></pre>
+    <p>这段代码揭示了 Landlock 的几个关键点。第一，<strong>handled_access_fs 决定管什么</strong>：你在创建 ruleset 时声明要管「文件写、删除、建目录」等类型，没声明的类型（如读、执行）完全不受影响。第二，<strong>规则是「允许某路径下某操作」</strong>：用 parent_fd 指定一个目录，allowed_access 指定允许的操作。第三，<strong>prctl(PR_SET_NO_NEW_PRIVS) 是前置条件</strong>：它禁止进程通过 setuid 等机制提权，这是 Landlock 安全性的基石——否则一个 setuid root 的子进程可能绕过限制。第四，<strong>restrict_self 之后不可撤销</strong>，子进程继承。</p>
+
+    <h2 class="section" id="codex-rust"><span class="idx">★</span> 三、Codex 在 Rust 里如何调用 Landlock</h2>
+    <p>Codex 用 Rust 的 libc crate 直接调 syscall。为了类型安全，它封装了一个 landlock 模块。我们看核心逻辑：</p>
+    <pre><code class="language-rust">// codex-rs/src/sandbox/landlock.rs（概念示意）
+use std::os::unix::io::RawFd;
+use std::path::Path;
+
+// libc 常量（Linux 内核头定义）
+const LANDLOCK_CREATE_RULESET_VERSION: u32 = 1 << 0;
+const LANDLOCK_ACCESS_FS_WRITE_FILE: u64 = 1 &lt;&lt; 5;
+const LANDLOCK_ACCESS_FS_REMOVE_FILE: u64 = 1 &lt;&lt; 6;
+const LANDLOCK_ACCESS_FS_REMOVE_DIR: u64 = 1 &lt;&lt; 7;
+const LANDLOCK_ACCESS_FS_MAKE_DIR: u64 = 1 &lt;&lt; 8;
+
+#[repr(C)]
+struct LandlockRulesetAttr {
+    handled_access_fs: u64,
+}
+
+#[repr(C)]
+struct LandlockPathBeneathAttr {
+    allowed_access: u64,
+    parent_fd: RawFd,
+}
+
+pub struct LandlockSandbox {
+    ruleset_fd: RawFd,
+}
+
+impl LandlockSandbox {
+    pub fn new() -&gt; std::io::Result&lt;Self&gt; {
+        // 检查内核版本是否支持 Landlock
+        let attr = LandlockRulesetAttr {
+            handled_access_fs: LANDLOCK_ACCESS_FS_WRITE_FILE
+                | LANDLOCK_ACCESS_FS_REMOVE_FILE
+                | LANDLOCK_ACCESS_FS_REMOVE_DIR
+                | LANDLOCK_ACCESS_FS_MAKE_DIR,
+        };
+        let fd = unsafe {
+            libc::syscall(
+                libc::SYS_landlock_create_ruleset,
+                &amp;attr as *const _,
+                std::mem::size_of::&lt;LandlockRulesetAttr&gt;(),
+                0,
+            )
+        };
+        if fd &lt; 0 {
+            return Err(std::io::Error::last_os_error());  // 可能是内核太老
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+        Ok(Self { ruleset_fd: fd as RawFd })
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    /// 允许在指定路径下进行指定操作
+    pub fn allow_path(&amp;mut self, path: &amp;Path, access: u64) -&gt; std::io::Result&lt;()&gt; {
+        let parent_fd = path.file_desc()?;  // 打开目录拿 fd
+        let path_attr = LandlockPathBeneathAttr {
+            allowed_access: access,
+            parent_fd,
+        };
+        let ret = unsafe {
+            libc::syscall(
+                libc::SYS_landlock_add_rule,
+                self.ruleset_fd,
+                1,  // LANDLOCK_RULE_PATH_BENEATH
+                &amp;path_attr as *const _,
+                0,
+            )
+        };
+        close(parent_fd);
+        if ret &lt; 0 { return Err(std::io::Error::last_os_error()); }
+        Ok(())
+    }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    /// 应用限制到当前线程及所有后续 fork 出的子进程
+    pub fn restrict_self(self) -&gt; std::io::Result&lt;()&gt; {
+        // 1. 禁止获取新特权（必须）
+        let ret = unsafe { libc::prctl(libc::PR_SET_NO_NEW_PRIVS, 1, 0, 0, 0) };
+        if ret &lt; 0 { return Err(std::io::Error::last_os_error()); }
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex 沙箱：Linux Landlock + seccomp"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="156-agent-codex-sandbox-seatbelt.html"><div class="lbl">← 上一章</div><div class="ttl">156 · Codex 沙箱：macOS Seatbelt</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="158-agent-codex-approval.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">158 · Codex 审批：sandbox_mode × approval_policy</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 157 章 · Codex 沙箱：Linux Landlock + seccomp</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+        // 2. 应用 ruleset
+        let ret = unsafe {
+            libc::syscall(libc::SYS_landlock_restrict_self, self.ruleset_fd, 0)
+        };
+        if ret &lt; 0 { return Err(std::io::Error::last_os_error()); }
+        Ok(())
+    }
+}</code></pre>
+    <p>这段代码展示了 Codex 在 Linux 上构建沙箱的完整逻辑。注意它封装成了 <code>new → allow_path → restrict_self</code> 三步式 API，使用起来很自然。还有一个重要细节：<strong>restrict_self 必须在 fork 子进程之前或之后调用都行，但子进程会继承限制</strong>。Codex 的做法是：在主进程里配置好 ruleset，然后 fork 出执行命令的子进程前先 restrict_self，这样子进程天然受限。</p>
+
+    <h2 class="section" id="version-check"><span class="idx">★</span> 四、内核版本检测与降级</h2>
+    <p>Landlock 需要 Linux 5.13+（完整功能要 5.19+ 或 6.2+，不同 access 类型分批合入）。Codex 必须在运行时检测内核支持，并在不支持的系统上降级。这是跨版本 Linux 工具的常见挑战。</p>
+    <pre><code class="language-rust">// 检测 Landlock 支持并决定策略
+pub fn check_landlock_support() -&gt; LandlockSupport {
+    // 尝试创建一个空的 ruleset，看是否成功
+    let attr = LandlockRulesetAttr { handled_access_fs: 0 };
+    let fd = unsafe {
+        libc::syscall(
+            libc::SYS_landlock_create_ruleset,
+            &amp;attr as *const _,
+            std::mem::size_of::&lt;LandlockRulesetAttr&gt;(),
+            LANDLOCK_CREATE_RULESET_VERSION,  // 只查询版本，不实际创建
+        )
+    };
+    if fd &lt; 0 {
+        let err = std::io::Error::last_os_error();
+        match err.raw_os_error() {
+            libc::ENOSYS =&gt; LandlockSupport::None,        // 内核无 Landlock
+            libc::EOPNOTSUPP =&gt; LandlockSupport::Disabled, // 内核有但未启用
+            _ =&gt; LandlockSupport::None,
+        }
+    } else {
+        // fd 是支持的版本号
+        if fd &gt;= 1 { LandlockSupport::V1 } else { LandlockSupport::None }
+    }
+}
+
+pub enum LandlockSupport {
+    None,       // 完全不支持，Codex 警告或拒绝执行危险命令
+    Disabled,   // 内核支持但未启用，提示用户
+    V1,         // 支持，正常用
+}</code></pre>
+    <p>这种「探测 → 降级 → 警告」的三段式策略，是处理平台能力差异的通用模式。在不支持 Landlock 的系统上，Codex 不会默默放行，而是明确告诉用户「当前环境无法沙箱隔离，工具执行被限制为只读」或要求用户确认风险后才能执行写操作。</p>
+
+    <h2 class="section" id="compare-seatbelt"><span class="idx">★</span> 五、与 Seatbelt 的对比</h2>
+    <p>把 Landlock 和 Seatbelt 放在一起，能看出 Linux 和 macOS 在安全机制设计上的文化差异。</p>
+    <p><strong>接口形态</strong>：Seatbelt 是声明式（profile 文件 + DSL），Landlock 是程序化（syscall + 代码）。前者更易写规则、调试时有 trace；后者更灵活、可组合，但规则散落在代码里不易审计。</p>
+    <p><strong>网络管控</strong>：Seatbelt 能限制网络出站的目标地址和端口，Landlock（截至当前版本）<strong>只管文件系统</strong>，不管网络。这是 Landlock 的重大局限——Codex 在 Linux 上对网络的隔离要靠其他机制（如 unshare network namespace 或 seccomp 过滤 connect syscall）补足。</p>
+    <p><strong>权限要求</strong>：Seatbelt 需要 sandbox-exec 命令（系统自带，但未签名应用可能受限）；Landlock 不需要 root，普通用户可用，门槛更低。</p>
+    <p><strong>不可逆性</strong>：Seatbelt 的限制理论上可以通过结束 sandbox-exec 进程解除（子进程自然死亡）；Landlock 的 restrict_self 不可撤销，但进程退出也就解除了。两者实际效果相当。</p>
+    <p><strong>生态成熟度</strong>：Seatbelt 是 macOS 老牌特性，工具链成熟；Landlock 是 2021 年才合入的新特性，规则细节仍在演进（如 ABI 版本），第三方库支持还在发展。</p>
+
+    <h2 class="section" id="unshare-complement"><span class="idx">★</span> 六、网络隔离的补足：unshare + seccomp</h2>
+    <p>因为 Landlock 不管网络，Codex 在 Linux 上补了一层：<strong>用 unshare 创建独立的 network namespace</strong>。这会让进程看到一个「空」的网络栈——没有网卡、没有路由，任何网络请求都会失败。如果 Agent 需要访问特定网络（如 npm registry），Codex 在 namespace 内手动配置一个虚拟网卡和代理规则。</p>
+    <pre><code class="language-rust">// 用 unshare 隔离网络（概念示意）
+use libc::{unshare, CLONE_NEWNET};
+
+pub fn isolate_network() -&gt; std::io::Result&lt;()&gt; {
+    // 创建新的 network namespace
+    let ret = unsafe { unshare(CLONE_NEWNET) };
+    if ret &lt; 0 {
+        return Err(std::io::Error::last_os_error());
+        // 注意：CLONE_NEWNET 需要 CAP_SYS_ADMIN，
+        // 普通用户要配 user namespace 才能用
+    }
+    Ok(())
+}</code></pre>
+    <p>这种「Landlock 管文件 + unshare 管网络」的组合，在 Linux 上近似实现了 Seatbelt 的完整隔离能力。代价是实现复杂度更高——需要处理 namespace 创建、权限、代理配置等细节。这也解释了为什么 Codex 的 Linux 沙箱代码比 macOS 版本更长。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Landlock 是 Linux 给 Agent 沙箱的新答案。要点回顾：</p>
+    <ul>
+      <li><strong>程序化而非声明式</strong>：Landlock 通过 syscall 创建 ruleset、加规则、restrict_self，规则绑定到进程，不可撤销。</li>
+      <li><strong>四步流程</strong>：create_ruleset → add_rule → restrict_self → 受约束，prctl(PR_SET_NO_NEW_PRIVS) 是安全基石。</li>
+      <li><strong>白名单语义</strong>：声明 handled_access_fs 决定管哪些操作类型，未列的不受影响；规则是「某路径下允许某操作」。</li>
+      <li><strong>内核版本检测</strong>：需要 5.13+，Codex 探测后在不支持时降级为只读或警告，不默默放行。</li>
+      <li><strong>局限：不管网络</strong>：Landlock 只管文件系统，网络隔离要靠 unshare network namespace 或 seccomp 补足。</li>
+      <li><strong>与 Seatbelt 对比</strong>：程序化 vs 声明式、无 root vs 系统 command、不管网络 vs 能限制网络，各有取舍。</li>
+    </ul>
+    <p>两种沙箱（Seatbelt + Landlock）让 Codex 成了一个能在双平台安全执行任意命令的 Agent。下一章（159 章）我们看沙箱之上的那一层——命令执行本身：fork、流式捕获、超时处理。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -149,7 +147,7 @@
       <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
     </div>
     <div class="nav-group"><h3>★向量检索</h3>
-      <a href="120-vec-ann-overview.html" class="active" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
+      <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
       <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
       <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
       <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
@@ -305,66 +303,173 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 120 章 · 向量索引与 RAG 原理深挖</span>
-<h1>ANN 概览：为什么不能用暴力 kNN</h1><p class="lead">精确 kNN O(N·d) 在百万级数据上不可行。ANN 牺牲少量召回换数量级加速。图/聚类/量化/哈希四大流派。recall@k vs QPS 的权衡曲线。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>精确 kNN O(N·d) 在百万级数据上不可行。ANN 牺牲少量召回换数量级加速。图/聚类/量化/哈希四大流派。recall@k vs QPS 的权衡曲线。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>精确 kNN O(N·d) 在百万级数据上不可行。ANN 牺牲少量召回换数量级加速。图/聚类/量化/哈希四大流派。recall@k vs QPS 的权衡曲线。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 120 · 向量检索系列</span>
+      <h1>ANN 近似最近邻总览<br>从暴力检索到四大流派</h1>
+      <p class="lead">当你的向量库从一万条膨胀到一亿条，暴力遍历再也扛不住了。近似最近邻（Approximate Nearest Neighbor, ANN）就是用"极小的精度牺牲"换取"几个数量级的速度提升"的工程艺术。本文把暴力检索、树、图、量化、哈希这五大路线一次讲透，并给出一张可直接落地到选型会上的决策表。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-ann"><span class="idx">★</span> 为什么需要 ANN：暴力检索的天花板</h2>
+    <p>所谓最近邻检索（Nearest Neighbor, NN），就是给定一个查询向量 q，在数据库 N 个向量里找出"最相似"的那一个或 k 个。"相似"通常用距离来度量——欧氏距离、内积或余弦距离。</p>
+    <p>最直觉的做法就是暴力检索（Brute Force / Flat）：把 q 和库里每个向量都算一次距离，然后排序取 top-k。它的复杂度是 O(N·d)，其中 d 是向量维度。这种做法准确率是 100%（它就是 ground truth），而且实现只有三行代码，但它有一个致命弱点：<strong>它的延迟和库大小成正比</strong>。</p>
+    <p>做一个简单的算术题：假设你有 1 亿条 768 维的向量（一个中等规模的 embedding 库），用 float32 存储，单次暴力检索要做 1 亿次 768 维的点积。即便用上 AVX 指令、SIMD 批处理，单机单线程也要几百毫秒到秒级，这还没算上内存带宽的瓶颈。而在真实的搜索/RAG 场景里，用户对延迟的容忍度通常在 50ms 以内。</p>
+    <p>这就引出了 ANN 的核心哲学：<strong>用一点精度换一大堆速度</strong>。我们不追求找到"绝对最近的 k 个"，而是"足够近的 k 个"。如果用 recall@10 = 95% 的代价，能把延迟从 1000ms 降到 5ms，那这笔交易在 99% 的业务场景里都是划算的。这正是所有 ANN 算法要回答的问题：如何在不遍历全库的前提下，大概率地把真正近的向量捞出来。</p>
+
+    <pre><code class="language-python"># 暴力检索 baseline —— 这就是我们所有 ANN 算法要超越的对象
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+def brute_force_knn(database: np.ndarray, query: np.ndarray, k: int = 10):
+    """
+    database: shape (N, d)，N 个向量
+    query:    shape (d,)
+    return:   top-k 的索引和距离
+    """
+    # 计算查询到所有向量的 L2 距离（用点积展开避免开根号）
+    # ||q - x||^2 = ||q||^2 - 2 q·x + ||x||^2
+    # 排序时 ||q||^2 是常数可省略
+    dists = np.linalg.norm(database - query, axis=1)
+    idx = np.argpartition(dists, k)[:k]          # O(N) 选出最小的 k 个
+    idx = idx[np.argsort(dists[idx])]            # 再对这 k 个精确排序
+    return idx, dists[idx]
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 量级感知：100 万条 768 维，单次查询
+db = np.random.randn(1_000_000, 768).astype(np.float32)
+q  = np.random.randn(768).astype(np.float32)
+%time idx, dist = brute_force_knn(db, q, k=10)
+# 典型结果（M2 Mac，单线程 numpy）: ~600ms
+</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h2 class="section" id="four-families"><span class="idx">★</span> 四大流派：树、图、量化、哈希</h2>
+    <p>学术界和工业界三十年来沉淀出的 ANN 算法，归纳起来无非四种思路。理解了这四种"世界观"，你就掌握了评估任何新算法的坐标系。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"ANN 概览：为什么不能用暴力 kNN"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="119-tfm-from-scratch.html"><div class="lbl">← 上一章</div><div class="ttl">119 · 从零实现一个迷你 Transformer</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="121-vec-ivf.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">121 · IVF 倒排索引：用聚类加速检索</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 120 章 · ANN 概览：为什么不能用暴力 kNN</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h3 id="tree">1. 基于树的方法（KD-Tree / Annoy）</h3>
+    <p>思路来自计算几何：把空间递归地切成两半，构建一棵二叉树。查询时沿着树往下走，只搜索查询向量落入的那个子空间，再回溯检查边界附近的几个分支。代表算法是 KD-Tree 和 Spotify 开源的 Annoy（用随机超平面切分）。</p>
+    <p>树方法的优点是构建简单、可解释。缺点在高维空间暴露无遗：<strong>维度灾难</strong>。当维度 d 超过 20-30，"近"和"远"的距离差异被稀释，切分带来的剪枝收益急剧下降，最终树方法退化成接近暴力检索。因此树方法今天主要用在低维（图像特征 128 维以下）或小规模场景。</p>
+
+    <h3 id="graph">2. 基于图的方法（HNSW / DiskANN）</h3>
+    <p>这是目前<strong>召回率/速度权衡的王者</strong>。核心思想：在所有向量之间连边，构建一张"近邻图"，查询时从一个入口点出发，沿着边不断跳到更近的节点，直到收敛。你可以把它想象成在社交网络里找某个人的过程：你不需要认识所有人，只要每个朋友都能把你介绍给"更接近目标"的下一个人，几跳之内就能找到。</p>
+    <p>HNSW（分层可导航小世界图）在这个思路上加了"分层跳表"结构——像高速公路网一样，上层稀疏图用来快速跨越大距离，下层密集图用来精细定位。它的 recall@10 可以轻松做到 99%，同时 QPS 是暴力检索的上百倍。这是 FAISS、Milvus、Qdrant、pgvector 的默认首选。</p>
+
+    <h3 id="quantization">3. 基于量化的方法（PQ / ScaNN）</h3>
+    <p>量化的思路是"<strong>压缩向量本身</strong>"。把一个 768 维 float32（3072 字节）的向量压缩成几十字节的编码，距离计算直接在压缩表示上进行。最经典的是乘积量化 PQ，它把向量切成若干段，每段独立用 K-means 聚成 256 个簇心，用一个字节记录簇心编号。</p>
+    <p>量化的杀手锏是<strong>内存占用</strong>。1 亿条 768 维向量，原始要 300GB 内存，PQ 压缩后只要 10GB 左右，直接从"放不下"变成"放得下"。代价是有量化误差，召回率会下降几个百分点。ScaNN（Google）进一步用各向异性量化把误差压到查询不敏感的方向上，是 SOTA 之一。</p>
+
+    <h3 id="hash">4. 基于哈希的方法（LSH）</h3>
+    <p>局部敏感哈希（Locality Sensitive Hashing）的哲学是"<strong>近的向量大概率哈希到同一个桶</strong>"。用一组哈希函数把高维向量映射到低维桶里，查询时只和同桶（及邻近桶）的向量比较。</p>
+    <p>LSH 是理论上最优雅的——有严格的碰撞概率保证，但在工程实践里它通常输给图方法和量化：参数难调、内存占用不省、长尾召回不稳。今天的 LSH 更多作为"理论入门"和某些特殊场景（如位图指纹）的选择，主流向量库已经很少把它作为默认索引。</p>
+
+    <pre><code class="language-python"># 用 FAISS 直观对比四种流派的 recall 和 QPS
+import faiss
+import numpy as np
+import time
+
+d = 128
+N = 200_000
+xb = np.random.randn(N, d).astype(np.float32)
+xq = np.random.randn(1000, d).astype(np.float32)
+faiss.normalize_L2(xb); faiss.normalize_L2(xq)
+
+# ground truth 用暴力检索
+flat = faiss.IndexFlatIP(d)
+flat.add(xb)
+_, gt = flat.search(xq, 10)   # gt[i] 是第 i 个查询的真正 top-10
+
+def evaluate(index, name):
+    t0 = time.time()
+    D, I = index.search(xq, 10)
+    qps = len(xq) / (time.time() - t0)
+    # recall@10
+    recall = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq) * 10)
+    print(f"{name:20s} recall@10={recall:.3f}  QPS={qps:.0f}")
+
+# 1. 图方法 HNSW
+index_hnsw = faiss.IndexHNSWFlat(d, 32)
+index_hnsw.add(xb)
+evaluate(index_hnsw, "HNSW")
+
+# 2. 量化方法 IVFPQ
+quantizer = faiss.IndexFlatL2(d)
+index_pq = faiss.IndexIVFPQ(quantizer, d, 1024, 16, 8)
+index_pq.train(xb); index_pq.add(xb)
+index_pq.nprobe = 16
+evaluate(index_pq, "IVFPQ")
+
+# 3. 暴力 baseline
+evaluate(flat, "Flat(ground truth)")
+</code></pre>
+
+    <h2 class="section" id="decision-table"><span class="idx">★</span> 一张表搞定选型</h2>
+    <p>说了这么多理论，工程现场最常被问到的问题永远是："我这个场景该选哪个？"下面这张表是我跑了上百组 benchmark 后总结的实战指南，每一格都对应一个真实的权衡点。</p>
+
+    <pre><code class="language-text">┌─────────────┬──────────┬──────────┬──────────┬──────────┬───────────────────────┐
+│  方法       │ 召回质量  │ 查询QPS  │ 内存占用  │ 构建耗时  │  典型适用场景          │
+├─────────────┼──────────┼──────────┼──────────┼──────────┼───────────────────────┤
+│ Flat 暴力   │ 100%     │ 低       │ 极高     │ 0        │ 库 &lt;10万，要求绝对精确 │
+│ HNSW 图     │ 95-99%   │ 极高     │ 高       │ 中       │ 主流首选，百亿以内     │
+│ IVF+PQ 量化 │ 90-95%   │ 高       │ 极低     │ 中       │ 内存吃紧的超大规模     │
+│ IVF+Flat    │ 95-98%   │ 高       │ 高       │ 低       │ 中等规模、可接受漂移   │
+│ Annoy 树    │ 85-93%   │ 中       │ 中       │ 高       │ 嵌入式、静态只读场景   │
+│ LSH 哈希    │ 80-90%   │ 中       │ 中       │ 低       │ 理论研究、指纹去重     │
+│ DiskANN     │ 95-98%   │ 中高     │ SSD+少量 │ 高       │ 单机百亿、内存有限     │
+│ ScaNN 量化  │ 95-99%   │ 极高     │ 低       │ 中       │ 追求 SOTA 召回         │
+└─────────────┴──────────┴──────────┴──────────┴──────────┴───────────────────────┘</code></pre>
+
+    <p>几个常被忽视的经验法则：</p>
+    <ul>
+      <li><strong>规模决定方法</strong>：&lt;100 万直接 Flat；100 万到 1 亿 HNSW 几乎是默认答案；超过 1 亿且内存吃紧，再考虑 IVFPQ 或 DiskANN。</li>
+      <li><strong>更新频率决定方法</strong>：频繁增删用 HNSW（支持动态插入）或 IVF；一次性构建只读用 Annoy 或 DiskANN。</li>
+      <li><strong>距离度量决定方法</strong>：内积（最大内积搜索 MIPS）要小心，PQ 默认优化 L2，需要先做归一化或选支持 IP 的实现。</li>
+      <li><strong>延迟预算决定方法</strong>：要求 &lt;5ms 的在线服务，HNSW 的 efSearch 要压低，但召回会掉，必要时上量化。</li>
+    </ul>
+
+    <h2 class="section" id="recall-qps-curve"><span class="idx">★</span> 召回-QPS 曲线：唯一诚实的评价标准</h2>
+    <p>判断一个 ANN 算法好不好，单看"recall 多少"或"QPS 多少"都是耍流氓。真正诚实的是<strong>召回-QPS 曲线</strong>：横轴 QPS，纵轴 recall@k，曲线越靠右上越好。因为几乎每个 ANN 算法都有一个或几个"召回旋钮"——HNSW 的 efSearch、IVF 的 nprobe、PQ 的 nbits——拧大旋钮召回上升但 QPS 下降，拧小则相反。</p>
+    <p>这就是为什么 ANN-benchmark 和 VectorDBBench 这类评测都画曲线而不是报单点。当你看到某个厂商宣传"我们的 recall 99%"时，一定要追问：在多少 QPS 下？同样的硬件、同样的数据集、同样的旋钮档位下对比，才有意义。</p>
+
+    <pre><code class="language-python"># 画出 HNSW 的 recall-QPS 曲线 —— 选型答辩时的王牌
+import matplotlib.pyplot as plt
+
+def sweep_hnsw(index, ef_values):
+    qps_list, recall_list = [], []
+    for ef in ef_values:
+        faiss.ParameterSpace().set_index_parameter(index, "efSearch", ef)
+        t0 = time.time()
+        D, I = index.search(xq, 10)
+        dt = time.time() - t0
+        qps = len(xq) / dt
+        recall = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
+        qps_list.append(qps); recall_list.append(recall)
+    return qps_list, recall_list
+
+ef_values = [4, 8, 16, 32, 64, 128, 256]
+qps, recall = sweep_hnsw(index_hnsw, ef_values)
+
+plt.figure(figsize=(7,4))
+plt.plot(recall, qps, "o-")
+plt.xlabel("recall@10"); plt.ylabel("QPS")
+plt.title("HNSW Recall-QPS Curve")
+plt.grid(True)
+plt.savefig("hnsw_curve.png", dpi=100)
+# 曲线左上区是"高召回低延迟"的甜区，右下是"低召回高吞吐"区
+</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>我们把 ANN 这片森林从五个角度看完了一遍：</p>
+    <ul>
+      <li><strong>动机</strong>：暴力检索 O(N·d) 在亿级数据下不可行，ANN 用极小的精度牺牲换几个数量级的速度。</li>
+      <li><strong>四大流派</strong>：树（低维友好，高维退化）、图（当前 SOTA，HNSW/DiskANN）、量化（省内存，PQ/ScaNN）、哈希（理论优雅，工程偏弱）。</li>
+      <li><strong>选型法则</strong>：规模 &lt;100 万用 Flat，百万到亿级用 HNSW，超大且内存紧用 IVFPQ/DiskANN；动态数据用 HNSW/IVF，只读静态可用 Annoy。</li>
+      <li><strong>评价标准</strong>：永远看召回-QPS 曲线，单点数字没有意义；同一硬件、同一数据集、同一旋钮档位下对比才公平。</li>
+    </ul>
+    <p>接下来的章节会逐一深入：IVF 怎么调参（122）、HNSW 的插入和查询到底怎么走（124/125）、PQ 如何把 768 维压到 16 字节（127）、DiskANN 怎么用 SSD 装下百亿向量（130）。每一篇都会落到可运行的代码上，让你看完就能上手。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>扩散模型与图像生成 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>扩散模型与图像生成 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -35,7 +42,7 @@
     </div>
     <div class="nav-group"><h3>原理</h3>
       <a href="22-interpretability.html" title="LLM 可解释性与机理"><span class="num">22</span>LLM 可解释性与机</a>
-      <a href="23-diffusion.html" class="active" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
+      <a href="23-diffusion.html" title="扩散模型与图像生成"><span class="num">23</span>扩散模型与图像生成</a>
       <a href="24-evaluation.html" title="AI 评估方法论"><span class="num">24</span>AI 评估方法论</a>
       <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
       <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
@@ -295,22 +302,128 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>扩散模型与图像生成</h1><p class="lead">从噪声中生成图像——扩散模型的数学与工程</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>扩散模型：当前最好的生成模型</h2>
-    <p>扩散模型（Diffusion Model）是当前图像生成的统治者——Midjourney、Stable Diffusion、DALL-E 3 都基于它。它的核心思想极其优雅：生成 = "逐步去噪"。训练时学习怎么给图片加噪，生成时反向操作——从纯噪声逐步"雕刻"出图像。</p>
-    <div class="callout"><strong>💡 要点</strong><br>扩散模型的直觉：想象一块大理石（纯噪声），雕塑家（模型）一刀一刀去掉多余部分（去噪），最终露出雕像（清晰图像）。文本条件是"设计图"——告诉雕塑家要雕什么。</div>
-    <h2><span class="idx"></span>前向过程：加噪</h2>
-    <p>训练时，给一张清晰图片逐步加高斯噪声，经过 T 步后变成纯噪声。这个过程是固定的（不需要学习），它定义了"从清晰到噪声"的路径。</p>
-    <h2><span class="idx"></span>反向过程：去噪（生成的核心）</h2>
-    <p>模型学习的是"反向过程"——给定一个噪声图，预测噪声是什么，然后减去它。重复 T 步，从纯噪声逐步还原出清晰图像。关键：文本条件通过 cross-attention 注入去噪过程，控制"生成什么"。</p>
-    <table class="data-table"><thead><tr><th>组件</th><th>作用</th><th>代表实现</th></tr></thead><tbody><tr><td>U-Net</td><td>去噪网络（预测+去除噪声）</td><td>Stable Diffusion 的 U-Net</td></tr><tr><td>文本编码器(CLIP)</td><td>把文字描述编码成条件向量</td><td>CLIP/OpenCLIP</td></tr><tr><td>VAE</td><td>在潜空间（压缩域）做扩散，省算力</td><td>Latent Diffusion</td></tr><tr><td>调度器</td><td>控制去噪步数和策略</td><td>DDIM/DPM++ /Euler</td></tr></tbody></table>
-    <h2><span class="idx"></span>Latent Diffusion：在压缩空间做扩散</h2>
-    <p>直接在像素空间做扩散太慢（512×512 图片有 78万个像素）。Stable Diffusion 的创新是 Latent Diffusion——先用 VAE 把图片压缩到 64×64 的潜空间（压缩 64 倍），在潜空间做扩散（快 64 倍），最后用 VAE 解码回像素。这让消费级 GPU 也能跑图像生成。</p>
-    <h2><span class="idx"></span>可控生成：ControlNet / LoRA</h2>
-    <p>基础扩散模型只接受文本条件。要让生成更可控（指定构图/姿势/边缘），用 ControlNet（加一个控制分支）；要让生成模仿特定风格/人物，用 LoRA（微调少量参数）。这两个技术让扩散模型从"随机生成"变成"精确可控"。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>扩散模型=逐步去噪生成图像。前向加噪（训练目标），反向去噪（生成过程），文本条件控制内容。Latent Diffusion 在压缩潜空间做扩散（快64倍）。可控生成：ControlNet（构图/姿势控制）+ LoRA（风格/人物定制）。扩散赢了 GAN 因为训练稳定+多样性好+可控性强。</p>
-    <div class="chapter-nav">
-      <a href="22-interpretability.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 23 章 · 扩散模型与图像生成</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 23 · 核心知识系列</span>
+      <h1>扩散模型<br>从噪声中生长出图像的生成艺术</h1>
+      <p class="lead">如果说 GAN 是两个网络的博弈，那么扩散模型就是一场"先破坏再重建"的炼金术。本章带你从 DDPM 的前向加噪与反向去噪出发，拆解 Stable Diffusion 的潜空间架构，并用 Hugging Face diffusers 库的 5 行代码亲手生成你的第一张图。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> 为什么扩散模型改变了世界</h2>
+    <p>2020 年之前，图像生成的主流是 GAN（生成对抗网络）。GAN 生成质量高，但训练极不稳定——模式崩溃、梯度消失、对抗失衡，调参几乎是一门玄学。直到 2020 年 UC Berkeley 的 Jonathan Ho 等人发表了 DDPM（Denoising Diffusion Probabilistic Models），用一种极其优雅的方式重新定义了生成模型。</p>
+    <p>扩散模型的灵感来自热力学：一滴墨水滴入清水，会逐渐扩散直至均匀分布——这是一个不可逆的熵增过程。DDPM 的核心思想是：如果我能学会"逆转"这个扩散过程，我就能从均匀分布的噪声中，一步步"凝固"出一张清晰的图像。</p>
+    <p>这个看似简单的想法，最终催生了 DALL·E 2、Stable Diffusion、Midjourney 等轰动全球的产品。扩散模型不仅训练稳定、生成多样性好，更重要的是它提供了一个可控的生成框架——你可以用文本、草图、深度图来精确引导生成过程，这是 GAN 难以做到的。</p>
+
+    <h2 class="section" id="forward"><span class="idx">★</span> 前向过程：给图像加噪的数学之美</h2>
+    <p>扩散过程分为两步：前向加噪和反向去噪。前向过程非常简单——给定一张原始图像 <code>x_0</code>，我们在 T 个时间步内逐步添加高斯噪声，直到它变成纯噪声 <code>x_T</code>。</p>
+    <p>每一步加噪的公式是：<code>x_t = √(1-β_t) · x_{t-1} + √(β_t) · ε</code>，其中 <code>β_t</code> 是预设的噪声调度参数（从 0.0001 线性增长到 0.02），<code>ε</code> 是标准正态分布噪声。这个公式有一个极其重要的性质——它允许我们直接从 <code>x_0</code> 跳跃到任意时间步 <code>t</code> 的噪声状态，而不必一步步迭代：</p>
+    <pre><code class="language-python">import torch
+
+def forward_diffusion_sample(x_0, t, betas):
+    """直接从 x_0 采样任意时间步 t 的加噪版本"""
+    alphas = 1.0 - betas
+    alphas_cumprod = torch.cumprod(alphas, dim=0)
+    
+    sqrt_alpha_prod = alphas_cumprod[t] ** 0.5
+    sqrt_one_minus_alpha_prod = (1 - alphas_cumprod[t]) ** 0.5
+    
+    noise = torch.randn_like(x_0)
+    # x_t = √(ᾱ_t) · x_0 + √(1-ᾱ_t) · ε
+    return sqrt_alpha_prod * x_0 + sqrt_one_minus_alpha_prod * noise, noise
+
+# 模拟 1000 步的加噪调度
+betas = torch.linspace(1e-4, 0.02, 1000)
+x_0 = torch.randn(1, 3, 64, 64)  # 假设的干净图像
+for t in [0, 100, 500, 999]:
+    x_t, _ = forward_diffusion_sample(x_0, t, betas)
+    print(f"t={t:4d}: 信噪比 ≈ {(alphas_cumprod[t]/(1-alphas_cumprod[t])):.1f}")
+</code></pre>
+    <p>这个"直接跳跃"的性质至关重要——它让训练时可以随机采样任意时间步来训练去噪网络，大大提高了训练效率。前向过程本身不需要学习，它是一个固定的马尔可夫链。真正需要学习的是反向过程。</p>
+
+    <h2 class="section" id="reverse"><span class="idx">★</span> 反向过程：学习从噪声中重建图像</h2>
+    <p>反向去噪是扩散模型的核心。给定 <code>x_T</code>（纯噪声），模型需要学会预测每一步应该减去多少噪声，最终还原出 <code>x_0</code>。DDPM 的作者发现，与其预测完整的均值和方差，不如让网络直接预测每一步添加的噪声 <code>ε</code>，然后用一个简单的公式重建图像。</p>
+    <p>训练目标极其简洁：随机采样一张图像 <code>x_0</code>，随机采样一个时间步 <code>t</code>，用前向公式加噪得到 <code>x_t</code>，然后让神经网络（通常是一个 U-Net）预测噪声，损失函数就是预测噪声与真实噪声的均方误差：</p>
+    <pre><code class="language-python">def train_step(model, x_0, optimizer, T=1000):
+    """DDPM 的训练步骤，极其简洁"""
+    batch_size = x_0.shape[0]
+    
+    # 1. 随机采样时间步
+    t = torch.randint(0, T, (batch_size,), device=x_0.device)
+    
+    # 2. 前向加噪（直接跳跃到时间步 t）
+    noise = torch.randn_like(x_0)
+    x_t = add_noise(x_0, t, noise)  # 上一节的公式
+    
+    # 3. 模型预测噪声
+    predicted_noise = model(x_t, t)
+    
+    # 4. 简单的 MSE 损失
+    loss = torch.nn.functional.mse_loss(predicted_noise, noise)
+    
+    optimizer.zero_grad()
+    loss.backward()
+    optimizer.step()
+    return loss.item()
+</code></pre>
+    <p>采样（推理）时，从 <code>x_T</code> 开始，反复执行：用模型预测噪声 → 减去噪声 → 得到 <code>x_{t-1}</code>，循环 T 步得到最终图像。原始 DDPM 需要 1000 步采样，速度较慢；后来的 DDIM（Denoising Diffusion Implicit Models）通过跳步采样，将采样步数压缩到 20-50 步，速度提升 50 倍以上，同时保持生成质量。</p>
+
+    <h2 class="section" id="stable-diffusion"><span class="idx">★</span> Stable Diffusion：潜空间扩散的革命</h2>
+    <p>原始 DDPM 直接在像素空间（如 512×512×3 = 786432 维）进行扩散，计算量极其庞大。Stable Diffusion（原名 Latent Diffusion）由 CompVis 团队在 2022 年提出，做了一个天才般的改进：把扩散过程搬到压缩后的"潜空间"进行。</p>
+    <p>Stable Diffusion 由三个核心组件构成：<strong>VAE 编码器/解码器</strong>把 512×512×3 的图像压缩到 64×64×4 的潜空间表示（压缩 48 倍），扩散过程在这个小空间内进行；<strong>U-Net 去噪网络</strong>负责在潜空间去噪；<strong>文本编码器（CLIP Text Encoder）</strong>把文本提示转化为条件向量，通过交叉注意力机制注入 U-Net，引导生成方向。</p>
+    <p>这种架构带来了两个巨大优势：一是显存占用从数十 GB 降到 8 GB，让普通消费级 GPU 也能运行；二是文本条件控制让"文生图"成为可能。Stable Diffusion 的开源更是引爆了整个生态——LoRA 微调、ControlNet 精确控制、图生图、Inpainting 等技术层出不穷。</p>
+    <pre><code class="language-python"># ControlNet 架构示意：在 U-Net 上附加条件控制分支
+# 输入条件可以是：边缘图、深度图、人体姿态、草图等
+
+class ControlNetBlock:
+    """复制 U-Net 的编码器部分，添加零卷积连接"""
+    def __init__(self, unet_encoder):
+        self.copy_encoder = copy.deepcopy(unet_encoder)  # 冻结的副本
+        self.zero_conv = nn.Conv2d(320, 320, kernel_size=1)
+        nn.init.zeros_(self.zero_conv.weight)  # 零初始化，训练初始等价于无 ControlNet
+        
+    def forward(self, x, timesteps, context, control_image):
+        # 控制图像通过零卷积后注入，训练时逐步学习控制能力
+        control_features = self.copy_encoder(x, timesteps, context) + control_image
+        return self.zero_conv(control_features)
+</code></pre>
+
+    <h2 class="section" id="diffusers"><span class="idx">★</span> 5 行代码生成你的第一张图</h2>
+    <p>Hugging Face 的 diffusers 库把扩散模型的使用门槛降到了最低。安装后只需几行代码就能运行 Stable Diffusion：</p>
+    <pre><code class="language-python"># pip install diffusers transformers accelerate torch
+from diffusers import StableDiffusionPipeline
+import torch
+
+# 1. 加载预训练模型（首次运行会自动下载约 4GB 权重）
+pipe = StableDiffusionPipeline.from_pretrained(
+    "runwayml/stable-diffusion-v1-5",
+    torch_dtype=torch.float16,        # 半精度，省一半显存
+    safety_checker=None                # 关闭安全检查（自行使用时）
+)
+pipe = pipe.to("cuda")                # 移到 GPU
+
+# 2. 输入提示词生成图像
+prompt = "a photo of an astronaut riding a horse on mars, highly detailed, 4k"
+image = pipe(prompt, num_inference_steps=30, guidance_scale=7.5).images[0]
+
+# 3. 保存结果
+image.save("astronaut.png")
+print("生成完成！")
+</code></pre>
+    <p>这里有两个关键参数：<code>guidance_scale</code>（CFG Scale）控制文本引导的强度——值越大，图像越贴合提示词但多样性下降；值越小，模型越自由发挥但可能偏离提示。通常 7-9 是较好的平衡点。<code>num_inference_steps</code> 是去噪步数，20-50 步即可，更多步数收益递减。</p>
+    <p>想要更强的控制力？可以用 <code>StableDiffusionControlNetPipeline</code> 配合一张边缘图或姿态图来生成；想用极低显存（4 GB）？可以加载 <code>LCM-LoRA</code> 或 <code>Turbo</code> 蒸馏模型，配合 <code>enable_model_cpu_offload()</code> 实现极速生成。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>扩散模型的核心是"加噪-去噪"的对称过程：前向过程用固定公式逐步将图像变成噪声，反向过程用 U-Net 学习从噪声中重建图像，训练目标是简单的噪声预测 MSE 损失。DDIM 采样器解决了速度问题，Latent Diffusion（Stable Diffusion）通过潜空间压缩解决了显存问题，文本条件的交叉注意力注入解决了可控生成问题。这三项创新叠加，让扩散模型成为当前图像生成的事实标准。</p>
+    <p>理解了这些原理，你就能明白为什么不同的提示词和参数会产生不同的效果，也能更好地使用 LoRA、ControlNet 等高级工具。下一章我们将转向语音领域，探索语音大模型如何将同样的"编码-解码"思想应用到音频上。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

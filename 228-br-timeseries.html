@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>时间序列预测：从数据中看趋势 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>时间序列预测：从数据中看趋势 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -266,7 +273,7 @@
     <div class="nav-group"><h3>★AI知识拓宽</h3>
       <a href="226-br-gnn.html" title="图神经网络 GNN：处理图结构数据"><span class="num">226</span>图神经网络 GNN</a>
       <a href="227-br-anomaly-detection.html" title="异常检测：发现数据中的"不正常""><span class="num">227</span>异常检测</a>
-      <a href="228-br-timeseries.html" class="active" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
+      <a href="228-br-timeseries.html" title="时间序列预测：从数据中看趋势"><span class="num">228</span>时间序列预测</a>
       <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
       <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
       <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
@@ -295,13 +302,139 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>时间序列预测：从数据中看趋势</h1><p class="lead">从股票到天气——时间序列预测的 AI 方法</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>时间序列：最常见但最难的数据</h2>
-    <p>时间序列无处不在——股价、气温、销量、流量、心率。它的核心特征：**有时间依赖性**（今天的值和昨天有关），不能像表格数据一样打乱顺序。这使得传统 ML 方法（随机森林/XGBoost）效果有限——它们不"理解"时间结构。</p>
-    <table class="data-table"><thead><tr><th>方法</th><th>原理</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>ARIMA</td><td>自回归+差分</td><td>可解释、稳定</td><td>线性假设、难调参</td></tr><tr><td>Prophet</td><td>趋势+季节+节假日</td><td>自动、好调</td><td>Facebook 系、通用性一般</td></tr><tr><td>LSTM/GRU</td><td>循环神经网络</td><td>非线性、长依赖</td><td>训练慢、数据需求大</td></tr><tr><td>Transformer (Informer)</td><td>注意力机制</td><td>长序列好、并行</td><td>计算量大</td></tr><tr><td>Time-LLM</td><td>用 LLM 做时序</td><td>零样本、可解释</td><td>成本高、精度待验证</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>时间序列预测方法从 ARIMA（线性）→ LSTM（非线性）→ Transformer（长序列）→ Time-LLM（零样本）演进。选择取决于数据量和场景——小数据用 Prophet，大数据用 Transformer，需要零样本用 LLM。核心难点是"时间依赖性"和"非平稳性"。</p>
-    <div class="chapter-nav">
-    <a href="227-br-anomaly-detection.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 228 章 · 时间序列预测：从数据中看趋势</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 228 · 业务应用</span>
+      <h1>时间序列预测<br>从 Prophet 到大模型的演进与选型</h1>
+      <p class="lead">预测未来是人类永恒的需求:明天的销量、下个月的用电量、明年的股价。时间序列预测是数据科学最古老也最实用的领域之一。过去几年,这个领域经历了从传统统计模型(ARIMA)到机器学习(Prophet、XGBoost)再到深度学习(Informer)乃至大语言模型(Time-LLM)的剧烈演进。本章带你厘清主流方法的优劣,给出不同场景下的选型建议。</p>
+      <div class="meta">
+        <span class="chip">阅读约 23 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="ts-basics"><span class="idx">★</span> 时间序列预测的基本范式</h2>
+    <p>时间序列预测的核心任务,是给定一段历史观测值 {x_1, x_2, ..., x_t},预测未来 h 个时间点的值 {x_{t+1}, ..., x_{t+h}}。其中 h 称为预测步长(horizon),h 较小是短期预测(如明天销量),h 较大是长期预测(如明年季度规划)。</p>
+    <p>时间序列有几个特殊的成分,理解它们是建模的基础。<strong>趋势(Trend)</strong>是长期上升或下降的方向;<strong>季节性(Seasonality)</strong>是固定周期的波动(如每天的早晚高峰、每年的节假日);<strong>周期(Cycle)</strong>是非固定周期的波动(如经济周期);<strong>噪声(Noise)</strong>是随机的不可解释部分。好的模型要能分解并捕捉这些成分。</p>
+    <p>预测还有一个关键区分:<strong>单步预测</strong>只预测下一个点,<strong>多步预测</strong>预测未来多个点。多步预测的难点在于误差会累积——用预测值再预测,偏差会像滚雪球一样放大。如何稳健地做多步预测,是工程实践的核心问题之一,我们后面会专门讨论。</p>
+    <h2 class="section" id="method-evolution"><span class="idx">★</span> 方法演进:四代模型的脉络</h2>
+    <p>时间序列预测方法大致经历了四代,每一代都解决了上一代的痛点,但也带来了新的复杂度。</p>
+    <p><strong>第一代:统计模型</strong>。以 ARIMA、指数平滑(Holt-Winters)为代表。它们基于严格的统计假设(平稳性、线性关系),理论成熟、可解释性强,适合单变量、规律性强的序列。缺点是难以处理多变量、非线性、外部事件(如促销),且需要手动调参定阶,对使用者有较高统计素养要求。</p>
+    <p><strong>第二代:基于分解的机器学习</strong>。以 Facebook 开源的 Prophet 为代表。它的核心思想是把序列分解为"趋势 + 季节性 + 节假日 + 残差",每一项用简单灵活的函数拟合,然后再用加性模型组合。Prophet 的最大优势是<strong>开箱即用、对缺失值和异常值鲁棒、能轻松加入节假日效应</strong>,是工业界最常用的时间序列基线。</p>
+    <p><strong>第三代:深度学习序列模型</strong>。以 LSTM、TCN、Transformer 为代表。它们能自动学习复杂时序模式,支持多变量输入,适合规律复杂、数据量大的场景。2021 年的 Informator 提出了 ProbSparse 自注意力机制,专门解决长序列预测的复杂度问题,是 Transformer 在时序领域的里程碑。这类模型需要较多数据和算力,小数据集上未必比 Prophet 好。</p>
+    <p><strong>第四代:大语言模型赋能</strong>。以 Time-LLM、Chronos 为代表。核心洞察是:预训练的大语言模型已经学会了丰富的时序模式(因为语料里包含大量数字序列),把时序数据"翻译"成文本或 token 后,用 LLM 来预测。这类方法在 zero-shot 场景(没有历史训练数据的新序列)上表现惊艳,是 2024 年以来的研究热点。</p>
+    <h2 class="section" id="prophet"><span class="idx">★</span> Prophet:工业界最稳的基线</h2>
+    <p>Prophet 之所以成为工业界基线,是因为它符合"80/20 法则":用 20% 的投入解决 80% 的场景。它的数学模型是 y(t) = g(t) + s(t) + h(t) + ε(t),其中 g(t) 是趋势项(支持线性或饱和增长)、s(t) 是季节性项(用傅里叶级数拟合)、h(t) 是节假日效应、ε(t) 是噪声。各项独立拟合,可解释性强。</p>
+    <p>Prophet 的工程优势有几个:自动检测变点(changepoint)来适应趋势变化;用贝叶斯方法估计参数,天然输出预测区间;对缺失值和异常值鲁棒(基于稳健回归);支持自定义季节性和节假日。下面是一段典型的 Prophet 使用代码,演示了带节假日的多步预测:</p>
+    <pre><code class="language-python">import pandas as pd
+from prophet import Prophet
+
+# Prophet 要求列名固定为 ds(日期)和 y(目标值)
+df = pd.read_csv("sales_daily.csv")
+df["ds"] = pd.to_datetime(df["date"])
+df["y"] = df["sales"]
+
+# 定义节假日(如春节、双11)
+holidays = pd.DataFrame({
+    "holiday": "double_eleven",
+    "ds": pd.to_datetime(["2025-11-11", "2026-11-11"]),
+    "lower_window": -1,   # 节前一天也开始影响
+    "upper_window": 3,    # 节后影响持续 3 天
+})
+
+# 构建模型:加入年季节性和周季节性、节假日、额外回归量
+model = Prophet(
+    growth="linear",
+    yearly_seasonality=True,
+    weekly_seasonality=True,
+    holidays=holidays,
+    changepoint_prior_scale=0.05,  # 控制趋势灵活度,越小越平滑
+)
+# 加入外部回归量(如广告投放),必须在历史和未来都有值
+model.add_regressor("ad_spend")
+model.fit(df[["ds", "y", "ad_spend"]])
+
+# 构建未来 dataframe, Prophet 会自动填充季节性, 但 ad_spend 要自己给
+future = model.make_future_dataframe(periods=90)  # 预测未来 90 天
+future["ad_spend"] = forecast_ad_budget(future["ds"])
+forecast = model.predict(future)
+
+# forecast 包含 yhat(预测值)、yhat_lower/upper(置信区间)
+print(forecast[["ds", "yhat", "yhat_lower", "yhat_upper"]].tail())
+</code></pre>
+    <p>Prophet 的局限是:它本质是单变量加性模型,多变量关系处理能力有限;对非平稳、剧烈变化的序列(如股价)效果一般;无法捕捉复杂的长程依赖。所以它适合"规律性强的业务预测"(销量、流量、库存),不适合"高频、噪声大、强非线性"的金融场景。</p>
+    <h2 class="section" id="informer"><span class="idx">★</span> Informer:长序列 Transformer 的代表作</h2>
+    <p>当序列变长(如每分钟采样的工业传感器数据,一年有 50 万个点),传统方法力不从心,深度学习登场。但标准 Transformer 的自注意力是 O(L²) 复杂度,长序列计算不可行。Informer(2021)的突破是提出了 <strong>ProbSparse Self-Attention</strong>:观察到自注意力矩阵往往是稀疏的(少数 query 贡献了主要 attention),于是只对那些"活跃"的 query 计算注意力,把复杂度降到 O(L log L)。</p>
+    <p>Informer 还引入了两个关键设计。<strong>Generative Decoder</strong>:传统 decoder 一步步预测未来点,误差累积;Informer 用一种"前瞻"的解码方式,一次前向就生成整段未来序列,避免了误差累积。<strong>Temporal Coding</strong>:用位置编码 + 时间编码(小时/星期/月)给模型显式的时间感知,比纯位置编码更适合时序。</p>
+    <p>Informer 适合的场景是:数据量大、序列长、需要捕捉复杂多变量关系、算力充裕。典型应用是电力负荷预测、交通流量预测、工业设备监控。它的代价是需要 GPU 训练、超参数较多、可解释性弱。对中小数据集,Prophet 往往更划算。</p>
+    <h2 class="section" id="time-llm"><span class="idx">★</span> Time-LLM:用大模型做 zero-shot 时序预测</h2>
+    <p>Time-LLM(2024)代表了一个新范式:不训练专门的时序模型,而是把时序数据"重编程"(reprogramming)成大语言模型能理解的 token,然后利用 LLM 已有的模式识别能力来预测。这听起来玄乎,原理其实朴素:LLM 在海量预训练语料里见过无数数字序列(股价、天气、销量报告),它已经学到了"序列模式"的通用知识,只是输入模态需要适配。</p>
+    <p>Time-LLM 的做法是用一组可学习的"原型向量"把时序片段patch 映射到词嵌入空间,加上提示词(如"这是一个电商销量序列,请预测接下来 30 天"),让 LLM 输出预测。它最惊艳的能力是 <strong>zero-shot</strong>:对于一条全新的、没有历史的序列(如新品类的销量),Time-LLM 只凭几个提示点就能给出合理预测,这是传统方法做不到的。</p>
+    <p>但 Time-LLM 也有局限:推理成本高(每次预测都要跑一次 LLM),长序列时 prompt 可能超长;对极高频或强物理规律的数据(如传感器原始读数),LLM 的先验知识未必适用。它更适合"序列长度适中、有领域语义、需要 zero-shot 或 few-shot"的场景。Chronos(Amazon 开源)是类似的思路,把时序量化成离散 token,用 seq2seq 的方式预测,工程上更轻量。</p>
+    <h2 class="section" id="multi-step"><span class="idx">★</span> 多步预测策略:递归、直接、多输出</h2>
+    <p>多步预测是工程实践的核心问题。假设要预测未来 h 个点,主流策略有三种,各有权衡。</p>
+    <p><strong>递归策略(Recursive)</strong>:训练一个单步模型,预测 t+1;然后把 t+1 当作已知,预测 t+2,以此类推。优点是只需训练一个模型,缺点是误差会快速累积——预测越远越不准。适合短期预测或误差容忍度高的场景。</p>
+    <p><strong>直接策略(Direct)</strong>:为每个未来步训练一个独立模型(预测 t+1 的模型、预测 t+2 的模型...),每个模型直接用历史数据预测对应步。优点是没有误差累积,缺点是计算成本高(h 个模型),且各步预测之间可能不一致(预测的 t+2 比 t+1 还小)。</p>
+    <p><strong>多输出策略(Multi-Output)</strong>:训练一个模型同时输出未来 h 个点(用神经网络的多输出头或 Seq2Seq 架构)。这是深度学习的常用方式,兼顾了效率和一致性,但模型更复杂。Informer 的 Generative Decoder 就是这种思路的极致。</p>
+    <p>实践中的建议:短期预测(h<5)用递归即可,简单高效;中长期预测优先多输出(深度学习);只有在不方便训练复杂模型且需要严格无累积误差时,才用直接策略。下面用代码示意直接策略和递归策略的对比:</p>
+    <pre><code class="language-python">import numpy as np
+from sklearn.ensemble import GradientBoostingRegressor
+
+def make_features(series, lag=7):
+    """把序列转成监督学习:用过去 lag 步预测下一步"""
+    X, y = [], []
+    for i in range(lag, len(series)):
+        X.append(series[i-lag:i])
+        y.append(series[i])
+    return np.array(X), np.array(y)
+
+# === 递归策略:一个模型,滚动预测 ===
+def recursive_predict(model, recent_window, horizon):
+    preds = []
+    window = list(recent_window)
+    for _ in range(horizon):
+        p = model.predict([window])[0]
+        preds.append(p)
+        window = window[1:] + [p]   # 用预测值滚动窗口
+    return preds
+
+# === 直接策略:为每个未来步训练独立模型 ===
+def train_direct_models(series, lag=7, horizon=14):
+    models = []
+    for step in range(1, horizon + 1):
+        X, y = [], []
+        for i in range(lag, len(series) - step + 1):
+            X.append(series[i-lag:i])
+            y.append(series[i + step - 1])   # 直接预测第 step 步
+        m = GradientBoostingRegressor().fit(X, y)
+        models.append(m)
+    return models   # 预测时各模型分别预测对应步
+
+series = np.log1p(load_daily_sales())  # 常做对数变换稳定方差
+X, y = make_features(series, lag=7)
+recursive_model = GradientBoostingRegressor().fit(X, y)
+pred_recursive = recursive_predict(recursive_model, series[-7:], horizon=14)
+</code></pre>
+    <h2 class="section" id="evaluation"><span class="idx">★</span> 评估指标:别用错尺度</h2>
+    <p>时间序列预测的评估有几个常用指标,用错会导致错误的模型选择。</p>
+    <p><strong>MAE(平均绝对误差)</strong>和 <strong>RMSE(均方根误差)</strong>最常用。MAE 对异常值鲁棒、单位与原始数据一致,易于解释;RMSE 对大误差更敏感,适合异常值代价高的场景。</p>
+    <p><strong>MAPE(平均绝对百分比误差)</strong>给出相对误差,方便跨序列比较。但它有两个坑:真实值接近 0 时会爆炸(除以 0),且对预测偏高和偏低的惩罚不对称。更稳健的替代是 <strong>sMAPE</strong>(对称 MAPE)或 <strong>MASE</strong>(相对于朴素预测的误差比)。</p>
+    <p>一个常被忽视但重要的做法是:<strong>用 naive baseline 做对比</strong>。最简单的基线是"明天等于今天"(persistence model)或"下周等于上周同一天"(seasonal naive)。如果你的复杂模型打不过 naive baseline,说明它没学到任何有用的东西——这种"翻车"在时序预测里并不罕见。</p>
+    <h2 class="section" id="selection"><span class="idx">★</span> 选型决策:一个实用框架</h2>
+    <p>面对具体业务,如何选模型?我建议按三个维度判断:数据量、序列特征、工程约束。</p>
+    <p>数据量小(< 1 万点)、规律清晰、需要可解释性 → <strong>Prophet</strong>。它的开箱即用和节假日支持,能快速给出靠谱基线。</p>
+    <p>数据量大(> 10 万点)、多变量、需要捕捉复杂模式、有 GPU 资源 → <strong>Informer 或其他时序 Transformer</strong>。深度学习的威力需要足够数据支撑。</p>
+    <p>新业务没有历史数据、需要快速给冷启动预测 → <strong>Time-LLM 或 Chronos</strong>。利用 LLM 的先验,zero-shot 给出初版预测,等数据积累后再切换专门模型。</p>
+    <p>多序列场景(如成千上万个 SKU 各自预测销量)→ 考虑 <strong>全局模型</strong>(DeepAR、Temporal Fusion Transformer),它们跨序列共享参数,比每个序列单独建模更高效。</p>
+    <p>一个落地建议:无论选哪个复杂模型,都先用 Prophet 搭个基线。如果你的复杂模型连 Prophet 都比不过,问题不在模型而在数据或特征。基线思维能帮你避免"过度工程化"的陷阱。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>时间序列预测经历了四代演进:统计模型(ARIMA)、分解式机器学习(Prophet)、深度序列模型(Informer)、大语言模型(Time-LLM)。它们各有适用场景,没有银弹。</p>
+    <p>Prophet 仍是工业界最稳的基线,适合规律性强的业务预测;Informer 用 ProbSparse 注意力和生成式解码,适合长序列、多变量、大数据;Time-LLM 开辟了 zero-shot 时序预测的新范式,适合冷启动场景。多步预测有递归、直接、多输出三种策略,误差累积是核心权衡。</p>
+    <p>选型时按数据量、序列特征、工程约束三维度判断,且永远先用基线打底。记住:时序预测里,数据清洗(处理异常值、缺失值、口径变更)往往比换模型更能提升效果。再先进的模型,也救不了脏数据。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -183,7 +181,7 @@
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
       <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
-      <a href="152-agent-opencode-session.html" class="active" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
+      <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
@@ -305,81 +303,192 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 152 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 会话持久化</h1><p class="lead">会话存为 JSON：消息列表 + 工具调用记录 + 元数据。可恢复、可分支、可回放。文件系统即数据库的极简方案。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>会话存为 JSON：消息列表 + 工具调用记录 + 元数据。可恢复、可分支、可回放。文件系统即数据库的极简方案。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>会话存为 JSON：消息列表 + 工具调用记录 + 元数据。可恢复、可分支、可回放。文件系统即数据库的极简方案。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 37 · Agent 源码深挖系列</span>
+      <h1>OpenCode 会话管理<br>JSONL 日志与会话恢复</h1>
+      <p class="lead">Agent 不是「问一句答一句就结束」的问答机器人，它往往要陪用户持续工作几小时甚至几天。如果中间关掉终端、重启电脑，之前的上下文就全丢了，这是不可接受的。OpenCode 用一种极简但可靠的方式解决了这个问题——把每条消息追加写入一个 JSONL 文件，会话恢复时把它读回来。本章我们拆解这套持久化机制，看看为什么 JSONL 比数据库更适合这个场景，以及恢复时有哪些坑。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-jsonl"><span class="idx">★</span> 一、为什么是 JSONL，而不是 SQLite</h2>
+    <p>会话持久化的第一选择似乎是数据库——SQLite 单文件、事务安全、查询方便。但 OpenCode 选了 JSONL（JSON Lines，每行一个 JSON 对象的文本文件）。这个选择背后有几个考量。</p>
+    <p>第一，<strong>写入是纯追加</strong>。每产生一条新消息，就在文件末尾 append 一行，不需要更新已有数据。追加写入对文件系统来说几乎不会损坏已有内容（即使写到一半断电，最多丢最后一行），而数据库的复杂事务在这种场景下是过度设计。</p>
+    <p>第二，<strong>人类可读可调试</strong>。JSONL 是纯文本，你可以直接 <code>tail -f session.jsonl</code> 实时看到 Agent 在想什么，可以用 grep 搜索历史，可以用 jq 做分析。这对调试 Agent 行为极其重要——Agent 的决策过程是个黑盒，能直接看原始消息日志是排障的关键。</p>
+    <p>第三，<strong>无 schema 迁移负担</strong>。消息格式可能随版本演进（加字段、改结构），JSONL 天然兼容——旧记录缺的字段读出来是 undefined，代码里做兼容处理就行。数据库则要做 schema 迁移，对 CLI 工具是个负担。</p>
+    <p>第四，<strong>无需依赖</strong>。Bun 原生支持文件读写，不引入 SQLite 绑定这种 native 依赖，保持安装的轻量。</p>
+
+    <h2 class="section" id="storage-layout"><span class="idx">★</span> 二、存储布局：每个会话一个文件</h2>
+    <p>OpenCode 的会话文件统一放在用户主目录下，按项目路径隔离。布局大致是：</p>
+    <pre><code class="language-text">~/.local/share/opencode/
+└── project/
+    └── &lt;项目路径的 hash&gt;/
+        ├── session/
+        │   ├── &lt;uuid-1&gt;.jsonl      # 每个会话一个文件，文件名是 session id
+        │   ├── &lt;uuid-2&gt;.jsonl
+        │   └── &lt;uuid-3&gt;.jsonl
+        └── config.json              # 项目级配置</code></pre>
+    <p>用项目路径的 hash 作为目录名，是为了避免路径里的 <code>/</code> 和特殊字符破坏文件系统结构。同一个项目的所有会话聚合在一个目录下，方便列出和清理。session 文件名直接用 UUID，恢复时传这个 UUID 就能定位文件。</p>
+
+    <h2 class="section" id="write"><span class="idx">★</span> 三、写入：每条消息落盘</h2>
+    <p>OpenCode 在 Agent 循环的几个关键节点触发写入：用户消息产生时、assistant 消息完成时、工具调用执行前后。我们看一个接近真实的写入函数：</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/session/persist.ts（简化）
+import { appendFile, mkdir } from "node:fs/promises";
+import { dirname } from "node:path";
+
+export interface SessionRecord {
+  type: "message" | "tool_call" | "tool_result" | "session_meta";
+  timestamp: number;             // Unix 毫秒
+  sessionId: string;
+  data: any;                     // 具体内容，type 决定结构
+}
+
+export async function appendRecord(sessionId: string, record: Omit&lt;SessionRecord, "sessionId"&gt;): Promise&lt;void&gt; {
+  const filePath = sessionFilePath(sessionId);   // ~/.local/.../session/&lt;id&gt;.jsonl
+  await mkdir(dirname(filePath), { recursive: true });
+
+  const fullRecord: SessionRecord = {
+    ...record,
+    sessionId,
+  };
+  // 一行一个 JSON，追加写入
+  await appendFile(filePath, JSON.stringify(fullRecord) + "\n", "utf-8");
+}
+
+// 在 Agent 循环里的调用点
+async function onUserMessage(session: Session, content: string) {
+  await appendRecord(session.id, {
+    type: "message",
+    timestamp: Date.now(),
+    data: { role: "user", content },
+  });
+}
+
+async function onToolResult(session: Session, callId: string, result: ToolResult) {
+  await appendRecord(session.id, {
+    type: "tool_result",
+    timestamp: Date.now(),
+    data: { callId, result },
+  });
+}</code></pre>
+    <p>注意一个关键设计：<strong>工具调用的入参和结果分开记录</strong>，而不是合并成一条。这是因为工具调用往往耗时长（执行测试可能几十秒），分两条记录可以让你在日志里看到「调用开始 → 执行中 → 结果返回」的时间线，便于排查性能问题。合并成一条则丢失了时序信息。</p>
+
+    <h2 class="section" id="streaming-write"><span class="idx">★</span> 四、流式输出的写入难题</h2>
+    <p>assistant 的回复是流式的——token 一个个吐出来，不是一次性返回完整文本。如果每个 token 都写一行 JSONL，文件会爆炸；如果等全部生成完再写，万一中途崩溃就全丢了。OpenCode 的折中是：<strong>流式过程中只更新内存缓冲，完成时一次性落盘</strong>。</p>
+    <pre><code class="language-typescript">// 流式消息的处理（简化）
+async function streamAssistantMessage(session: Session, stream: AsyncIterable&lt;Delta&gt;) {
+  let buffer = "";
+  const toolCalls: ToolCall[] = [];
+
+  for await (const delta of stream) {
+    if (delta.text) buffer += delta.text;
+    if (delta.toolCall) toolCalls.push(delta.toolCall);
+    // 只更新内存，不落盘
+    bus.emit("message.delta", delta);
+  }
+
+  // 流结束后一次性写入完整消息
+  await appendRecord(session.id, {
+    type: "message",
+    timestamp: Date.now(),
+    data: {
+      role: "assistant",
+      content: buffer,
+      toolCalls,
     },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+  });
+}</code></pre>
+    <p>这个设计的代价是：如果流式过程中进程崩溃，这条消息会丢失。但相比每 token 落盘的 I/O 开销，这是值得的权衡。更激进的实现可以做「每 100 token 落一次」的批量写，OpenCode 选了最简单的方案——这对大多数场景已经够用。</p>
+
+    <h2 class="section" id="restore"><span class="idx">★</span> 五、会话恢复：把 JSONL 读回消息列表</h2>
+    <p>恢复会话就是逐行读取 JSONL，按 type 重建消息列表。听起来简单，但有几个坑要处理。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/session/restore.ts（简化）
+import { readFile } from "node:fs/promises";
+
+export async function restoreSession(sessionId: string): Promise&lt;Session | null&gt; {
+  const filePath = sessionFilePath(sessionId);
+  let content: string;
+  try {
+    content = await readFile(filePath, "utf-8");
+  } catch (err) {
+    if (err.code === "ENOENT") return null;    // 会话不存在
+    throw err;
+  }
+
+  const messages: Message[] = [];
+  let sessionMeta: SessionMeta | null = null;
+
+  // 逐行解析
+  const lines = content.split("\n").filter(Boolean);
+  for (const line of lines) {
+    let record: SessionRecord;
+    try {
+      record = JSON.parse(line);
+    } catch {
+      // 损坏的行跳过（比如写到一半断电的那行）
+      console.error(`跳过损坏的行: ${line.slice(0, 80)}...`);
+      continue;
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    switch (record.type) {
+      case "session_meta":
+        sessionMeta = record.data;
+        break;
+      case "message":
+        messages.push(record.data);
+        break;
+      case "tool_call":
+        // tool_call 和 tool_result 分两条记录，这里把它们合并回 message
+        // 实际实现更复杂：要按 callId 关联
+        break;
+      case "tool_result":
+        // 同上
+        break;
+    }
+  }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+  if (!sessionMeta) return null;
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 会话持久化"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="151-agent-opencode-mcp.html"><div class="lbl">← 上一章</div><div class="ttl">151 · OpenCode 与 MCP 协议</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="153-agent-codex-arch.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">153 · Codex CLI 架构：Rust 内核 + TS 前端</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 152 章 · OpenCode 会话持久化</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+  return {
+    id: sessionId,
+    messages,
+    cwd: sessionMeta.cwd,
+    model: sessionMeta.model,
+    // ...其他字段从 meta 恢复
+    mcpServers: [],   // MCP server 不持久化，恢复时重新加载
+    permission: defaultPermission(),  // 权限也从默认开始
+  };
+}</code></pre>
+    <p>这里有两个处理损坏数据的细节值得学习。<strong>第一是逐行 try/catch</strong>：最后一行可能写了一半就崩溃，JSON.parse 会失败，跳过它而不是让整个恢复失败。<strong>第二是 session_meta 单独存一条</strong>：cwd、model 这些会话级配置不是某条消息的一部分，所以用 type=session_meta 单独记录，恢复时优先读取。这种「元数据 + 数据」的分层在日志系统里很常见。</p>
+
+    <h2 class="section" id="not-persisted"><span class="idx">★</span> 六、什么不持久化：MCP 与权限的取舍</h2>
+    <p>观察上面的恢复代码，你会发现 MCP server 列表和权限状态都没有从日志恢复——它们被重置成了空和默认。这不是疏忽，而是刻意的取舍。</p>
+    <p>MCP server 不持久化，是因为 stdio 类型的 server 是子进程，进程已经死了，没法「恢复一个活进程」。重新加载是唯一选择——从配置文件重新拉起。而且配置可能在会话期间被用户修改过，从配置加载比从日志恢复更符合用户预期。</p>
+    <p>权限状态（尤其是 allow-always 学到的规则）不持久化，是出于安全考虑。试想：你在某次会话里允许了 Agent 执行 <code>rm -rf build</code>，如果这条规则被持久化，下次新会话它就能自动执行这个危险命令，你可能已经忘了之前的授权。让权限从默认开始，强制用户每次会话重新确认敏感操作，是更安全的选择。</p>
+    <p>这两个取舍说明了一个原则：<strong>持久化要区分「事实数据」和「运行时状态」</strong>。消息是事实（发生过的事），必须留；进程和权限是运行时状态，应该随会话结束而清空。</p>
+
+    <h2 class="section" id="resume-ux"><span class="idx">★</span> 七、恢复后的 UX：继续而非重放</h2>
+    <p>一个细节问题：恢复会话后，TUI 要不要把历史消息重新「打印」一遍给用户看？OpenCode 的选择是 <strong>不重放，只显示摘要</strong>——恢复时在界面上显示「已恢复会话 xxx，共 N 条消息，最后一句是：...」，用户想看完整历史可以按某个快捷键展开。</p>
+    <p>这个选择背后的考量是：重放几十条消息会把用户的终端刷屏，干扰当前工作。Agent 的价值在于「记得」，不在于「展示它记得」。这种克制的设计让会话恢复变成一个轻量、不打断的操作。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>OpenCode 的会话管理是「简单到不像话」的设计，但每个取舍都经得起推敲。要点回顾：</p>
+    <ul>
+      <li><strong>JSONL 而非数据库</strong>：纯追加写入抗损坏、人类可读可调试、无 schema 迁移负担、无 native 依赖。</li>
+      <li><strong>每会话一文件</strong>：按项目路径 hash 隔离，session 文件名用 UUID，便于定位和清理。</li>
+      <li><strong>分类型追加</strong>：message / tool_call / tool_result / session_meta 各自一条记录，工具调用入参和结果分开记录保留时序信息。</li>
+      <li><strong>流式消息完成后落盘</strong>：避免每 token 写 I/O，代价是崩溃丢最后一条，权衡合理。</li>
+      <li><strong>恢复时逐行解析 + 跳过损坏行</strong>：写到一半的行 JSON.parse 失败被跳过，不让单行损坏毁掉整个恢复。</li>
+      <li><strong>MCP 和权限不持久化</strong>：前者是进程无法恢复，后者是安全考虑——敏感授权不应跨会话保留。</li>
+      <li><strong>恢复不重放</strong>：只显示摘要，避免刷屏干扰，体现「记得」而非「展示」。</li>
+    </ul>
+    <p>至此 OpenCode 系列六篇全部完成。从整体架构（146）到工具系统（148）、权限模型（149）、上下文管理（150）、MCP 集成（151）、会话管理（152），我们看清了一个现代开源 Agent 的全貌。接下来我们转向另一个重量级项目——OpenAI 的 Codex，看看一个用 Rust 写内核、TypeScript 写前端的 Agent 又是怎么解决同样这些问题的。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

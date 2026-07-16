@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -170,7 +168,7 @@
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
-      <a href="141-vec-graphrag.html" class="active" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
       <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
@@ -305,66 +303,228 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 141 章 · 向量索引与 RAG 原理深挖</span>
-<h1>GraphRAG：知识图谱增强检索</h1><p class="lead">从文档抽取实体关系建图，检索时既取向量又走图。社区检测生成摘要。解决"跨文档推理"类问题。微软 GraphRAG 方案。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>从文档抽取实体关系建图，检索时既取向量又走图。社区检测生成摘要。解决"跨文档推理"类问题。微软 GraphRAG 方案。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>从文档抽取实体关系建图，检索时既取向量又走图。社区检测生成摘要。解决"跨文档推理"类问题。微软 GraphRAG 方案。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 141 · 向量检索系列</span>
+      <h1>GraphRAG<br>知识图谱构建、社区摘要与微软架构</h1>
+      <p class="lead">向量 RAG 擅长"找相关片段"，但遇到"总结整篇文档的主题"、"对比 A 和 B 在多个维度的差异"这类需要跨文档、全局性推理的问题就力不从心——它本质是局部检索。GraphRAG（微软 2024 年开源）用知识图谱 + 社区摘要补足这个短板，是 RAG 在"全局理解"方向上的重要突破。本文拆解它的知识图谱构建、社区检测、分层摘要，以及微软的完整架构。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="limit-of-vector"><span class="idx">★</span> 向量 RAG 的全局理解短板</h2>
+    <p>考虑一个查询："总结这份 500 页财报里公司的主要战略主题。" 向量 RAG 的做法是 embed 这个查询，召回最相似的若干段落，拼给 LLM。问题在于：</p>
+    <ul>
+      <li>"主要主题"是<strong>全局性</strong>信息，分散在整份文档的几百个段落里，召回 top-10 远不能覆盖。</li>
+      <li>查询的 embedding 和"主题总结"类段落不一定相似（查询是任务，段落是事实），召回会偏。</li>
+      <li>没有跨段落的结构化关系，LLM 拿到的是孤立片段，难以归纳全局。</li>
+    </ul>
+    <p>这类"<strong>query-focused summarization over whole corpus</strong>"（对整个语料库做聚焦总结）的任务，是向量 RAG 的结构性盲区。GraphRAG 就是为这类场景设计的。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="kg-construction"><span class="idx">★</span> 第一步：用 LLM 从文本抽取知识图谱</h2>
+    <p>GraphRAG 的第一阶段是<strong>离线构建知识图谱</strong>。对每个文本块，用一个 prompt 让 LLM 抽取其中的<strong>实体</strong>（人、组织、地点、概念）和<strong>关系</strong>（实体之间的动作/属性）。比如对一段财报文本：</p>
+    <pre><code class="language-text">"Acme Corp 2024 年云服务营收 30 亿美元，同比增长 60%，主要受益于企业客户增长。"</code></pre>
+    <p>LLM 抽取出：</p>
+    <ul>
+      <li>实体：Acme Corp（组织）、云服务（业务）、企业客户（客户群）。</li>
+      <li>关系：(Acme Corp, 提供, 云服务)、(云服务, 2024 营收, 30 亿)、(云服务, 同比增长, 60%)、(云服务, 增长驱动, 企业客户)。</li>
+    </ul>
+    <p>对所有文本块重复这个过程，把所有实体和关系汇总成一张图。注意这里要<strong>实体消歧</strong>——不同块里的"Acme"、"Acme Corp"、"Acme Corporation"要合并成同一个节点（用 LLM 或字符串相似度）。</p>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <pre><code class="language-python"># GraphRAG 知识图谱抽取的 prompt 骨架（简化版）
+ENTITY_EXTRACTION_PROMPT = """你是一个信息抽取助手。从下面的文本中抽取实体和关系。
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"GraphRAG：知识图谱增强检索"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="140-vec-rag-eval.html"><div class="lbl">← 上一章</div><div class="ttl">140 · RAG 评估：RAGAS 与忠实度</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="142-vec-multivec.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">142 · ColBERT 与多向量检索</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 141 章 · GraphRAG：知识图谱增强检索</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+输出严格的 JSON 格式：
+{{
+  "entities": [
+    {{"name": "实体名", "type": "组织/人物/地点/概念/业务", "description": "简短描述"}}
+  ],
+  "relationships": [
+    {{"source": "实体A", "target": "实体B", "relation": "关系描述", "strength": 1-10}}
+  ]
+}}
+
+文本：{text}
+
+抽取结果："""
+
+import json, anthropic
+client = anthropic.Anthropic()
+
+def extract_entities_relations(text, model="claude-3-5-sonnet-latest"):
+    resp = client.messages.create(
+        model=model, max_tokens=1000,
+        messages=[{"role": "user",
+                   "content": ENTITY_EXTRACTION_PROMPT.format(text=text)}],
+    )
+    return json.loads(resp.content[0].text)
+
+# 对所有文本块抽取，构建图
+import networkx as nx
+graph = nx.Graph()
+for chunk in corpus_chunks:
+    result = extract_entities_relations(chunk)
+    for e in result["entities"]:
+        graph.add_node(e["name"], **e)
+    for r in result["relationships"]:
+        graph.add_edge(r["source"], r["target"], **r)
+print(f"图: {graph.number_of_nodes()} 节点, {graph.number_of_edges()} 边")
+</code></pre>
+
+    <h2 class="section" id="community"><span class="idx">★</span> 第二步：社区检测 + 分层摘要</h2>
+    <p>有了知识图谱，GraphRAG 用图聚类算法（Leiden 算法）把图分成若干<strong>社区（community）</strong>——社区内节点连接密集、社区间连接稀疏。直观上，每个社区代表一个"主题簇"，比如"财务表现"主题、"产品线"主题、"高管团队"主题。</p>
+    <p>Leiden 算法是递归的，可以分多层：顶层社区大而粗（如 3-5 个大主题），下层社区小而细（每个大主题下若干子主题）。GraphRAG 默认构建 3 层左右的社区层级。</p>
+    <p>对每个社区，GraphRAG 用 LLM 生成一份<strong>社区摘要（community report）</strong>——把这个社区所有实体和关系汇总给 LLM，让它写一段主题概述。顶层社区的摘要覆盖面广，底层社区的摘要细节多。这一步是 GraphRAG 的精髓：把零散的实体和关系<strong>压缩成层次化的语义摘要</strong>，查询时直接用这些摘要回答全局性问题。</p>
+
+    <pre><code class="language-python"># 社区检测 + 摘要生成（用 networkx + leidenalg）
+import community as community_louvain   # pip install python-louvain
+# 或用 leidenalg
+
+def detect_communities(graph, resolution=1.0):
+    """Louvain/Leiden 社区检测，返回 {node: community_id}"""
+    partition = community_louvain.best_partition(graph, resolution=resolution)
+    return partition
+
+def generate_community_report(graph, community_nodes, level, model="claude-3-5-sonnet-latest"):
+    """为每个社区生成摘要报告"""
+    # 收集社区内所有实体和关系
+    entities_info = []
+    for node in community_nodes:
+        attrs = graph.nodes[node]
+        entities_info.append(f"- {node}({attrs.get('type','')}): {attrs.get('description','')}")
+    rels_info = []
+    for u, v, d in graph.subgraph(community_nodes).edges(data=True):
+        rels_info.append(f"- {u} --{d.get('relation','')}--> {v}")
+
+    prompt = f"""你在为一个知识图谱社区生成摘要报告（第 {level} 层）。
+这个社区包含以下实体：
+{chr(10).join(entities_info[:50])}
+
+主要关系：
+{chr(10).join(rels_info[:80])}
+
+请写一份结构化的社区摘要（200-500字），涵盖：
+1. 这个社区的核心主题
+2. 关键实体及其角色
+3. 主要关系和趋势
+"""
+    resp = client.messages.create(
+        model=model, max_tokens=800,
+        messages=[{"role": "user", "content": prompt}])
+    return resp.content[0].text
+
+# 构建多层社区 + 摘要
+partition = detect_communities(graph)
+communities = {}
+for node, cid in partition.items():
+    communities.setdefault(cid, []).append(node)
+
+reports = {}
+for cid, nodes in communities.items():
+    reports[cid] = generate_community_report(graph, nodes, level=0)
+print(f"生成 {len(reports)} 份社区摘要")
+</code></pre>
+
+    <h2 class="section" id="query-modes"><span class="idx">★</span> 第三步：两种查询模式</h2>
+    <p>构建好图谱和社区摘要后，GraphRAG 支持两种查询模式，按 query 类型选择：</p>
+
+    <h3>Global Search（全局搜索）—— 回答全局/总结类问题</h3>
+    <p>对于"总结主题"、"对比趋势"这类全局问题，GraphRAG 把<strong>所有顶层社区摘要</strong>分批发给 LLM，让每个 batch 的 LLM 基于"自己看到的社区摘要"对 query 给出部分答案，再用 map-reduce 把所有部分答案合并成最终答案。</p>
+    <p>这个流程绕过了向量检索的局部性——它不召回个别段落，而是基于预先做好的全语料摘要回答。这正是它擅长全局问题的原因。</p>
+
+    <h3>Local Search（局部搜索）—— 回答具体实体问题</h3>
+    <p>对于"Acme Corp 的 CEO 是谁"这类具体实体问题，GraphRAG 先定位相关实体节点，取出该节点的邻居、所在社区的摘要、相关文本块，拼成上下文喂 LLM。这类似向量 RAG，但用了图谱的结构信息（实体的直接关系）补足语义检索的盲区。</p>
+
+    <pre><code class="language-python"># Global Search 的简化流程
+def global_search(query, community_reports, model="claude-3-5-sonnet-latest"):
+    """map-reduce: 每个 batch 处理部分社区摘要，再合并"""
+    # 1. Map: 把社区摘要分 batch，每个 batch 让 LLM 给部分答案
+    batch_size = 5
+    partial_answers = []
+    for i in range(0, len(community_reports), batch_size):
+        batch = community_reports[i:i+batch_size]
+        summaries = "\n\n".join([f"社区摘要{j}:\n{r}" for j, r in enumerate(batch)])
+        prompt = f"""基于这些社区摘要回答问题。如果你觉得某些摘要有用就用，没用就忽略。
+        只输出对你回答问题有帮助的要点，格式为要点列表。如果没有相关信息输出"无"。
+        
+        问题：{query}
+        社区摘要：{summaries}
+        """
+        resp = client.messages.create(
+            model=model, max_tokens=500,
+            messages=[{"role": "user", "content": prompt}])
+        if "无" not in resp.content[0].text:
+            partial_answers.append(resp.content[0].text)
+
+    # 2. Reduce: 合并所有部分答案
+    final_prompt = f"""根据这些来自不同社区的部分答案，综合回答问题。
+    问题：{query}
+    部分答案：{chr(10).join(partial_answers)}
+    """
+    resp = client.messages.create(
+        model=model, max_tokens=1000,
+        messages=[{"role": "user", "content": final_prompt}])
+    return resp.content[0].text
+
+answer = global_search("总结这份财报的主要战略主题", list(reports.values()))
+</code></pre>
+
+    <h2 class="section" id="ms-arch"><span class="idx">★</span> 微软 GraphRAG 的工程架构</h2>
+    <p>微软开源的 GraphRAG（microsoft/graphrag）把上述流程工程化，主要组件：</p>
+    <ul>
+      <li><strong>Indexing pipeline</strong>：文本 → 切块 → LLM 抽取实体/关系 → 实体消歧 → 图构建 → Leiden 社区检测 → 多层社区摘要生成 → 写入 LanceDB（向量）+ 图存储。这是离线、一次性的（更新时增量）。</li>
+      <li><strong>Query engine</strong>：支持 global/local 两种模式，按 query 路由。</li>
+      <li><strong>配置驱动</strong>：YAML 配置 chunks / 抽取 prompt / 社区层级 / LLM 选择，便于调优。</li>
+    </ul>
+    <p>成本是 GraphRAG 的主要顾虑：构建索引要给每个文本块调一次 LLM（抽取）+ 给每个社区调一次 LLM（摘要），一份 1000 块的文档可能要几百到几千次 LLM 调用。微软用 prompt caching、小模型抽取、增量更新来控成本。生产前务必先在小样本上估算成本。</p>
+
+    <pre><code class="language-bash"># 微软 GraphRAG 的使用流程（命令行）
+pip install graphrag
+
+# 1. 初始化项目
+graphrag init --root ./my-graphrag
+
+# 2. 配置 settings.yaml（LLM、数据源、chunks 参数）
+# 编辑 ./my-graphrag/settings.yaml
+
+# 3. 构建索引（离线，会调用大量 LLM）
+graphrag index --root ./my-graphrag
+# 产物：output/ 目录下有 entity/relationship/community 报告 + 向量库
+
+# 4. 全局查询
+graphrag query --root ./my-graphrag \
+    --method global \
+    --query "总结文档的主要主题"
+
+# 5. 局部查询
+graphrag query --root ./my-graphrag \
+    --method local \
+    --query "Acme Corp 的 CEO 是谁"
+</code></pre>
+
+    <h2 class="section" id="when-graphrag"><span class="idx">★</span> 什么时候用 GraphRAG</h2>
+    <ul>
+      <li><strong>全局总结类查询多</strong>：主题归纳、趋势分析、对比类问题占比高。</li>
+      <li><strong>多跳推理</strong>：答案需要跨多个文档、沿关系链推理（如"A 的供应商的总部在哪"）。</li>
+      <li><strong>语料相对静态</strong>：GraphRAG 索引构建贵，频繁更新不划算。</li>
+      <li><strong>预算充足</strong>：能承担构建索引的 LLM 成本。</li>
+    </ul>
+    <p>反之，事实问答为主、语料频繁变动、预算敏感，传统向量 RAG 更合适。两者也可以混合：向量 RAG 处理具体事实查询，GraphRAG 处理全局/多跳查询，按 Router 路由。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>向量 RAG 的盲区是全局理解：总结主题、跨文档对比、多跳推理这类任务召回局部片段解决不了。</li>
+      <li>GraphRAG 三步走：① LLM 抽取实体/关系构建知识图谱（带消歧）；② Leiden 社区检测把图分成主题簇，多层；③ LLM 为每个社区生成层次化摘要。</li>
+      <li>两种查询模式：Global Search（map-reduce 所有社区摘要，回答全局问题）；Local Search（图谱定位实体+邻居+社区，回答具体问题）。</li>
+      <li>微软 GraphRAG 是工程化实现，配置驱动，主要顾虑是索引构建的 LLM 成本（控本用 prompt caching/小模型/增量）。</li>
+      <li>选型：全局/多跳/静态/预算足用 GraphRAG；事实/动态/敏感预算用向量 RAG；两者可 Router 混合。</li>
+    </ul>
+    <p>下一篇我们看检索的另一个前沿——多向量检索 ColBERT，它用 token 级向量打破单向量压缩的信息瓶颈。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

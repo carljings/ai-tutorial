@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -137,7 +135,7 @@
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
-      <a href="110-tfm-generation-strategy.html" class="active" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
+      <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
@@ -305,67 +303,209 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 110 章 · Transformer 原理深挖</span>
-<h1>解码策略：贪心/采样/beam 的取舍</h1><p class="lead">Greedy 简单调板、Temperature/Top-k/Top-p 采样的随机性控制、Beam search 的全局最优近似。为什么创意任务用采样、翻译用 beam、代码用低温度。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>Greedy 简单调板、Temperature/Top-k/Top-p 采样的随机性控制、Beam search 的全局最优近似。为什么创意任务用采样、翻译用 beam、代码用低温度。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 10 · Transformer 深度系列</span>
+      <h1>生成策略全景<br>从贪心解码到核采样的权衡之道</h1>
+      <p class="lead">同一个模型，greedy 输出干瘪重复，采样却能写出灵动的句子——差别全在「怎么从概率分布里挑下一个词」这件小事上。本章把 greedy、beam search、top-k、top-p、temperature 五个旋钮全部拧开，用真实代码和对比实验，让你看清每一种策略在质量、多样性、速度之间的取舍。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-problem"><span class="idx">★</span> 一、解码问题：从概率分布里挑一个词</h2>
+    <p>Decoder-Only 模型每前进一步，都会输出一个覆盖整个词表的概率分布。比如当前上下文是「今天天气真」，模型可能给出这样的概率：「好」0.6、「不错」0.2、「冷」0.1、「棒」0.05……以及剩下几万个词瓜分那点残值。</p>
+    <p>问题来了：这个分布给出来了，我们到底该选哪个词作为下一个输出？这就是解码策略要回答的核心问题。它看似是个工程小细节，却直接决定了你拿到的回答是机灵还是呆板、是丰富还是重复。</p>
+    <p>所有解码策略本质上都在回答同一个问题：<strong>在「确定性」（质量、连贯）和「随机性」（多样性、创造性）之间，你想要哪一个端点，或者哪个中间点？</strong></p>
+
+    <h3 class="section">1.1 两大家族：确定性 vs 采样</h3>
+    <p>解码策略可以分成两大阵营。第一类是<strong>确定性策略</strong>，代表是 greedy 和 beam search。给定相同的概率分布，它们永远输出相同的结果。优点是稳定、可复现、质量下限有保证；缺点是容易陷入重复，缺乏创造力。</p>
+    <p>第二类是<strong>采样策略</strong>，代表是 top-k、top-p、temperature。它们引入随机性，每次输出都可能不同。优点是输出丰富多样、更像人类写作；缺点是不可复现，偶尔会生成无意义的句子。现代对话系统几乎都用采样策略，因为没人希望每次问同一个问题都得到一模一样的回答。</p>
+
+    <h2 class="section" id="greedy"><span class="idx">★</span> 二、贪心解码：最快但最容易翻车</h2>
+    <p>greedy 是最朴素的策略：每一步都选概率最大的那个词。它不需要任何额外计算，速度最快，实现也最简单。但它的致命伤是「目光短浅」——只看眼前最优，可能错过全局最优。</p>
+
+    <h3 class="section">2.1 贪心的陷阱：局部最优 ≠ 全局最优</h3>
+    <p>举个通俗例子。假设模型当前预测「我」后面跟「爱」的概率是 0.6，跟「去」的概率是 0.3。greedy 会选「爱」。但如果真实语料里更常见的其实是「我去北京」，而「我爱」后面跟着的可能是冷僻词，那么 greedy 就会因为第一步贪了 0.6 的那个词，把整条路径带偏。</p>
+    <p>更严重的是重复问题。greedy 在开放式生成里很容易陷入「我我我我」或者「是是是是」这种死循环，因为一旦某个词的概率稍高，它就被反复选中，而后文又强化了这个概率。</p>
+
+    <h3 class="section">2.2 手写 greedy 解码</h3>
+    <p>下面这段代码完全从零实现 greedy，不用 Hugging Face 的 generate，让你看清每一步在干什么。</p>
+    <pre><code class="language-python">import torch
+from transformers import AutoModelForCausalLM, AutoTokenizer
+
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
+
+def greedy_decode(model, tokenizer, prompt, max_new_tokens=20):
+    ids = tokenizer(prompt, return_tensors="pt").input_ids
+    generated = ids
+    for _ in range(max_new_tokens):
+        with torch.no_grad():
+            logits = model(generated).logits[0, -1]   # 取最后一个位置的 logits
+        next_id = logits.argmax().unsqueeze(0).unsqueeze(0)  # 选概率最大的词
+        generated = torch.cat([generated, next_id], dim=-1)
+    return tokenizer.decode(generated[0], skip_special_tokens=True)
+
+print(greedy_decode(model, tokenizer, "Once upon a time", max_new_tokens=30))</code></pre>
+    <p>跑几次你会发现结果完全一样——这就是确定性的含义。如果 prompt 足够开放，你很可能会看到模型陷入循环，这是 greedy 的典型病症。</p>
+
+    <h2 class="section" id="beam-search"><span class="idx">★</span> 三、Beam Search：保留多条候选路径</h2>
+    <p>beam search 是 greedy 的升级版。它不只保留一个最优词，而是同时保留 beam_width（束宽）条候选路径，每一步都扩展所有候选，然后只保留累计概率最高的 beam_width 条。这样即使某一步贪错了，别的路径还有机会翻盘。</p>
+    <p>打个比方：greedy 像一个人蒙着眼只走眼前最宽的路，beam search 像是同时派 5 个侦察兵分头探路，每到一个路口都汇报，指挥官保留最有希望的 5 条继续探索。虽然多花几倍计算，但能找到整体更优的句子。</p>
+
+    <h3 class="section">3.1 beam search 的评分公式</h3>
+    <p>beam search 用累计对数概率来给整条路径打分。对一条生成长度为 T 的序列，分数定义为所有 token 对数概率之和：score = log P(w1) + log P(w2) + ... + log P(wT)。之所以用对数而不是直接乘概率，是为了避免多个小于 1 的概率相乘导致数值下溢。</p>
+    <p>这里有个细节：直接用累计对数概率会偏好短序列（因为越乘越小）。所以工程上常用<strong>长度归一化</strong>，用 score 除以 T 或者 T^alpha 来抵消这个偏差，让长句子不被天然惩罚。</p>
+
+    <h3 class="section">3.2 beam search 实现</h3>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
-import math
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"解码策略：贪心/采样/beam 的取舍"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="109-tfm-decoder-only.html"><div class="lbl">← 上一章</div><div class="ttl">109 · 为什么 Decoder-Only 一统天下</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="111-tfm-repetition-penalty.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">111 · 重复惩罚与可控生成</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 110 章 · 解码策略：贪心/采样/beam 的取舍</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+def beam_search(model, tokenizer, prompt, beam_width=4, max_new_tokens=20):
+    ids = tokenizer(prompt, return_tensors="pt").input_ids          # (1, L)
+    beams = [(0.0, ids)]    # (累计对数概率, 序列)
+    for _ in range(max_new_tokens):
+        candidates = []
+        for score, seq in beams:
+            with torch.no_grad():
+                logits = model(seq).logits[0, -1]
+            log_probs = F.log_softmax(logits, dim=-1)
+            # 取对数概率最高的 beam_width 个词，避免遍历整个词表
+            topk_logp, topk_ids = log_probs.topk(beam_width)
+            for logp, tid in zip(topk_logp.tolist(), topk_ids.tolist()):
+                new_seq = torch.cat([seq, torch.tensor([[tid]])], dim=-1)
+                candidates.append((score + logp, new_seq))
+        # 按累计对数概率排序，保留前 beam_width 条
+        beams = sorted(candidates, key=lambda x: x[0], reverse=True)[:beam_width]
+    return tokenizer.decode(beams[0][1][0], skip_special_tokens=True)
+
+print(beam_search(model, tokenizer, "The capital of France is", beam_width=4, max_new_tokens=15))</code></pre>
+    <p>你会看到 beam search 的输出通常比 greedy 更通顺，也更聚焦于「高概率」的事实性答案（比如直接说出「Paris」）。但它的代价是计算量是 greedy 的 beam_width 倍。</p>
+
+    <h3 class="section">3.3 beam search 的适用边界</h3>
+    <p>beam search 在翻译、摘要这种「有标准答案」的任务上表现极佳，因为这些任务的输出空间相对受限，最优解确实存在。但在开放式对话、创意写作上，它反而会让输出变得「安全但无聊」——因为它总倾向于选高概率词，结果就是一堆陈词滥调。这是 OpenAI 在 GPT-2 时代就发现的现象，也是现代对话模型转向采样的根本原因。</p>
+
+    <h2 class="section" id="temperature"><span class="idx">★</span> 四、Temperature：调节概率的「陡峭度」</h2>
+    <p>temperature（温度）是采样策略的基础旋钮。它的作用是在 softmax 之前，先把 logits 除以一个温度值 T，再计算概率。T 越小，分布越尖锐（概率越集中）；T 越大，分布越平缓（概率越均匀）。</p>
+    <p>用类比理解：temperature 像是情绪的「冷静程度」。T 接近 0 时，模型变得绝对理性，几乎只选概率最高的词（趋近 greedy）；T 很大时，模型变得「头脑发热」，连低概率词都可能被选中，输出变得天马行空。</p>
+
+    <h3 class="section">4.1 温度的数学含义</h3>
+    <p>设原始 logits 为 z，温度为 T，则施加温度后的概率变为 p_i = exp(z_i / T) / sum(exp(z_j / T))。当 T 趋近 0 时，argmax 项的指数远大于其他项，分布退化为 one-hot，等同于 greedy；当 T 趋近无穷大时，所有 z_i / T 都趋近 0，分布趋近均匀分布，模型变成「随机掷骰子」。</p>
+    <p>工程上，T 通常取 0.7 到 1.0 之间。低于 0.5 会显得机械，高于 1.2 会开始胡言乱语。需要精确回答（数学、事实）时调低，需要创意（写诗、头脑风暴）时调高。</p>
+
+    <h2 class="section" id="top-k-top-p"><span class="idx">★</span> 五、Top-k 与 Top-p：动态收缩候选集</h2>
+    <p>纯随机采样会从整个词表里采样，这显然不靠谱——大部分词根本不该出现在当前位置。top-k 和 top-p 都是为了「只在合理的候选里采样」，但收缩候选集的方式不同。</p>
+
+    <h3 class="section">5.1 Top-k：只看概率最高的 k 个词</h3>
+    <p>top-k 的逻辑很直白：把概率最高的 k 个词拿出来，重新归一化成新的概率分布，然后在这个小集合里采样。比如 k=50，就是只在前 50 个候选词里挑。这过滤掉了长尾的「噪声词」，让输出更安全。</p>
+    <p>top-k 的局限是 k 是固定的。在概率分布很集中时（比如「法国的首都是」后面「巴黎」概率 0.9），k=50 会引入 49 个没必要的噪声；在概率分布很分散时（比如开放续写），k=50 又可能太窄，砍掉了合理选项。</p>
+
+    <h3 class="section">5.2 Top-p（核采样）：按累积概率截断</h3>
+    <p>top-p（又叫 nucleus sampling，核采样）解决了这个问题。它不看词的个数，而是看累积概率：把词按概率从高到低排序，一直累加，直到累积概率第一次达到 p（比如 0.9），就截断，只在这些词里采样。</p>
+    <p>当分布集中时，可能只要 2-3 个词就累计到 0.9，候选集很小；当分布分散时，可能要 100 个词才到 0.9，候选集很大。它是<strong>动态自适应</strong>的，比 top-k 更聪明。这也是当前对话模型最常用的采样方式，典型设置是 top_p=0.9。</p>
+
+    <h3 class="section">5.3 一个完整的对比实验</h3>
+    <p>下面这段代码用同一个 prompt 和同一个模型，对比五种策略的输出，你可以直接运行观察差异。</p>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer, set_seed
+
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
+
+prompt = "In the year 2050, humanity will"
+
+# 1. greedy
+print("=== Greedy ===")
+print(tokenizer.decode(
+    model.generate(**tokenizer(prompt, return_tensors="pt"),
+                   max_new_tokens=25, do_sample=False)[0],
+    skip_special_tokens=True))
+
+# 2. beam search
+print("\n=== Beam Search (width=5) ===")
+print(tokenizer.decode(
+    model.generate(**tokenizer(prompt, return_tensors="pt"),
+                   max_new_tokens=25, num_beams=5, do_sample=False,
+                   early_stopping=True)[0],
+    skip_special_tokens=True))
+
+# 3. temperature sampling
+print("\n=== Temperature=0.7 ===")
+set_seed(42)
+print(tokenizer.decode(
+    model.generate(**tokenizer(prompt, return_tensors="pt"),
+                   max_new_tokens=25, do_sample=True, temperature=0.7)[0],
+    skip_special_tokens=True))
+
+# 4. top-k
+print("\n=== Top-k=50 ===")
+set_seed(42)
+print(tokenizer.decode(
+    model.generate(**tokenizer(prompt, return_tensors="pt"),
+                   max_new_tokens=25, do_sample=True, top_k=50)[0],
+    skip_special_tokens=True))
+
+# 5. top-p
+print("\n=== Top-p=0.9 ===")
+set_seed(42)
+print(tokenizer.decode(
+    model.generate(**tokenizer(prompt, return_tensors="pt"),
+                   max_new_tokens=25, do_sample=True, top_p=0.9)[0],
+    skip_special_tokens=True))</code></pre>
+    <p>运行这个对比，你会清晰地看到：greedy 和 beam search 输出稳定但偏「官方腔」，而 temperature、top-k、top-p 给出的句子更有想象力。top-p 通常是这几种里在「合理」和「多样」之间平衡得最好的。</p>
+
+    <h2 class="section" id="combination"><span class="idx">★</span> 六、实战：组合使用才是王道</h2>
+    <p>实际工程里，这些策略很少单独使用，而是组合起来。最经典的组合是 <strong>temperature + top-p</strong>：先用 temperature 调节整体分布的陡峭度，再用 top-p 截断长尾。Hugging Face 的 generate 函数天然支持这种组合。</p>
+
+    <h3 class="section">6.1 推荐配置矩阵</h3>
+    <p>不同任务的最佳配置差异很大。下面给出一份基于工程经验的配置参考，你可以作为起点再微调。</p>
+    <pre><code class="language-python"># 不同场景的推荐解码配置
+configs = {
+    "事实问答（要准确）":   {"do_sample": False, "num_beams": 1},                # greedy
+    "数学推理（要严谨）":   {"do_sample": False, "num_beams": 4, "early_stopping": True},
+    "摘要翻译（要通顺）":   {"do_sample": False, "num_beams": 5, "early_stopping": True},
+    "日常对话（要自然）":   {"do_sample": True,  "temperature": 0.7, "top_p": 0.9},
+    "创意写作（要灵感）":   {"do_sample": True,  "temperature": 0.9, "top_p": 0.95},
+    "头脑风暴（要发散）":   {"do_sample": True,  "temperature": 1.1, "top_p": 0.98},
+}
+for scene, cfg in configs.items():
+    print(f"{scene:20s} -> {cfg}")</code></pre>
+    <p>记住一个原则：<strong>越是需要「正确答案」的任务越往确定性一端调，越是需要「新颖性」的任务越往随机性一端调。</strong>翻译、数学用 beam search；闲聊、写作用 top-p 采样。没有银弹，按场景选择。</p>
+
+    <h2 class="section" id="metrics"><span class="idx">★</span> 七、如何评估不同策略的好坏</h2>
+    <p>比较解码策略不能只靠主观感觉，需要量化指标。这里介绍两个常用的自动化指标，帮你客观评估。</p>
+    <ul>
+      <li><strong>多样性指标</strong>：通常用 distinct-1、distinct-2 来衡量，即生成文本里 unigram 和 bigram 的去重比例。比例越高说明用词越丰富，重复越少。采样策略的 distinct 通常远高于 greedy。</li>
+      <li><strong>重复率</strong>：统计生成文本里重复 n-gram 的比例。greedy 在长文本上重复率可能高达 30% 以上，而合理配置的 top-p 能压到 5% 以下。</li>
+    </ul>
+    <p>当然，自动化指标只是参考，最终还是要靠人工评估或者训练一个奖励模型（这就是 RLHF 的思路）。但作为快速调参的依据，diversity 和 repetition 已经很实用了。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把生成策略的全家桶梳理了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>两大阵营</strong>：确定性策略（greedy、beam search）稳定但易重复；采样策略（temperature、top-k、top-p）多样但不可复现。</li>
+      <li><strong>Greedy</strong>：每步选概率最高的词，速度最快但目光短浅，开放生成里容易陷入循环。</li>
+      <li><strong>Beam Search</strong>：保留多条候选路径，适合翻译摘要等有标准答案的任务，但会让开放对话变得平庸。</li>
+      <li><strong>Temperature</strong>：softmax 前把 logits 除以 T，T 越小越确定、越大越随机，常用区间 0.7 到 1.0。</li>
+      <li><strong>Top-k</strong>：只在概率最高的 k 个词里采样，固定数量，不够灵活。</li>
+      <li><strong>Top-p（核采样）</strong>：按累积概率截断，动态自适应候选集大小，是当前对话模型的主流选择。</li>
+      <li><strong>组合使用</strong>：实际工程里 temperature + top-p 是黄金组合，按任务类型在确定性和随机性之间找平衡。</li>
+    </ul>
+    <p>掌握了生成策略，你就能解释为什么同一个模型在不同配置下表现天差地别。但采样本身也会带来一个新问题：模型有时会反复输出同一个词或短语。下一章我们就来攻克这个顽疾——重复惩罚机制。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

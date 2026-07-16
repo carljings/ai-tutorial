@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>线上监控与告警 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>线上监控与告警 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -244,7 +251,7 @@
     <div class="nav-group"><h3>★LLMOps工程化</h3>
       <a href="210-mlops-lifecycle.html" title="LLMOps 全景：从实验到生产的生命周期"><span class="num">210</span>LLMOps 全景</a>
       <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
-      <a href="212-mlops-monitoring.html" class="active" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
+      <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
       <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
       <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
@@ -295,15 +302,155 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>线上监控与告警</h1><p class="lead">质量、成本、延迟三维追踪——LLM 线上监控</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>LLM 监控比传统监控难在哪</h2>
-    <p>传统服务监控看 CPU/内存/QPS/错误率——这些都是客观数字。LLM 监控多了一个"质量"维度——输出好不好？这个指标不是数字，需要额外手段衡量。加上 token 成本和延迟波动，LLM 监控有三个核心维度。</p>
-    <table class="data-table"><thead><tr><th>维度</th><th>监控什么</th><th>告警阈值</th><th>工具</th></tr></thead><tbody><tr><td>质量</td><td>用户满意度(thumbs up率)、幻觉率</td><td>满意度&lt;80%</td><td>Langfuse/Phoenix</td></tr><tr><td>成本</td><td>每请求 token 数、日 token 消耗</td><td>日成本超预算 120%</td><td>API 日志</td></tr><tr><td>延迟</td><td>首 token 延迟、总延迟</td><td>P95 &gt;5s</td><td>APM</td></tr></tbody></table>
-    <h2><span class="idx"></span>质量监控：怎么知道输出好不好</h2>
-    <p>质量是最难的维度。三种方法：① 直接反馈（thumbs up/down，但反馈率&lt;5%）；② 隐性信号（用户重复提问=不满意，转人工=失败）；③ LLM-as-judge 抽检（每天抽 100 条用 GPT-4 打分）。三种结合能覆盖大部分场景。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM 监控三维度：质量（满意度/幻觉率）、成本（token 消耗）、延迟（首token/总延迟）。质量监控最难，用直接反馈+隐性信号+LLM-as-judge 抽检三者结合。配合告警（质量&lt;80%/成本超预算/延迟P95&gt;5s）实现主动发现。</p>
-    <div class="chapter-nav">
-    <a href="211-mlops-cicd.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 212 章 · 线上监控与告警</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 212 · MLOps系列</span>
+      <h1>监控告警<br>当你的模型悄悄失效时谁来告诉你</h1>
+      <p class="lead">一个风控模型上线三个月,准确率从 95% 跌到 78%,而你的 dashboard 上一片绿色——因为 CPU 没飙、内存没涨、接口没报错。这就是 ML 监控的盲区:传统运维指标无法捕捉模型质量的衰减。本章聚焦 ML 特有的三类衰减:数据漂移、概念漂移、模型性能衰减,并给出用 Prometheus + Grafana 搭建监控体系的完整方案。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-monitor"><span class="idx">★</span> 为什么 ML 监控是一门独立的学问</h2>
+    <p>传统软件系统遵循"代码即逻辑"的原则:只要代码不变、输入合法,输出就是确定的。监控的主要对象是系统的"运行健康"——CPU、内存、磁盘、网络、错误率、延迟。这套体系在 DevOps 时代已经相当成熟。</p>
+    <p>但 ML 系统多了一个维度:<strong>数据</strong>。模型的"逻辑"不是写死的,而是从训练数据中学来的。一旦线上输入数据的分布偏离训练分布,模型的预测就会变得不可靠——而此时系统层面往往一切正常,接口照常返回 200,延迟照常在 50ms 以内。这就是为什么 ML 监控不能照搬 DevOps,必须额外引入"数据质量"和"模型质量"两个维度的监控。</p>
+    <p>用一句话概括:DevOps 监控问的是"系统还在不在工作",MLOps 监控还要问"模型还在不在做对的事"。后者的答案往往比前者更难获取,也更晚才能知道。</p>
+    <h2 class="section" id="three-decays"><span class="idx">★</span> 三种衰减:数据漂移、概念漂移、性能衰减</h2>
+    <p>要建立有效的监控,先得理解模型为什么会"变差"。业界把原因归为三类,理解它们的区别是设计告警策略的前提。</p>
+    <p><strong>数据漂移(Data Drift)</strong>,也叫协变量偏移,指输入特征 X 的分布发生了变化,但 X 和标签 Y 的关系 P(Y|X) 没变。举个例子:一个贷款风控模型训练时用户平均年龄 35 岁,上线半年后获客渠道变化,用户平均年龄变成 28 岁,虽然"年龄→违约率"的关系没变,但模型在年轻群体上的样本本来就少,表现自然会下降。数据漂移可以通过比较线上输入分布和训练分布来检测,不需要等标签,所以能<strong>早期预警</strong>。</p>
+    <p><strong>概念漂移(Concept Drift)</strong>,指 X 和 Y 的关系本身变了,即 P(Y|X) 发生了变化。典型例子是疫情后消费行为剧变:同样的用户画像,疫情前的"正常消费"特征,疫情后可能意味着"资金紧张"。概念漂移更隐蔽,因为输入分布可能没变,但真实标签变了。检测它通常需要等标签回流,所以发现得<strong>更晚</strong>。</p>
+    <p><strong>模型性能衰减(Model Performance Degradation)</strong>是前两者的结果:无论漂移是哪种,最终都会体现在准确率、AUC 等指标的下降。它是"症状",而漂移是"病因"。理想的监控体系是:用数据漂移做早期预警,用性能指标做确诊,用根因分析定位是概念漂移还是数据漂移。</p>
+    <h2 class="section" id="drift-detection"><span class="idx">★</span> 数据漂移检测:从 PSI 到统计检验</h2>
+    <p>检测数据漂移的核心思路是:对每个特征,比较"训练时的分布"和"当前线上分布",如果两者差异超过阈值,就认为发生了漂移。常用的度量方法有几种,各有适用场景。</p>
+    <p><strong>PSI(Population Stability Index)</strong>是工业界最常用的指标,尤其适合金融风控这类对稳定性敏感的场景。它把连续特征分箱后,计算两个分布在各箱的占比差异,公式为 PSI = Σ (actual% - expected%) × ln(actual% / expected%)。经验法则:PSI < 0.1 稳定,0.1-0.2 轻微漂移,> 0.2 显著漂移需关注,> 0.25 通常需要重训练。PSI 的好处是对异常值稳健、解释性强、计算简单。</p>
+    <p><strong>KS 检验(Kolmogorov-Smirnov)</strong>是非参数检验,直接比较两个累积分布函数的最大差异,能给出 p 值来判断差异是否显著,适合连续特征。<strong>Wasserstein 距离</strong>(推土机距离)衡量把一个分布"搬运"成另一个分布的最小代价,对分布形状变化敏感。<strong>KL 散度</strong>则是信息论视角的差异度量,但不对称且对零概率敏感,使用时要平滑处理。</p>
+    <p>对于类别特征,常用<strong>卡方检验</strong>或直接比较各类别频率的变化。无论用哪种方法,关键是要<strong>逐特征计算</strong>而不是只看整体,因为整体分布可能看起来稳定,但某个关键特征的漂移已经埋下隐患。</p>
+    <p>下面是一段实用的漂移检测代码,它同时计算 PSI 和 KS 检验,并按特征输出告警:</p>
+    <pre><code class="language-python">import numpy as np
+import pandas as pd
+from scipy.stats import ks_2samp
+
+def calculate_psi(expected, actual, buckets=10):
+    """计算 PSI:expected 为训练分布,actual 为线上分布"""
+    # 用训练分布的分位数分箱,保证两边箱边界一致
+    breakpoints = np.percentile(expected, np.linspace(0, 100, buckets + 1))
+    breakpoints[0] = -np.inf
+    breakpoints[-1] = np.inf
+
+    expected_pct = np.histogram(expected, breakpoints)[0] / len(expected)
+    actual_pct = np.histogram(actual, breakpoints)[0] / len(actual)
+    # 避免 0 导致除零和对数爆炸
+    expected_pct = np.clip(expected_pct, 1e-4, None)
+    actual_pct = np.clip(actual_pct, 1e-4, None)
+
+    psi = np.sum((actual_pct - expected_pct) * np.log(actual_pct / expected_pct))
+    return psi
+
+def detect_drift(train_df, live_df, psi_threshold=0.2):
+    """逐特征检测漂移,返回告警列表"""
+    alerts = []
+    for col in train_df.select_dtypes(include=np.number).columns:
+        psi = calculate_psi(train_df[col], live_df[col])
+        ks_stat, ks_p = ks_2samp(train_df[col], live_df[col])
+        if psi > psi_threshold or ks_p < 0.01:
+            alerts.append({
+                "feature": col,
+                "psi": round(psi, 4),
+                "ks_pvalue": round(ks_p, 4),
+                "severity": "high" if psi > 0.25 else "medium",
+            })
+    return sorted(alerts, key=lambda x: -x["psi"])
+
+# 示例:对比训练集和最近 1 小时的线上样本
+train_df = pd.read_parquet("data/train_v3.parquet")
+live_df = pd.read_parquet("data/live_2026_07.parquet")
+for a in detect_drift(train_df, live_df):
+    print(f"[{a['severity']}] {a['feature']}: PSI={a['psi']}, p={a['ks_pvalue']}")
+</code></pre>
+    <h2 class="section" id="concept-drift"><span class="idx">★</span> 概念漂移检测:等待标签的艺术</h2>
+    <p>概念漂移的难点在于,它的检测依赖真实标签,而很多场景下标签是延迟的。比如贷款违约,通常要等几个月后才知道用户是否违约;广告转化,要等用户完成购买行为。这意味着等我们发现性能下降时,问题可能已经存在很久了。</p>
+    <p>应对策略有两种思路。第一种是<strong>加速标签回流</strong>:对标签延迟严重的任务,设计近似的代理指标(proxy metric)。比如用"7 天内是否有逾期行为"近似"90 天违约",牺牲一点精度换取时效。第二种是<strong>无标签漂移检测</strong>:虽然没有标签,但可以监控预测分布本身的变化——如果模型突然开始大量预测某一类,或者预测置信度分布异常,往往暗示输入端出了问题,需要进一步排查。</p>
+    <p>学术上有 ADWIN、DDM、EDDM 等专门的概念漂移检测算法,它们通过跟踪在线学习中的错误率变化来判断是否发生漂移,适合流式数据场景。但在大多数工业应用里,周期性地用回流标签计算 offline 指标、与基线对比,已经是最实用的方案。</p>
+    <h2 class="section" id="architecture"><span class="idx">★</span> 监控架构:Prometheus + Grafana 实战</h2>
+    <p>理论说够了,来看工程实现。Prometheus + Grafana 是云原生监控的事实标准,这套组合同样适用于 ML 监控,只是我们需要把 ML 特有的指标"翻译"成 Prometheus 能采集的格式。</p>
+    <p>整体架构分三层:<strong>指标采集层</strong>负责在模型服务里埋点,把预测分布、特征统计、请求量等信息暴露成 Prometheus 指标;<strong>存储与计算层</strong>由 Prometheus Server 担任,定期拉取指标并按时间序列存储,同时用 PromQL 做聚合和阈值判断;<strong>可视化与告警层</strong>由 Grafana 展示仪表盘,Alertmanager 负责把告警推到 Slack、邮件或 PagerDuty。</p>
+    <p>漂移检测的计算有两种放法。简单方案是让模型服务在内存里维护一个滑动窗口的输入统计,定期计算 PSI 暴露成指标,适合特征数不多的场景。更稳健的方案是另起一个异步任务,从数据仓库拉取最近一段时间的线上样本,与训练分布对比,把结果写入 Prometheus——这样不影响在线服务的性能。我们下面演示后者,用 prometheus_client 暴露漂移指标。</p>
+    <pre><code class="language-python">from prometheus_client import Gauge, start_http_server
+import threading, time
+
+# 定义漂移指标:每个特征一个 Gauge,带 feature 标签
+drift_psi = Gauge(
+    "ml_drift_psi",
+    "Population Stability Index per feature",
+    ["model", "feature"]
+)
+model_accuracy = Gauge(
+    "ml_model_accuracy",
+    "Rolling accuracy on labeled data",
+    ["model"]
+)
+
+def drift_monitor_loop(model_name, interval=3600):
+    """后台线程:每小时计算一次漂移并更新指标"""
+    while True:
+        try:
+            train_df = load_reference_data(model_name)
+            live_df = load_recent_requests(window="1h")
+            for feature, psi in compute_psi_all(train_df, live_df).items():
+                drift_psi.labels(model=model_name, feature=feature).set(psi)
+        except Exception as e:
+            log.error(f"drift monitor failed: {e}")
+        time.sleep(interval)
+
+# 启动 HTTP server,Prometheus 会从 /metrics 抓取
+start_http_server(8000)
+threading.Thread(
+    target=drift_monitor_loop, args=("ctr-gbm",), daemon=True
+).start()
+</code></pre>
+    <p>对应的 Prometheus 告警规则可以这样写,把"任一特征 PSI 超过 0.2 持续 1 小时"定义为告警条件:</p>
+    <pre><code class="language-yaml"># prometheus/rules/ml_alerts.yml
+groups:
+  - name: ml_drift_alerts
+    rules:
+      - alert: HighDataDrift
+        expr: max by (model, feature) (ml_drift_psi) > 0.2
+        for: 1h
+        labels:
+          severity: warning
+        annotations:
+          summary: "Data drift detected on {{ $labels.model }}"
+          description: "Feature {{ $labels.feature }} PSI={{ $value }} exceeds threshold"
+
+      - alert: ModelAccuracyDrop
+        expr: (ml_model_accuracy - ml_model_accuracy offset 1d) < -0.03
+        for: 30m
+        labels:
+          severity: critical
+        annotations:
+          summary: "Accuracy dropped >3% in 24h on {{ $labels.model }}"
+</code></pre>
+    <p>Grafana 仪表盘建议至少包含四个面板:各特征 PSI 的时间序列图(一眼看出哪个特征在恶化)、预测分布直方图(观察是否集中到某一类)、请求量与延迟(系统健康)、以及滚动准确率曲线(模型质量趋势)。把数据漂移和模型质量放在一个屏幕里对照看,往往能快速建立"数据变化如何影响模型"的直觉。</p>
+    <h2 class="section" id="alerting-strategy"><span class="idx">★</span> 告警策略:别让告警变成噪声</h2>
+    <p>搭建监控后最常见的问题是"告警风暴":某个特征 PSI 在阈值附近抖动,每小时告警一次,工程师很快就开始忽略所有告警。这是监控系统的灾难,因为一旦真出事也没人响应。设计告警策略时要遵循几个原则。</p>
+    <p>第一,<strong>分层告警</strong>。把告警分成 P0(立即响应,影响业务)、P1(工作时间内处理)、P2(记录待回顾)。PSI 刚过 0.2 是 P2,准确率掉 5% 是 P1,模型完全失效是 P0。不是所有异常都需要半夜叫醒人。</p>
+    <p>第二,<strong>持续时长过滤</strong>。用 PromQL 的 for 子句要求异常持续一段时间才告警,过滤掉瞬时抖动。比如 PSI > 0.2 持续 1 小时才告警,而不是一过线就响。</p>
+    <p>第三,<strong>聚合而非逐条</strong>。如果一个模型有 50 个特征,逐特征告警会很吵。可以设计"超过 N 个特征同时漂移"或"关键特征漂移"作为告警条件,把关注点收敛到模型层面。</p>
+    <p>第四,<strong>告警要带行动建议</strong>。一条好的告警应该告诉接收者"发生了什么、严重到什么程度、该怎么处理"。在 annotations 里写清楚触发条件和推荐的排查路径,比一句"模型异常"有用十倍。</p>
+    <h2 class="section" id="beyond-prometheus"><span class="idx">★</span> 超越 Prometheus:专用 ML 监控平台</h2>
+    <p>Prometheus + Grafana 适合指标型监控,但 ML 场景有时需要更丰富的能力,比如高维特征的分布可视化、样本级别的下钻、以及自动化的根因分析。这时可以考虑专用的 ML 可观测性平台。</p>
+    <p>开源方案中,Evidently 专注于数据和模型漂移检测,能生成漂亮的 HTML 报告,适合定期 review;Arize、Fiddler、WhyLabs 是商业产品,提供端到端的 ML 监控、根因分析和公平性审计,适合大型团队。选择时主要考量团队规模、数据敏感度(是否能上云)和预算。对于大多数中小团队,自建 Prometheus + Evidently 已经能覆盖 80% 的需求。</p>
+    <p>一个值得借鉴的实践是<strong>采样日志</strong>:除了聚合指标,还按比例保留一小部分请求的完整输入输出,存到对象存储。当指标告警时,可以下钻到具体样本看发生了什么,这是单纯看仪表盘做不到的。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>ML 监控的核心是捕捉三类衰减:数据漂移(输入分布变化,可早期检测)、概念漂移(输入输出关系变化,需标签回流)、模型性能衰减(前两者导致的结果)。检测手段上,PSI、KS 检验适合数值特征的漂移检测,概念漂移则依赖标签回流的周期性评估。</p>
+    <p>工程实现上,Prometheus + Grafana 提供了成熟的指标采集、存储、可视化和告警链路,我们演示了如何把漂移指标暴露成 Prometheus metric 并配置告警规则。关键原则是:分层告警避免噪声、持续时长过滤抖动、聚合维度简化响应、每条告警都带行动建议。</p>
+    <p>记住一句话:监控的价值不在于"出事时能告警",而在于"在出事之前就发现苗头"。一套好的 ML 监控,应该让你在用户抱怨之前就知道模型该重训练了。结合下一章的模型注册中心,你就能把"监控告警"和"触发重训练"打通,向真正的自动化 MLOps 迈进。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

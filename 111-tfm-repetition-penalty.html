@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -138,7 +136,7 @@
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
-      <a href="111-tfm-repetition-penalty.html" class="active" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
@@ -305,67 +303,215 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 111 章 · Transformer 原理深挖</span>
-<h1>重复惩罚与可控生成</h1><p class="lead">模型为什么会"卡死"在重复循环。repetition penalty、frequency penalty、presence penalty 的机制。如何在多样性与连贯性间调参。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>模型为什么会"卡死"在重复循环。repetition penalty、frequency penalty、presence penalty 的机制。如何在多样性与连贯性间调参。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 11 · Transformer 深度系列</span>
+      <h1>重复惩罚机制<br>三种 penalty 的数学原理与代码实现</h1>
+      <p class="lead">「是是是是是」「我说我说我说」——这是大模型最让人头疼的退化现象。原因不在模型架构，而在于解码时缺少对历史的约束。本章拆解 repetition_penalty、frequency_penalty、presence_penalty 三把剪刀，看清它们各自的数学公式、实现差异，以及为什么调错参数会让你的模型「该重复的不敢重复」。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-problem"><span class="idx">★</span> 一、模型为什么会重复：一个概率陷阱</h2>
+    <p>要理解重复惩罚，先得搞清楚重复是怎么产生的。假设模型已经生成了「我想」，下一步它预测「想」的概率是 0.4，「说」是 0.3。如果选了「想」，变成「我想想」，下一步在「我想想」的上下文里，「想」的概率可能被进一步放大到 0.5——因为「想想」这个 bigram 在训练数据里就经常跟着更多「想」。</p>
+    <p>这就形成了一个正反馈循环：越重复，重复词的概率越高；概率越高，越容易被选中（尤其是 greedy 或低温度采样）。最终模型陷入死循环，吐出一长串重复 token。这不是模型「变笨了」，而是解码过程缺少负反馈机制。</p>
+    <p>重复惩罚的本质，就是人为注入这个负反馈：一旦某个词已经在历史里出现过，就降低它再次被选中的概率。不同的惩罚方法，区别只在「怎么降、降多少」。</p>
+
+    <h3 class="section">1.1 三种惩罚的定位差异</h3>
+    <p>这一章我们要讲的三种惩罚各有侧重，理解它们的差异是正确使用的前提。</p>
+    <ul>
+      <li><strong>repetition_penalty</strong>（来自 CTRL 论文）：只看「这个词出现过没有」，是一种<strong>乘法式</strong>的全局压制。出现过就按固定比例压低概率。</li>
+      <li><strong>frequency_penalty</strong>（OpenAI API 风格）：看「这个词出现过几次」，是一种<strong>按频次线性递增</strong>的压制。出现次数越多，压得越狠。</li>
+      <li><strong>presence_penalty</strong>（OpenAI API 风格）：和 repetition_penalty 类似，只看「出现过没有」，但用<strong>加法式</strong>实现，调参手感不同。</li>
+    </ul>
+    <p>OpenAI 的 API 把后两者组合使用（frequency + presence），而 Hugging Face 主要用 repetition_penalty。它们效果相似但数学形式不同，下面我们逐一拆解。</p>
+
+    <h2 class="section" id="repetition-penalty"><span class="idx">★</span> 二、Repetition Penalty：乘法式压制</h2>
+    <p>repetition_penalty 来自 2019 年 Salesforce 的 CTRL 论文。它的规则很简单：在每一步生成前，检查当前候选 token 是否已经在已生成序列里出现过。如果出现过，就把它对应的 logit 除以一个惩罚因子 c（c &gt; 1）；如果没出现过，logit 不变。</p>
+
+    <h3 class="section">2.1 数学定义</h3>
+    <p>设第 t 步模型输出的原始 logit 为 z_t(i)，惩罚因子为 c（通常取 1.1 到 1.3）。则施加惩罚后的 logit 为：如果词 i 已在历史中出现过，z'_t(i) = z_t(i) / c；否则 z'_t(i) = z_t(i)。然后对 z' 做 softmax 得到新的采样概率。</p>
+    <p>这里有个关键细节：它作用在 softmax 之前（也就是 logit 层面），用除法而不是减法。这意味着惩罚的<strong>绝对幅度</strong>依赖于原始 logit 的大小——logit 越大的词，被压低得越明显。这是它和 OpenAI 那一套（作用在 logit 上但用减法）的数学差异。</p>
+
+    <h3 class="section">2.2 为什么用除法而不是减法</h3>
+    <p>这是个有意思的设计选择。除法的效果是「按比例缩放」，它对高概率词的压制更明显。比如一个 logit 是 10 的词，c=1.2 后变成 8.33，绝对值下降了 1.67；而一个 logit 是 2 的词，c=1.2 后变成 1.67，绝对值只下降 0.33。也就是说，越强势的重复词被压得越狠，这恰恰是我们想要的——强势重复词是导致循环的罪魁祸首。</p>
+
+    <h3 class="section">2.3 从零实现 repetition_penalty</h3>
+    <p>下面这段代码完全手动实现 repetition_penalty，配合 greedy 解码，让你看清它的实际效果。</p>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
-import math
+from transformers import AutoModelForCausalLM, AutoTokenizer
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
+
+def apply_repetition_penalty(logits, generated_ids, penalty=1.2):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    对已出现过的 token，把它的 logit 除以 penalty。
+    logits: (vocab_size,) 当前步的 logits
+    generated_ids: (seq_len,) 已经生成的 token id 列表
+    """
+    for tid in set(generated_ids.tolist()):
+        # 只惩罚出现过至少一次的 token；logit 为正就除以 penalty，为负就乘 penalty
+        # 这样保证「降低该 token 被选中的概率」这个方向不变
+        if logits[tid] &gt; 0:
+            logits[tid] /= penalty
+        else:
+            logits[tid] *= penalty
+    return logits
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"重复惩罚与可控生成"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="110-tfm-generation-strategy.html"><div class="lbl">← 上一章</div><div class="ttl">110 · 解码策略：贪心/采样/beam 的取舍</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="112-tfm-sampling-tricks.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">112 · 典型采样与 mirostat：动态截断</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 111 章 · 重复惩罚与可控生成</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+def generate_with_penalty(model, tokenizer, prompt, penalty=1.2, max_new_tokens=30):
+    ids = tokenizer(prompt, return_tensors="pt").input_ids
+    generated = ids[0]
+    for _ in range(max_new_tokens):
+        with torch.no_grad():
+            logits = model(generated.unsqueeze(0)).logits[0, -1]
+        logits = apply_repetition_penalty(logits.clone(), generated, penalty)
+        probs = F.softmax(logits, dim=-1)
+        next_id = torch.multinomial(probs, num_samples=1)  # 采样
+        generated = torch.cat([generated, next_id])
+    return tokenizer.decode(generated, skip_special_tokens=True)
+
+torch.manual_seed(0)
+print("=== penalty=1.0 (无惩罚) ===")
+print(generate_with_penalty(model, tokenizer, "I think that", penalty=1.0, max_new_tokens=40))
+torch.manual_seed(0)
+print("\n=== penalty=1.3 ===")
+print(generate_with_penalty(model, tokenizer, "I think that", penalty=1.3, max_new_tokens=40))</code></pre>
+    <p>对比两次输出你会发现，penalty=1.0 时模型可能反复输出「that that that」，而 penalty=1.3 后这种现象明显缓解。但要注意：penalty 调太高（比如 1.5 以上）会让模型「不敢重复该重复的词」，比如人名、专有名词、固定搭配，输出会变得奇怪。</p>
+
+    <h2 class="section" id="frequency-presence"><span class="idx">★</span> 三、Frequency 与 Presence Penalty：OpenAI 的加法方案</h2>
+    <p>OpenAI 的 API 提供了 frequency_penalty 和 presence_penalty 两个参数，它们都作用在 logit 上，但用的是减法，且惩罚量随出现次数变化。这套机制更精细，能区分「这个词出现过一次」和「出现过十次」的不同严重程度。</p>
+
+    <h3 class="section">3.1 数学定义</h3>
+    <p>设词 i 在已生成序列里出现过 n_i 次，序列总长度为 N，则它的频率为 f_i = n_i / N。施加惩罚后的 logit 为：z'_t(i) = z_t(i) - frequency_penalty * f_i - presence_penalty * (n_i &gt; 0 ? 1 : 0)。也就是说，frequency_penalty 按词的<strong>相对出现频率</strong>线性递增地扣分，presence_penalty 只要词出现过就扣一个固定分。</p>
+    <p>两个的区别在于：presence_penalty 是「二元开关」，只看有没有出现过，对所有出现过一次以上的词一视同仁；frequency_penalty 是「计数器」，出现得越多扣得越多。OpenAI 的实现是 logit 减去这些值后再裁剪到 [-2, 2] 区间，再做 softmax。</p>
+
+    <h3 class="section">3.2 三种惩罚的直觉对比</h3>
+    <p>用一个生活类比来区分它们。假设你在选餐厅，已经吃过三次火锅了：</p>
+    <ul>
+      <li><strong>repetition_penalty</strong>：只要你吃过火锅，就不论次数地把火锅的吸引力打个固定折扣（比如打 8 折）。吃过一次和吃过十次折扣一样。</li>
+      <li><strong>presence_penalty</strong>：只要吃过火锅，就固定扣掉火锅 5 分吸引力。同样不论次数。</li>
+      <li><strong>frequency_penalty</strong>：吃过一次扣 1 分，吃过十次扣 10 分。次数越多扣得越狠，重复严重的词会被狠狠压制。</li>
+    </ul>
+    <p>实际效果上，frequency_penalty 对<strong>顽固的高频重复</strong>效果最好，presence_penalty 对<strong>任何形式的重复</strong>都有抑制，而 repetition_penalty 介于两者之间。三者可以组合使用，但通常 frequency + presence 的 OpenAI 组合调参更直观。</p>
+
+    <h3 class="section">3.3 实现 frequency + presence 组合惩罚</h3>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+from collections import Counter
+
+def apply_openai_penalties(logits, generated_ids, freq_pen=0.0, pres_pen=0.0):
+    """
+    OpenAI 风格的 frequency + presence 惩罚。
+    freq_pen, pres_pen 取值通常在 [-2, 2]，正值压制重复，负值鼓励重复。
+    """
+    counter = Counter(generated_ids.tolist())
+    total = len(generated_ids)
+    for tid, count in counter.items():
+        freq = count / total
+        presence = 1.0
+        logits[tid] -= freq_pen * freq + pres_pen * presence
+    return logits
+
+def generate_openai_style(model, tokenizer, prompt,
+                          freq_pen=0.5, pres_pen=0.3, max_new_tokens=40, temp=0.8):
+    ids = tokenizer(prompt, return_tensors="pt").input_ids[0]
+    generated = ids
+    for _ in range(max_new_tokens):
+        with torch.no_grad():
+            logits = model(generated.unsqueeze(0)).logits[0, -1]
+        logits = apply_openai_penalties(logits.clone(), generated, freq_pen, pres_pen)
+        logits = logits / temp                          # 温度
+        probs = F.softmax(logits, dim=-1)
+        next_id = torch.multinomial(probs, num_samples=1)
+        generated = torch.cat([generated, next_id])
+    return tokenizer.decode(generated, skip_special_tokens=True)
+
+torch.manual_seed(0)
+print("=== freq=0, pres=0 (无惩罚) ===")
+print(generate_openai_style(model, tokenizer, "The story begins", freq_pen=0, pres_pen=0))
+torch.manual_seed(0)
+print("\n=== freq=0.5, pres=0.3 ===")
+print(generate_openai_style(model, tokenizer, "The story begins", freq_pen=0.5, pres_pen=0.3))</code></pre>
+    <p>对比两个输出，你会看到加了惩罚之后，模型的用词明显更丰富，不再反复使用「the story」「the story」这种结构。这就是 penalty 参数在 ChatGPT 背后默默工作的方式。</p>
+
+    <h2 class="section" id="no-repeat-ngram"><span class="idx">★</span> 四、No-Repeat Ngram：硬性禁止重复</h2>
+    <p>除了软性的概率压制，还有一种更暴力的方法：no_repeat_ngram_size。它直接<strong>禁止</strong>任何长度为 n 的 n-gram 重复出现。比如 n=3，那么已经出现过的任意 3 词组合都不允许再生成。</p>
+    <p>这是 Hugging Face generate 里最常用的防重复参数之一。它的实现是在每一步生成前，检查候选 token 如果和前 n-1 个 token 组成的 n-gram 已经在历史里出现过，就把这个候选 token 的 logit 设成负无穷，从候选集里彻底剔除。</p>
+
+    <h3 class="section">4.1 no_repeat_ngram_size 的取舍</h3>
+    <p>这个参数简单粗暴但有效。n=3 基本能消灭大部分重复循环。但它的副作用也很明显：英文里像 「I don't know」「of the United States」这种高频 n-gram 会被禁止，导致输出有时显得不自然。而且它只防「完全相同」的重复，对「语义重复但用词不同」的情况无效。</p>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+
+prompt = "Artificial intelligence is"
+ids = tokenizer(prompt, return_tensors="pt").input_ids
+
+torch.manual_seed(0)
+print("=== no_repeat_ngram_size=3 ===")
+print(tokenizer.decode(
+    model.generate(ids, max_new_tokens=40, do_sample=True,
+                   no_repeat_ngram_size=3)[0],
+    skip_special_tokens=True))</code></pre>
+    <p>在实际项目里，no_repeat_ngram_size 常常和 repetition_penalty 组合使用：前者负责硬性拦截明显的 n-gram 循环，后者负责软性压制单 token 级别的重复倾向。两者互补，效果比单独用任何一个都好。</p>
+
+    <h2 class="section" id="tuning"><span class="idx">★</span> 五、调参实战：如何在你的任务上找到最佳参数</h2>
+    <p>讲了一堆原理，落到工程上还是「怎么调」。重复惩罚的调参是个经验活，下面给出一份基于大量实践的调参指南。</p>
+
+    <h3 class="section">5.1 参数取值参考</h3>
+    <ul>
+      <li><strong>repetition_penalty</strong>：1.0 到 1.5。1.1 到 1.3 是安全区，超过 1.4 容易压制过头。</li>
+      <li><strong>frequency_penalty</strong>：0 到 1.0。0.3 到 0.7 常用，值越高越鼓励新词。</li>
+      <li><strong>presence_penalty</strong>：0 到 1.0。0.2 到 0.6 常用，和 frequency 搭配使用。</li>
+      <li><strong>no_repeat_ngram_size</strong>：3 到 5。3 是最常用的，4 以上会显得过于生硬。</li>
+    </ul>
+    <p>记住一个反直觉的点：<strong>惩罚过重比惩罚过轻更危险。</strong>惩罚过轻顶多是偶尔重复，用户勉强能接受；惩罚过重会让模型不敢用任何重复词，连「the」「is」「of」这种功能词都回避，输出变得语法破碎、词不达意。</p>
+
+    <h3 class="section">5.2 一个自动评估重复率的小工具</h3>
+    <p>调参时需要量化指标来对比。下面这段代码计算生成文本的 n-gram 重复率，帮你客观判断不同参数的效果。</p>
+    <pre><code class="language-python">def repetition_ratio(text, n=3):
+    """计算 n-gram 重复率：重复 n-gram 数量 / 总 n-gram 数量。"""
+    words = text.split()
+    if len(words) &lt; n:
+        return 0.0
+    ngrams = [tuple(words[i:i+n]) for i in range(len(words) - n + 1)]
+    unique = len(set(ngrams))
+    total = len(ngrams)
+    return 1 - unique / total   # 越高说明重复越严重
+
+# 用前面生成函数对比不同 penalty 的重复率
+torch.manual_seed(0)
+text_low = generate_with_penalty(model, tokenizer, "I think that", penalty=1.0, max_new_tokens=50)
+torch.manual_seed(0)
+text_high = generate_with_penalty(model, tokenizer, "I think that", penalty=1.3, max_new_tokens=50)
+
+print(f"penalty=1.0 时 3-gram 重复率: {repetition_ratio(text_low, 3):.2%}")
+print(f"penalty=1.3 时 3-gram 重复率: {repetition_ratio(text_high, 3):.2%}")</code></pre>
+    <p>用这个工具扫一遍不同参数组合，找到重复率低于 5% 且读起来最自然的配置，就是你的最佳参数。通常 repetition_penalty=1.15 + no_repeat_ngram_size=3 是一个很好的起点。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把对抗重复的三把剪刀都拆解清楚了。要点回顾：</p>
+    <ul>
+      <li><strong>重复的根源</strong>：解码时的正反馈循环——重复词概率被放大，越重复越容易再被选中。</li>
+      <li><strong>Repetition Penalty</strong>：对出现过的 token，logit 除以惩罚因子（乘法式），强势词被压得更狠，典型值 1.1 到 1.3。</li>
+      <li><strong>Frequency Penalty</strong>：按词的相对出现频率线性递增地扣分（加法式），对高频重复效果最强，典型值 0.3 到 0.7。</li>
+      <li><strong>Presence Penalty</strong>：只要词出现过就扣固定分（加法式二元开关），抑制任何形式的重复，典型值 0.2 到 0.6。</li>
+      <li><strong>No-Repeat Ngram</strong>：硬性禁止长度为 n 的 n-gram 重复，简单有效但有副作用，常用 n=3。</li>
+      <li><strong>调参原则</strong>：惩罚过重比过轻更危险，组合使用（repetition_penalty + no_repeat_ngram_size）通常优于单独使用，用量化指标辅助调参。</li>
+    </ul>
+    <p>解决了重复问题，我们就可以更放心地使用采样来获得多样性。下一章会深入更高级的采样技巧——top-k、top-p、min-p、typical sampling、mirostat，看看它们各自如何精雕细琢地塑造输出的「性格」。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -194,7 +192,7 @@
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
       <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
-      <a href="163-agent-aider-repomap.html" class="active" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
+      <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
@@ -305,81 +303,211 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 163 章 · 开源 Agent 源码深挖</span>
-<h1>Aider 的 Repo Map</h1><p class="lead">用 tree-sitter 抽取符号（函数/类/方法），按 PageRank 排重要性，喂给模型当目录。让模型"看见"整个仓库结构而不耗尽上下文。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>用 tree-sitter 抽取符号（函数/类/方法），按 PageRank 排重要性，喂给模型当目录。让模型"看见"整个仓库结构而不耗尽上下文。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>用 tree-sitter 抽取符号（函数/类/方法），按 PageRank 排重要性，喂给模型当目录。让模型"看见"整个仓库结构而不耗尽上下文。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
-    }
-]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 46 · Agent 源码深挖系列</span>
+      <h1>Aider Repo Map<br>tree-sitter 抽取符号 → PageRank 排序 → 注入 context</h1>
+      <p class="lead">Aider 是一个用 Python 写的终端 AI 编程助手，它的招牌特性之一是 repo map——能把一个几万文件的大仓库，压缩成一份几百 token 的「地图」塞进 context，让 LLM 知道整个项目的结构，而不是只能看到当前文件。这张地图的生成经过了三步：tree-sitter 抽取符号、基于引用关系建图、PageRank 排序选出最重要的节点。本章我们拆解这三步，看 Aider 是怎么把 Google 网页排序的经典算法用在代码仓库上的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="problem"><span class="idx">★</span> 一、问题：大仓库塞不进 context</h2>
+    <p>Aider 的核心场景是「帮我改这个项目里的某个功能」。要做到这点，LLM 需要知道整个项目的结构——哪些模块存在、它们之间怎么依赖、关键类和函数叫什么。最朴素的做法是把所有文件内容塞进 context，但一个中型项目（比如 Django 框架本身）就有几万个文件、几百万行代码，远超任何模型的 context window。</p>
+    <p>另一种做法是只给当前文件，让 LLM 自己探索。但这要求 LLM 反复调用 read_file，每个文件都要一轮交互，效率极低，而且 LLM 不知道该读哪些文件——它可能在一个无关的目录里转半天。</p>
+    <p>Aider 的洞察是：<strong>LLM 需要的不是文件内容，而是「项目里有什么」的高层视图</strong>。就像你接手一个项目时，第一件事不是读所有代码，而是看目录结构、看主要类名和函数名，建立心智模型。repo map 就是给 LLM 建立这种心智模型的「项目导航图」。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="tree-sitter"><span class="idx">★</span> 二、第一步：用 tree-sitter 抽取符号</h2>
+    <p>生成 repo map 的第一步是「知道每个文件里定义了什么」。这需要对源码做语法解析，提取出类、函数、方法等定义。Aider 用的工具是 tree-sitter——一个增量式语法解析器，支持几十种编程语言，速度快（解析一个大文件几毫秒），且对不完整或语法有错的代码有容错能力（这在真实代码库里很重要）。</p>
+    <pre><code class="language-python"># aider/repomap.py（简化示意）
+from tree_sitter_languages import get_parser
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Aider 的 Repo Map"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="162-agent-aider-edit-formats.html"><div class="lbl">← 上一章</div><div class="ttl">162 · Aider 的文件编辑格式</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="164-agent-aider-git.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">164 · Aider 的 Git 集成</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 163 章 · Aider 的 Repo Map</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+class RepoMap:
+    def get_tree_contexts(self, fname: str):
+        """解析单个文件，抽取定义的符号。"""
+        code = open(fname).read()
+        lang = self.infer_language(fname)          # .py -&gt; python
+        parser = get_parser(lang)
+        tree = parser.parse(code.encode())
+
+        # 遍历语法树，找定义节点
+        definitions = []
+        def walk(node, scope=""):
+            for child in node.children:
+                if child.type == "class_definition":
+                    name_node = child.child_by_field_name("name")
+                    if name_node:
+                        cls_name = name_node.text.decode()
+                        definitions.append({
+                            "name": cls_name,
+                            "type": "class",
+                            "scope": scope,
+                            "node": child,
+                        })
+                        # 递归到类内部，scope 加上类名
+                        walk(child, scope=f"{scope}.{cls_name}")
+                elif child.type in ("function_definition", "function_declaration"):
+                    name_node = child.child_by_field_name("name")
+                    if name_node:
+                        fn_name = name_node.text.decode()
+                        definitions.append({
+                            "name": fn_name,
+                            "type": "def",
+                            "scope": scope,
+                            "node": child,
+                        })
+                walk(child, scope)
+
+        walk(tree.root_node)
+        return definitions</code></pre>
+    <p>这段代码的核心是 <strong>tree-sitter 的 AST 遍历</strong>。tree-sitter 把代码解析成一棵语法树，每种语言有自己的节点类型（Python 的 class_definition、JavaScript 的 function_declaration 等）。Aider 遍历这棵树，把所有定义节点收集起来，同时维护 scope（类内部的方法要带上类名前缀，如 <code>Auth.login</code>）。</p>
+    <p>tree-sitter 的另一个价值是 <strong>容错解析</strong>。真实代码里常有正在编辑的不完整片段（比如半个 if 语句），传统解析器会失败，tree-sitter 能解析出已识别的部分，标记 ERROR 节点但不崩溃。这让 Aider 能对工作区里的「脏代码」也生成 map。</p>
+
+    <h2 class="section" id="rank-graph"><span class="idx">★</span> 三、第二步：基于引用关系建图</h2>
+    <p>抽取了符号后，Aider 不只是把它们列出来——它要 <strong>判断哪些符号最重要</strong>。怎么判断？一个直觉是：被很多其他符号引用的符号更重要（就像被很多网页链接的网页更重要）。这就是 PageRank 的思路。</p>
+    <p>但代码里的「引用」怎么找？Aider 的做法既巧妙又简单：它扫描每个文件里出现的所有「标识符」（identifier），如果某个标识符恰好是另一个文件里定义的类名或函数名，就建立一条「引用边」——从引用方指向定义方。</p>
+    <pre><code class="language-python"># 引用关系建图（简化）
+import re
+from collections import defaultdict
+
+class RepoMap:
+    def build_reference_graph(self, files):
+        # 收集所有定义的符号名 -&gt; 定义所在文件
+        symbol_to_file = {}
+        for fname in files:
+            for sym in self.get_tree_contexts(fname):
+                symbol_to_file[sym["name"]] = fname
+
+        # 邻接表：file_A 引用了 file_B 里定义的符号 -&gt; 边 A -&gt; B
+        graph = defaultdict(lambda: defaultdict(int))
+
+        for fname in files:
+            code = open(fname).read()
+            # 简化：用正则提取所有标识符
+            identifiers = set(re.findall(r"\b[A-Za-z_][A-Za-z0-9_]*\b", code))
+            for ident in identifiers:
+                if ident in symbol_to_file:
+                    target = symbol_to_file[ident]
+                    if target != fname:       # 不算自引用
+                        graph[fname][target] += 1   # 权重 = 引用次数
+
+        return graph
+
+    # 示例：如果 auth.py 里出现了 "User"（定义在 models.py），
+    # 就有一条边 auth.py -&gt; models.py，权重 1
+    # 如果 auth.py 引用了 5 次 User，权重 5</code></pre>
+    <p>注意这里用 <strong>正则提取标识符</strong> 而不是精确的语义分析（如 LSP 的 find references）。这是一个关键的速度/精度权衡——正则快但会有误判（比如注释里的 "User" 也被算作引用）。Aider 的判断是：在统计意义上，误判会平均掉（一个文件如果只在注释里提到另一个文件的符号，引用次数通常很少），而 PageRank 的排序对少量噪声不敏感。这种「容忍噪声换速度」的工程取舍，让 repo map 能在几秒内生成，而不是几分钟。</p>
+
+    <h2 class="section" id="pagerank"><span class="idx">★</span> 四、第三步：PageRank 排序选最重要的节点</h2>
+    <p>有了引用图，就可以跑 PageRank 了。PageRank 的核心思想是：<strong>一个节点的重要性 = 所有指向它的节点的重要性之和（按出度加权）</strong>。被重要节点引用的节点，自身也重要——这是一种递归的重要性定义。</p>
+    <pre><code class="language-python"># PageRank 迭代（简化）
+import numpy as np
+
+class RepoMap:
+    def pagerank(self, graph, damping=0.85, iterations=100, tol=1e-6):
+        nodes = list(graph.keys())
+        # 收集所有被引用的节点（可能不在 nodes 里，是叶子）
+        all_targets = {t for targets in graph.values() for t in targets}
+        all_nodes = list(set(nodes) | all_targets)
+        n = len(all_nodes)
+        idx = {node: i for i, node in enumerate(all_nodes)}
+
+        # 构建转移矩阵 M：M[i][j] = 从 j 到 i 的转移概率
+        M = np.zeros((n, n))
+        for src, targets in graph.items():
+            j = idx[src]
+            total = sum(targets.values())
+            for tgt, weight in targets.items():
+                i = idx[tgt]
+                M[i][j] = weight / total
+
+        # PageRank 迭代：r = damping * M @ r + (1-damping) / n
+        r = np.ones(n) / n
+        for _ in range(iterations):
+            new_r = damping * M @ r + (1 - damping) / n
+            if np.linalg.norm(new_r - r, 1) &lt; tol:
+                break
+            r = new_r
+
+        # 返回 node -&gt; rank 的字典
+        return {all_nodes[i]: r[i] for i in range(n)}</code></pre>
+    <p>跑完 PageRank，每个文件（和文件里的符号）都有一个重要性分数。Aider 把分数排序，选出 top N，把它们作为 repo map 的内容。结果往往是项目核心模块（如 Django 的 models.py、views.py）排在最前面，因为它们被到处引用；而一次性脚本或测试辅助文件排在后面。</p>
+    <p>这种排序的妙处在于 <strong>它是数据驱动的，不依赖人工标注</strong>。一个新项目接入 Aider，不需要预先告诉它「哪些是核心文件」，PageRank 自动从引用结构里发现。这也是为什么 Aider 能支持任何语言、任何结构的项目——它的算法是语言无关的。</p>
+
+    <h2 class="section" id="format-inject"><span class="idx">★</span> 五、格式化与注入：压缩成几百 token</h2>
+    <p>选出了重要符号，最后要把它们格式化成文本注入 context。Aider 的格式是一种树状的带缩进列表，每行一个符号，用缩进表示 scope 嵌套。我们看一个真实输出片段：</p>
+    <pre><code class="language-text">aider/
+  coders/
+    editblock_coder.py
+      class EditBlockCoder
+      functions: run_one_assertive_edit
+    base_coder.py
+      class Coder
+        def run
+        def run_stream
+        def fmt_system_prompt
+  repomap.py
+    class RepoMap
+      def get_repo_map
+      def get_ranked_tags
+      def pagerank
+  commands.py
+    class Commands
+      def cmd_add
+      def cmd_drop
+      def cmd_git</code></pre>
+    <p>这种格式极度紧凑——一个文件的所有定义压成几行，整个仓库几千个符号压进几百行。但它保留了 <strong>两层信息</strong>：文件路径（让 LLM 知道去哪读）和定义名（让 LLM 知道有哪些可用的类和函数）。LLM 看到 <code>class Coder - def run_stream</code>，就能推断「Aider 有个 Coder 类，里面有个 run_stream 方法，可能在 base_coder.py 里」，然后调用 read_file 去看具体实现。</p>
+    <p>这种格式还有一个巧思：<strong>缩进本身就是结构信息</strong>。方法缩进在类下面，类缩进在文件下面，LLM 读这棵缩进树就能重建 scope 关系，不需要额外的标记符号。这是「token 经济学」的极致——每个字符都承载信息。</p>
+
+    <h2 class="section" id="dynamic-budget"><span class="idx">★</span> 六、动态预算：根据剩余 context 调整 map 大小</h2>
+    <p>repo map 要多大？太大占满 context 挤不下对话，太小信息不够。Aider 的做法是 <strong>按剩余 context 动态调整</strong>：</p>
+    <pre><code class="language-python"># 动态调整 map 大小（简化）
+class RepoMap:
+    def get_repo_map(self, chat_files, other_files, max_map_tokens=1024):
+        # chat_files 是已经加进对话的文件，不重复出现在 map 里
+        # other_files 是项目里其他文件，从中选 top N
+
+        graph = self.build_reference_graph(other_files)
+        ranks = self.pagerank(graph)
+
+        # 按 rank 排序，依次加入 map，直到达到 token 预算
+        sorted_files = sorted(other_files, key=lambda f: ranks.get(f, 0), reverse=True)
+        map_lines = []
+        current_tokens = 0
+        for fname in sorted_files:
+            file_tree = self.format_file_tree(fname)   # 该文件的符号树
+            file_tokens = self.count_tokens(file_tree)
+            if current_tokens + file_tokens &gt; max_map_tokens:
+                # 超预算了，跳过这个文件（或只加一部分）
+                continue
+            map_lines.append(file_tree)
+            current_tokens += file_tokens
+
+        return "\n".join(map_lines)
+
+    # max_map_tokens 根据剩余 context 动态计算
+    def adaptive_budget(self, used_tokens, model_limit):
+        remaining = model_limit - used_tokens
+        # 把剩余空间的 10-20% 给 map，留足对话空间
+        return min(2048, max(256, int(remaining * 0.15)))</code></pre>
+    <p>这种「按预算选 top N」的策略保证了 repo map 永远不会挤爆 context。如果对话还很短（剩余空间多），map 会大一点，给 LLM 更全的视图；如果对话已经很长（剩余空间少），map 自动缩小到只保留最重要的核心符号。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Aider 的 repo map 是把经典算法（PageRank）创造性应用到代码理解上的典范。要点回顾：</p>
+    <ul>
+      <li><strong>问题</strong>：大仓库塞不进 context，LLM 需要「项目导航图」而非文件内容。</li>
+      <li><strong>tree-sitter 抽符号</strong>：增量式解析，容错，支持几十种语言，遍历 AST 收集类/函数定义。</li>
+      <li><strong>引用建图</strong>：扫描标识符匹配定义名，建立「引用方 → 定义方」的边，正则提取容忍噪声换速度。</li>
+      <li><strong>PageRank 排序</strong>：被重要节点引用的节点自身重要，数据驱动、语言无关，自动发现核心模块。</li>
+      <li><strong>紧凑格式</strong>：缩进树状列表，文件路径 + 定义名，几百 token 容纳几千符号，缩进即结构。</li>
+      <li><strong>动态预算</strong>：按剩余 context 的 10-20% 分配，对话短则 map 大、对话长则 map 小。</li>
+    </ul>
+    <p>下一章（164 章）我们继续 Aider 系列——看它的 Git 集成，包括 auto-commit、git undo，以及它独创的 SEARCH/REPLACE diff 格式如何让 LLM 精确编辑代码。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

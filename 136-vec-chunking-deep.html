@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -165,7 +163,7 @@
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
-      <a href="136-vec-chunking-deep.html" class="active" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
+      <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
@@ -305,66 +303,181 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 136 章 · 向量索引与 RAG 原理深挖</span>
-<h1>分块进阶：表格、代码、长文档</h1><p class="lead">Markdown 标题感知分块、代码按函数/类分块、表格整块保留。长 PDF 的版面分析。chunk overlap 如何避免边界信息丢失。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>Markdown 标题感知分块、代码按函数/类分块、表格整块保留。长 PDF 的版面分析。chunk overlap 如何避免边界信息丢失。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>Markdown 标题感知分块、代码按函数/类分块、表格整块保留。长 PDF 的版面分析。chunk overlap 如何避免边界信息丢失。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 136 · 向量检索系列</span>
+      <h1>深度分块<br>Late Chunking、Contextual Retrieval 与 parent-child</h1>
+      <p class="lead">上一章的分块策略有个根本缺陷：块被从文档里切出来后，就丢失了"它属于哪篇文档、在哪个上下文里"的信息。一个孤立的块" revenues grew 20%"，embedding 模型根本不知道这是哪家公司、哪个季度。本章介绍三种解决"上下文丢失"的前沿方案——Late Chunking、Contextual Retrieval、parent-child 分块——它们是 2024 年 RAG 效果提升的重要来源。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-problem"><span class="idx">★</span> 分块的根本病：上下文剥离</h2>
+    <p>传统的分块流程是"先切再 embed"：把文档切成块，每个块独立送进 embedding 模型。问题在于，embedding 模型是 transformer，它的力量来自 self-attention——句子的每个 token 通过 attention 互相参照来生成表示。当你把一个孤立的块喂进去，它<strong>只能看到块内的 token</strong>，看不到这个块在原文档里的位置、所属章节、上文提到的主语。</p>
+    <p>举个例子，一篇财报里有这么一段：</p>
+    <pre><code class="language-text">Acme Corp 2024 年 Q3 财报显示，公司营收同比增长 20%，达到 50 亿美元。
+云服务业务表现尤其亮眼，贡献了 60% 的营收增长。研发投入同比增加 15%。</code></pre>
+    <p>如果按句切，第二块"云服务业务表现尤其亮眼，贡献了 60% 的营收增长"被独立 embed 时，模型不知道这是 Acme Corp、是 Q3、是 2024 年。用户问"Acme Corp Q3 云服务增长多少"，这个块的 embedding 和查询的相似度会偏低——因为查询里有"Acme Corp"，而块的 embedding 里没有这个信息。</p>
+    <p>这就是"上下文剥离"问题，是传统分块精度的天花板。本章三种方案从不同角度解决它。</p>
+
+    <h2 class="section" id="late-chunking"><span class="idx">★</span> Late Chunking：先 embed 整篇，再切</h2>
+    <p>Jina AI 在 2024 年提出的 Late Chunking 思路非常巧妙：<strong>把整个文档先一次性喂进 embedding 模型，让 transformer 的 attention 把全局上下文融入每个 token 的表示，然后再按块边界切这些 token 表示，每块做 mean pooling 得到块向量</strong>。</p>
+    <p>关键点在于"<strong>切晚一点</strong>"——传统是"先切再 embed"，Late Chunking 是"先 embed 再切"。这样每个块的向量里，因为 attention 已经把全文信息融入了，自然就包含了"我是 Acme Corp Q3 的云服务块"这种上下文。</p>
+    <p>前提条件：embedding 模型必须支持长输入（8K token 以上），否则整篇文档塞不进去。jina-embeddings-v2-base（8K）、bge-m3（8K）都支持。所以 Late Chunking 是长上下文 embedding 模型成熟后才可行的方案。</p>
+
+    <pre><code class="language-python"># Late Chunking 的概念实现（用 jina-embeddings-v2 为例）
+from transformers import AutoModel, AutoTokenizer
+import torch
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+model_name = "jinaai/jina-embeddings-v2-base-en"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModel.from_pretrained(model_name, trust_remote_code=True)
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+doc = """Acme Corp 2024 Q3 报告：营收同比增长 20%，达 50 亿美元。
+云服务业务贡献了 60% 的营收增长。研发投入同比增加 15%。"""
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+# 1. 先按句确定块的 token 边界（不实际切文本）
+sentences = doc.split("\n")
+chunk_starts = []   # 每块在 token 序列里的起始位置
+offset = 1          # 跳过 [CLS]
+boundaries = []
+for s in sentences:
+    tokens = tokenizer(s, add_special_tokens=False)["input_ids"]
+    boundaries.append((offset, offset + len(tokens)))
+    offset += len(tokens) + 1   # +1 for 换行/分隔 token
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"分块进阶：表格、代码、长文档"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="135-vec-chunking.html"><div class="lbl">← 上一章</div><div class="ttl">135 · 分块策略：固定/递归/语义/父子</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="137-vec-rag-architecture.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">137 · RAG 系统架构：从查询到引用</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 136 章 · 分块进阶：表格、代码、长文档</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 2. 关键：整篇文档一次性喂进模型，得到每个 token 的表示
+inputs = tokenizer(doc, return_tensors="pt", truncation=True, max_length=8192)
+with torch.no_grad():
+    outputs = model(**inputs)
+token_embs = outputs.last_hidden_state[0]   # (seq_len, hidden)
+
+# 3. 在 token 表示层面切块 + mean pooling
+chunk_vectors = []
+for start, end in boundaries:
+    chunk_vec = token_embs[start:end].mean(dim=0)
+    chunk_vectors.append(chunk_vec.numpy())
+chunk_vectors = np.stack(chunk_vectors)
+chunk_vectors = chunk_vectors / np.linalg.norm(chunk_vectors, axis=1, keepdims=True)
+
+print(f"块数: {len(chunk_vectors)}, 每块维度: {chunk_vectors.shape[1]}")
+# 每个块向量都"知道"自己是 Acme Corp Q3 的内容，因为整篇经过 attention 了
+</code></pre>
+
+    <h2 class="section" id="contextual-retrieval"><span class="idx">★</span> Contextual Retrieval：用 LLM 给每块加上下文</h2>
+    <p>Anthropic 在 2024 年提出的 Contextual Retrieval 是另一个角度的解法：<strong>分块照常，但 embed 之前，先用一个 LLM 给每个块生成一段简短的上下文摘要，前置到块里，再 embed</strong>。</p>
+    <p>具体做法：对每个块，让 LLM 读完整文档后回答"这个块在文档里的上下文是什么"，把 LLM 的回答加到块前面。比如对上面的"云服务业务..."块，LLM 会生成："这段话出自 Acme Corp 2024 年 Q3 财报，描述云服务业务的表现。"然后把这段话 + 原块一起 embed。</p>
+    <p>代价是每块要调一次 LLM（百万块要百万次调用，成本不小）。Anthropic 的实验显示这能把检索失败率降低 49%（配合 rerank 再降 67%）。优化手段是用 prompt caching（同一文档的块共享缓存）把成本压到原来的 1/10。</p>
+
+    <pre><code class="language-python"># Contextual Retrieval：用 LLM 给每块加上下文
+from anthropic import Anthropic
+import anthropic
+
+client = anthropic.Anthropic()   # 设置 ANTHROPIC_API_KEY
+
+CONTEXTUAL_PROMPT = """<document>
+{document}
+</document>
+Here is the chunk we want to situate within the whole document:
+<chunk>
+{chunk}
+</chunk>
+Please give a short succinct context to situate this chunk within the overall document
+for the purposes of improving search retrieval of the chunk. Answer only with the
+succinct context and nothing else. 用中文回答。"""
+
+def add_context_to_chunk(doc, chunk, model="claude-3-5-haiku-latest"):
+    resp = client.messages.create(
+        model=model,
+        max_tokens=200,
+        messages=[{"role": "user",
+                   "content": CONTEXTUAL_PROMPT.format(document=doc, chunk=chunk)}],
+        # 利用 prompt caching 缓存 document 部分，降低重复成本
+        extra_headers={"anthropic-beta": "prompt-caching-2024-07-31"},
+    )
+    context = resp.content[0].text.strip()
+    return f"{context}\n\n{chunk}"      # 上下文前置 + 原块
+
+# 对所有块处理
+chunks = recursive_split(doc, chunk_size=300)
+contextualized = [add_context_to_chunk(doc, c) for c in chunks]
+# 再用 contextualized 列表去 embed，召回质量显著提升
+</code></pre>
+
+    <h2 class="section" id="parent-child"><span class="idx">★</span> parent-child 分块：召回小块，返回大块</h2>
+    <p>第三种方案是结构性的：把文档做<strong>两层分块</strong>——粗粒度的 parent 块（如 1000 字）和细粒度的 child 块（如 200 字）。child 块用于 embedding 和检索（小块语义聚焦、向量质量高），但检索命中后<strong>返回的是它所属的 parent 块</strong>（大块上下文完整，喂 LLM 时信息全）。</p>
+    <p>这个思路的精髓是"分离检索粒度和返回粒度"：小块利于精确召回（用户问一个具体细节，小块 embedding 更聚焦），大块利于 LLM 理解（喂回去时上下文不缺失）。LlamaIndex 的 AutoMergingRetriever、LangChain 的 ParentDocumentRetriever 都实现了这个策略。</p>
+
+    <pre><code class="language-python"># parent-child 分块：LangChain ParentDocumentRetriever
+from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain.retrievers import ParentDocumentRetriever
+from langchain.storage import InMemoryStore
+from langchain_community.vectorstores import Chroma
+from langchain_community.embeddings import HuggingFaceEmbeddings
+from langchain_core.documents import Document
+
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-zh-v1.5")
+
+# child splitter：小块，用于检索
+child_splitter = RecursiveCharacterTextSplitter(chunk_size=200, chunk_overlap=30)
+# parent splitter：大块，用于返回
+parent_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=100)
+
+# 向量库存 child 块；InMemoryStore 存 parent_id → parent 块的映射
+vectorstore = Chroma(embedding_function=embeddings)
+store = InMemoryStore()
+
+retriever = ParentDocumentRetriever(
+    vectorstore=vectorstore,
+    docstore=store,
+    child_splitter=child_splitter,
+    parent_splitter=parent_splitter,
+)
+
+# 添加文档：自动按 parent 切，每个 parent 再切成 child，child 入向量库
+docs = [Document(page_content=long_doc_text, metadata={"source": "report.pdf"})]
+retriever.add_documents(docs)
+
+# 检索：内部用 child 块匹配，但返回 parent 块
+results = retriever.invoke("云服务营收增长多少")
+# results 里是 1000 字的 parent 块，包含完整的 Acme Corp 上下文
+print(len(results[0].page_content))   # 约 1000，而非 200
+</code></pre>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 三种方案对比与选型</h2>
+
+    <pre><code class="language-text">三种"上下文增强"方案对比
+┌──────────────────────┬──────────────┬──────────────┬─────────────────────┐
+│ 方案                 │ 召回提升     │ 成本         │ 适用                │
+├──────────────────────┼──────────────┼──────────────┼─────────────────────┤
+│ Late Chunking        │ 中（10-15%） │ 低（无LLM）  │ 长文档，模型支持8K  │
+│ Contextual Retrieval │ 高（30-50%） │ 高（每块LLM）│ 高价值场景，预算足  │
+│ parent-child         │ 中（10-20%） │ 低           │ 通用，简单有效      │
+└──────────────────────┴──────────────┴──────────────┴─────────────────────┘</code></pre>
+
+    <p>实战建议：</p>
+    <ul>
+      <li><strong>预算敏感的通用场景</strong>：parent-child 是 ROI 最高的，实现简单、效果稳定，建议作为默认。</li>
+      <li><strong>长文档 + 长上下文 embedding 模型</strong>：加 Late Chunking，几乎零成本再涨一截。</li>
+      <li><strong>高价值低频场景（如医疗、法律）</strong>：上 Contextual Retrieval，配合 prompt caching 控成本。</li>
+      <li><strong>三者可叠加</strong>：parent-child + Late Chunking + Contextual Retrieval 能叠加，但收益边际递减，按需取。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>传统分块的病是"上下文剥离"：块独立 embed 时丢失了文档全局信息，这是精度天花板。</li>
+      <li>Late Chunking（Jina）：整篇先 embed 让 attention 融入全局，再切 token 表示；需要长上下文 embedding 模型，零 LLM 成本。</li>
+      <li>Contextual Retrieval（Anthropic）：每块用 LLM 生成上下文摘要前置，再 embed；效果最强但每块一次 LLM 调用，用 prompt caching 控成本。</li>
+      <li>parent-child 分块：小块检索、大块返回，分离检索粒度和返回粒度；实现简单、ROI 高，建议作为默认。</li>
+      <li>选型：parent-child 通用首选，长文档加 Late Chunking，高价值场景上 Contextual Retrieval，三者可叠加。</li>
+    </ul>
+    <p>下一篇我们把这些零件组装起来，看 RAG 架构的演进——从 Naive RAG 到 Advanced RAG 再到 Modular RAG。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

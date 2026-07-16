@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -163,7 +161,7 @@
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
-      <a href="134-vec-embedding-models.html" class="active" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
+      <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
@@ -305,66 +303,151 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 134 章 · 向量索引与 RAG 原理深挖</span>
-<h1>嵌入模型选型：BGE、E5、Cohere</h1><p class="lead">对比模型的维度、最大输入、多语言、领域。MTEB 榜单怎么看。中文场景 BGE-M3、英文 Cohere v3。指令微调嵌入（query/passage 前缀）。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>对比模型的维度、最大输入、多语言、领域。MTEB 榜单怎么看。中文场景 BGE-M3、英文 Cohere v3。指令微调嵌入（query/passage 前缀）。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>对比模型的维度、最大输入、多语言、领域。MTEB 榜单怎么看。中文场景 BGE-M3、英文 Cohere v3。指令微调嵌入（query/passage 前缀）。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 134 · 向量检索系列</span>
+      <h1>Embedding 模型选型<br>BGE / E5 / GTE / m3e 与维度权衡</h1>
+      <p class="lead">Embedding 模型是整个 RAG 系统的"地基"——模型选错了，后面再多的 rerank 和 prompt 工程都救不回来。但 MTEB 榜单上几十个模型，BGE/E5/GTE/m3e 都号称"中文 SOTA"，到底怎么选？本文从架构、训练数据、维度策略三个维度对比这几个主流系列，给出中文场景的实测建议。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="four-families"><span class="idx">★</span> 四大主流家族</h2>
+
+    <h3>BGE（BAAI）—— 中文开源标杆</h3>
+    <p>智源研究院的 BGE 系列是中文开源 embedding 的事实标准。代表作 bge-large-zh-v1.5（1024 维）、bge-m3（多语言/多功能，1024 维）。训练特点是大规模弱监督预训练 + 对比学习微调，并在中文 MTEB 上长期霸榜。BGE 还提供配套的 reranker 和 icl（in-context learning）版本，生态完整。</p>
+    <p>使用上的小坑：BGE v1.5 系列查询时要加前缀 "为这个句子生成表示以用于检索相关文章："（query instruction），不加会掉几个点召回。bge-m3 不需要这个前缀，但要指定 return_dense=True。</p>
+
+    <h3>E5（Microsoft）—— 多语言均衡</h3>
+    <p>微软的 E5（Emb**E**ddings from weakly-supervised **E**-text bers）系列，multilingual-e5-large 是多语言场景的常青树。训练特点是"text-text 对比学习"，用海量弱监督 (query, passage) 对训练。E5 在英文上很强，中文稍弱于 BGE，但多语言混合场景（中英夹杂）是最稳的选择。E5 也要求 query 加 "query: " 前缀。</p>
+
+    <h3>GTE（阿里）—— 长文本优势</h3>
+    <p>阿里的 GTE（General Text Embeddings）系列，gte-large-zh 在中文 MTEB 表现优秀。GTE 的特点是支持<strong>长文本</strong>（部分版本支持 8K token），适合长文档检索。架构上用了 mean pooling + layer-wise 衰减，对长文本的语义捕捉更稳。</p>
+
+    <h3>m3e（Moka AI）—— 早期中文黑马</h3>
+    <p>moka-ai/m3e-base 是 2023 年中文 embedding 的黑马，512 维，在当时的中文 benchmark 上表现亮眼。但后续更新慢，逐渐被 BGE 超越。今天选 m3e 主要是历史项目兼容，新项目建议直接上 BGE 或 GTE。</p>
+
+    <pre><code class="language-text">四大系列速览（2024-2025 状态）
+┌──────────┬──────────────┬──────────┬──────────────┬─────────────────────┐
+│ 系列     │ 维度          │ 中文强度 │ 多语言       │ 备注                │
+├──────────┼──────────────┼──────────┼──────────────┼─────────────────────┤
+│ BGE-zh   │ 512/1024     │ ★★★★★   │ 弱           │ 中文首选            │
+│ BGE-m3   │ 1024         │ ★★★★★   │ 强(100+语言) │ 多语言+多功能标杆   │
+│ E5-multi │ 768/1024     │ ★★★★    │ ★★★★★       │ 多语言混合首选      │
+│ GTE-zh   │ 768/1024     │ ★★★★★   │ 中           │ 长文本优势          │
+│ m3e      │ 512/768      │ ★★★★    │ 弱           │ 老项目兼容          │
+└──────────┴──────────────┴──────────┴──────────────┴─────────────────────┘</code></pre>
+
+    <h2 class="section" id="architecture"><span class="idx">★</span> 架构差异：为什么同样的维度效果不同</h2>
+    <p>同样输出 1024 维，BGE 和 GTE 效果不同，根源在<strong>架构和训练</strong>：</p>
+    <ul>
+      <li><strong>基座模型</strong>：BGE-large 用 xlm-roberta-large，GTE 用自家预训练的多语言 encoder，E5 用 bert-large。基座的预训练质量决定了上限。</li>
+      <li><strong>Pooling 策略</strong>：CLS pooling（取 [CLS] token）vs mean pooling（所有 token 平均）。mean pooling 通常更稳，多数现代模型用 mean。</li>
+      <li><strong>训练数据</strong>：BGE 用了亿级中文弱监督 + 人工标注微调，数据量是关键优势。E5 强在多语言数据的覆盖。</li>
+      <li><strong>指令微调</strong>：是否对"加 query 前缀"做了专门训练，影响实测时的召回。</li>
+    </ul>
+
+    <h2 class="section" id="dimension-tradeoff"><span class="idx">★</span> 维度 vs 效果：不是越高越好</h2>
+    <p>一个常被忽视的维度选型问题：<strong>同一系列里，是 large（1024 维）一定比 base（768 维）好吗？</strong>理论上 large 表达力更强，但实际要看你的数据规模和场景：</p>
+    <ul>
+      <li><strong>库规模小（&lt;10 万）</strong>：base 和 large 差距很小，base 更快、更省内存，选 base。</li>
+      <li><strong>库规模大（百万到亿）</strong>：large 在 MTEB 上的优势能体现，通常高 2-5 个点召回，值得。</li>
+      <li><strong>延迟敏感</strong>：768 维点积比 1024 维快 30%，高并发场景 base 的 QPS 优势明显。</li>
+      <li><strong>内存预算紧</strong>：1 亿条 1024 维 float32 = 400GB，768 维 = 300GB，差 100GB，可能决定能不能单机部署。</li>
+    </ul>
+
+    <h3>Matryoshka 维度：一个新趋势</h3>
+    <p>近期的模型（如 nomic-embed、bge-m3 的某些配置）支持 <strong>Matryoshka representation</strong>：训练时让前 N 维就是一个有意义的子表示。这样 1024 维的模型，你可以只取前 256 维用于粗召（省内存、快），全 1024 维用于精排。这是未来 embedding 选型的新维度——一个模型覆盖多个档位。</p>
+
+    <pre><code class="language-python"># 用 sentence-transformers 对比四个模型（中文场景）
+# pip install sentence-transformers
+from sentence_transformers import SentenceTransformer
 import numpy as np
+import time
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+models = {
+    "bge-large-zh":  ("BAAI/bge-large-zh-v1.5",  "为这个句子生成表示以用于检索相关文章："),
+    "bge-m3":        ("BAAI/bge-m3",             None),
+    "gte-large-zh":  ("thenlper/gte-large-zh",   None),
+    "m3e-large":     ("moka-ai/m3e-large",       None),
+    "e5-multilingual": ("intfloat/multilingual-e5-large", "query: "),
+}
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+queries = ["如何排查 Java 内存泄漏", "transformer 的注意力机制原理", "向量数据库选型对比"]
+docs = [
+    "Java 内存泄漏用 jmap 和 MAT 分析对象引用链",
+    "Attention 通过 query key value 三矩阵计算加权求和",
+    "Milvus Qdrant Weaviate 都是开源向量数据库",
+    "Python 的列表推导式比 for 循环快",
+    "BERT 是基于 transformer 的预训练语言模型",
+]
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+for name, (model_id, prefix) in models.items():
+    model = SentenceTransformer(model_id)
+    t0 = time.time()
+    q_emb = model.encode([prefix+q if prefix else q for q in queries], normalize_embeddings=True)
+    d_emb = model.encode(docs, normalize_embeddings=True)
+    sims = q_emb @ d_emb.T     # (3, 5)
+    dt = time.time() - t0
+    print(f"\n=== {name} ({q_emb.shape[1]}维, {dt:.2f}s) ===")
+    for i, q in enumerate(queries):
+        top = np.argsort(-sims[i])[:2]
+        print(f"  {q} → top1: {docs[top[0]][:30]}... ({sims[i][top[0]]:.3f})")
+</code></pre>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"嵌入模型选型：BGE、E5、Cohere"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="133-vec-rerank.html"><div class="lbl">← 上一章</div><div class="ttl">133 · 重排序 Rerank：精排召回结果</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="135-vec-chunking.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">135 · 分块策略：固定/递归/语义/父子</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 134 章 · 嵌入模型选型：BGE、E5、Cohere</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <p>跑这段代码你会直观看到：bge-large-zh 和 bge-m3 在中文场景的 top-1 命中率最高，e5 多语言稍弱但稳，m3e 接近 bge-base 水平。这就是为什么新项目几乎都推荐 BGE 系列。</p>
+
+    <h2 class="section" id="chinese-realworld"><span class="idx">★</span> 中文场景实测建议</h2>
+    <ul>
+      <li><strong>纯中文、追求 SOTA</strong>：bge-large-zh-v1.5 或 bge-m3（m3 还支持稀疏+稠密+多向量，更全能）。</li>
+      <li><strong>中英混合</strong>：bge-m3 或 multilingual-e5-large，纯中文模型遇到英文术语会吃亏。</li>
+      <li><strong>长文档（&gt;512 token）</strong>：gte-large-zh（部分版本支持长上下文）或 bge-m3（支持 8K）。</li>
+      <li><strong>资源受限（CPU/边缘）</strong>：bge-small-zh（512 维，速度快）。</li>
+      <li><strong>不要忘了 query 前缀</strong>：BGE v1.5、E5 都要加，不加会掉 3-8 个点。</li>
+    </ul>
+
+    <h2 class="section" id="eval-tip"><span class="idx">★</span> 怎么自己测：别只信榜单</h2>
+    <p>MTEB 榜单是平均分，你的业务数据分布可能和榜单差异巨大。正确的做法是构建一个<strong>业务评测集</strong>：100-500 个真实 (query, 正确文档) 对，用 recall@k 和 MRR 在这个集上对比候选模型。评测代码框架：</p>
+
+    <pre><code class="language-python"># 业务评测集对比模型 —— 比 MTEB 榜单更可信
+def eval_model(model_id, prefix, eval_set, k=5):
+    """
+    eval_set: list of (query, correct_doc_id, all_docs_dict)
+    return:   recall@k, MRR
+    """
+    model = SentenceTransformer(model_id)
+    recalls, rrs = [], []
+    for query, gold_id, docs in eval_set:
+        q_emb = model.encode(prefix+query if prefix else query, normalize_embeddings=True)
+        doc_ids = list(docs.keys())
+        d_emb = model.encode([docs[i] for i in doc_ids], normalize_embeddings=True)
+        top = np.argsort(-(d_emb @ q_emb))[:k]
+        top_ids = [doc_ids[i] for i in top]
+        recalls.append(1.0 if gold_id in top_ids else 0.0)
+        rrs.append(1.0 / (top_ids.index(gold_id) + 1) if gold_id in top_ids else 0.0)
+    return np.mean(recalls), np.mean(rrs)
+
+# 对比 3 个模型
+for name, (mid, pf) in models.items():
+    r, mrr = eval_model(mid, pf, my_eval_set, k=5)
+    print(f"{name:20s}  recall@5={r:.3f}  MRR={mrr:.3f}")
+# 选 recall@5 最高的，注意 recall 和 MRR 有时会指向不同模型
+</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>中文开源首选 BGE 系列（bge-large-zh 或 bge-m3）；中英混合选 bge-m3 或 multilingual-e5；长文档选 GTE 或 bge-m3；m3e 主要用于历史项目兼容。</li>
+      <li>同维度下效果差异源于基座模型、pooling、训练数据、指令微调。</li>
+      <li>维度不是越高越好：小库/延迟敏感选 base（768），大库/追求 SOTA 选 large（1024）；Matryoshka 维度是新趋势。</li>
+      <li>务必加 query 前缀（BGE v1.5/E5），否则掉 3-8 个点。</li>
+      <li>别只信 MTEB 榜单，构建 100-500 的业务评测集，用 recall@k 和 MRR 实测对比，才是选型的最终依据。</li>
+    </ul>
+    <p>选好模型只是第一步。下一篇我们看更上游的工程——文本分块策略，它直接决定了 embedding 的质量上限。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -240,7 +238,7 @@
       <a href="200-fw-crewai.html" title="CrewAI：角色驱动的多 agent 团队"><span class="num">200</span>CrewAI</a>
       <a href="201-fw-openai-agents.html" title="OpenAI Agents SDK：官方的轻量级方案"><span class="num">201</span>OpenAI Age</a>
       <a href="202-fw-llamaindex.html" title="LlamaIndex：从 RAG 到 Agent"><span class="num">202</span>LlamaIndex</a>
-      <a href="203-fw-others.html" class="active" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
+      <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
       <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
@@ -305,27 +303,187 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 227 章 · Agent 框架</span>
-    <h1>其它框架速览</h1><p class="lead">不同哲学的 agent 工具</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Semantic Kernel（微软）</h2>
-    <p>Semantic Kernel 是微软的另一款框架（与 AutoGen 互补）。它的核心模型是"Kernel + Plugin + Planner"：Kernel 是引擎，Plugin 是能力单元（类似函数），Planner 决定怎么组合 Plugin 完成任务。它的特色是"函数组合"——把 AI 能力和传统函数统一为 plugin，用 planner 编排。支持 C#/Python/Java，在企业 .NET 生态里常见。</p>
-    <h2><span class="idx"></span>Haystack（deepset）</h2>
-    <p>Haystack 把 agent 建模为"有向无环图（DAG）"的 pipeline——每个组件是一个节点，数据沿边流动。和 LangGraph 类似都是图模型，但 Haystack 更聚焦"数据处理管线"（RAG 场景强），agent 能力相对轻量。它的组件设计干净、类型安全，适合追求工程稳定性的团队。</p>
-    <h2><span class="idx"></span>Pydantic AI</h2>
-    <p>Pydantic AI 是个新秀（2024 末），主打"类型安全"。它用 Pydantic 做结构化输出和依赖注入——agent 的输入输出都有明确的类型定义，编译期就能发现类型错误。对于重视代码健壮性、用 Python 类型系统的团队，它是个干净的选择。</p>
-    <table class="data-table"><thead><tr><th>框架</th><th>核心模型</th><th>特色</th><th>适合场景</th></tr></thead><tbody><tr><td>Semantic Kernel</td><td>Kernel+Plugin+Planner</td><td>函数组合、多语言</td><td>.NET 企业</td></tr><tr><td>Haystack</td><td>DAG Pipeline</td><td>组件化、类型安全</td><td>RAG 管线</td></tr><tr><td>Pydantic AI</td><td>类型化 Agent</td><td>结构化输出、依赖注入</td><td>类型安全的 Python</td></tr></tbody></table>
-    <h2><span class="idx"></span>框架选型决策</h2>
-    <p>没有最好的框架，只有最适合的。选型看几个维度：你的核心需求（工具调用选 LangGraph、数据接入选 LlamaIndex、多角色协作选 AutoGen/CrewAI、轻量官方选 OpenAI SDK）、团队技术栈（Python/C#/.NET）、生态需求（集成多不多）、学习成本。建议先用 1-2 个做原型对比，再定。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>除了三大主流（LangChain/LangGraph、AutoGen、CrewAI），还有 Semantic Kernel（函数组合）、Haystack（DAG 管线）、Pydantic AI（类型安全）等各有特色的框架。选型核心是匹配你的具体需求和技术栈，而非追逐"最热"的。</p>
-    <div class="chapter-nav">
-    <a href="202-fw-llamaindex.html"><div class="lbl">← 上一章</div><div class="ttl">202 · LlamaIndex：从 RAG 到 agent</div></a>
-    <a href="204-deep-deep-research.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">204 · Deep Research agent：长周期的深度研究</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 227 章 · 其它框架速览：Semantic Kernel / Haystack / Pydantic AI</p></footer>
-  </main>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 203 · 深度应用</span>
+      <h1>其他 Agent 框架<br>Semantic Kernel、Haystack、Pydantic AI、Letta 速览</h1>
+      <p class="lead">LangChain 和 LlamaIndex 固然强大,但 Agent 生态远不止它们。每个框架都有独特的设计哲学:Semantic Kernel 来自微软的企业级血统,Haystack 主打生产级 NLP 流水线,Pydantic AI 把类型安全引入 Agent,Letta(原 MemGPT)专注 Agent 的长期记忆。本章用最小示例带你快速理解四个框架的核心思想,帮你根据需求选对工具。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-others"><span class="idx">★</span> 为什么要了解多个框架</h2>
+    <p>面对一个 Agent 任务,很多开发者本能地选 LangChain——因为它最流行、教程最多。但"流行"不等于"适合"。不同框架是为不同场景设计的,选错框架会让后续开发事倍功半。</p>
+    <p>选框架要看的几个维度:<strong>集成生态</strong>——它能方便地接入你用的数据源、模型、工具吗?<strong>类型安全</strong>——它的输出是否结构化、可验证?<strong>生产就绪度</strong>——它有成熟的可观测性、错误处理、部署支持吗?<strong>核心抽象</strong>——它的设计哲学是否契合你的任务(Skill 化?流水线?有状态的 Agent)?<strong>学习曲线</strong>——团队上手成本多高?</p>
+    <p>本章介绍的四个框架,各自在某个维度上有独到之处。理解它们,不是为了全部学会,而是建立一个"选型雷达":遇到具体任务时,知道哪个维度最重要,从而选到最合适的工具。</p>
+    <h2 class="section" id="semantic-kernel"><span class="idx">★</span> Semantic Kernel:微软的企业级 Agent 内核</h2>
+    <p>Semantic Kernel(简称 SK)是微软开源的 Agent 编排框架,设计初衷是把大模型能力<strong>像函数一样集成到传统应用中</strong>。它的核心抽象是"Plugin"——把 prompt、原生代码、API 调用统一封装成可调用的函数,Agent 通过"规划"组合这些函数完成任务。</p>
+    <p>SK 的特色是<strong>跨语言、强调企业集成、原生支持 C#</strong>。在 .NET 生态里,它是事实标准。它的设计深受微软的传统软件开发理念影响:强类型、强规划、可测试,适合把 LLM 能力嵌入企业级应用(Office 插件、Dynamics、Azure 服务都用了 SK)。SK 的 Planner 会根据用户意图,从已注册的函数中规划出执行步骤,这和 ReAct 思路类似但更"工程化"。</p>
+    <p>下面是 SK 的最小示例(Python 版),定义一个 Plugin 并让 Kernel 调用:</p>
+    <pre><code class="language-python">from semantic_kernel import Kernel
+from semantic_kernel.functions import kernel_function
+
+# 1. 用原生装饰器定义一个 Plugin(类似普通 Python 类)
+class MathPlugin:
+    @kernel_function(description="两个数相加", name="add")
+    def add(self, a: float, b: float) -> float:
+        return a + b
+
+    @kernel_function(description="两个数相乘", name="multiply")
+    def multiply(self, a: float, b: float) -> float:
+        return a * b
+
+# 2. 创建 Kernel 并注册 Plugin
+kernel = Kernel()
+kernel.add_plugin(MathPlugin(), plugin_name="math")
+
+# 3. 直接调用(也可以让 LLM 自动规划调用)
+result = kernel.invoke(
+    function_name="multiply",
+    plugin_name="math",
+    a=12, b=15,
+)
+print(result)  # 180
+
+# 4. 也可以用 prompt 函数,让 LLM 调用这些 plugin
+# kernel.add_function(...) 配合 invoke 让 LLM 自动编排
+</code></pre>
+    <p>SK 适合的场景:在已有的 C#/Python 企业应用里嵌入 LLM 能力,需要把 LLM 调用和传统代码函数混合编排,重视可测试性和强类型。如果你的应用是 .NET 生态,SK 几乎是默认选择。</p>
+    <h2 class="section" id="haystack"><span class="idx">★</span> Haystack:生产级 NLP 流水线专家</h2>
+    <p>Haystack 是 deepset 开源的框架,最早专注<strong>问答系统(QA)和检索增强生成(RAG)</strong>。它的核心抽象是"Pipeline"——把文档检索、重排、生成等组件串成一条流水线,每个组件可独立替换、配置、监控。这种设计非常适合需要稳定生产部署的 RAG 系统。</p>
+    <p>Haystack 与 LangChain 的区别:LangChain 偏"探索式",抽象灵活但有时显得"魔法太多";Haystack 偏"工程化",组件接口清晰、类型严格、错误处理完善,更适合长期维护的生产系统。如果你的核心需求是 RAG(知识库问答、文档检索),Haystack 的开箱即用程度和可控性都很高。</p>
+    <p>下面是 Haystack 2.x 的最小 RAG 流水线示例:</p>
+    <pre><code class="language-python">from haystack import Pipeline, Document
+from haystack.components.embedders import (
+    SentenceTransformersTextEmbedder, SentenceTransformersDocumentEmbedder
+)
+from haystack.components.retrievers import InMemoryEmbeddingRetriever
+from haystack.components.generators import OpenAIGenerator
+from haystack.components.builders import PromptBuilder
+from haystack.document_stores.in_memory import InMemoryDocumentStore
+
+# 1. 构建各组件
+doc_store = InMemoryDocumentStore()
+doc_embedder = SentenceTransformersDocumentEmbedder(model="BAAI/bge-small-zh")
+text_embedder = SentenceTransformersTextEmbedder(model="BAAI/bge-small-zh")
+retriever = InMemoryEmbeddingRetriever(document_store=doc_store)
+
+template = """根据以下文档回答问题。
+文档:
+{% for doc in documents %}
+  {{ doc.content }}
+{% endfor %}
+问题: {{ question }}
+答案:"""
+builder = PromptBuilder(template=template)
+generator = OpenAIGenerator(model="gpt-4o-mini")
+
+# 2. 把组件连成流水线(类似 PyTorch 的 nn.Sequential)
+pipe = Pipeline()
+pipe.add_component("embedder", text_embedder)
+pipe.add_component("retriever", retriever)
+pipe.add_component("prompt", builder)
+pipe.add_component("generator", generator)
+
+pipe.connect("embedder.embedding", "retriever.query_embedding")
+pipe.connect("retriever.documents", "prompt.documents")
+pipe.connect("prompt.prompt", "generator.prompt")
+
+# 3. 索引文档后即可查询
+result = pipe.run({
+    "embedder": {"text": "公司的年假政策是什么?"},
+    "prompt": {"question": "公司的年假政策是什么?"},
+})
+print(result["generator"]["replies"][0])
+</code></pre>
+    <p>Haystack 适合的场景:核心是 RAG 或文档问答,需要稳定的生产部署,重视组件可替换和可监控。它的设计哲学"管道化"让复杂 NLP 流程清晰可控,是企业 RAG 系统的稳妥选择。</p>
+    <h2 class="section" id="pydantic-ai"><span class="idx">★</span> Pydantic AI:类型安全的 Agent</h2>
+    <p>Pydantic AI 是 Pydantic 团队推出的新框架,最大特色是<strong>把类型安全和结构化输出引入 Agent</strong>。它的核心理念:Agent 的输入输出应该有明确的类型定义(schema),模型返回的结果应该被验证,而不是返回一坨不确定格式的文本。</p>
+    <p>这个理念直击 LLM 应用的痛点:传统 Agent 的输出是自然语言,解析时容易出错,出错后 debug 困难。Pydantic AI 用 Pydantic 模型定义输出 schema,框架自动把模型输出约束成该结构,并做类型验证。这把"不可靠的文本输出"变成了"可靠的结构化数据",极大提升了 Agent 在生产环境的稳定性。</p>
+    <p>下面是 Pydantic AI 的最小示例,定义一个输出结构化数据的 Agent:</p>
+    <pre><code class="language-python">from pydantic import BaseModel, Field
+from pydantic_ai import Agent
+
+# 1. 用 Pydantic 定义 Agent 的输出 schema
+class CityInfo(BaseModel):
+    name: str = Field(description="城市名")
+    population: int = Field(description="人口,单位百万")
+    famous_for: str = Field(description="该城市以什么闻名")
+    worth_visiting: bool = Field(description="是否值得旅游")
+
+# 2. 创建 Agent,指定输出类型
+city_agent = Agent(
+    model="anthropic:claude-3-5-sonnet",
+    output_type=CityInfo,           # 关键:输出会被强制转成 CityInfo
+    system_prompt="你是一个地理专家,提供准确的城市信息。",
+)
+
+# 3. 调用:返回的就是结构化的 CityInfo 对象,不是文本
+result = city_agent.run_sync("介绍一下东京")
+info: CityInfo = result.output
+print(info.name)             # 东京
+print(info.population)       # 37 (百万,都市圈)
+print(info.worth_visiting)   # True
+# 如果模型返回的格式不对,Pydantic 会自动重试或报错
+</code></pre>
+    <p>Pydantic AI 的类型安全带来几个好处:IDE 自动补全(访问 info.name 时有提示)、编译期类型检查、输出自动验证(格式错会重试)、文档即代码(schema 本身就是文档)。它特别适合<strong>需要结构化输出的 Agent 任务</strong>:信息抽取、数据填充、表单生成、API 调用编排。如果你的 Agent 输出要进数据库或被下游代码消费,Pydantic AI 是目前最稳的选择之一。</p>
+    <h2 class="section" id="letta"><span class="idx">★</span> Letta:让 Agent 拥有长期记忆</h2>
+    <p>Letta(原名 MemGPT)是一个特别的框架,它解决的是 Agent 的<strong>长期记忆问题</strong>。传统 Agent 的"记忆"就是上下文窗口,窗口满了历史信息就丢失,这让 Agent 无法记住几天前的对话、无法跨越会话积累经验。Letta 借鉴操作系统的虚拟内存思想,给 Agent 配备了分层记忆系统。</p>
+    <p>Letta 的核心设计是把记忆分成几层,由 Agent 自己管理:<strong>系统消息</strong>(system,持久的人设和指令)、<strong>主上下文</strong>(main context,当前对话窗口)、<strong>外部记忆</strong>(recall memory,完整对话历史的归档)、<strong> archival memory</strong>(归档记忆,可检索的长期知识库)。Agent 通过"记忆管理函数"在层之间搬运信息——把重要信息从外部记忆调回主上下文,把不重要的归档出去。</p>
+    <p>这种设计的妙处在于:Agent 的"有用记忆"远超上下文窗口,因为它会主动检索和编辑自己的记忆。这让 Agent 能表现出"个性"和"连续性"——它会记得你上次说过的话、你告诉过它的偏好,从而提供个性化、有上下文连贯性的服务。下面是 Letta 的最小使用示例:</p>
+    <pre><code class="language-python">from letta_client import Letta
+
+client = Letta(base_url="http://localhost:8283")
+
+# 1. 创建一个有长期记忆的 Agent
+agent = client.agents.create(
+    name="personal_assistant",
+    memory_blocks=[
+        {"label": "human", "value": "用户叫 Alice,是数据科学家,偏好简洁的回答。"},
+        {"label": "persona", "value": "我是 Alice 的私人助手,记得她告诉我的所有事。"},
+    ],
+    model="anthropic/claude-3-5-sonnet",
+)
+
+# 2. 对话:Agent 会自动更新记忆
+client.agents.messages.create(
+    agent_id=agent.id,
+    messages=[{"role": "user", "content": "我最近在学小提琴,每周二上课。"}],
+)
+# 此时 Agent 会把"学小提琴,周二上课"写入它的长期记忆
+
+# 3. 几天后新会话,Agent 仍然记得
+client.agents.messages.create(
+    agent_id=agent.id,
+    messages=[{"role": "user", "content": "我这周哪天比较忙?"}],
+)
+# Agent 会基于记忆回答:"你周二要上小提琴课,所以周二比较忙。"
+# ——即使这是全新的会话,记忆跨越了会话边界
+</code></pre>
+    <p>Letta 适合的场景:<strong>需要长期记忆和个性化的 Agent</strong>——个人助手、心理咨询 bot、长期项目协作 Agent、有"人设"需要持续维护的虚拟角色。它的记忆机制让 Agent 不再是"金鱼脑",而是真正能积累关系和知识的智能体。如果你的应用核心价值在"记住用户",Letta 提供了比手搓记忆系统完善得多的方案。</p>
+    <h2 class="section" id="comparison"><span class="idx">★</span> 四框架横向对比</h2>
+    <p>把这四个框架放在一起,它们的差异其实对应不同的应用类型。理解这些差异,选型就不会迷茫。</p>
+    <p><strong>Semantic Kernel</strong>:核心抽象是 Plugin + Planner,强调企业集成和强类型,原生 C# 支持。适合在已有企业应用里嵌入 LLM,尤其是 .NET 生态。</p>
+    <p><strong>Haystack</strong>:核心抽象是 Pipeline,组件化清晰,生产就绪度高。适合 RAG 和文档问答的稳定生产部署。</p>
+    <p><strong>Pydantic AI</strong>:核心抽象是类型化 Agent,输出强制结构化验证。适合需要可靠结构化输出的任务,如信息抽取、工具调用编排。</p>
+    <p><strong>Letta</strong>:核心抽象是分层记忆系统,Agent 自主管理记忆。适合需要长期记忆和个性化的持续对话 Agent。</p>
+    <p>补充对比:LangChain 的优势在生态最广、教程最多,适合快速探索和原型;LlamaIndex 在数据连接和索引上最强,适合复杂 RAG。所以一个常见的组合是:探索阶段用 LangChain 验证可行性,生产阶段根据核心需求切换——需要稳定 RAG 上 Haystack,需要结构化输出上 Pydantic AI,需要长期记忆上 Letta,企业集成上 SK。</p>
+    <h2 class="section" id="selection-advice"><span class="idx">★</span> 实战选型建议</h2>
+    <p>给几个典型场景的推荐,帮你快速定位。</p>
+    <p>做企业内部知识库问答 → <strong>Haystack</strong> 或 LlamaIndex,流水线清晰、生产稳定。</p>
+    <p>做信息抽取/数据结构化 → <strong>Pydantic AI</strong>,类型安全让输出可靠。</p>
+    <p>做长期陪伴的私人助手 → <strong>Letta</strong>,长期记忆是个性化的基础。</p>
+    <p>在 .NET 企业应用里嵌入 LLM → <strong>Semantic Kernel</strong>,原生支持、强类型。</p>
+    <p>不确定,先快速验证 → <strong>LangChain</strong>,生态最全,踩坑资料最多。</p>
+    <p>几个不要踩的坑:不要为了"用新框架"而切换——切换成本高,除非新框架解决了你真实的痛点;不要追求"全栈统一用一个框架"——不同模块用最合适的,比强行统一更健康;不要忽视生产就绪度——demo 跑通和生产稳定是两回事,Haystack、SK 这种企业向框架在监控、错误处理上更成熟。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>本章介绍了 LangChain/LlamaIndex 之外的四个有特色的 Agent 框架。Semantic Kernel 来自微软,Plugin + Planner 抽象,适合企业集成尤其是 .NET 生态。Haystack 以 Pipeline 为核心,生产就绪度高,是 RAG 系统的稳妥选择。Pydantic AI 把类型安全引入 Agent,输出强制结构化验证,适合信息抽取和工具编排。Letta 用分层记忆系统赋予 Agent 长期记忆,适合需要个性化的持续对话。</p>
+    <p>选框架的关键是匹配核心需求:RAG 看 Haystack/LlamaIndex,结构化输出看 Pydantic AI,长期记忆看 Letta,企业集成看 SK,快速探索看 LangChain。没有一个框架在所有维度都最强,成熟的工程实践是"按模块选最合适的工具,而不是全栈统一"。</p>
+    <p>最后提醒:框架是手段不是目的。真正决定 Agent 质量的是 prompt 设计、工具定义、记忆策略这些核心要素,框架只是把它们组织起来的脚手架。理解了原理,换框架只是换个语法;不理解原理,换再多的框架也写不出好 Agent。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 调试手册 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 调试手册 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -95,7 +102,7 @@
       <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
-      <a href="79-debugging-handbook.html" class="active" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
+      <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
       <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
@@ -295,25 +302,359 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 参考</span><h1>LLM 调试手册</h1><p class="lead">模型不听话怎么办——LLM调试方法论</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>LLM调试与传统调试完全不同</h2>
-    <p>传统软件的bug是确定性的——同样输入复现，断点看变量。LLM的"bug"是不确定的——输出有时对有时错，同一输入可能不同结果。这让传统调试方法（断点/日志/单步）大部分失效。LLM调试需要全新的方法论。</p>
-    <h2><span class="idx"></span>LLM常见"bug"分类</h2>
-    <table class="data-table"><thead><tr><th>bug类型</th><th>症状</th><th>排查方向</th></tr></thead><tbody><tr><td>幻觉</td><td>编造不存在的信息</td><td>加RAG/置信度门槛/输出校验</td></tr><tr><td>不听指令</td><td>不按格式/不遵循约束</td><td>改prompt（更明确/加示例）</td></tr><tr><td>不稳定</td><td>同一输入不同输出</td><td>降temperature/固定seed</td></tr><tr><td>工具调用错</td><td>调错工具/参数错</td><td>改工具描述/加few-shot</td></tr><tr><td>安全漏洞</td><td>被注入/越狱</td><td>加安全过滤/结构化分离</td></tr></tbody></table>
-    <h2><span class="idx"></span>调试流程</h2>
-    <pre class="code"><code class="language-text">LLM调试五步法
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 79 · 实战案例系列</span>
+      <h1>调试手册<br>五类常见 LLM Bug 的排查与修复实战</h1>
+      <p class="lead">AI 应用的 Bug 比传统软件难调试得多——因为模型输出是概率性的，同样的输入可能产生不同输出，错误是「有时出现」而不是「每次出现」。这一章把 LLM 应用最常见的五类 Bug 整理出来：输出格式不稳定、RAG 召回质量差、幻觉问题、性能退化、流式响应中断。每类都给真实案例、排查步骤、修复代码，让你遇到类似问题时能快速定位。</p>
+      <div class="meta">
+        <span class="chip">阅读约 29 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-1. 复现 → 固定输入+seed，确认bug可复现
-2. 定位 → 是prompt问题？模型能力？RAG召回？
-   - 换GPT-4试：如果GPT-4也对 → 你的模型能力不足
-   - 换prompt试：如果改prompt好了 → prompt问题
-   - 看RAG召回：如果召回差 → 数据/检索问题
-3. 修复 → 针对性改prompt/加RAG/换模型
-4. 验证 → 在golden set上跑，确保不退步
-5. 防回退 → 把这个case加入回归测试集</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM调试不同于传统调试（输出不确定）。五类常见bug：幻觉（加RAG）、不听指令（改prompt）、不稳定（降temperature）、工具错（改描述）、安全漏洞（加过滤）。五步法：复现→定位（换GPT-4/改prompt/看RAG）→修复→验证→防回退。</p>
-    <div class="chapter-nav">
-      <a href="78-finale.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 79 章 · LLM 调试手册</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <h2 class="section" id="why-hard"><span class="idx">★</span> 一、为什么 LLM 应用特别难调试</h2>
+    <p>传统软件的 Bug 有个特点：可复现。同样的输入一定产生同样的错误。但 LLM 应用的 Bug 经常是「概率性」的——temperature 大于 0 时，同样的 prompt 可能 10 次里有 8 次正常、2 次出错。这让调试变得极其困难。</p>
+    <pre><code class="language-python"># LLM Bug 的特殊性
+llm_bug_characteristics = {
+    "概率性": "同样的输入，有时正确有时错误（temperature > 0）",
+    "上下文敏感": "问题只在特定的对话历史或 prompt 组合下出现",
+    "版本依赖": "模型版本更新后，行为可能变化",
+    "延迟显现": "集成测试能过，但线上跑了几天才暴露",
+    "难以归因": "是 prompt 问题？模型问题？数据问题？很难定位",
+}</code></pre>
+
+    <h2 class="section" id="bug1-format"><span class="idx">★</span> 二、Bug 1：输出格式不稳定</h2>
+    <p>这是最常见的 LLM Bug：你期望模型输出 JSON，但偶尔它会在 JSON 前面加一句解释，或者在后面加个注释，导致解析失败。</p>
+
+    <h3 class="section">2.1 症状</h3>
+    <pre><code class="language-python"># 期望的输出
+{"name": "张三", "age": 30}
+
+# 实际偶尔出现的输出（导致 JSON 解析失败）
+"好的，这是你要的信息：\n{"name": "张三", "age": 30}\n\n希望能帮到你！"
+
+# 或者带了 markdown 代码块
+"```json\n{"name": "张三", "age": 30}\n```"</code></pre>
+
+    <h3 class="section">2.2 排查步骤</h3>
+    <pre><code class="language-python"># 格式 Bug 的排查与修复
+def fix_format_bug():
+    # 第 1 步：确认是不是 temperature 太高导致格式漂移
+    # 修复：输出格式敏感的任务，temperature 设为 0 或很低
+    response = llm.generate(prompt, temperature=0)  # 而非默认 0.7
+
+    # 第 2 步：用 response_format 强制 JSON（支持的模型）
+    response = client.chat.completions.create(
+        model="gpt-4o",
+        response_format={"type": "json_object"},  # 强制 JSON 输出
+        messages=[...]
+    )
+
+    # 第 3 步：prompt 里强调格式，给明确的示例
+    prompt = """请输出 JSON 格式的结果，不要包含任何其他文字。
+
+正确格式示例：
+{"name": "张三", "age": 30}
+
+错误示例（不要这样做）：
+- "结果是：{...}"
+- "```json\n{...}\n```"
+
+请直接输出 JSON，不要有任何前后缀。"""
+
+    # 第 4 步：兜底——用正则提取 JSON（防御性编程）
+    import re, json
+    def robust_json_parse(text):
+        """从可能包含杂质文本的字符串里提取 JSON。"""
+        # 尝试直接解析
+        try:
+            return json.loads(text)
+        except json.JSONDecodeError:
+            pass
+        # 尝试提取 {} 包围的内容
+        match = re.search(r'\{.*\}', text, re.DOTALL)
+        if match:
+            try:
+                return json.loads(match.group())
+            except json.JSONDecodeError:
+                pass
+        # 尝试去掉 markdown 代码块标记
+        cleaned = re.sub(r'```(json)?', '', text).strip()
+        try:
+            return json.loads(cleaned)
+        except json.JSONDecodeError:
+            return None  # 解析失败，记录日志</code></pre>
+
+    <h2 class="section" id="bug2-rag"><span class="idx">★</span> 三、Bug 2：RAG 召回质量差</h2>
+    <p>RAG 系统最让人头疼的问题：明明知识库里有答案，但模型就是不召回正确的内容。原因可能出在切分、embedding、检索多个环节。</p>
+
+    <h3 class="section">3.1 排查流程</h3>
+    <pre><code class="language-python"># RAG 召回问题的系统排查
+class RAGDebugger:
+    def __init__(self, rag_system):
+        self.rag = rag_system
+
+    def diagnose(self, query, expected_answer):
+        print(f"查询：{query}")
+        print(f"期望答案所在文档：{expected_answer}")
+
+        # 第 1 步：检查 embedding 质量
+        query_embedding = self.rag.embed(query)
+        doc_embedding = self.rag.embed(expected_answer)
+        similarity = cosine_sim(query_embedding, doc_embedding)
+        print(f"查询与目标文档的相似度：{similarity:.3f}")
+        if similarity < 0.5:
+            print("[!] embedding 相似度过低，可能是 embedding 模型问题")
+
+        # 第 2 步：检查切分是否破坏了答案
+        chunks = self.rag.get_chunks_for_doc(expected_answer)
+        for chunk in chunks:
+            if expected_answer in chunk:
+                print("[+] 答案在某个 chunk 里完整存在")
+                break
+        else:
+            print("[!] 答案被切分打断了！需要调整切分策略")
+
+        # 第 3 步：检查召回结果
+        retrieved = self.rag.retrieve(query, top_k=5)
+        if expected_answer in [r.source for r in retrieved]:
+            print("[+] 目标文档在召回结果里")
+        else:
+            print("[!] 目标文档未被召回！")
+            print("实际召回：", [r.source for r in retrieved])
+
+        # 第 4 步：检查是否 top_k 太小
+        retrieved_more = self.rag.retrieve(query, top_k=20)
+        if expected_answer in [r.source for r in retrieved_more]:
+            rank = [r.source for r in retrieved_more].index(expected_answer)
+            print(f"[!] 目标文档在 top-20 里排第 {rank+1} 位，召回被截断了")
+
+# 常见根因与修复
+rag_fixes = {
+    "切分太细，破坏上下文": "增大 chunk_size，或用语义切分代替固定长度",
+    "embedding 模型差": "换更强的 embedding 模型（如 bge-large、text-embedding-3）",
+    "没有重排序": "召回 top-20 后用 cross-encoder 重排序，取 top-5",
+    "query 表述和文档差异大": "做 query 改写（用 LLM 把用户问题改写成更适合检索的形式）",
+    "知识库覆盖不够": "补充知识库内容，或做数据增强",
+}</code></pre>
+
+    <h2 class="section" id="bug3-hallucination"><span class="idx">★</span> 四、Bug 3：模型产生幻觉</h2>
+    <p>幻觉（Hallucination）是 LLM 最危险的 Bug——模型一本正经地编造不存在的事实。这在严肃场景（医疗、法律、金融）是致命的。</p>
+
+    <h3 class="section">4.1 幻觉的几种类型</h3>
+    <pre><code class="language-python"># 幻觉的分类与对策
+hallucination_types = {
+    "事实性幻觉": {
+        "表现": "编造不存在的事实（如不存在的论文、不存在的产品）",
+        "根因": "训练数据里没有，模型靠猜测填充",
+        "对策": """
+        1. RAG：强制模型基于检索到的文档回答
+        2. Prompt：明确要求"如果不确定就说不知道"
+        3. 后置验证：用另一个 LLM 检查事实一致性
+        """,
+    },
+    "来源混淆": {
+        "表现": "把 A 说的内容归给 B，或混淆时间地点",
+        "根因": "长上下文里信息混淆",
+        "对策": "缩短上下文 + 分段处理 + 引用标注",
+    },
+    "过度推断": {
+        "表现": "从有限信息推出过度泛化的结论",
+        "根因": "模型的归纳偏置太强",
+        "对策": "Prompt 约束 + 要求列出证据链",
+    },
+}
+
+# 防幻觉的 prompt 技巧
+anti_hallucination_prompt = """请严格基于以下提供的资料回答问题。
+
+资料：
+{retrieved_documents}
+
+要求：
+1. 只使用资料里的信息，不要添加任何外部知识
+2. 如果资料里没有相关信息，直接回答"根据现有资料无法回答"
+3. 在回答每个论断后，标注信息来源（如"[资料1]"）
+4. 不要做没有依据的推断
+
+问题：{question}"""</code></pre>
+
+    <h2 class="section" id="bug4-degradation"><span class="idx">★</span> 五、Bug 4：模型效果随时间退化</h2>
+    <p>这是个隐蔽但严重的问题：应用上线时效果很好，但运行几周/几个月后，效果明显下降。原因可能是模型供应商更新了版本、用户提问的分布漂移、知识库过期等。</p>
+
+    <h3 class="section">5.1 排查步骤</h3>
+    <pre><code class="language-python"># 效果退化的监控与排查
+class DegradationMonitor:
+    def __init__(self, golden_dataset):
+        self.golden = golden_dataset  # 固定的评估集
+        self.baseline = None           # 基线指标
+
+    def establish_baseline(self):
+        """上线时建立基线。"""
+        self.baseline = self.evaluate()
+        print(f"基线准确率：{self.baseline['accuracy']:.3f}")
+
+    def daily_check(self):
+        """每日自动评估，发现退化。"""
+        current = self.evaluate()
+        drop = self.baseline["accuracy"] - current["accuracy"]
+        if drop > 0.05:  # 准确率下降超过 5%
+            self.alert(f"效果退化！准确率从 {self.baseline['accuracy']:.3f} "
+                       f"降到 {current['accuracy']:.3f}")
+            self.diagnose_degradation()
+
+    def diagnose_degradation(self):
+        """诊断退化原因。"""
+        checks = [
+            ("模型版本变化", self.check_model_version),
+            ("用户 query 分布漂移", self.check_query_drift),
+            ("知识库过期", self.check_knowledge_freshness),
+            ("API 限流/降级", self.check_api_health),
+        ]
+        for name, check_func in checks:
+            issue = check_func()
+            if issue:
+                print(f"[!] 发现问题：{name} - {issue}")
+
+    def check_model_version(self):
+        """检查模型供应商是否静默更新了版本。"""
+        # 记录每次请求的模型版本号
+        # 如果版本变了，可能是新版本在你的任务上表现不同
+        if current_version != self.baseline_version:
+            return f"模型从 {self.baseline_version} 变成了 {current_version}"
+        return None</code></pre>
+
+    <h2 class="section" id="bug5-streaming"><span class="idx">★</span> 六、Bug 5：流式响应中断</h2>
+    <p>流式输出（SSE）是 LLM 应用的标配，但它会遇到各种中断问题：网络波动导致断连、超时被截断、前端渲染卡顿。这些 Bug 在测试环境很难复现，但在生产环境频繁出现。</p>
+
+    <h3 class="section">6.1 常见问题与修复</h3>
+    <pre><code class="language-python"># 流式响应的健壮实现
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+import asyncio
+
+app = FastAPI()
+
+@app.post("/chat/stream")
+async def stream_chat(request: dict):
+    async def generate():
+        try:
+            full_response = []
+            async for chunk in llm.astream(request["messages"]):
+                content = chunk.content
+                full_response.append(content)
+                # SSE 格式输出
+                yield f"data: {json.dumps({'content': content})}\n\n"
+
+            # 流结束后，保存完整响应（用于审计/日志）
+            yield f"data: {json.dumps({'done': True})}\n\n"
+
+        except asyncio.TimeoutError:
+            yield f"data: {json.dumps({'error': '生成超时'})}\n\n"
+        except Exception as e:
+            yield f"data: {json.dumps({'error': str(e)})}\n\n"
+
+    return StreamingResponse(
+        generate(),
+        media_type="text/event-stream",
+        headers={
+            "Cache-Control": "no-cache",       # 禁止缓存
+            "X-Accel-Buffering": "no",         # Nginx 禁用缓冲
+            "Connection": "keep-alive",
+        },
+    )
+
+# 前端处理流式响应的健壮逻辑（JavaScript 示例）
+frontend_code = """
+async function streamChat(message) {
+    const response = await fetch('/chat/stream', {
+        method: 'POST',
+        body: JSON.stringify({messages: [{role: 'user', content: message}]}),
+    });
+    const reader = response.body.getReader();
+    const decoder = new TextDecoder();
+    let fullText = '';
+
+    while (true) {
+        const {done, value} = await reader.read();
+        if (done) break;
+        const text = decoder.decode(value);
+        // 解析 SSE 数据
+        const lines = text.split('\\n');
+        for (const line of lines) {
+            if (line.startsWith('data: ')) {
+                const data = JSON.parse(line.slice(6));
+                if (data.content) {
+                    fullText += data.content;
+                    updateUI(fullText);  // 增量渲染
+                }
+                if (data.error) {
+                    showError(data.error);
+                    // 重试逻辑
+                }
+            }
+        }
+    }
+}
+"""
+
+# 关键修复点：
+# 1. 设置合理的超时（不要让用户等 60 秒）
+# 2. 错误时给用户友好的提示，不是空白
+# 3. 断连后支持从断点继续（保存已生成的内容）
+# 4. Nginx/CDN 配置禁用缓冲（否则流会被攒成一坨）</code></pre>
+
+    <h2 class="section" id="debugging-methodology"><span class="idx">★</span> 七、通用的 LLM 调试方法论</h2>
+    <pre><code class="language-python"># LLM 应用的调试方法论
+debugging_methodology = {
+    "第 1 步：复现": """
+    - 把 temperature 临时设为 0，让输出确定化
+    - 记录完整的输入（prompt + 上下文 + 参数）
+    - 在评估集上批量跑，统计出现频率
+    """,
+
+    "第 2 步：隔离": """
+    - 拆解 pipeline：是检索问题？prompt 问题？模型问题？
+    - 逐环节检查中间结果（检索召回什么、prompt 长什么样）
+    - 用最简单的 prompt 测试，排除复杂 prompt 的干扰
+    """,
+
+    "第 3 步：定位": """
+    - 对比好 case 和坏 case 的差异
+    - 检查是不是特定输入触发（长文本、特殊字符、多语言）
+    - 检查模型版本是否变化
+    """,
+
+    "第 4 步：修复": """
+    - 优先用 prompt 工程修复（成本最低）
+    - 其次用后处理兜底（正则、校验、过滤）
+    - 最后才考虑换模型或微调
+    """,
+
+    "第 5 步：回归测试": """
+    - 把修复后的版本在评估集上重新跑
+    - 确认问题修复了，且没有引入新问题
+    - 加入回归测试集，防止以后复现
+    """,
+}</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们覆盖了 LLM 应用最常见的五类 Bug 和调试方法论。核心要点：</p>
+    <ul>
+      <li><strong>格式不稳定</strong>：temperature=0 + response_format + 防御性解析（正则提取 JSON）。</li>
+      <li><strong>RAG 召回差</strong>：按 embedding→切分→召回→重排序 逐环节排查，常见根因是切分破坏上下文或 top_k 太小。</li>
+      <li><strong>幻觉</strong>：分事实性/来源混淆/过度推断三类，对策是 RAG + 约束 prompt + 后置验证 + 来源标注。</li>
+      <strong>效果退化</strong>：建立 golden dataset 每日评估，排查模型版本、query 漂移、知识库过期。
+      <li><strong>流式中断</strong>：超时处理 + 错误兜底 + Nginx 禁缓冲 + 断点续传。</li>
+      <li><strong>调试方法论</strong>：复现（temperature=0）→ 隔离（逐环节检查）→ 定位（好/坏 case 对比）→ 修复（prompt 优先）→ 回归测试。</li>
+    </ul>
+    <p>调试是 AI 工程师的核心能力——模型再强，应用不稳定就没用。建立系统化的排查流程，能让你在面对诡异的 LLM Bug 时不再抓瞎。下一章我们看 AI 产品的增长方法论。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

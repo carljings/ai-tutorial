@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>微调策略决策：什么时候该微调 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>微调策略决策：什么时候该微调 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -272,7 +279,7 @@
       <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
       <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
       <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
-      <a href="234-br-finetune-strategy.html" class="active" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
+      <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
       <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
     </div>
     <div class="nav-group"><h3>★zvec向量库</h3>
@@ -295,14 +302,123 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>微调策略决策：什么时候该微调</h1><p class="lead">RAG vs 微调 vs 长 prompt——怎么选</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>最常被问的问题：该 RAG 还是微调？</h2>
-    <p>这是每个 LLM 应用团队都会纠结的问题。答案是：**90% 的场景应该先试 RAG，不够再考虑微调**。因为 RAG 成本低（不需训练）、可解释（能看到检索了什么）、易更新（改文档即可），而微调成本高、不可解释、更新要重训。</p>
-    <table class="data-table"><thead><tr><th>需求</th><th>推荐</th><th>理由</th></tr></thead><tbody><tr><td>知识更新频繁</td><td>RAG</td><td>改文档即可，不用重训</td></tr><tr><td>特定风格/格式</td><td>微调</td><td>风格是模型行为，RAG 改不了</td></tr><tr><td>领域知识注入</td><td>RAG 优先</td><td>知识=文档，RAG 最直接</td></tr><tr><td>推理能力提升</td><td>微调(推理数据)</td><td>推理是能力，不是知识</td></tr><tr><td>成本极敏感</td><td>微调小模型</td><td>长期看比 API 便宜</td></tr><tr><td>需要溯源</td><td>RAG</td><td>可引用来源，微调不能</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>决策口诀：**知识用 RAG，能力用微调，风格用 prompt**。三者不矛盾，可以组合——RAG 注入知识 + 微调提升能力 + prompt 控制风格。先 RAG 再微调，不要上来就微调。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>90% 场景先试 RAG（低成本/可解释/易更新）。微调适合"能力/风格"提升（推理/代码/格式）。决策口诀：知识用 RAG，能力用微调，风格用 prompt。三者可组合。最贵的是上来就全量微调——先穷尽 RAG 和 prompt 工程。</p>
-    <div class="chapter-nav">
-    <a href="233-br-a2a-protocol.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 234 章 · 微调策略决策：什么时候该微调</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 234 · 业务应用</span>
+      <h1>微调策略选择<br>全量、LoRA、QLoRA、P-Tuning 怎么选</h1>
+      <p class="lead">拿到一个大模型,想让它在你的任务上表现更好,微调几乎是必经之路。但微调策略五花八门:全量微调效果最好但成本惊人,LoRA 省显存却要选秩,QLoRA 进一步压缩到消费级显卡,P-Tuning 只动几个 token。到底选哪个?本章用一棵决策树讲透四种主流策略的原理、成本和适用场景,帮你不再纠结。</p>
+      <div class="meta">
+        <span class="chip">阅读约 21 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-finetune"><span class="idx">★</span> 为什么要微调:三种动机</h2>
+    <p>在讨论"怎么微调"之前,先想清楚"为什么要微调"。不是所有任务都需要微调,很多时候 prompt 工程或 RAG 就够了。微调的动机通常有三类,动机不同,策略选择也不同。</p>
+    <p><strong>动机一:领域适配</strong>。通用大模型在法律、医疗、金融等垂直领域表现平平,因为它没见过足够多的专业语料。通过在领域数据上微调,让模型"学会"专业知识和术语。这类微调通常数据量较大,目标是注入知识,适合全量微调或高秩 LoRA。</p>
+    <p><strong>动机二:风格与格式对齐</strong>。你希望模型以特定格式输出(比如 JSON、特定代码风格、某种语气),通用模型做不到稳定遵循。这类微调数据量小,目标是调整行为而非注入知识,适合 LoRA、P-Tuning 等轻量方法。</p>
+    <p><strong>动机三:能力激活</strong>。通过指令微调(Instruction Tuning)或强化学习对齐(RLHF/DPO),让模型更"听话"、更安全、更擅长遵循指令。这类微调关注行为质量,数据质量远比数量重要。</p>
+    <p>判断动机很重要:如果你的问题是"模型不知道某些知识",RAG 可能比微调更合适(知识可更新、可溯源);如果是"模型知道但不按要求做",这才是微调的主战场。很多团队本末倒置,用微调去注入本该用 RAG 解决的知识,结果模型过时了又得重训。</p>
+    <h2 class="section" id="full-finetune"><span class="idx">★</span> 全量微调:效果天花板,成本地狱</h2>
+    <p>全量微调(Full Fine-Tuning)是指更新模型的所有参数。它的原理最直接:在目标数据集上跑反向传播,所有权重都参与更新。因为它有最大的优化自由度,效果通常是所有微调方法里最好的,能深度适配新任务。</p>
+    <p>但全量微调的成本也是最高的。<strong>显存开销</strong>:训练时除了模型参数本身,还要存优化器状态(Adam 需要两份 momentum)、梯度,加上激活值。以 7B 模型为例,用 Adam + fp16,显存占用大约是参数量的 16 倍——也就是说 7B 模型要约 112GB 显存,需要多张 A100。<strong>存储与部署</strong>:每个微调后的模型都是完整的一份,存储和部署成本高,无法像 LoRA 那样热插拔。<strong>灾难性遗忘</strong>:全量更新容易破坏模型原有的通用能力。</p>
+    <p>所以全量微调适合的场景是:数据量大(几十万条以上)、效果要求极高、算力充裕、且确实需要深度改造模型(而非轻调)。典型例子是基础模型厂商做指令对齐、或大公司对开源模型做深度领域定制。对绝大多数中小团队,全量微调既不必要也不划算。</p>
+    <h2 class="section" id="lora"><span class="idx">★</span> LoRA:参数高效微调的明星</h2>
+    <p>LoRA(Low-Rank Adaptation)是微软在 2021 年提出的参数高效微调方法,现已成为最主流的微调方案。它的核心思想是:既然全量更新所有参数太贵,那就<strong>冻结原始参数,只训练一个低秩的"增量矩阵"</strong>。</p>
+    <p>具体来说,对原模型中某个权重矩阵 W(维度 d×k),LoRA 不直接更新 W,而是把更新量近似为 W' = W + ΔW = W + BA,其中 B 是 d×r、A 是 r×k 的矩阵,r 是远小于 d 和 k 的秩(通常 4-64)。训练时只更新 A 和 B,它们加起来的参数量是 r×(d+k),远小于 d×k。比如 d=k=4096,r=8,参数量从 1600 万降到 6.5 万,缩减 200 多倍。</p>
+    <p>为什么这种低秩近似有效?因为微调时权重的实际变化量本来就是低秩的——任务适配不需要改变模型的所有维度,只需要在几个关键方向上调整。LoRA 恰好抓住了这个本质。训练完成后,可以把 BA 合并回 W(合并后推理无额外开销),也可以保留为旁路(便于切换不同 LoRA 适配器)。</p>
+    <p>LoRA 的工程优势巨大:显存占用大幅下降(7B 模型可在单张 24GB 显卡上训练)、训练快、产物小(适配器通常只有几十 MB)、可热插拔(同一个基座模型挂载不同 LoRA 服务不同任务)。它的效果在多数任务上接近全量微调(差距通常在 1-2 个百分点内),性价比极高。下面是 LoRA 微调的核心配置示意:</p>
+    <pre><code class="language-python">from peft import LoraConfig, get_peft_model, TaskType
+from transformers import AutoModelForCausalLM, TrainingArguments
+from trl import SFTTrainer
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    "Qwen/Qwen2.5-7B", torch_dtype="auto", device_map="auto"
+)
+
+# LoRA 配置:决定微调效果的关键
+lora_config = LoraConfig(
+    task_type=TaskType.CAUSAL_LM,
+    r=8,                       # 秩:越大表达力越强但越贵,4-64 常用
+    lora_alpha=16,             # 缩放系数,经验上设为 r 的 2 倍
+    lora_dropout=0.05,
+    # 目标模块:决定哪些层加 LoRA。注意力层的 q/v 是经典选择
+    target_modules=["q_proj", "k_proj", "v_proj", "o_proj",
+                    "gate_proj", "up_proj", "down_proj"],
+)
+
+model = get_peft_model(base_model, lora_config)
+model.print_trainable_parameters()
+# 输出类似:trainable params: 19,884,544 || all params: 7,621,635,072 || 0.26%
+
+trainer = SFTTrainer(
+    model=model,
+    train_dataset=dataset,
+    args=TrainingArguments(
+        output_dir="./lora-output",
+        per_device_train_batch_size=4,
+        gradient_accumulation_steps=8,
+        learning_rate=2e-4,    # LoRA 通常用比全量更大的学习率
+        num_train_epochs=3,
+        bf16=True,
+    ),
+)
+trainer.train()
+model.save_pretrained("./lora-output")  # 只保存几十 MB 的适配器
+</code></pre>
+    <h2 class="section" id="qlora"><span class="idx">★</span> QLoRA:在消费级显卡上微调大模型</h2>
+    <p>QLoRA(Quantized LoRA)是 LoRA 的进一步优化,目标是在<strong>单张消费级显卡</strong>上微调大模型。它的关键创新是把基座模型量化到 4-bit(NF4 量化),只对 LoRA 适配器用 bf16 训练,从而把显存占用降到原来的四分之一以下。</p>
+    <p>QLoRA 的三个核心技术:<strong>4-bit NormalFloat(NF4)量化</strong>是一种为正态分布权重优化的量化格式,信息损失比普通 4-bit 小很多;<strong>双重量化</strong>把量化常数本身也量化,进一步省内存;<strong>分页优化器</strong>用 GPU 显存和 CPU 内存协同,避免显存峰值溢出。三者结合,让原本需要多张 A100 的 70B 模型,能在单张 48GB 显存上微调。</p>
+    <p>QLoRA 的效果几乎无损——论文证明它在多个 benchmark 上达到了全量微调的水平。它的代价是训练速度稍慢(量化和反量化有开销),但这对大多数任务是值得的。QLoRA 把"微调大模型"从大公司的专利变成了个人开发者也能玩的游戏,推动了开源生态的繁荣。实际使用上,QLoRA 在 PEFT 库里只需改一行加载代码:</p>
+    <pre><code class="language-python">from transformers import BitsAndBytesConfig
+import torch
+
+# 4-bit 量化配置
+bnb_config = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",          # NF4 量化
+    bnb_4bit_compute_dtype=torch.bfloat16,
+    bnb_4bit_use_double_quant=True,     # 双重量化
+)
+
+base_model = AutoModelForCausalLM.from_pretrained(
+    "Qwen/Qwen2.5-7B",
+    quantization_config=bnb_config,     # 关键:量化加载
+    device_map="auto",
+)
+# 之后照常 get_peft_model + 训练,流程与普通 LoRA 完全一致
+</code></pre>
+    <h2 class="section" id="ptuning"><span class="idx">★</span> P-Tuning 与 Prompt Tuning:只调"提示"</h2>
+    <p>Prompt Tuning 和 P-Tuning 走了一条更极端的路线:它们连模型权重都不动,只在输入前面加几个"虚拟 token",只训练这几个 token 的嵌入。思路是:既然 prompt 能控制模型行为,那就把 prompt 变成可训练的连续向量,让模型自己学最优 prompt。</p>
+    <p><strong>Prompt Tuning</strong>最简单:在输入前拼接几个可训练的 soft token,只更新它们的 embedding。参数量极少(几百到几千),显存占用最低。但它只在小模型上效果一般,在大模型(10B+)上才接近全量微调——这是因为它依赖模型本身够强,soft prompt 才有发挥空间。</p>
+    <p><strong>P-Tuning v2</strong>是对 Prompt Tuning 的改进:它在 Transformer 的每一层都插入 soft token,而不仅仅是输入层,这让它在中型模型上也能接近全量微调效果。P-Tuning v2 可以看作"深度版的 Prompt Tuning"。</p>
+    <p>这类方法的最大优势是<strong>极致轻量</strong>:训练参数极少、显存极低、可以同时为成百上千个任务训练不同的 prompt,部署时按需切换。但它们的表达力弱于 LoRA,在复杂任务上效果不如 LoRA。适合"超大模型 + 多任务 + 轻量适配"的场景,比如用一个百亿参数基座服务几百个下游任务。</p>
+    <h2 class="section" id="decision-tree"><span class="idx">★</span> 决策树:四种方法怎么选</h2>
+    <p>把四种方法放在一棵决策树里,根据你的约束逐步筛选。这是实战中最有用的部分。</p>
+    <p>第一问:<strong>你的显存能放下全精度模型吗?</strong>如果不能(只有消费级显卡,如 24GB 的 4090),直接走 QLoRA——这是为这种场景量身定做的。</p>
+    <p>第二问:<strong>效果要求是否极致?</strong>如果是要打榜、做基础模型对齐、或数据量极大(百万级)且算力充足,选全量微调,它的效果上限最高。</p>
+    <p>第三问:<strong>是否需要多任务共享基座?</strong>如果是,Prompt Tuning 或 P-Tuning v2 最合适——每个任务只存几百个 token 的适配器,切换成本极低。</p>
+    <p>第四问:<strong>通用情况</strong>。绝大多数应用场景,选 LoRA。它在效果、成本、灵活性间取得了最佳平衡,是当之无愧的"默认选择"。只有 LoRA 满足不了需求时,再考虑其他。</p>
+    <p>总结成一句话:<strong>默认 LoRA,显存紧 QLoRA,多任务 P-Tuning,极致效果全量</strong>。这个口诀能解决 90% 的选型困惑。</p>
+    <h2 class="section" id="data-quality"><span class="idx">★</span> 比策略更重要的是数据质量</h2>
+    <p>很多团队在策略选择上纠结很久,却忽视了真正决定微调成败的因素:<strong>数据质量</strong>。再先进的微调策略,也救不了脏数据。这里分享几条数据准备的铁律。</p>
+    <p><strong>质量优先于数量</strong>。几千条高质量样本的效果,往往优于几十万条噪声样本。LIMA 论文证明,仅 1000 条精心筛选的样本就能让模型表现大幅提升。投入精力做数据清洗、去重、人工审核,比堆数据量更划算。</p>
+    <p><strong>数据多样性</strong>。覆盖任务的真实分布,避免集中在某一类样本。如果训练数据全是"你好"开头,模型上线后只会说"你好"。用聚类、多样性采样保证覆盖。</p>
+    <p><strong>格式与推理过程对齐</strong>。如果你希望模型输出带推理过程的答案(Chain-of-Thought),训练数据里就要包含推理过程,而不是只给最终答案。模型学的是"怎么想",而不只是"答案是什么"。</p>
+    <p><strong>负样本设计</strong>。只给正样本(完美回答)是不够的,要设计合理的负样本,让模型学会"不该做什么"。DPO、RLHF 这类对齐方法,本质上就是用偏好数据(正负对比)来微调。</p>
+    <h2 class="section" id="pitfalls"><span class="idx">★</span> 常见陷阱与避坑</h2>
+    <p>第一,<strong>学习率设置错误</strong>。LoRA 用比全量微调更大的学习率(2e-4 量级,而非全量的 2e-5),因为只训练少量参数,需要更大的步长才能收敛。用错学习率是 LoRA 效果差的最常见原因。</p>
+    <p>第二,<strong>目标模块选得太少</strong>。只在 q_proj、v_proj 加 LoRA 是早期做法,现在更推荐在所有线性层(q/k/v/o + MLP 的 gate/up/down)都加,效果更好且参数量增加可接受。</p>
+    <p>第三,<strong>验证集与训练目标不一致</strong>。训练用 perplexity 评估,上线看的是任务指标(准确率、格式遵循率)。要在验证集上用业务指标评估,否则会出现"loss 降了但效果没变"的困惑。</p>
+    <p>第四,<strong>忽视灾难性遗忘</strong>。微调后模型在通用能力上可能下降。对策是:在训练数据里混入一部分通用数据(如通用对话),或控制训练轮数别过拟合。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>四种微调策略各有定位:全量微调效果上限最高但成本惊人,适合数据量大、效果极致的场景;LoRA 用低秩增量实现参数高效微调,是绝大多数场景的默认选择;QLoRA 把基座量化到 4-bit,让大模型微调进入消费级显卡;P-Tuning 系列只调 soft prompt,极致轻量,适合超大模型多任务适配。</p>
+    <p>选型口诀:默认 LoRA,显存紧 QLoRA,多任务 P-Tuning,极致效果全量。但比策略更重要的是数据质量——质量优先于数量、保证多样性、对齐目标格式、设计负样本,这些才是决定微调成败的根本。</p>
+    <p>最后提醒:微调不是万能药。如果你的问题是"模型缺知识",优先考虑 RAG;如果是"模型知道但不按要求做",才是微调的主场。想清楚动机,选对策略,做好数据,微调就能成为你打磨应用的利器。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -164,7 +162,7 @@
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
-      <a href="135-vec-chunking.html" class="active" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
+      <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
@@ -305,66 +303,163 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 135 章 · 向量索引与 RAG 原理深挖</span>
-<h1>分块策略：固定/递归/语义/父子</h1><p class="lead">固定窗口简单但切断语义、递归按分隔符层级切、语义分块按相似度断点、父子块召回小块但返回大块上下文。chunk size 与 overlap 的取舍。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>固定窗口简单但切断语义、递归按分隔符层级切、语义分块按相似度断点、父子块召回小块但返回大块上下文。chunk size 与 overlap 的取舍。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>固定窗口简单但切断语义、递归按分隔符层级切、语义分块按相似度断点、父子块召回小块但返回大块上下文。chunk size 与 overlap 的取舍。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 135 · 向量检索系列</span>
+      <h1>文本分块策略<br>固定 / 递归 / 语义分块与 LangChain 实操</h1>
+      <p class="lead">Embedding 模型再好，喂进去的文本是一坨乱七八糟的片段，出来的向量也是垃圾。"怎么把长文档切成适合 embedding 的块"——这个看似琐碎的问题，实际是 RAG 系统里对最终效果影响最大的工程决策之一。本文拆解固定分块、递归分块、语义分块三种策略，给出 chunk_size 和 overlap 的经验值，并用 LangChain 走一遍实操。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="why-chunk"><span class="idx">★</span> 为什么必须分块</h2>
+    <p>三个原因决定了 RAG 必须分块：</p>
+    <ol>
+      <li><strong>embedding 模型的输入长度限制</strong>：大多数 embedding 模型 max_length=512 token，超长会被截断，截断的部分信息全丢。</li>
+      <li><strong>embedding 质量随长度下降</strong>：即便模型支持长输入（如 bge-m3 支持 8K），把一个 8000 token 的文档压成一个 1024 维向量，信息密度太低，向量分不清"这个文档主要讲什么"，检索精度塌方。</li>
+      <li><strong>LLM 上下文窗口的有效利用</strong>：检索回来要喂给 LLM，一个 5000 字的文档占满半个上下文，LLM 只能看一两个文档；切成 500 字一块，能喂 10 个，召回的覆盖面大得多。</li>
+    </ol>
+    <p>分块的核心目标：<strong>让每个块语义自洽（一块讲清楚一件事），同时块与块之间有适当重叠（不切断上下文）</strong>。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="fixed"><span class="idx">★</span> 固定分块：最简单的基线</h2>
+    <p>按固定字符数（或 token 数）切，每块之间留一段重叠（overlap）。这是最朴素也最常用的方案，适合大多数场景。</p>
+    <p>它的关键参数有两个：</p>
+    <ul>
+      <li><strong>chunk_size</strong>：每块多大。太小（如 100 字）则语义不完整，一个论点被切成两半；太大（如 2000 字）则信息密度低、embedding 质量差。</li>
+      <li><strong>overlap</strong>：相邻块的重叠部分。作用是防止句子被硬切断——如果块边界正好切在一个关键句中间，重叠能让这个句在两块都完整出现，检索时无论命中哪块都能拿到完整语义。</li>
+    </ul>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h3>经验值</h3>
+    <ul>
+      <li><strong>chunk_size</strong>：中文 200-500 字 / 英文 200-500 token 是甜区。问答类场景偏小（300 字），长文档摘要类偏大（800 字）。</li>
+      <li><strong>overlap</strong>：通常 chunk_size 的 10-20%（如 chunk_size=500，overlap=50-100）。太小切句风险大，太大则冗余、浪费存储。</li>
+    </ul>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"分块策略：固定/递归/语义/父子"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="134-vec-embedding-models.html"><div class="lbl">← 上一章</div><div class="ttl">134 · 嵌入模型选型：BGE、E5、Cohere</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="136-vec-chunking-deep.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">136 · 分块进阶：表格、代码、长文档</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 135 章 · 分块策略：固定/递归/语义/父子</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="recursive"><span class="idx">★</span> 递归分块：尊重文档结构</h2>
+    <p>固定分块的痛点是"硬切"——它不管段落边界，可能在句中或词中切断。递归分块改进了这一点：先用最强的分隔符（如段落 \n\n）切，如果切出来的块还是太大，再用次强的分隔符（如句号）切，依此类推，直到块小于 chunk_size。</p>
+    <p>递归分块保留语义边界的概率高得多——它优先在段落、句子边界切，只在万不得已时才硬切。这是 LangChain 的 RecursiveCharacterTextSplitter 默认策略，也是生产环境最常用的。</p>
+
+    <pre><code class="language-python"># LangChain 三种分块器实操对比
+from langchain_text_splitters import (
+    CharacterTextSplitter,
+    RecursiveCharacterTextSplitter,
+)
+# pip install langchain-text-splitters
+
+sample = """
+## 第一章：向量检索基础
+
+向量检索是把文本转成向量后，用距离度量找最相似的过程。它的核心是 embedding 模型。
+
+### 1.1 暴力检索
+
+暴力检索是计算查询向量到所有库向量的距离，复杂度 O(N*d)。它准确但慢。
+
+### 1.2 近似最近邻
+
+ANN 用聚类、图、量化等手段，牺牲少量精度换大幅提速。HNSW 是当前主流。
+"""
+
+# 1. 固定分块（按字符，硬切）
+fixed = CharacterTextSplitter(
+    separator="\n\n", chunk_size=80, chunk_overlap=20,
+    length_function=len
+)
+# 2. 递归分块（按分隔符优先级，尽量不硬切）
+recursive = RecursiveCharacterTextSplitter(
+    separators=["\n\n", "\n", "。", "，", " ", ""],   # 优先级从高到低
+    chunk_size=80, chunk_overlap=20,
+    length_function=len
+)
+
+print("=== 固定分块 ===")
+for i, c in enumerate(fixed.split_text(sample)):
+    print(f"[{i}] {repr(c[:50])}...")
+print("\n=== 递归分块 ===")
+for i, c in enumerate(recursive.split_text(sample)):
+    print(f"[{i}] {repr(c[:50])}...")
+# 递归分块的块边界更自然，多在段落/句子处，语义更完整
+</code></pre>
+
+    <h2 class="section" id="semantic"><span class="idx">★</span> 语义分块：按内容语义切</h2>
+    <p>固定和递归分块都是基于"字符位置"的，不理解语义。语义分块更进一步：用 embedding 模型给每个句子编码，计算相邻句子的语义相似度，在<strong>相似度突然下降</strong>的地方切——这通常意味着话题转换。</p>
+    <p>语义分块的效果最好（切出来的块语义最聚合），但代价是要对每个句子算 embedding，慢且贵。适合高质量场景（如法律、医疗文档），或离线一次性处理。LangChain 的 SemanticChunker 实现了这个策略。</p>
+
+    <pre><code class="language-python"># 语义分块 —— 按 embedding 相似度切
+from langchain_experimental.text_splitter import SemanticChunker
+from langchain_community.embeddings import HuggingFaceEmbeddings
+# pip install langchain-experimental
+
+embeddings = HuggingFaceEmbeddings(model_name="BAAI/bge-small-zh-v1.5")
+
+# 三种断点策略
+# "percentile": 相似度低于百分位（默认 95）时切
+# "standard_deviation": 相似度低于均值-1*std 时切
+# "interquartile": 用四分位距判定异常点
+splitter = SemanticChunker(
+    embeddings,
+    breakpoint_threshold_type="percentile",
+    breakpoint_threshold_amount=95,        # 数值越小块越多
+)
+
+chunks = splitter.split_text(sample)
+for i, c in enumerate(chunks):
+    print(f"[{i}] {repr(c[:60])}...")
+# 块边界会落在语义转折处，而非固定字符处
+</code></pre>
+
+    <h2 class="section" id="advanced-strategies"><span class="idx">★</span> 针对不同文档类型的进阶策略</h2>
+    <ul>
+      <li><strong>Markdown / HTML</strong>：用 MarkdownHeaderTextSplitter / HTMLHeaderTextSplitter，按标题层级切，每块带上 H1/H2 元数据。这样检索时可以按章节过滤。</li>
+      <li><strong>代码</strong>：用 RecursiveCharacterTextSplitter 配合语言特定的分隔符（如 Python 的 def/class/import），保证函数不被切断。LangChain 提供 language 参数自动选分隔符。</li>
+      <li><strong>PDF</strong>：先解析（unstructured/pdfplumber），按页/段落切，注意表格和图注的特殊处理。</li>
+      <li><strong>对话记录</strong>：按轮次切，每块包含完整 Q&A 对。</li>
+    </ul>
+
+    <pre><code class="language-python"># Markdown 按标题切 + 递归细切（生产推荐组合）
+from langchain_text_splitters import MarkdownHeaderTextSplitter, RecursiveCharacterTextSplitter
+
+headers = [("#", "h1"), ("##", "h2"), ("###", "h3")]
+md_splitter = MarkdownHeaderTextSplitter(headers_to_split_on=headers)
+md_chunks = md_splitter.split_text(sample)   # 第一层：按标题切
+
+# 第二层：对每个 md 块再递归细切到 embedding 友好的大小
+rec = RecursiveCharacterTextSplitter(chunk_size=300, chunk_overlap=50)
+final_chunks = []
+for chunk in md_chunks:
+    for piece in rec.split_text(chunk.page_content):
+        final_chunks.append({
+            "text": piece,
+            "metadata": chunk.metadata,      # 保留 h1/h2/h3 元数据
+        })
+print(f"最终 {len(final_chunks)} 块")
+for c in final_chunks:
+    print(c["metadata"], "→", c["text"][:40])
+</code></pre>
+
+    <h2 class="section" id="common-pitfalls"><span class="idx">★</span> 常见坑</h2>
+    <ul>
+      <li><strong>chunk_size 过大</strong>：以为"块越大信息越多越好"，结果 embedding 分不清主题、检索精度下降。500 字通常是比 2000 字更好的起点。</li>
+      <li><strong>overlap 为 0</strong>：省了存储，但切句风险大，关键信息被切两半时两块都检索不到。至少留 10% overlap。</li>
+      <li><strong>按字符数而非 token 数</strong>：中文一字约 1-2 token，英文一词约 1-1.5 token，按字符切容易超出 embedding 的 512 token 限制。重要场景用 tiktoken 按 token 切。</li>
+      <li><strong>忽略元数据</strong>：分块时不带文档标题、章节、页码，检索回来喂 LLM 时 LLM 不知道上下文，答非所问。务必保留元数据。</li>
+      <li><strong>所有文档一种策略</strong>：FAQ 短文本、法律长文档、代码混用一套分块参数，必然有场景效果差。按文档类型分流。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>分块必要：embedding 有长度限制、长文本信息密度低、LLM 上下文要高效利用。目标是块语义自洽 + 适当重叠。</li>
+      <li>固定分块：最简单，chunk_size 200-500 字（中文）/ token（英文），overlap 10-20%。</li>
+      <li>递归分块：按分隔符优先级切，尊重段落/句子边界，是生产首选（LangChain RecursiveCharacterTextSplitter）。</li>
+      <li>语义分块：按 embedding 相似度切，质量最高但慢且贵，适合高质量离线场景。</li>
+      <li>按文档类型选策略：Markdown 按标题切、代码按语言切、PDF 先解析；务必保留元数据；别用 token 数算的字符切法。</li>
+    </ul>
+    <p>下一篇我们深入到分块的前沿——Late Chunking、Contextual Retrieval、parent-child 分块，看怎么解决"块丢失全局上下文"的根本问题。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

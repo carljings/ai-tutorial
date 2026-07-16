@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -192,7 +190,7 @@
       <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
-      <a href="161-agent-codex-config.html" class="active" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
+      <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
       <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
       <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
@@ -305,81 +303,209 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 161 章 · 开源 Agent 源码深挖</span>
-<h1>Codex 配置：config.toml 全解</h1><p class="lead">sandbox_mode、approval_policy、model、model_provider、mcp_servers 等键。项目级 vs 用户级配置优先级。企业 deny 策略不可覆盖。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>sandbox_mode、approval_policy、model、model_provider、mcp_servers 等键。项目级 vs 用户级配置优先级。企业 deny 策略不可覆盖。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>sandbox_mode、approval_policy、model、model_provider、mcp_servers 等键。项目级 vs 用户级配置优先级。企业 deny 策略不可覆盖。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 45 · Agent 源码深挖系列</span>
+      <h1>Codex 配置系统<br>config.toml 与 profiles 的分层覆盖</h1>
+      <p class="lead">一个复杂的 Agent 有太多可调参数：用什么模型、沙箱多严格、哪些命令自动批准、context 压缩到什么比例。如果这些全靠命令行参数传，命令会冗长到没法读。Codex 用 TOML 配置文件 + profiles 机制解决了这个问题——把配置写成文件，用命名 profile 切换场景，支持全局/项目/参数三层覆盖。本章我们拆解这套配置系统的设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-toml"><span class="idx">★</span> 一、为什么是 TOML</h2>
+    <p>Codex 选 TOML 而非 JSON 或 YAML 作为配置格式。这个选择有几个理由。第一，<strong>TOML 的注释友好</strong>——配置文件里大量需要解释「这个选项是什么意思」，TOML 用 <code>#</code> 注释，可以紧贴每一行；JSON 不支持注释；YAML 的注释虽然支持但语法古怪。第二，<strong>TOML 的类型清晰</strong>——字符串、数字、布尔、数组的写法一目了然，不像 YAML 有隐式类型转换的坑（<code>yes</code> 被解析成布尔 true）。第三，<strong>Rust 生态对 TOML 支持极好</strong>——Cargo 本身就用 TOML，serde + toml crate 是标配，解析和序列化几乎零成本。</p>
+    <pre><code class="language-toml"># config.toml 示例
+# 用户级配置，放在 ~/.config/codex/config.toml
+
+# 默认 profile 的设置
+model = "gpt-4.1"
+approval_mode = "on-failure"     # 自动批准直到失败
+sandbox_mode = "workspace-write" # 允许写工作目录
+
+[context]
+compression_threshold = 0.75     # 上下文用到 75% 时压缩
+reserved_for_output = 4096
+
+[[tools.execute.rules]]
+pattern = "npm test*"
+action = "auto-approve"
+
+[[tools.execute.rules]]
+pattern = "git push --force*"
+action = "deny"</code></pre>
+
+    <h2 class="section" id="layering"><span class="idx">★</span> 二、三层覆盖：全局 → 项目 → 命令行</h2>
+    <p>Codex 的配置来自三个来源，按优先级从低到高叠加：</p>
+    <ol>
+      <li><strong>全局配置</strong>：<code>~/.config/codex/config.toml</code>。用户的默认设置，适用于所有项目。</li>
+      <li><strong>项目配置</strong>：<code>&lt;project&gt;/.codex/config.toml</code>（或仓库根的 codex.toml）。针对特定项目的覆盖，比如这个项目要禁用网络。</li>
+      <li><strong>命令行参数</strong>：<code>codex --model gpt-4.1-mini ...</code>。最高优先级，覆盖一切。</li>
+    </ol>
+    <p>叠加的规则是 <strong>结构化合并</strong>：对每个字段，高优先级的值覆盖低优先级。对数组（如 tools.execute.rules），默认是「替换」而非「合并」，但也支持显式标记为追加。这种分层让用户可以设一个合理的全局默认，然后只在需要的项目里覆盖少数选项。</p>
+    <pre><code class="language-rust">// codex-rs/src/config/loader.rs（概念示意）
+use serde::Deserialize;
+use std::path::PathBuf;
+
+#[derive(Debug, Deserialize, Default, Clone)]
+pub struct Config {
+    pub model: Option&lt;String&gt;,
+    pub approval_mode: Option&lt;ApprovalMode&gt;,
+    pub sandbox_mode: Option&lt;SandboxMode&gt;,
+    pub context: Option&lt;ContextConfig&gt;,
+    pub tools: Option&lt;ToolsConfig&gt;,
+    pub profiles: Option&lt;std::collections::HashMap&lt;String, Config&gt;&gt;,
+}
+
+impl Config {
+    /// 加载并合并三层配置
+    pub fn load(cwd: &amp;Path, cli_overrides: ConfigOverrides) -&gt; Self {
+        // 1. 全局
+        let global = load_file(&amp;global_config_path()).unwrap_or_default();
+
+        // 2. 项目
+        let project = load_file(&amp;cwd.join(".codex/config.toml")).unwrap_or_default();
+
+        // 3. 合并：项目覆盖全局
+        let mut merged = global;
+        merged.merge_override(project);
+
+        // 4. 应用 profile（如果 cli 指定了）
+        if let Some(profile_name) = &amp;cli_overrides.profile {
+            if let Some(profiles) = &amp;merged.profiles {
+                if let Some(p) = profiles.get(profile_name) {
+                    merged.merge_override(p.clone());
                 }
-            },
-            "required": ["path"]
+            }
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+
+        // 5. 命令行覆盖
+        merged.apply_overrides(cli_overrides);
+        merged
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    /// 结构化合并：other 的非 None 字段覆盖 self
+    fn merge_override(&amp;mut self, other: Config) {
+        if other.model.is_some() { self.model = other.model; }
+        if other.approval_mode.is_some() { self.approval_mode = other.approval_mode; }
+        if let Some(ctx) = other.context { self.context = Some(ctx); }
+        // ... 其他字段
+    }
+}</code></pre>
+    <p>注意第 4 步——<strong>profile 的合并发生在全局+项目合并之后、命令行之前</strong>。这意味着 profile 的优先级高于项目配置，但低于命令行参数。这个顺序很关键：profile 是「场景化的一组预设」，它的优先级应该高于「单项目的默认」，但用户在命令行临时指定的参数永远最高。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="profiles"><span class="idx">★</span> 三、profiles：一套配置，多种场景</h2>
+    <p>profiles 是 Codex 配置系统最有用的特性。它让你在一个文件里定义多组配置，按场景切换。比如「工作」profile 严格、「个人项目」profile 宽松、「CI」profile 全自动。</p>
+    <pre><code class="language-toml"># 默认设置（无 profile 时用）
+model = "gpt-4.1"
+approval_mode = "on-failure"
+sandbox_mode = "workspace-write"
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex 配置：config.toml 全解"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="160-agent-codex-guardian.html"><div class="lbl">← 上一章</div><div class="ttl">160 · Codex Guardian AI 审批</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="162-agent-aider-edit-formats.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">162 · Aider 的文件编辑格式</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 161 章 · Codex 配置：config.toml 全解</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 定义多个 profile
+[profiles.strict]
+model = "o3"                       # 用最强模型
+approval_mode = "always"           # 每次都问
+sandbox_mode = "read-only"         # 只读沙箱
+description = "严格模式：只读 + 每步确认，适合审查代码"
+
+[profiles.fast]
+model = "gpt-4.1-mini"             # 便宜快模型
+approval_mode = "never"            # 不问，全自动
+sandbox_mode = "danger-full-access" # 无沙箱
+description = "快速模式：全自动 + 无沙箱，仅限可信任务"
+
+[profiles.ci]
+model = "gpt-4.1"
+approval_mode = "on-failure"
+sandbox_mode = "workspace-write"
+[profiles.ci.context]
+compression_threshold = 0.6        # CI 场景更早压缩，控制成本
+max_turns = 30                     # 防止跑飞
+description = "CI 模式：平衡成本和稳定性"</code></pre>
+    <p>切换 profile 用命令行参数：<code>codex --profile strict</code>。这让同一套代码在不同场景下行为迥异，而无需改配置文件。团队可以把这套 profiles 提交到仓库，成员共享一致的命名约定——「这个任务用 strict profile 跑」就成了团队的通用语言。</p>
+
+    <h2 class="section" id="approval-modes"><span class="idx">★</span> 四、approval_mode 的四档语义</h2>
+    <p>我们在前面几章零散提到过 approval 的三态（allow/ask/deny），但 config 里的 approval_mode 是更高层的 <strong>全局策略</strong>，它定义了默认行为。Codex 提供四档：</p>
+    <ul>
+      <li><strong>never</strong>：从不询问，全自动。最快但最危险，只在完全可信的场景用。</li>
+      <li><strong>on-failure</strong>：默认自动批准，但一旦某次工具执行失败就停下来问。平衡了速度和安全——大部分时候不打断，出问题时介入。</li>
+      <li><strong>on-write</strong>：只读操作自动放行，任何写操作（write_file、execute 有副作用的命令）都问。这是日常开发的推荐默认。</li>
+      <li><strong>always</strong>：每次工具调用都问。最安全但最慢，适合审查场景。</li>
+    </ul>
+    <p>这四档不是互斥的规则集，而是 <strong>默认 decision</strong>——它们等价于在 Guardian 规则引擎里设置不同的 defaultDecision（参见 149 章）。具体的 deny 规则（如禁止 git push --force）无论在哪档都生效。这种「全局策略 + 具体规则」的双层设计，让配置既简洁又精确。</p>
+
+    <h2 class="section" id="sandbox-modes"><span class="idx">★</span> 五、sandbox_mode 的语义</h2>
+    <p>和 approval_mode 类似，sandbox_mode 是沙箱的全局开关，也分几档：</p>
+    <ul>
+      <li><strong>read-only</strong>：完全只读，禁止任何文件写和网络。适合代码审查、问答场景。</li>
+      <li><strong>workspace-write</strong>：允许写工作目录，网络按白名单。日常开发推荐。</li>
+      <li><strong>workspace-write-net</strong>：允许写工作目录 + 完全放开网络。需要频繁联网装依赖时用。</li>
+      <li><strong>danger-full-access</strong>：无沙箱。仅供可信场景或调试，默认不开放。</li>
+    </ul>
+    <p>每档对应一组预定义的沙箱规则模板（seatbelt profile 或 landlock ruleset）。用户选 sandbox_mode = "workspace-write" 时，Codex 加载对应的模板，再按项目路径填充。这种「语义化模式 → 规则模板」的映射，让用户不需要懂沙箱规则语法就能配置安全策略。</p>
+
+    <h2 class="section" id="validation"><span class="idx">★</span> 六、配置校验：失败要早且明确</h2>
+    <p>配置文件写错了怎么办？比如 model 名字打错、sandbox_mode 写了不存在的值。Codex 在启动时就做严格校验，失败立即报错退出，绝不带病运行。</p>
+    <pre><code class="language-rust">// 配置校验（概念示意）
+impl Config {
+    pub fn validate(&amp;self) -&gt; Result&lt;(), ConfigError&gt; {
+        // model 必须是已知模型之一
+        if let Some(model) = &amp;self.model {
+            if !KNOWN_MODELS.contains(&amp;model.as_str()) {
+                return Err(ConfigError::UnknownField {
+                    field: "model".into(),
+                    value: model.clone(),
+                    valid: KNOWN_MODELS.join(", "),
+                    hint: "检查模型名拼写，或用 `codex models` 列出支持的模型",
+                });
+            }
+        }
+        // approval_mode 必须是四档之一
+        if let Some(mode) = &amp;self.approval_mode {
+            if !matches!(mode, ApprovalMode::Never | ApprovalMode::OnFailure |
+                              ApprovalMode::OnWrite | ApprovalMode::Always) {
+                return Err(ConfigError::InvalidEnum {
+                    field: "approval_mode".into(),
+                    valid: "never, on-failure, on-write, always".into(),
+                });
+            }
+        }
+        // 值的语义校验
+        if let Some(ctx) = &amp;self.context {
+            if ctx.compression_threshold &gt; 0.95 {
+                return Err(ConfigError::UnreasonableValue {
+                    field: "context.compression_threshold".into(),
+                    value: ctx.compression_threshold.to_string(),
+                    reason: "阈值过高（&gt;0.95）几乎不会触发压缩，可能导致 context 溢出".into(),
+                });
+            }
+        }
+        Ok(())
+    }
+}
+
+pub enum ConfigError {
+    UnknownField { field: String, value: String, valid: String, hint: String },
+    InvalidEnum { field: String, valid: String },
+    UnreasonableValue { field: String, value: String, reason: String },
+}</code></pre>
+    <p>注意第三种校验——<strong>「语义合理性」而非语法正确性</strong>。compression_threshold = 0.98 在语法上没错（是个合法的浮点数），但语义上不合理（几乎不会触发压缩）。Codex 对这类「值合法但不合理」的情况也告警，这种「校验不止于类型」的思路，大大减少了用户因为配置错误导致的诡异行为。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Codex 的配置系统是「强大而不混乱」的典范。要点回顾：</p>
+    <ul>
+      <li><strong>TOML</strong>：注释友好、类型清晰、Rust 生态支持好，优于 JSON/YAML。</li>
+      <li><strong>三层覆盖</strong>：全局 → 项目 → 命令行，结构化合并，高优先级覆盖低优先级。</li>
+      <li><strong>profiles</strong>：在一套配置里定义多场景预设（strict/fast/ci），命令行切换，团队共享命名约定。</li>
+      <li><strong>approval_mode 四档</strong>：never / on-failure / on-write / always，是全局默认策略，具体 deny 规则始终生效。</li>
+      <li><strong>sandbox_mode</strong>：语义化模式映射到沙箱规则模板，用户无需懂规则语法。</li>
+      <li><strong>严格校验</strong>：启动时校验类型和语义合理性，不合理值（如阈值过高）也告警，失败早且明确。</li>
+    </ul>
+    <p>至此 Codex 系列八篇全部完成。从整体架构（153）到 Agent 循环（154）、Responses API（155）、两种沙箱（156、157）、命令执行（159）、Guardian（160）、配置（161），我们看清了一个 Rust 内核工业级 Agent 的全貌。接下来我们转向另外几个重量级开源项目——Aider 的 repo map、Continue 的索引、Cline 的循环，继续从源码里学习 Agent 工程。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

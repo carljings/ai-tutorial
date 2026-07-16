@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>A2A 协议：Agent 间通信标准 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>A2A 协议：Agent 间通信标准 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -271,7 +278,7 @@
       <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
       <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
       <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
-      <a href="233-br-a2a-protocol.html" class="active" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
+      <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
       <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
       <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
     </div>
@@ -295,14 +302,232 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>A2A 协议：Agent 间通信标准</h1><p class="lead">让 Agent 互相协作的"语言"——A2A 协议</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么 Agent 需要通信协议</h2>
-    <p>单个 Agent 能力有限。但如果多个专业 Agent 能协作——研究 Agent 查资料、写作 Agent 写报告、审核 Agent 把关——就能完成复杂任务。这需要 Agent 之间能"对话"：发任务、传结果、协商。A2A（Agent-to-Agent）协议就是定义这套"对话规则"的。</p>
-    <table class="data-table"><thead><tr><th>协议层</th><th>功能</th><th>类比</th></tr></thead><tbody><tr><td>发现</td><td>Agent 怎么找到彼此</td><td>DNS/服务注册</td></tr><tr><td>任务委派</td><td>A 怎么把任务交给 B</td><td>函数调用/RPC</td></tr><tr><td>结果返回</td><td>B 怎么把结果给 A</td><td>返回值/回调</td></tr><tr><td>协商</td><td>多个 Agent 怎么分工</td><td>合同网/拍卖</td></tr></tbody></table>
-    <p>Google 的 A2A 协议（2025 提出）定义了 Agent Card（能力声明）、Task（任务对象）、Artifact（结果产物）等概念，让不同框架（LangGraph/AutoGen/CrewAI）的 Agent 能互操作。这是 Agent 生态从"孤岛"走向"互联"的关键。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>A2A 协议定义 Agent 间通信规则（发现/委派/返回/协商）。Google 2025 提出的 A2A 协议用 Agent Card/Task/Artifact 让不同框架的 Agent 互操作。这是 Agent 从"单兵"走向"协作生态"的基础设施，类比互联网的 HTTP。</p>
-    <div class="chapter-nav">
-    <a href="232-br-ocr-docintel.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 233 章 · A2A 协议：Agent 间通信标准</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 233 · 业务应用</span>
+      <h1>A2A 协议实战<br>让 Agent 与 Agent 协作完成任务</h1>
+      <p class="lead">单个 Agent 再强,也有能力边界。当任务需要多种专长(查数据、写代码、做设计)时,把多个专职 Agent 串联起来往往更高效、更可控。Google 提出的 A2A(Agent-to-Agent)协议,正是为了让不同框架、不同厂商的 Agent 能标准化地互相发现、委派任务、交换结果。本章带你用 FastAPI 从零实现一个符合 A2A 规范的多 Agent 协作系统。</p>
+      <div class="meta">
+        <span class="chip">阅读约 23 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="why-a2a"><span class="idx">★</span> 为什么需要 A2A 协议</h2>
+    <p>过去一年,Agent 框架百花齐放:LangChain、AutoGen、CrewAI、LangGraph……每个框架都能搭出强大的 Agent,但它们之间是孤岛。用 LangChain 写的 Agent 很难直接调用一个用 AutoGen 写的 Agent,更不用说跨组织、跨厂商的 Agent 协作了。这就像互联网早期,每家网络用自己的协议,无法互联。</p>
+    <p>A2A 协议要解决的就是这个"互联"问题。它定义了一套标准的 HTTP/JSON-RPC 接口,让任何 Agent 只要实现这套接口,就能被其他 Agent 发现和调用,无论它底层用什么框架。这带来了几个重要的能力。</p>
+    <p><strong>能力组合</strong>:一个编排 Agent 可以根据任务,动态调用"代码 Agent"、"搜索 Agent"、"数据库 Agent"等专职 Agent,组合完成复杂任务,而无需把这些能力都塞进一个巨型 Agent。<strong>解耦演进</strong>:每个 Agent 可以独立开发、独立部署、独立升级,互不影响。<strong>跨框架协作</strong>:团队 A 用 LangGraph,团队 B 用 CrewAI,只要都遵循 A2A,就能无缝协作。<strong>安全边界</strong>:Agent 之间的调用是显式的网络请求,便于审计、限流、权限控制。</p>
+    <p>理解 A2A 的一个绝佳类比是微服务:把每个 Agent 看作一个微服务,A2A 就是 Agent 之间的 REST/gRPC。这种类比能帮你把成熟的微服务经验(服务发现、熔断、可观测性)迁移到 Agent 生态。</p>
+    <h2 class="section" id="core-concepts"><span class="idx">★</span> A2A 的核心概念</h2>
+    <p>A2A 协议有几个核心概念,理解它们是上手实战的前提。</p>
+    <p><strong>Agent Card(智能体名片)</strong>是 A2A 的核心发现机制。每个 Agent 在一个固定的 URL(通常是 /.well-known/agent.json)暴露一份 JSON,描述自己是谁、能做什么、怎么调用。这份名片包含 Agent 的名称、描述、能力列表(skills)、支持的端点、认证方式等。其他 Agent 通过读取这份名片,就能知道如何与它交互。Agent Card 就像 Agent 的"API 文档 + 自我介绍",是 A2A 互联的基石。</p>
+    <p><strong>Task(任务)</strong>是 A2A 协作的基本单元。一个 Agent 向另一个 Agent 发起一个任务(比如"帮我分析这份财报"),任务有自己的生命周期:submitted、working、input-required(需要更多输入)、completed、failed。任务可以是同步的(立即返回结果),也可以是异步的(长时间运行,通过轮询或 webhook 获取结果)。</p>
+    <p><strong>Message 与 Part</strong>是任务的输入输出格式。一个 Message 可以包含多种 Part:文本 Part(TextPart)、文件 Part(FilePart)、数据 Part(DataPart,结构化 JSON)。这种设计让 A2A 既能传自然语言,也能传文件和结构化数据,适应多样的 Agent 能力。</p>
+    <p><strong>Artifact(产物)</strong>是任务完成后产出的结果,可以是文本、文件或数据。Task 和 Artifact 的分离,让协议既能描述"过程"(任务状态),也能描述"结果"(产物),支持流式和批处理。</p>
+    <h2 class="section" id="agent-card"><span class="idx">★</span> Agent Card 实例解析</h2>
+    <p>来看一份完整的 Agent Card JSON,理解每个字段的作用。这是一个"代码审查 Agent"的名片:</p>
+    <pre><code class="language-json">{
+  "name": "code-review-agent",
+  "description": "审查代码变更,给出改进建议,支持多种编程语言",
+  "version": "1.2.0",
+  "endpoint": "https://review.example.com/a2a",
+  "capabilities": {
+    "streaming": true,
+    "pushNotifications": true,
+    "stateTransition": true
+  },
+  "skills": [
+    {
+      "id": "review_diff",
+      "name": "代码差异审查",
+      "description": "输入一个 git diff,输出审查意见和严重等级",
+      "tags": ["code-review", "git"],
+      "inputModes": ["text", "file"],
+      "outputModes": ["text", "data"]
+    },
+    {
+      "id": "suggest_fix",
+      "name": "修复建议",
+      "description": "针对审查出的问题,给出具体修复代码",
+      "tags": ["code-review", "fix"]
+    }
+  ],
+  "authentication": {
+    "type": "bearer",
+    "description": "在 Authorization header 传入 Bearer token"
+  },
+  "defaultInputModes": ["text"],
+  "defaultOutputModes": ["text"]
+}
+</code></pre>
+    <p>这份名片告诉调用方:这个 Agent 叫 code-review-agent,有两个技能(审查差异、建议修复),支持流式输出和推送通知,需要 Bearer token 认证。任何遵循 A2A 的客户端拿到这份名片,就知道怎么调用它——这就是标准化互联的威力。</p>
+    <h2 class="section" id="fastapi-impl"><span class="idx">★</span> 用 FastAPI 实现一个 A2A Agent</h2>
+    <p>理论说够了,来实战。我们用 FastAPI 实现一个符合 A2A 规范的最小 Agent,包含 Agent Card 暴露、任务接收、异步处理、结果返回四个核心环节。这个 Agent 的能力是"代码审查",接收一段代码,返回审查意见。</p>
+    <pre><code class="language-python">from fastapi import FastAPI, HTTPException, Header
+from pydantic import BaseModel
+from typing import Optional, Literal
+import uuid, asyncio
+
+app = FastAPI(title="code-review-agent")
+
+# ===== 1. Agent Card:对外自我介绍 =====
+AGENT_CARD = {
+    "name": "code-review-agent",
+    "description": "审查代码,给出改进建议",
+    "version": "1.0.0",
+    "endpoint": "http://localhost:8000",
+    "capabilities": {"streaming": False, "pushNotifications": False},
+    "skills": [{
+        "id": "review",
+        "name": "代码审查",
+        "description": "输入代码文本,返回审查意见",
+        "tags": ["code-review"],
+        "inputModes": ["text"],
+        "outputModes": ["text"],
+    }],
+    "authentication": {"type": "none"},
+    "defaultInputModes": ["text"],
+    "defaultOutputModes": ["text"],
+}
+
+@app.get("/.well-known/agent.json")
+def get_agent_card():
+    return AGENT_CARD
+
+# ===== 2. 数据模型:Message / Part / Task =====
+class TextPart(BaseModel):
+    type: Literal["text"] = "text"
+    text: str
+
+class Message(BaseModel):
+    role: str
+    parts: list[TextPart]
+
+class TaskSend(BaseModel):
+    id: Optional[str] = None
+    message: Message
+
+# 内存存储任务状态(生产环境用数据库)
+TASKS: dict[str, dict] = {}
+
+# ===== 3. 接收任务:POST /tasks/send =====
+@app.post("/tasks/send")
+async def send_task(payload: TaskSend, authorization: Optional[str] = Header(None)):
+    task_id = payload.id or str(uuid.uuid4())
+    code = payload.message.parts[0].text
+    TASKS[task_id] = {"state": "working", "input": code, "result": None}
+    # 异步处理(模拟 LLM 调用)
+    asyncio.create_task(process_review(task_id, code))
+    return {"id": task_id, "state": TASKS[task_id]["state"]}
+
+async def process_review(task_id: str, code: str):
+    await asyncio.sleep(1)  # 模拟模型推理
+    issues = await llm_review_code(code)   # 调用 LLM 做审查
+    TASKS[task_id] = {
+        "state": "completed",
+        "input": code,
+        "result": issues,
+    }
+
+# ===== 4. 查询任务状态和结果:GET /tasks/{id} =====
+@app.get("/tasks/{task_id}")
+def get_task(task_id: str):
+    if task_id not in TASKS:
+        raise HTTPException(404, "task not found")
+    t = TASKS[task_id]
+    return {
+        "id": task_id,
+        "state": t["state"],
+        "artifacts": ([{"type": "text", "text": t["result"]}]
+                      if t["state"] == "completed" else []),
+    }
+</code></pre>
+    <p>这几十行代码就实现了一个可被发现、可被调用的 A2A Agent。启动后,其他 Agent 访问 http://localhost:8000/.well-known/agent.json 就能拿到它的名片,然后通过 POST /tasks/send 发起审查任务,GET /tasks/{id} 查询结果。整个过程不依赖任何特定框架,纯标准 HTTP/JSON。</p>
+    <h2 class="section" id="orchestrator"><span class="idx">★</span> 实现一个编排 Agent 调用多 Agent</h2>
+    <p>A2A 的真正价值在多 Agent 协作。我们写一个编排 Agent,它接收一个高层任务,根据子任务类型委派给不同的专职 Agent,最后综合结果。这个编排 Agent 用 LLM 做任务分解和结果整合。</p>
+    <pre><code class="language-python">import httpx
+
+class A2AClient:
+    """调用其他 A2A Agent 的客户端"""
+    def __init__(self, endpoint: str):
+        self.endpoint = endpoint
+        self.card = None
+
+    async def discover(self):
+        """读取 Agent Card,了解能力"""
+        async with httpx.AsyncClient() as c:
+            r = await c.get(f"{self.endpoint}/.well-known/agent.json")
+            self.card = r.json()
+        return self.card
+
+    async def send_task(self, text: str) -> str:
+        async with httpx.AsyncClient() as c:
+            r = await c.post(
+                f"{self.endpoint}/tasks/send",
+                json={"message": {"role": "user",
+                                  "parts": [{"type": "text", "text": text}]}},
+            )
+            task_id = r.json()["id"]
+        # 轮询直到完成(生产环境可用 webhook 或 SSE)
+        for _ in range(60):
+            async with httpx.AsyncClient() as c:
+                r = await c.get(f"{self.endpoint}/tasks/{task_id}")
+            data = r.json()
+            if data["state"] == "completed":
+                return data["artifacts"][0]["text"]
+            await asyncio.sleep(1)
+        raise TimeoutError("agent task timed out")
+
+
+async def orchestrator(user_request: str):
+    """编排 Agent:分解任务,委派,综合"""
+    review_agent = A2AClient("http://localhost:8000")
+    test_agent = A2AClient("http://localhost:8001")
+    await review_agent.discover()
+    await test_agent.discover()
+
+    # 1. 用 LLM 把用户请求分解成子任务
+    subtasks = await llm_decompose(user_request)
+    # 例如: [{"agent": "review", "input": "..."}, {"agent": "test", "input": "..."}]
+
+    # 2. 委派给对应 Agent
+    results = {}
+    for sub in subtasks:
+        if sub["agent"] == "review":
+            results["review"] = await review_agent.send_task(sub["input"])
+        elif sub["agent"] == "test":
+            results["test"] = await test_agent.send_task(sub["input"])
+
+    # 3. 综合所有 Agent 的结果,输出最终答复
+    final = await llm_synthesize(user_request, results)
+    return final
+</code></pre>
+    <h2 class="section" id="task-delegation"><span class="idx">★</span> 任务委派的几种模式</h2>
+    <p>多 Agent 协作的核心是"任务委派",根据任务流转方式,有几种典型模式,各有适用场景。</p>
+    <p><strong>流水线模式(Pipeline)</strong>:任务按固定顺序流过多个 Agent,A 的输出是 B 的输入。比如"需求分析 Agent → 编码 Agent → 测试 Agent"。适合流程固定、阶段清晰的任务,实现简单、易调试。</p>
+    <p><strong>并行扇出模式(Fan-out)</strong>:编排 Agent 把任务拆分成多个独立子任务,并行委派给多个 Agent,最后汇总结果。比如同时让"搜索 Agent"和"数据库 Agent"分别查不同信息源,合并答案。适合子任务独立、可并行的场景,延迟低。</p>
+    <p><strong>路由模式(Routing)</strong>:编排 Agent 根据任务类型,把任务路由到唯一一个最合适的 Agent。比如根据问题语言路由到"中文 Agent"或"英文 Agent"。适合分类明确的任务,简单高效。</p>
+    <p><strong>辩论/投票模式(Debate)</strong>:多个 Agent 对同一问题给出答案,通过比较或投票选最优。适合需要高可靠性的决策场景,成本高但质量好。</p>
+    <p>实际系统往往是几种模式的组合:外层流水线,内层并行扇出,关键节点用辩论兜底。设计时要从任务结构出发选择模式,而不是为了用多 Agent 而用。</p>
+    <h2 class="section" id="considerations"><span class="idx">★</span> 工程考量:异步、容错、安全</h2>
+    <p>把 A2A 从 demo 推向生产,有几个工程问题必须解决。</p>
+    <p><strong>异步任务管理</strong>:LLM 调用可能耗时几十秒到几分钟,同步等待会超时。A2A 支持异步任务:发送任务立即返回 task_id,客户端轮询或通过 webhook 接收完成通知。对长任务,推送(SSE 或 webhook)比轮询更高效。</p>
+    <p><strong>容错与重试</strong>:Agent 之间的网络调用可能失败,任何一个 Agent 崩了不能拖垮整个系统。要给每次调用加超时、重试、熔断(如 tenacity 库),并对关键步骤做幂等设计(同一个 task_id 重试不产生副作用)。</p>
+    <p><strong>认证与授权</strong>:Agent Card 里声明认证方式,调用方必须携带凭证。跨组织协作时,常用 OAuth2 或 mTLS 做双向认证。还要做细粒度授权:某个调用方只能使用哪些 skill,避免越权。</p>
+    <p><strong>可观测性</strong>:多 Agent 系统的调试很难,因为问题可能在任意一个 Agent 或它们的交互上。必须做全链路追踪(OpenTelemetry),每个任务带 trace_id,贯穿所有 Agent 调用,这样出问题才能定位是哪一环坏了。</p>
+    <h2 class="section" id="a2a-vs-mcp"><span class="idx">★</span> A2A 与 MCP 的关系</h2>
+    <p>另一个常被拿来和 A2A 比较的是 Anthropic 提出的 MCP(Model Context Protocol)。两者都解决"互联"问题,但定位不同,理解差异有助于选型。</p>
+    <p><strong>MCP 解决的是"Agent 与工具/数据源"的连接</strong>。它标准化了 Agent 如何调用外部工具(数据库查询、文件读写、API 调用),让 Agent 的能力边界可扩展。MCP 是"Agent 作为客户端,调用各种工具服务"。</p>
+    <p><strong>A2A 解决的是"Agent 与 Agent"的连接</strong>。它标准化了 Agent 之间如何发现彼此、委派任务、交换结果。A2A 是"Agent 作为对等节点,互相协作"。</p>
+    <p>打个比方:MCP 像是把各种"工具"接入 Agent 的 USB 接口标准,A2A 像是 Agent 之间互相沟通的网络协议。两者是互补而非替代:一个 Agent 既可以作为 MCP 客户端调用工具,也可以通过 A2A 与其他 Agent 协作。成熟的系统会同时用两者,各司其职。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>A2A 协议为 Agent 之间的标准化协作提供了基础,核心概念包括 Agent Card(自我介绍与发现)、Task(任务生命周期)、Message/Part(多模态输入输出)、Artifact(产物)。我们用 FastAPI 实现了一个符合 A2A 的最小 Agent,并演示了编排 Agent 如何分解任务、委派、综合。</p>
+    <p>任务委派有流水线、并行扇出、路由、辩论等模式,实际系统常组合使用。工程化要解决异步任务、容错重试、认证授权、全链路追踪四个问题。A2A 与 MCP 互补:MCP 连接 Agent 与工具,A2A 连接 Agent 与 Agent。</p>
+    <p>多 Agent 协作的价值在于"能力组合"和"解耦演进",但要警惕过度设计:很多任务单个 Agent 就能搞定,不要为了架构而拆分。判断标准是任务本身是否真的需要多种专长——如果需要,A2A 是当前最通用的协作基础设施。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

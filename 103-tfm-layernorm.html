@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -130,7 +128,7 @@
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
-      <a href="103-tfm-layernorm.html" class="active" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
+      <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
@@ -305,67 +303,297 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 103 章 · Transformer 原理深挖</span>
-<h1>LayerNorm 与残差：让深层 Transformer 可训练</h1><p class="lead">残差连接解决梯度消失、LayerNorm 稳定每层分布。Pre-norm vs Post-norm 的训练稳定性差异。RMSNorm（去掉均值中心化）为何成为现代标配。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>残差连接解决梯度消失、LayerNorm 稳定每层分布。Pre-norm vs Post-norm 的训练稳定性差异。RMSNorm（去掉均值中心化）为何成为现代标配。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 103 · Transformer 深度系列</span>
+      <h1>层归一化<br>LayerNorm、RMSNorm 与 Pre-Norm 之争</h1>
+      <p class="lead">深层 Transformer 有个大麻烦：梯度会爆炸或消失，让训练根本起不来。归一化（Normalization）是解药——它把每层的激活值「拉回」到稳定的范围。原论文用 LayerNorm，现代大模型（Llama、GLM）几乎全换成了更省的 RMSNorm。本章讲清为什么不用 BatchNorm、LayerNorm 和 RMSNorm 的数学差异、Pre-Norm vs Post-Norm 的训练稳定性之争，以及归一化位置对深层网络的关键影响。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 102 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-norm"><span class="idx">★</span> 为什么需要归一化</h2>
+    <p>先看不做归一化会怎样。一个几十层的 Transformer，每层都是矩阵乘 + 激活。如果每层的输出尺度稍微偏大一点（比如放大 1.1 倍），经过 96 层后，1.1^96 ≈ <strong>9000 倍</strong>——激活值爆炸成天文数字，softmax 全饱和，梯度消失或爆炸，训练彻底崩。</p>
+
+    <blockquote>
+      <strong>深层网络的灾难：</strong>每层的小扰动，经过指数放大，让激活尺度失控。要么爆炸（NaN），要么消失（梯度为 0）。训练根本起不来。
+    </blockquote>
+
+    <p>归一化的作用：<strong>在每层（或每个子层）之后，把激活值强行拉回均值 0、方差 1 的范围</strong>，再通过可学习的缩放（γ）和偏移（β）恢复到合适尺度。这样无论前面多少层，每层拿到的输入都是「规格化」的，尺度可控。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node sky">每层输出可能尺度漂移</div>
+        <div style="color:var(--text-faint);">▼ 归一化</div>
+        <div class="node accent">拉回均值 0、方差 1，再用 γ、β 调整</div>
+        <div style="color:var(--text-faint);">▼ 传给下一层</div>
+        <div class="node sky">下一层拿到「干净」的输入</div>
+        <div style="color:var(--text-faint);">▼ 多层累积不失控</div>
+        <div class="node violet">深层网络可训练</div>
+      </div>
+      <div class="cap">图 103-1 · 归一化：每层把激活拉回稳定范围，防止尺度漂移</div>
+    </div>
+
+    <h2 class="section" id="why-not-batchnorm"><span class="idx">01</span> 为什么不用 BatchNorm</h2>
+    <p>在 CV（卷积网络）里，BatchNorm 是王者。它对<strong>一个 batch 内、同一个特征通道的所有样本</strong>做归一化——也就是「跨样本、按特征」统计均值方差。为什么 Transformer 不用它？</p>
+
+    <ul>
+      <li><strong>batch 维度在 NLP 里有问题</strong>：句子长度不一，batch 里短句要 padding，padding 部分会污染 batch 统计。而且不同 batch 的统计量差异大，不稳定。</li>
+      <li><strong>推理时依赖 batch 统计</strong>：BatchNorm 推理时用训练累积的移动平均统计，这在 batch=1（单条推理）或 batch 分布变化时会有 train/serve skew。</li>
+      <li><strong>跨样本归一化语义不对</strong>：NLP 里每个序列是独立的，不该让样本 A 的统计去影响样本 B 的归一化。</li>
+    </ul>
+
+    <p>LayerNorm 的思路完全不同：<strong>对单个样本、跨所有特征维度做归一化</strong>，不碰 batch 维。这样每个序列独立归一化，不受 batch 内其他样本影响，推理和训练行为一致。</p>
+
+    <table>
+      <thead><tr><th>对比</th><th>BatchNorm</th><th>LayerNorm</th></tr></thead>
+      <tbody>
+        <tr><td>归一化维度</td><td>跨 batch、按特征</td><td>跨特征、按样本</td></tr>
+        <tr><td>统计来源</td><td>整个 batch</td><td>单个样本自己</td></tr>
+        <tr><td>推理行为</td><td>用移动平均（train/serve skew）</td><td>和训练一致</td></tr>
+        <tr><td>序列长度敏感性</td><td>敏感（padding 干扰）</td><td>不敏感</td></tr>
+        <tr><td>适合任务</td><td>CV（图像）</td><td>NLP（序列）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="layernorm"><span class="idx">02</span> LayerNorm 的数学</h2>
+    <p>LayerNorm 对单个样本的特征向量 x = [x_1, x_2, ..., x_d] 做归一化：</p>
+
+    <blockquote>
+      μ = (1/d) Σ x_i &nbsp;&nbsp;&nbsp;&nbsp;（特征维上的均值）<br>
+      σ² = (1/d) Σ (x_i − μ)² &nbsp;&nbsp;&nbsp;&nbsp;（特征维上的方差）<br>
+      x̂_i = (x_i − μ) / √(σ² + ε) &nbsp;&nbsp;&nbsp;&nbsp;（标准化）<br>
+      y_i = γ_i · x̂_i + β_i &nbsp;&nbsp;&nbsp;&nbsp;（可学习仿射变换）
+    </blockquote>
+
+    <p>这里 ε 是个小常数（如 1e-5）防止除零。γ 和 β 是<strong>可学习参数</strong>，让模型能恢复任意想要的尺度和偏移。<strong>关键：μ 和 σ 是对每个样本的 d 个特征算的，和 batch 无关。</strong></p>
+
+    <div class="code-title">layernorm.py —— 手写 LayerNorm</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+class LayerNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-5):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(d_model))  # 可学习缩放
+        self.beta = nn.Parameter(torch.zeros(d_model))  # 可学习偏移
+        self.eps = eps
+
+    def forward(self, x):
+        # x: (batch, seq, d_model)
+        mean = x.mean(dim=-1, keepdim=True)      # 沿特征维求均值
+        var = x.var(dim=-1, keepdim=True, unbiased=False)  # 沿特征维求方差
+        x_norm = (x - mean) / torch.sqrt(var + self.eps)
+        return self.gamma * x_norm + self.beta
+
+# 对比 PyTorch 内置
+d_model = 64
+mine = LayerNorm(d_model)
+builtin = nn.LayerNorm(d_model)
+
+# 初始化成相同参数
+builtin.weight.data.copy_(mine.gamma.data)
+builtin.bias.data.copy_(mine.beta.data)
+
+x = torch.randn(2, 10, d_model)
+print("和内置差异:", (mine(x) - builtin(x)).abs().max().item())  # ~1e-7
+</code></pre>
+
+    <p>LayerNorm 的两个开销：①算均值和方差（一次 reduce）；②维护 γ 和 β 两组参数（每个隐藏维度一对）。对大模型（d_model=4096、几十层），这点参数不算多，但计算和访存开销在深层里有累积。</p>
+
+    <h2 class="section" id="rmsnorm"><span class="idx">03</span> RMSNorm：去掉均值和偏移</h2>
+    <p>2019 年论文《Root Mean Square Layer Normalization》提出了 <strong>RMSNorm</strong>。它观察到一个现象：<strong>LayerNorm 里的「减均值」和「偏移 β」其实作用不大</strong>，真正起作用的是「除以标准差」这个尺度归一化。于是它做了个简化：</p>
+
+    <blockquote>
+      RMSNorm(x)_i = γ_i · x_i / √( (1/d) Σ x_j² + ε )<br><br>
+      也就是：<strong>不减均值、不加偏移、只用 RMS（均方根）做归一化</strong>
+    </blockquote>
+
+    <p>RMS（Root Mean Square）= √(mean(x²))，它和标准差的区别是不减均值。RMSNorm 的三个简化：</p>
+    <ul>
+      <li><strong>不减均值</strong>：省了一次 reduce（求和）。</li>
+      <li><strong>不加 β</strong>：参数少一半（只有 γ）。</li>
+      <li><strong>不算方差，算 RMS</strong>：省了「先求均值再求方差」的两次 reduce，只需一次平方求和。</li>
+    </ul>
+
+    <p>实验证明：<strong>RMSNorm 效果和 LayerNorm 几乎一样，但计算量少 7~64%</strong>（论文数据）。Llama、GLM、Qwen、Mistral 全部采用 RMSNorm，LayerNorm 在大模型里基本被淘汰。</p>
+
+    <div class="code-title">rmsnorm.py —— RMSNorm 实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+class RMSNorm(nn.Module):
+    def __init__(self, d_model, eps=1e-6):
+        super().__init__()
+        self.gamma = nn.Parameter(torch.ones(d_model))  # 只有缩放，没有偏移
+        self.eps = eps
+
+    def forward(self, x):
+        # RMS = sqrt(mean(x^2))
+        rms = torch.sqrt(x.pow(2).mean(dim=-1, keepdim=True) + self.eps)
+        return self.gamma * (x / rms)
+
+# 对比参数量
+d = 4096
+ln = nn.LayerNorm(d)
+rn = RMSNorm(d)
+print(f"LayerNorm 参数: {sum(p.numel() for p in ln.parameters())}")  # 8192 (γ+β)
+print(f"RMSNorm 参数:  {sum(p.numel() for p in rn.parameters())}")   # 4096 (只有γ)
+
+# 验证：RMSNorm 不改变方向，只缩放尺度
+x = torch.randn(2, 10, d)
+y = rn(x)
+ratio = (y / x).mean().item()
+print(f"平均缩放比例: {ratio:.3f}")  # 大致是 γ / rms，每个位置不同
+</code></pre>
+
+    <h2 class="section" id="ln-vs-rms"><span class="idx">04</span> LayerNorm vs RMSNorm 深度对比</h2>
+    <table>
+      <thead><tr><th>维度</th><th>LayerNorm</th><th>RMSNorm</th></tr></thead>
+      <tbody>
+        <tr><td>是否减均值</td><td>是</td><td>否</td></tr>
+        <tr><td>是否加偏移 β</td><td>是</td><td>否</td></tr>
+        <tr><td>归一化统计</td><td>方差</td><td>RMS（均方根）</td></tr>
+        <tr><td>参数</td><td>γ + β（2d）</td><td>γ（d）</td></tr>
+        <tr><td>计算量</td><td>较高（两次 reduce）</td><td>较低（一次 reduce）</td></tr>
+        <tr><td>效果</td><td>基准</td><td>几乎相同</td></tr>
+        <tr><td>主流模型</td><td>原始 Transformer, BERT, GPT-2</td><td>Llama, GLM, Mistral, Qwen</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout tip">
+      <div class="head">💡 为什么减均值不重要</div>
+      <p>Transformer 里的激活向量，经过大量矩阵乘后，<strong>均值本来就接近 0</strong>（对称的权重初始化 + 残差连接让正负大致抵消）。所以「减均值」几乎不减什么。真正影响训练稳定性的是<strong>尺度（方差/RMS）</strong>，这才是必须控制的。RMSNorm 抓住了主要矛盾，丢掉了冗余操作。</p>
+    </div>
+
+    <h2 class="section" id="pre-post"><span class="idx">05</span> Pre-Norm vs Post-Norm：放哪儿</h2>
+    <p>归一化在 Transformer block 里放的位置，是个影响深远的决策。两种主流放法：</p>
+
+    <p><strong>Post-Norm（原论文）</strong>：归一化在残差<strong>之后</strong>。</p>
+    <blockquote>
+      h = LayerNorm(x + Sublayer(x))<br>
+      out = LayerNorm(h + Sublayer2(h))
+    </blockquote>
+
+    <p><strong>Pre-Norm（现代主流）</strong>：归一化在残差<strong>之前</strong>，作用于子层的输入。</p>
+    <blockquote>
+      h = x + Sublayer(LayerNorm(x))<br>
+      out = h + Sublayer2(LayerNorm(h))
+    </blockquote>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;width:100%;">
+          <div class="node sky">Post-Norm<br>x + Sub(x) → LN</div>
+          <div class="node violet">Pre-Norm<br>x + Sub(LN(x))</div>
+        </div>
+        <div style="color:var(--text-faint);">区别：LN 在残差外还是内</div>
+        <div class="node accent">影响：梯度路径、训练稳定性</div>
+      </div>
+      <div class="cap">图 103-2 · Post-Norm（左）vs Pre-Norm（右）的结构差异</div>
+    </div>
+
+    <p>两者的核心差异在<strong>残差路径的完整性</strong>：</p>
+    <ul>
+      <li><strong>Post-Norm</strong>：残差 x + Sub(x) 先合并，再被 LN 归一化。<strong>残差路径被打断</strong>——梯度要穿过 LN，深层时仍有消失风险。训练需要 learning rate warmup 才能稳。</li>
+      <li><strong>Pre-Norm</strong>：x 直接加到输出，<strong>残差路径是干净的高速公路</strong>，梯度能无损地一路传到深层。训练极稳定，不需要 warmup。</li>
+    </ul>
+
+    <p>代价：Pre-Norm 在效果上<strong>略逊</strong>于 Post-Norm（最终性能稍低一点），因为归一化作用在子层输入上，子层看到的总是「规格化」的输入，表达力略受限。但<strong>训练稳定性带来的好处远大于这点损失</strong>——尤其对超大模型（几十亿、上百亿参数），Post-Norm 根本训不起来。所以现代大模型全部用 Pre-Norm。</p>
+
+    <blockquote>
+      <strong>经验：</strong>Post-Norm 适合小模型（&lt; 1 亿参数），追求极致效果；Pre-Norm 是大模型（&gt; 1 亿）的必选，否则训练崩。
+    </blockquote>
+
+    <h2 class="section" id="sandwich"><span class="idx">06</span> Sandwich Norm 和其他变体</h2>
+    <p>还有几种归一化位置的变体：</p>
+
+    <ul>
+      <li><strong>Sandwich Norm</strong>：子层前后都加 Norm（x + Sub2(LN(Sub1(LN(x))))）。更稳定但计算多。</li>
+      <li><strong>DeepNorm</strong>：Microsoft 提出，针对 Post-Norm 的改进，通过特殊初始化让深层 Post-Norm 也能训。效果据说比 Pre-Norm 略好。</li>
+      <li><strong>ReZero</strong>：完全不用 Norm，给每个子层一个可学习的「残差缩放」α，初始为 0。让深层网络从「恒等映射」开始慢慢学。</li>
+    </ul>
+
+    <p>这些大多是小众探索，<strong>主流是 Pre-RMSNorm</strong>（Pre-Norm + RMSNorm），Llama/GLM/Qwen/Mistral 全用这个组合。简单、稳定、够好。</p>
+
+    <h2 class="section" id="qk-norm"><span class="idx">07</span> 进阶：QK-Norm 和注意力里的归一化</h2>
+    <p>2024 年有些大模型（如 Llama 3 的某些变体、Stable Diffusion 3）在注意力的 Q、K 上也加了 RMSNorm，叫 <strong>QK-Norm</strong>。原因是：深层大模型里 Q·K^T 的分数容易爆炸（即使有 √d_k 缩放），导致 softmax 饱和。给 Q 和 K 各加一个 RMSNorm，把它们的尺度压住，训练更稳。</p>
+
+    <div class="code-title">qk_norm.py —— 带 QK-Norm 的注意力</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class AttentionWithQKNorm(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.q_proj = nn.Linear(d_model, d_model, bias=False)
+        self.k_proj = nn.Linear(d_model, d_model, bias=False)
+        self.v_proj = nn.Linear(d_model, d_model, bias=False)
+        # QK-Norm：每头一个 RMSNorm（按 head_dim 归一化）
+        self.q_norm = RMSNorm(self.d_k)
+        self.k_norm = RMSNorm(self.d_k)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"LayerNorm 与残差：让深层 Transformer 可训练"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="102-tfm-ffn.html"><div class="lbl">← 上一章</div><div class="ttl">102 · 前馈网络：注意力之后的"记忆"层</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="104-tfm-softmax-variants.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">104 · Softmax 之外：线性注意力的尝试</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 103 章 · LayerNorm 与残差：让深层 Transformer 可训练</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x):
+        B, S, _ = x.shape
+        q = self.q_proj(x).view(B, S, self.n_heads, self.d_k).transpose(1, 2)
+        k = self.k_proj(x).view(B, S, self.n_heads, self.d_k).transpose(1, 2)
+        # 关键：投影后、点积前，对 Q 和 K 各做 RMSNorm
+        q = self.q_norm(q)
+        k = self.k_norm(k)
+        v = self.v_proj(x).view(B, S, self.n_heads, self.d_k).transpose(1, 2)
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.d_k)
+        return F.softmax(scores, dim=-1) @ v
+
+# 验证 QK-Norm 把分数压在合理范围
+torch.manual_seed(0)
+attn = AttentionWithQKNorm(64, 8)
+x = torch.randn(1, 100, 64) * 10  # 故意放大输入
+q = attn.q_proj(x).view(1, 100, 8, 8)
+print(f"Q 投影后尺度: std={q.std():.2f}")
+q_n = attn.q_norm(q)
+print(f"QK-Norm 后尺度: std={q_n.std():.2f}")  # 被 RMSNorm 压回 1 附近
+</code></pre>
+
+    <p>QK-Norm 在超大规模（70B+）模型上尤其有用，能显著提升训练稳定性。它让深层 Transformer 在高 bf16 精度下也不容易 NaN。</p>
+
+    <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">归一化的核心作用</div>
+        <ul style="margin:6px 0;">
+          <li>防止深层激活尺度漂移、梯度爆炸/消失</li>
+          <li>不用 BatchNorm：NLP 里跨样本归一化不合理</li>
+          <li>LayerNorm：跨特征归一化，逐样本独立</li>
+          <li>RMSNorm：简化版，不减均值、不加 β</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">现代大模型的选择</div>
+        <ul style="margin:6px 0;">
+          <li>Pre-Norm + RMSNorm 是标配</li>
+          <li>Pre-Norm 残差路径干净，训练稳</li>
+          <li>RMSNorm 省计算，效果和 LayerNorm 一致</li>
+          <li>QK-Norm 进一步稳定超深大模型</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>归一化讲完了。接下来回到注意力的核心——softmax。前面所有章节的注意力都用标准 softmax，它的 O(n²) 复杂度是长上下文的硬瓶颈。Flash Attention 用工程手段绕开了显存问题，但<strong>计算量还是 O(n²)</strong>。有没有办法从数学上把注意力复杂度降到 O(n) 甚至更低？这就是下一章的<strong>线性注意力、稀疏注意力、Latent Attention</strong>等 softmax 变体要回答的问题。</p>
+
+    <blockquote>
+      下一章：<a href="104-tfm-softmax-variants.html">第 104 章 · Softmax 之外：线性与稀疏注意力的尝试</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

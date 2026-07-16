@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -179,7 +177,7 @@
     <div class="nav-group"><h3>★Agent源码</h3>
       <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
-      <a href="148-agent-opencode-tools.html" class="active" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
+      <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
       <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
@@ -305,81 +303,232 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 148 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 工具系统：read/write/bash/grep</h1><p class="lead">内置工具定义 schema（参数类型/描述）。read 抽文件、write 改文件、bash 执行命令、glob/grep 搜索。每个工具的输入输出契约。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>内置工具定义 schema（参数类型/描述）。read 抽文件、write 改文件、bash 执行命令、glob/grep 搜索。每个工具的输入输出契约。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>内置工具定义 schema（参数类型/描述）。read 抽文件、write 改文件、bash 执行命令、glob/grep 搜索。每个工具的输入输出契约。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 33 · Agent 源码深挖系列</span>
+      <h1>OpenCode 工具系统<br>从 JSON Schema 到 Tool.execute 的完整链路</h1>
+      <p class="lead">Agent 和普通聊天机器人的本质区别，在于它能「动手」——调用工具来读写文件、执行命令、检索信息。OpenCode 把这种能力抽象成了一套统一的 Tool 接口：每个工具用 JSON Schema 声明参数，用 async 函数执行逻辑，返回结构化结果。本章我们从 read_file、write_file、execute 这三个核心工具的源码出发，看清一个工具从「LLM 想调用」到「真正执行完」走过了哪些环节。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="tool-interface"><span class="idx">★</span> 一、Tool 接口：一个工具长什么样</h2>
+    <p>在 OpenCode 里，所有工具——无论是内置的还是 MCP 提供的还是插件注册的——都遵循同一个接口契约。这个契约最关键的部分是三样东西：<strong>name</strong>（LLM 用它来引用工具）、<strong>description</strong>（告诉 LLM 这个工具能干嘛）、<strong>schema</strong>（参数的 JSON Schema，约束 LLM 传什么进来）。加上一个 execute 函数，就构成了一个完整工具。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/tool/types.ts（简化）
+export interface Tool&lt;TParams = any, TResult = any&gt; {
+  name: string;                  // 如 "read_file"，LLM 在 tool_call 里引用
+  description: string;           // 给 LLM 看的说明，影响调用决策
+  schema: {                      // JSON Schema，描述参数
+    type: "object";
+    properties: Record&lt;string, JSONSchema&gt;;
+    required?: string[];
+  };
+  execute: (params: TParams, ctx: ToolContext) => Promise&lt;ToolResult&lt;TResult&gt;&gt;;
+}
+
+export interface ToolContext {
+  session: Session;              // 当前会话，可以读 messages、cwd
+  signal: AbortSignal;           // 中断信号，长任务要检查
+  // ...日志、权限检查回调等
+}
+
+export interface ToolResult&lt;T&gt; {
+  content: Array&lt;
+    | { type: "text"; text: string }
+    | { type: "image"; data: string; mimeType: string }
+  &gt;;
+  isError?: boolean;             // true 表示执行失败，但仍按正常返回给 LLM
+}</code></pre>
+    <p>注意 <code>isError</code> 这个字段的设计哲学：工具执行失败（比如文件不存在）不被抛成异常，而是被包装成一个 isError=true 的正常返回。这样 LLM 能读到错误信息，自行决定下一步——重试、换个路径、还是告诉用户。如果抛异常，整个 Agent 循环会中断，LLM 没机会自我修正。这是 Agent 工具设计的一条重要经验：<strong>把错误也当成一种返回值</strong>。</p>
+
+    <h2 class="section" id="read-file"><span class="idx">★</span> 二、read_file：最基础也最讲究的工具</h2>
+    <p>read_file 看起来简单——读个文件嘛——但它是 LLM 获取代码上下文的最高频工具，所以 OpenCode 在它身上花了不少心思。我们看一个接近真实实现的版本：</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/tool/read_file.ts（简化）
+export const readFileTool: Tool = {
+  name: "read_file",
+  description: `读取本地文件内容。支持指定起始行和读取行数。
+注意：路径相对于会话工作目录（cwd）。二进制文件会返回提示而非乱码。`,
+  schema: {
+    type: "object",
+    properties: {
+      filePath: {
+        type: "string",
+        description: "要读取的文件的绝对或相对路径",
+      },
+      startLine: {
+        type: "integer",
+        description: "起始行号（从 1 开始），默认 1",
+      },
+      lineCount: {
+        type: "integer",
+        description: "读取的行数，默认读整个文件",
+      },
     },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+    required: ["filePath"],
+  },
+  execute: async (params, ctx) => {
+    const absPath = resolve(ctx.session.cwd, params.filePath);
+
+    // 1. 路径校验：禁止跳出 cwd（安全护栏）
+    if (!absPath.startsWith(ctx.session.cwd)) {
+      return {
+        content: [{ type: "text", text: `错误：路径越界，禁止读取 ${absPath}` }],
+        isError: true,
+      };
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 2. 读取文件（用 Bun 的 API，二进制安全）
+    const bytes = await Bun.file(absPath).arrayBuffer();
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    // 3. 检测是否为二进制
+    if (isBinary(bytes)) {
+      return {
+        content: [{ type: "text", text: `这是一个二进制文件（${bytes.length} 字节），无法以文本展示。` }],
+        isError: false,
+      };
+    }
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 工具系统：read/write/bash/grep"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="147-agent-opencode-loop.html"><div class="lbl">← 上一章</div><div class="ttl">147 · OpenCode 的 Agent Loop 实现</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="149-agent-opencode-permission.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">149 · OpenCode 权限模型：工具级守卫</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 148 章 · OpenCode 工具系统：read/write/bash/grep</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    // 4. 按行切片
+    const lines = new TextDecoder().decode(bytes).split("\n");
+    const start = (params.startLine ?? 1) - 1;
+    const end = params.lineCount ? start + params.lineCount : lines.length;
+    const selected = lines.slice(start, end);
+
+    // 5. 带行号格式化输出（LLM 很依赖行号来定位编辑位置）
+    const numbered = selected
+      .map((line, i) => `${String(start + i + 1).padStart(6)}\t${line}`)
+      .join("\n");
+
+    return { content: [{ type: "text", text: numbered }] };
+  },
+};</code></pre>
+    <p>这里有两个设计细节值得细品。<strong>第一是行号注入</strong>：输出是 <code>     1\t第一行内容</code> 这种带 tab 分隔的行号格式。这不是为了好看，而是因为 read_file 通常和后面要讲的 write_file（它用行号定位 SEARCH/REPLACE）配合使用，稳定的行号让 LLM 能精确指定编辑位置。</p>
+    <p><strong>第二是二进制检测</strong>：如果直接把一个 .png 或 .exe 的字节当 UTF-8 解码，会得到一堆乱码字符，不仅浪费 token 还可能触发模型的 tokenization 异常。OpenCode 用一个简单的启发式（检测前 N 字节里的 NULL 或非打印字符比例）来判断二进制，提前返回友好提示。</p>
+
+    <h2 class="section" id="write-file"><span class="idx">★</span> 三、write_file：从覆盖到 patch 的演进</h2>
+    <p>write_file 是 Agent 修改代码的主要手段。最朴素的实现就是「给定路径 + 完整内容，覆盖写入」。但这有个严重问题：LLM 必须在每次编辑时把整个文件重写一遍，对于几千行的文件，光输出 token 就是巨大的浪费，而且容易在某一行抄错导致整个文件损坏。</p>
+    <p>所以 OpenCode 的 write_file 实际上支持两种模式：完整覆盖和基于 SEARCH/REPLACE 的补丁。后者借鉴自 Aider 的 diff 格式——LLM 只需要给出「要替换的旧代码块」和「新代码块」，工具在本地做字符串匹配替换。</p>
+    <pre><code class="language-typescript">// write_file 的 patch 模式核心逻辑（简化）
+async function applyPatch(absPath: string, patch: string): Promise&lt;ToolResult&gt; {
+  let original = await Bun.file(absPath).text();
+
+  // patch 格式：
+  //   &lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+  //   要被替换的旧代码
+  //   =======
+  //   替换后的新代码
+  //   &gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE
+  const SEARCH_RE = /&lt;&lt;&lt;&lt;&lt;&lt;&lt;\s*SEARCH\n([\s\S]*?)\n=======\n([\s\S]*?)\n&gt;&gt;&gt;&gt;&gt;&gt;&gt;\s*REPLACE/g;
+
+  let match;
+  let applied = 0;
+  while ((match = SEARCH_RE.exec(patch)) !== null) {
+    const [, oldText, newText] = match;
+    if (!original.includes(oldText)) {
+      return {
+        content: [{ type: "text",
+          text: `替换失败：找不到以下代码块（可能缩进或空格不一致）：\n${oldText}` }],
+        isError: true,
+      };
+    }
+    original = original.replace(oldText, newText);
+    applied++;
+  }
+
+  await Bun.write(absPath, original);
+  return {
+    content: [{ type: "text", text: `成功应用 ${applied} 处修改到 ${absPath}` }],
+  };
+}</code></pre>
+    <p>这段代码揭示了一个关键的容错策略：当 SEARCH 块匹配不到时，<strong>不抛异常，而是把匹配失败的那段代码原样返回给 LLM</strong>。LLM 看到这个反馈后，通常会重新读文件、修正缩进后重试。这种「失败 → 反馈 → 重试」的循环是 Agent 自我修正能力的基础，我们在第 175 章会专门讨论。</p>
+
+    <h2 class="section" id="execute"><span class="idx">★</span> 四、execute：执行 shell 命令的工具</h2>
+    <p>execute（有些版本叫 bash 或 run_command）让 Agent 能跑任意 shell 命令——跑测试、装依赖、git 操作。这是威力最大的工具，也是最危险的，所以它的实现里安全和超时是重点。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/tool/execute.ts（简化）
+export const executeTool: Tool = {
+  name: "execute",
+  description: "在工作目录执行 shell 命令，返回合并的 stdout/stderr。",
+  schema: {
+    type: "object",
+    properties: {
+      command: { type: "string", description: "要执行的命令" },
+      timeout: { type: "integer", description: "超时毫秒数，默认 120000" },
+    },
+    required: ["command"],
+  },
+  execute: async (params, ctx) => {
+    const proc = Bun.spawn(["bash", "-c", params.command], {
+      cwd: ctx.session.cwd,
+      stdout: "pipe",
+      stderr: "pipe",
+    });
+
+    // 用 AbortController 实现超时
+    const timer = setTimeout(() => proc.kill(), params.timeout ?? 120000);
+    ctx.signal.addEventListener("abort", () => proc.kill());
+
+    const [stdout, stderr, exitCode] = await Promise.all([
+      new Response(proc.stdout).text(),
+      new Response(proc.stderr).text(),
+      proc.exited,
+    ]);
+    clearTimeout(timer);
+
+    const output = stdout + (stderr ? `\n[stderr]\n${stderr}` : "");
+    return {
+      content: [{
+        type: "text",
+        text: `[exit ${exitCode}]\n${output.slice(0, 50000)}`  // 截断防 token 爆炸
+      }],
+      isError: exitCode !== 0,
+    };
+  },
+};</code></pre>
+    <p>三个细节：<strong>输出截断</strong>（防止一条 <code>find /</code> 爆掉 context window）、<strong>外部 abort 信号</strong>（用户按 Ctrl+C 时 ctx.signal 触发，进程被 kill）、<strong>exit code 作为 isError</strong>（非零退出码让 LLM 知道命令失败了）。这些细节叠加起来，才让 execute 在「强大」和「可控」之间取得平衡。</p>
+
+    <h2 class="section" id="schema-matters"><span class="idx">★</span> 五、为什么 schema 的措辞决定工具是否被正确调用</h2>
+    <p>很多开发者写工具描述时随便写一句「读取文件」就完事，然后纳闷为什么 LLM 总是用错参数。OpenCode 的工具描述有一个明确的原则：<strong>把约束、默认值、注意事项都写进 description</strong>。因为 LLM 选择工具和填参数，完全依赖它读到的文字描述——schema 里的 <code>description</code> 字段，本质上是给 LLM 看的「使用说明书」。</p>
+    <p>举个例子，read_file 的 schema 里 startLine 的描述是「起始行号（从 1 开始），默认 1」。这个「从 1 开始」至关重要——如果不写，有些模型会以为是 0-based，导致读取偏移一行。这种细节就是工具系统的「暗坑」，OpenCode 在源码里把每个字段都描述得很啰嗦，正是为了减少 LLM 的歧义。</p>
+
+    <h2 class="section" id="tools-list"><span class="idx">★</span> 六、tools 列表：动态拼装与发送给 LLM</h2>
+    <p>一个 Session 里可用的工具，不是写死的。它是三部分的并集：内置工具（read_file 等）、当前 session 加载的 MCP server 提供的工具、以及已启用插件注册的工具。每次发起 LLM 请求前，OpenCode 会把这些工具的 name + description + schema 汇总成一个数组，塞进请求的 <code>tools</code> 字段。</p>
+    <pre><code class="language-typescript">// 收集 session 可用工具（简化）
+function collectTools(session: Session): Tool[] {
+  const builtin = [readFileTool, writeFileTool, executeTool, listDirTool, /* ... */];
+  const fromMcp = session.mcpServers.flatMap(s =&gt; s.tools);
+  const fromPlugins = pluginRegistry.getTools();
+  return [...builtin, ...fromMcp, ...fromPlugins];
+}
+
+// 转成 LLM API 需要的格式
+function toLLMTools(tools: Tool[]) {
+  return tools.map(t =&gt; ({
+    type: "function",
+    function: {
+      name: t.name,
+      description: t.description,
+      parameters: t.schema,
+    },
+  }));
+}</code></pre>
+    <p>注意名字冲突的处理：如果两个来源都有同名工具，OpenCode 会给 MCP 工具加前缀（如 <code>mcp__filesystem__read_file</code>），避免覆盖内置工具。这种前缀策略后来也被 Claude Code 等其他 Agent 采用，成了事实约定。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>OpenCode 的工具系统是一套高度统一的抽象。核心要点回顾：</p>
+    <ul>
+      <li><strong>统一接口</strong>：所有工具遵循 name + description + JSON Schema + async execute 的契约，错误也走正常返回（isError=true），不中断循环。</li>
+      <li><strong>read_file 讲究</strong>：注入行号方便后续编辑、二进制检测避免乱码、路径越界检查是安全护栏。</li>
+      <li><strong>write_file 双模式</strong>：完整覆盖适合小文件，SEARCH/REPLACE 补丁省 token 且匹配失败时反馈原文让 LLM 重试。</li>
+      <li><strong>execute 三重防护</strong>：输出截断、超时 kill、外部 abort 信号，让强大命令执行工具保持可控。</li>
+      <li><strong>描述即文档</strong>：schema 里的 description 是给 LLM 看的使用说明，措辞精度直接影响调用正确率。</li>
+      <li><strong>动态工具列表</strong>：内置 + MCP + 插件三者并集，名字冲突时给 MCP 加前缀。</li>
+    </ul>
+    <p>下一章（149 章）我们会继续深入工具之上的一层——权限模型。工具定义好了不等于能随便调用，OpenCode 用 allow/ask/deny 三态把工具的每一次执行都纳入了用户掌控。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

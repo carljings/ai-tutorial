@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -200,7 +198,7 @@
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
-      <a href="169-agent-cline-diff.html" class="active" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
+      <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
       <a href="172-agent-sourcecode-prompt.html" title="源码级启示：系统提示工程"><span class="num">172</span>源码级启示</a>
@@ -305,81 +303,279 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 169 章 · 开源 Agent 源码深挖</span>
-<h1>Cline 的差异编辑</h1><p class="lead">给出文件完整内容 + 行号，模型输出 search/replace 块。严格的 XML 结构、校验匹配。错误恢复策略。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>给出文件完整内容 + 行号，模型输出 search/replace 块。严格的 XML 结构、校验匹配。错误恢复策略。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>给出文件完整内容 + 行号，模型输出 search/replace 块。严格的 XML 结构、校验匹配。错误恢复策略。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 52 · Agent 源码深挖系列</span>
+      <h1>Cline 的 diff 策略<br>SEARCH/REPLACE vs 全文件重写与错误恢复</h1>
+      <p class="lead">Agent 修改代码有两种基本策略：精确补丁（告诉工具「把这段旧代码换成新代码」）和全文件重写（把整个文件的新内容给工具）。两种各有优劣——补丁省 token 但容易匹配失败，重写可靠但浪费。Cline 同时支持两种，并根据文件大小和修改范围智能切换。本章我们看这套策略的实现，以及它独特的错误恢复机制。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="two-strategies"><span class="idx">★</span> 一、两种策略的本质权衡</h2>
+    <p>在深入 Cline 的实现前，我们先把两种策略的权衡讲清楚。</p>
+    <p><strong>SEARCH/REPLACE（精确补丁）</strong>：LLM 输出「要找的旧代码块」和「替换的新代码块」，工具在文件里搜索旧块并替换。优点是 token 高效——一个 1000 行的文件，如果只改 3 行，LLM 只需输出那 3 行的上下文 + 新内容，可能只要 50 token，而不是 1000 行全文。缺点是匹配依赖——如果 LLM 输出的旧块和文件实际内容有任何差异（多一个空格、tab vs 空格），匹配就失败。</p>
+    <p><strong>full-file rewrite（全文件重写）</strong>：LLM 输出整个文件的新内容，工具直接覆盖。优点是绝对可靠——不存在匹配问题，LLM 输出什么就是什么。缺点是 token 浪费——改一个 1000 行文件里的 3 行，也要输出 1000 行，成本高且慢。还有个风险：LLM 在重写长文件时可能在某一行「抄错」，引入意料之外的改动。</p>
+    <p>Cline 的洞察是：<strong>没有绝对赢家，按场景切换才对</strong>。小改动用补丁省 token，大改动或匹配反复失败时退回重写求可靠。这种「动态策略」是它比单一策略 Agent（如只用 SEARCH/REPLACE 的 Aider）更稳健的地方。</p>
+
+    <h2 class="section" id="decision"><span class="idx">★</span> 二、策略选择：什么时候用哪种</h2>
+    <p>Cline 默认用 SEARCH/REPLACE，但在几种情况下切换到 full-file rewrite。决策逻辑大致是：</p>
+    <pre><code class="language-typescript">// Cline 的 diff 策略决策（简化）
+export class DiffStrategy {
+  constructor(
+    private fileSizeThreshold: number = 300,  // 行数阈值
+    private failureCount: number = 0,
+  ) {}
+
+  chooseStrategy(file: FileInfo, changeScope: ChangeScope): "search_replace" | "full_rewrite" {
+    // 1. 如果之前对这个文件已经连续失败 2 次，切到全文件重写
+    if (this.failureCount &gt;= 2) {
+      return "full_rewrite";
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 2. 如果改动范围超过文件的 50%，全文件重写更高效
+    //    （因为补丁本身也要包含大段上下文，token 节省有限）
+    if (changeScope.changedLines / file.totalLines &gt; 0.5) {
+      return "full_rewrite";
+    }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    // 3. 文件超过阈值且结构复杂，补丁风险高，考虑重写
+    if (file.totalLines &gt; this.fileSizeThreshold &amp;&amp; file.hasRepetitiveStructure) {
+      return "full_rewrite";
+    }
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Cline 的差异编辑"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="168-agent-cline-loop.html"><div class="lbl">← 上一章</div><div class="ttl">168 · Cline 的工具循环与审批</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="170-agent-cursor-agent.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">170 · Cursor 的 Agent 模式</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 169 章 · Cline 的差异编辑</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    // 默认用补丁
+    return "search_replace";
+  }
+}
+
+interface ChangeScope {
+  changedLines: number;     // 预计改动的行数
+}
+
+interface FileInfo {
+  totalLines: number;
+  hasRepetitiveStructure: boolean;  // 如大量相似的 config 行
+}</code></pre>
+    <p>注意第 3 个条件 <strong>hasRepetitiveStructure（重复结构）</strong>。这是一个很有洞察的启发式——有些文件（如长 JSON config、大量相似的数据类）包含很多几乎相同的代码块。对这种文件，SEARCH/REPLACE 的匹配很容易出错（因为「找一个看起来都差不多的块」），即使匹配上了也可能匹配到错误的位置。对这种文件，重写反而更安全。</p>
+
+    <h2 class="section" id="search-replace-impl"><span class="idx">★</span> 三、SEARCH/REPLACE 的实现与容错</h2>
+    <p>Cline 的 SEARCH/REPLACE 实现和 Aider 的（164 章）类似，但有些细节不同。我们看核心：</p>
+    <pre><code class="language-typescript">// Cline 的 search-replace 应用（简化）
+export function applySearchReplace(
+  content: string,
+  searchBlock: string,
+  replaceBlock: string,
+): { result: string | null; error?: string } {
+  // 1. 完全匹配
+  if (content.includes(searchBlock)) {
+    return { result: content.replace(searchBlock, replaceBlock) };
+  }
+
+  // 2. 容错：统一行尾
+  const normalizedContent = content.replace(/\r\n/g, "\n");
+  const normalizedSearch = searchBlock.replace(/\r\n/g, "\n");
+  if (normalizedContent.includes(normalizedSearch)) {
+    return { result: normalizedContent.replace(normalizedSearch, replaceBlock) };
+  }
+
+  // 3. 容错：trim 每一行的首尾空白后匹配
+  const trimLines = (s: string) =&gt; s.split("\n").map(l =&gt; l.trim()).join("\n");
+  const trimmedSearch = trimLines(normalizedSearch);
+  const trimmedContent = trimLines(normalizedContent);
+  const idx = trimmedContent.indexOf(trimmedSearch);
+  if (idx &gt;= 0) {
+    // 在原内容里找到对应位置（需要反向映射，这里简化）
+    return {
+      result: applyAtTrimmedPosition(content, normalizedSearch, replaceBlock),
+      // 警告：通过 trim 匹配
+    };
+  }
+
+  // 4. 全部失败，返回详细错误帮助 LLM 自我修正
+  return {
+    result: null,
+    error: `无法找到要替换的代码块。请检查：
+- 缩进是否和文件里完全一致（tab vs 空格）
+- 是否包含了足够的上下文（前后各几行）
+- 代码是否已经被之前的修改改变了
+
+你要找的代码块（前 200 字符）：
+${searchBlock.slice(0, 200)}
+
+文件中相似度最高的片段：
+${findMostSimilarSnippet(content, searchBlock)}`,
+  };
+}
+
+// 找文件里和 search 最相似的片段，反馈给 LLM
+function findMostSimilarSnippet(content: string, search: string): string {
+  const searchLines = search.split("\n");
+  const contentLines = content.split("\n");
+  let bestScore = 0;
+  let bestStart = 0;
+  for (let i = 0; i &lt;= contentLines.length - searchLines.length; i++) {
+    let matches = 0;
+    for (let j = 0; j &lt; searchLines.length; j++) {
+      if (contentLines[i + j].trim() === searchLines[j].trim()) matches++;
+    }
+    const score = matches / searchLines.length;
+    if (score &gt; bestScore) {
+      bestScore = score;
+      bestStart = i;
+    }
+  }
+  return contentLines.slice(bestStart, bestStart + searchLines.length).join("\n");
+}</code></pre>
+    <p>这段代码的关键在 <strong>第 4 步的错误反馈</strong>。注意它不只是说「匹配失败」，还通过 <code>findMostSimilarSnippet</code> 找到文件里和 LLM 输出的 search 块最相似的片段，一并返回。这让 LLM 看到「我想找的 vs 文件里实际有的」对比，能立即发现差异——通常是缩进或某行细微不同。下一轮 LLM 通常就能输出正确的 search 块。这种「失败时给最相似片段作为参考」的反馈，比单纯说「失败」有效得多。</p>
+
+    <h2 class="section" id="full-rewrite"><span class="idx">★</span> 四、全文件重写的实现</h2>
+    <p>全文件重写看起来简单（直接覆盖），但有一个关键问题：<strong>LLM 输出的文件内容可能不完整或被截断</strong>。特别是长文件，模型可能输出到一半就因为 max_tokens 截断，或自己「省略」了中间部分（写个 <code>// ... 前面的代码不变 ...</code>）。Cline 必须检测并处理这种情况。</p>
+    <pre><code class="language-typescript">// 全文件重写的应用（简化）
+export function applyFullRewrite(
+  originalContent: string,
+  newContent: string,
+  filepath: string,
+): { result: string; warnings: string[] } {
+  const warnings: string[] = [];
+
+  // 1. 检查是否有省略标记（LLM 偷懒的常见模式）
+  const ellipsisPatterns = [
+    /\/\/\s*\.\.\..*不变/,
+    /#\s*\.\.\..*不变/,
+    /\/\*\s*\.\.\..*\*\//,
+    /^\s*\.\.\.\s*$/m,
+  ];
+  for (const pattern of ellipsisPatterns) {
+    if (pattern.test(newContent)) {
+      warnings.push(`检测到省略标记（${pattern}），LLM 可能没有输出完整文件。`);
+      // 这种情况下拒绝应用，要求 LLM 重新输出完整内容
+      return {
+        result: originalContent,  // 保持原文件不变
+        warnings: [...warnings, "已拒绝应用，请重新输出完整文件内容。"],
+      };
+    }
+  }
+
+  // 2. 行数变化合理性检查
+  const oldLines = originalContent.split("\n").length;
+  const newLines = newContent.split("\n").length;
+  const changeRatio = Math.abs(newLines - oldLines) / oldLines;
+  if (changeRatio &gt; 0.8 &amp;&amp; oldLines &gt; 50) {
+    warnings.push(
+      `文件行数从 ${oldLines} 变为 ${newLines}（变化 ${Math.round(changeRatio * 100)}%），` +
+      `这是大改动，请确认是否预期。`
+    );
+    // 不拒绝，但警告
+  }
+
+  // 3. 语法检查（如果文件是代码）
+  const lang = inferLanguage(filepath);
+  if (lang &amp;&amp; !validateSyntax(newContent, lang)) {
+    return {
+      result: originalContent,
+      warnings: ["新内容语法检查失败，已拒绝应用。请修正语法错误后重试。"],
+    };
+  }
+
+  return { result: newContent, warnings };
+}</code></pre>
+    <p>三个检查都很关键。<strong>省略标记检测</strong>是针对 LLM「偷懒」的——模型有时会输出 <code>// ... 前面的代码不变 ...</code> 来省事，但这破坏了「完整文件」的语义，必须拒绝。<strong>行数变化合理性</strong>是防大误删——如果 200 行文件被重写成 40 行，很可能是模型漏了一大段，值得警告。<strong>语法检查</strong>是最后一道防线，用 tree-sitter 或语言原生 parser 验证新内容能解析，不能解析说明模型输出了无效代码。</p>
+
+    <h2 class="section" id="error-recovery"><span class="idx">★</span> 五、错误恢复：失败 → 反馈 → 重试 → 降级</h2>
+    <p>Cline 的 diff 策略最精彩的部分是它的 <strong>错误恢复链</strong>。当一次修改失败时，它不是立即放弃，而是有一套渐进式的恢复策略：</p>
+    <pre><code class="language-typescript">// 错误恢复的完整链路（简化）
+export class EditHandler {
+  private failureCounts: Map&lt;string, number&gt; = new Map();  // 文件 -&gt; 失败次数
+
+  async applyEdit(file: string, llmOutput: EditOutput): Promise&lt;EditResult&gt; {
+    const failures = this.failureCounts.get(file) || 0;
+
+    // 尝试 1：按 LLM 选择的方式应用
+    const attempt1 = this.tryApply(file, llmOutput);
+    if (attempt1.success) {
+      this.failureCounts.set(file, 0);  // 重置
+      return attempt1;
+    }
+
+    // 尝试 2：反馈错误，让 LLM 重试（同一策略）
+    if (failures &lt; 1) {
+      this.failureCounts.set(file, failures + 1);
+      return {
+        success: false,
+        feedback: `应用失败：${attempt1.error}\n请仔细对比后重新输出修改。`,
+        retry: true,
+      };
+    }
+
+    // 尝试 3：降级到全文件重写（如果之前是补丁）
+    if (llmOutput.strategy === "search_replace") {
+      this.failureCounts.set(file, failures + 1);
+      return {
+        success: false,
+        feedback: `补丁多次失败。请改用全文件重写策略——` +
+                  `读取文件当前内容，然后输出完整的修改后文件。`,
+        retry: true,
+        forceStrategy: "full_rewrite",
+      };
+    }
+
+    // 尝试 4：全文件重写也失败了，放弃并报告
+    this.failureCounts.set(file, 0);
+    return {
+      success: false,
+      feedback: `多次尝试修改 ${file} 均失败。请先 read_file 查看当前内容，` +
+                `确认理解后再尝试。可能文件被外部修改了。`,
+      retry: false,
+    };
+  }
+}</code></pre>
+    <p>这条恢复链的逻辑是 <strong>渐进升级</strong>：先让 LLM 用原方式重试一次（可能只是手滑），失败后强制切到更可靠的策略（全文件重写），再失败就建议 LLM 重新读取文件（可能它的心理模型已经过时了）。每一步都给具体、可操作的反馈，而不是泛泛说「失败了」。这种「分级恢复 + 精准反馈」的策略，让 Cline 的编辑成功率比单一策略高得多。</p>
+
+    <h2 class="section" id="checkpoint"><span class="idx">★</span> 六、检查点：每步改动可回滚</h2>
+    <p>和 Aider 的 auto-commit 类似，Cline 也为每次成功的文件修改创建检查点。但它用的不是 git commit（因为 VSCode 扩展不应该擅自动用户的 git），而是 <strong>VSCode 的文件历史</strong> 或自己的快照机制。</p>
+    <pre><code class="language-typescript">// 检查点机制（简化）
+export class CheckpointManager {
+  private history: Map&lt;string, FileSnapshot[]&gt; = new Map();
+
+  async beforeEdit(filepath: string) {
+    const content = await readFile(filepath);
+    const snapshots = this.history.get(filepath) || [];
+    snapshots.push({
+      content,
+      timestamp: Date.now(),
+      taskId: this.currentTaskId,
+    });
+    this.history.set(filepath, snapshots);
+  }
+
+  async undoToLastCheckpoint(filepath: string) {
+    const snapshots = this.history.get(filepath);
+    if (!snapshots || snapshots.length === 0) return false;
+    const last = snapshots.pop()!;
+    await writeFile(filepath, last.content);
+    return true;
+  }
+}</code></pre>
+    <p>这种「内存/本地快照」的检查点比 git commit 更轻——不污染用户的 git 历史，但提供了类似的「撤销上一步」能力。Cline 在 UI 上有一个「Checkpoint」按钮，让用户一键回滚到任何一步 AI 改动之前的状态。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Cline 的 diff 策略是「动态选择 + 渐进恢复」的工程典范。要点回顾：</p>
+    <ul>
+      <li><strong>两种策略的权衡</strong>：SEARCH/REPLACE 省 token 但依赖匹配，全文件重写可靠但浪费，无绝对赢家。</li>
+      <li><strong>动态选择</strong>：默认补丁，改动范围大、文件有重复结构、或连续失败时切到全文件重写。</li>
+      <li><strong>重复结构检测</strong>：对「大量相似代码块」的文件，补丁易误匹配，重写更安全。</li>
+      <li><strong>补丁容错</strong>：完全匹配 → 行尾统一 → trim 匹配，失败时返回最相似片段帮 LLM 对比。</li>
+      <li><strong>重写防护</strong>：省略标记检测（拒绝 // ... 不变）、行数变化合理性、语法检查三道防线。</li>
+      <li><strong>渐进恢复链</strong>：原方式重试 → 强制降级到重写 → 建议重新读取文件，每步给精准反馈。</li>
+      <li><strong>本地检查点</strong>：内存快照而非 git commit，不污染用户仓库但支持单步回滚。</li>
+    </ul>
+    <p>至此 Aider/Continue/Cline 系列七篇全部完成。接下来我们进入最后一个系列——Cursor、Roo Code，以及通用 Agent 工程话题（系统提示、流式、上下文、错误恢复、并行、测试），从这些横切关注点收尾整个开源 Agent 源码分析。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

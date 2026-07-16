@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -167,7 +165,7 @@
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
-      <a href="138-vec-query-rewrite.html" class="active" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
+      <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
@@ -305,66 +303,182 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 138 章 · 向量索引与 RAG 原理深挖</span>
-<h1>查询改写：让检索更准</h1><p class="lead">HyDE 假设性文档生成、查询分解子问题、多查询融合、回指消解。用 LLM 把用户模糊提问转成检索友好的形式。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>HyDE 假设性文档生成、查询分解子问题、多查询融合、回指消解。用 LLM 把用户模糊提问转成检索友好的形式。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>HyDE 假设性文档生成、查询分解子问题、多查询融合、回指消解。用 LLM 把用户模糊提问转成检索友好的形式。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 138 · 向量检索系列</span>
+      <h1>查询改写<br>HyDE / Query Decomposition / Step-back</h1>
+      <p class="lead">用户输入的 query，往往不是适合检索的形态——太口语、有指代、太具体、太复杂。查询改写（Query Rewriting）是 Advanced RAG 里 ROI 最高的检索前模块，把"用户的话"翻译成"检索器听得懂的话"。本文拆解三种主流改写策略——HyDE、Query Decomposition、Step-back Prompting——并给出可直接复制的 prompt 模板。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="why-rewrite"><span class="idx">★</span> 为什么原始 query 不适合直接检索</h2>
+    <p>真实用户的查询有几个共性问题，每一个都会让向量检索的召回质量打折：</p>
+    <ul>
+      <li><strong>口语化、简短</strong>："那个怎么用"——信息量极低，embed 出来的向量分不清指向。</li>
+      <li><strong>指代消解缺失</strong>：多轮对话里"它"、"那个"指代上文，脱离上下文 embed 完全失焦。</li>
+      <li><strong>问题形式 vs 文档形式不匹配</strong>：用户问"How does X work?"（疑问句），文档写的是"X works by..."（陈述句）。embedding 模型对这两种句式的编码差异不小，召回会偏。</li>
+      <li><strong>复杂多跳</strong>："对比 2023 和 2024 年 Acme Corp 的云服务营收增长率"——这其实是 4 个子问题（2023 营收、2024 营收、各自增长率、对比），单次 embed 抓不住全部。</li>
+      <li><strong>太具体或太抽象</strong>："Acme Corp 的 8 个步骤"——太具体可能没文档；"为什么公司会失败"——太抽象召回一堆泛泛之论。</li>
+    </ul>
+    <p>查询改写就是用 LLM 把原始 query 变换成更适合检索的形态。下面三种策略分别解决不同问题。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="hyde"><span class="idx">★</span> HyDE：让 LLM 先编一个假设答案</h2>
+    <p>HyDE（Hypothetical Document Embeddings）的核心洞察是：<strong>答案的 embedding 比问题的 embedding 更接近文档</strong>。因为文档本来就是"答案形态"（陈述事实），而 query 是"问题形态"。所以 HyDE 让 LLM 先针对 query 生成一个<strong>假设性答案</strong>（哪怕不完全准确），用这个假设答案去 embed 和检索——假设答案的句式更接近文档，召回更准。</p>
+    <p>举例：query = "Acme Corp 的云服务营收 2024 年是多少？" HyDE 让 LLM 生成假设答案："Acme Corp 2024 年云服务营收为 30 亿美元，同比增长 60%。" 用这句话 embed，会比用原问题 embed 更接近财报里的原文（"云服务业务 2024 年营收 30 亿美元..."）。</p>
+    <p>HyDE 的代价是每查一次要先调一次 LLM（生成假设答案）。优化手段：用便宜的小模型（Haiku/4o-mini）做假设答案生成，成本可控；或者 batch 多个假设答案取平均向量。</p>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <pre><code class="language-python"># HyDE 完整实现 + prompt 模板
+import anthropic
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"查询改写：让检索更准"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="137-vec-rag-architecture.html"><div class="lbl">← 上一章</div><div class="ttl">137 · RAG 系统架构：从查询到引用</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="139-vec-context-packing.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">139 · 上下文组装：Lost in the Middle</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 138 章 · 查询改写：让检索更准</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+client = anthropic.Anthropic()
+
+HYDE_PROMPT = """请回答下面的问题。哪怕你不确定，也请给出一个合理、具体、像文档片段的回答。
+不要说"我不确定"，直接写一个看起来像相关文档的段落。用中文，3-5 句话。
+
+问题：{question}
+
+回答："""
+
+def hyde_rewrite(question, model="claude-3-5-haiku-latest"):
+    """用 LLM 生成假设答案，作为检索的 query"""
+    resp = client.messages.create(
+        model=model,
+        max_tokens=200,
+        messages=[{"role": "user",
+                   "content": HYDE_PROMPT.format(question=question)}],
+    )
+    hypothetical_doc = resp.content[0].text.strip()
+    return hypothetical_doc
+
+# 用法：用假设答案 embed 检索，而不是用原问题
+question = "Acme Corp 2024 年云服务营收增长率是多少？"
+hypothetical = hyde_rewrite(question)
+print("假设答案:", hypothetical)
+
+hypothetical_vec = embed(hypothetical)      # 关键：embed 假设答案而非原问题
+hits = vector_store.search(hypothetical_vec, top_k=10)
+# 实测：HyDE 对事实类查询召回提升 5-15%，对复杂推理类提升更明显
+</code></pre>
+
+    <h2 class="section" id="decomposition"><span class="idx">★</span> Query Decomposition：把复杂问题拆成子问题</h2>
+    <p>当一个 query 实际包含多个子问题时（多跳推理、对比、汇总），单次检索很难覆盖。Query Decomposition 让 LLM 把复杂 query 拆成若干独立的子 query，每个子 query 单独检索，结果再合并。</p>
+    <p>例子：query = "对比 2023 和 2024 年 Acme Corp 的云服务营收增长率"。LLM 拆成：① "2023 年 Acme Corp 云服务营收" ② "2024 年 Acme Corp 云服务营收" ③ "云服务营收增长率计算方法"。三次检索分别召回相关文档，合并喂给 LLM 做最终对比。</p>
+
+    <pre><code class="language-python"># Query Decomposition 的 prompt + 实现
+DECOMP_PROMPT = """你是一个查询分解助手。用户的问题可能包含多个子问题。
+请把下面的问题拆解成若干独立、可单独检索的子问题，每行一个，不要编号。
+只输出子问题，不要解释。如果问题已经很单一，原样输出即可。
+
+用户问题：{question}
+
+子问题："""
+
+def decompose_query(question, model="claude-3-5-haiku-latest"):
+    resp = client.messages.create(
+        model=model, max_tokens=200,
+        messages=[{"role": "user",
+                   "content": DECOMP_PROMPT.format(question=question)}],
+    )
+    sub_queries = [s.strip() for s in resp.content[0].text.strip().split("\n") if s.strip()]
+    return sub_queries
+
+# 对每个子问题分别检索（可并行）
+def decompose_and_retrieve(question, top_k_per_sub=10):
+    sub_queries = decompose_query(question)
+    all_hits = []
+    for sq in sub_queries:
+        vec = embed(hyde_rewrite(sq))      # 可叠加 HyDE
+        hits = vector_store.search(vec, top_k=top_k_per_sub)
+        all_hits.extend(hits)
+    # 去重 + 重排
+    unique = dedup_by_doc_id(all_hits)
+    return reranker.rerank(question, unique, top_k=10)
+
+question = "对比 2023 和 2024 年 Acme Corp 的云服务营收增长率"
+for sq in decompose_query(question):
+    print(" -", sq)
+</code></pre>
+
+    <h2 class="section" id="step-back"><span class="idx">★</span> Step-back Prompting：把具体问题抽象化</h2>
+    <p>Step-back Prompting 和 Decomposition 反向：当 query 太具体、太细节，导致检索召回为空或质量差时，让 LLM 把它<strong>抽象成更高层的原理性问题</strong>，检索原理性问题通常能召回高质量的背景知识。</p>
+    <p>例子：query = "Acme Corp 在 2024 年 Q3 第三周的云服务宕机事件根因是什么？"。这么具体的事件可能根本没文档。Step-back 让 LLM 把它抽象成"云服务常见宕机根因有哪些？"——这个原理性问题能召回一堆高质量文档，提供背景知识，再结合具体事件让 LLM 推理。</p>
+
+    <pre><code class="language-python"># Step-back Prompting 的完整模板
+STEPBACK_PROMPT = """你是一个查询抽象助手。下面是一个具体的问题。
+请把它抽象成一个更宽泛的、原理性或背景性的"step-back 问题"，这个问题应该：
+1. 比原问题更通用
+2. 能检索到解释原理/背景/通用知识的文档
+3. 帮助回答原问题
+
+只输出 step-back 问题本身，不要解释。用中文。
+
+原问题：{question}
+
+step-back 问题："""
+
+def stepback_rewrite(question, model="claude-3-5-haiku-latest"):
+    resp = client.messages.create(
+        model=model, max_tokens=100,
+        messages=[{"role": "user",
+                   "content": STEPBACK_PROMPT.format(question=question)}],
+    )
+    return resp.content[0].text.strip()
+
+# 用法：同时检索原问题（具体）和 step-back 问题（原理），结果合并
+def stepback_retrieve(question):
+    stepback_q = stepback_rewrite(question)
+    print("step-back:", stepback_q)
+    specific_hits = vector_store.search(embed(question), top_k=5)
+    general_hits  = vector_store.search(embed(stepback_q), top_k=10)
+    combined = rrf_fusion([specific_hits, general_hits])
+    return reranker.rerank(question, combined, top_k=5)
+
+question = "Acme Corp 2024 Q3 第三周云服务宕机的根因是什么？"
+print("step-back 问题:", stepback_rewrite(question))
+</code></pre>
+
+    <h2 class="section" id="choosing"><span class="idx">★</span> 三种策略怎么选 + 组合</h2>
+
+    <pre><code class="language-text">查询改写策略选型
+┌──────────────────────┬──────────────────────────┬──────────────────────┐
+│ 策略                 │ 适用场景                  │ 不适用               │
+├──────────────────────┼──────────────────────────┼──────────────────────┤
+│ HyDE                 │ 事实查询、问答            │ 简单关键词查询       │
+│ Decomposition        │ 多跳推理、对比、汇总      │ 单一事实查询         │
+│ Step-back            │ 太具体查不到、原理问题    │ 已经够通用的查询     │
+└──────────────────────┴──────────────────────────┴──────────────────────┘</code></pre>
+
+    <p>实战中通常<strong>先用 Router 判断 query 类型</strong>，再路由到不同改写策略：</p>
+    <ul>
+      <li>事实问答 → HyDE（提升召回）。</li>
+      <li>多跳/对比 → Decomposition（覆盖子问题）。</li>
+      <li>太具体/查不到 → Step-back（找原理背景）。</li>
+      <li>简单直接 → 不改写，原样检索（避免过度处理）。</li>
+    </ul>
+    <p>策略可叠加：Decomposition 拆出的每个子问题再用 HyDE，效果叠加但成本上升。控制成本的常用做法：用便宜的小模型（Haiku）做改写，贵的大模型留给最终生成。</p>
+
+    <h3>容易踩的坑</h3>
+    <ul>
+      <li><strong>对简单查询也强行改写</strong>：增加延迟和成本，效果可能反而更差（LLM 改写跑偏）。加一个简单的规则：query 长度 &lt;10 字符或包含明确实体名时不改写。</li>
+      <li><strong>HyDE 假设答案离谱</strong>：LLM 幻觉出一个完全错误的假设答案，反而把检索带偏。缓解：让 HyDE prompt 强调"哪怕不确定也要给具体答案"，且假设答案只用于检索、最终答案仍基于检索回的真实文档。</li>
+      <li><strong>Decomposition 拆得过细</strong>：一个 query 拆成 10 个子问题，检索成本爆炸。限制最多拆 3-4 个。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>原始 query 经常不适合直接检索：口语化、指代、问题/文档句式不匹配、复杂多跳、太具体或太抽象。</li>
+      <li>HyDE：LLM 生成假设答案用其 embed，因为答案句式比问题句式更接近文档。事实查询首选。</li>
+      <li>Query Decomposition：复杂 query 拆子问题分别检索再合并，多跳/对比场景首选，限制 3-4 个子问题。</li>
+      <li>Step-back Prompting：太具体 query 抽象成原理性问题，检索背景知识辅助推理。</li>
+      <li>用 Router 按 query 类型路由到不同策略；用小模型做改写控成本；简单查询不要强行改写。</li>
+    </ul>
+    <p>下一篇讲检索后的环节——上下文打包，怎么解决"Lost in the Middle"和窗口利用率问题。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

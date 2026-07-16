@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 在科研中的应用 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 在科研中的应用 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -82,7 +89,7 @@
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
-      <a href="68-ai-research.html" class="active" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
+      <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
@@ -295,17 +302,190 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 在科研中的应用</h1><p class="lead">从 AlphaFold 到 AI4Science——AI 正在改变科学发现</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI4Science：AI 不只是工具，是发现者</h2>
-    <p>AI 在科研中的角色正在从"辅助工具"变成"科学发现者"。AlphaFold 预测了 2 亿+蛋白质结构（超过人类百年实验总和）；AI 发现了新抗生素（halicin）；AI 加速了核聚变等离子体控制；AI 在材料科学里发现新电池材料。这是科学方法论的一次范式转变——从"假设驱动"到"数据驱动"。</p>
-    <div class="callout"><strong>💡 要点</strong><br>AI4Science 的核心范式转变：传统科学是"提出假设→设计实验→验证"；AI4Science 是"从数据中发现模式→AI 预测→实验验证关键少数"。AI 不是替代科学家，而是把"搜索空间"从人类能想的缩小到 AI 能筛的——这在蛋白质/材料/药物领域尤其革命性。</div>
-    <h2><span class="idx"></span>四大领域</h2>
-    <table class="data-table"><thead><tr><th>领域</th><th>AI 做什么</th><th>代表作</th></tr></thead><tbody><tr><td>生物/医药</td><td>蛋白质结构预测/药物发现</td><td>AlphaFold 2/3</td></tr><tr><td>材料</td><td>新材料性能预测/筛选</td><td>GNoME（发现220万新材料）</td></tr><tr><td>物理</td><td>核聚变控制/流体模拟</td><td>DeepMind 等离子体控制</td></tr><tr><td>数学</td><td>定理证明/猜想发现</td><td>AlphaGeometry/FunSearch</td></tr></tbody></table>
-    <h2><span class="idx"></span>LLM 在科研中的角色</h2>
-    <p>LLM 本身也在改变科研工作流：① 文献综述（Semantic Scholar/Elicit 自动整理相关论文）；② 论文写作（AI 辅助润色/翻译）；③ 代码生成（数据分析/可视化自动化）；④ 同行评审辅助（AI 初筛论文质量）。这些不是"发现"，但让科研效率提升数倍。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI4Science 让 AI 从"工具"变成"发现者"：AlphaFold（蛋白质）、GNoME（材料）、核聚变控制、AlphaGeometry（数学）。范式从"假设驱动"到"数据驱动"。LLM 改变科研工作流（文献/写作/代码/评审）。核心价值是把搜索空间从人类能想的缩小到 AI 能筛的。</p>
-    <div class="chapter-nav">
-      <a href="67-performance-tuning.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 68 章 · AI 在科研中的应用</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 68 · 实战案例系列</span>
+      <h1>AI for Science<br>AlphaFold、材料发现与药物设计的科学革命</h1>
+      <p class="lead">AI 正在改变科学研究的范式。AlphaFold 解决了困扰生物学 50 年的蛋白质折叠问题，AI 材料发现让新材料研发周期从 20 年压缩到 2 年，药物设计里的 AI 已经贡献了多个进入临床试验的分子。这一章拆解三个最具代表性的 AI for Science 案例，看深度学习如何从「工程工具」变成「科学发现的引擎」。</p>
+      <div class="meta">
+        <span class="chip">阅读约 27 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="paradigm-shift"><span class="idx">★</span> 一、科学研究范式的转变</h2>
+    <p>科学研究经历了几个范式：实验科学（观察自然）、理论科学（建立理论模型）、计算科学（用计算机模拟）、数据驱动科学（大数据挖掘）。现在我们进入了第五范式——AI 驱动的科学发现。</p>
+    <p>AI for Science 的本质变化是：传统方法只能处理低维、可解析的科学问题，而 AI 能处理高维、非线性的复杂系统。蛋白质折叠就是个典型例子——一个蛋白质有几百个氨基酸，每个氨基酸有多种构象，搜索空间是天文数字，传统物理方法算不动，但 AI 学会了从海量数据中直接预测。</p>
+
+    <h2 class="section" id="alphafold"><span class="idx">★</span> 二、AlphaFold：生物学的里程碑</h2>
+    <p>2020 年，DeepMind 的 AlphaFold2 在蛋白质结构预测竞赛（CASP14）上取得突破，准确度达到实验水平。2021 年，DeepMind 公开了 AlphaFold 的代码和覆盖几乎所有已知蛋白质的预测数据库。这被称为「生物学过去 50 年最重要的突破之一」。</p>
+
+    <h3 class="section">2.1 蛋白质折叠问题为什么难</h3>
+    <p>蛋白质是由氨基酸链折叠成的三维结构，结构决定功能。知道一个蛋白质的氨基酸序列（一维），预测它的三维结构（三维），就是「蛋白质折叠问题」。难点在于：氨基酸之间的相互作用极其复杂，构象搜索空间是 10^300 量级（比宇宙原子数还多）。</p>
+    <p>传统方法（X 射线晶体学、冷冻电镜）做实验确定一个结构要几个月到几年，成本几万到几十万美元。而人类已知的蛋白质序列有 2 亿多个，实验方法永远跟不上。AlphaFold 的意义就是把这个过程压缩到几分钟。</p>
+
+    <h3 class="section">2.2 AlphaFold 的技术核心</h3>
+    <pre><code class="language-python"># AlphaFold2 的核心架构（概念简化版）
+class AlphaFold2:
+    """蛋白质结构预测的简化示意。"""
+    def __init__(self):
+        # 1. MSA 模块：多序列比对，找到进化相关的蛋白质序列
+        self.msa_module = MSAModule()
+        # 2. Evoformer：核心创新，处理序列和残基对的关系
+        self.evoformer = Evoformer(blocks=48)
+        # 3. 结构模块：从特征生成三维坐标
+        self.structure_module = StructureModule()
+
+    def predict(self, sequence):
+        """输入氨基酸序列，输出三维结构。"""
+        # 第 1 步：多序列比对，挖掘进化信息
+        msa = self.msa_module.search(sequence)
+        # 第 2 步：Evoformer 学习残基间的距离和角度关系
+        # 这里是核心创新：让序列信息和结构信息互相迭代优化
+        representations = self.evoformer(msa)
+        # 第 3 步：生成三维坐标
+        structure = self.structure_module(representations)
+        return structure  # 包含每个原子的 (x, y, z) 坐标
+
+# AlphaFold 的关键创新是 Evoformer 里的「三角更新」机制：
+# 蛋白质结构遵守几何约束（三角不等式），
+# AlphaFold 显式地把这个约束编码进注意力机制里
+# 这让模型学到的结构在物理上是合理的</code></pre>
+
+    <h3 class="section">2.3 影响与局限</h3>
+    <p>AlphaFold 数据库已经被全球 190 个国家的 200 多万研究者使用，催生了大量新发现——从理解疟疾机制到设计新酶。但也有局限：它主要预测静态结构，不擅长预测动态构象变化；对无序蛋白（天然无固定结构的蛋白）预测不准。2024 年发布的 AlphaFold 3 开始扩展到蛋白质与其他分子（DNA、RNA、配体）的复合体结构。</p>
+
+    <h2 class="section" id="materials"><span class="idx">★</span> 三、AI 材料发现：让新材料研发快 10 倍</h2>
+    <p>传统材料研发是「爱迪生式」的试错：试几百种配方，找到一种能用的，周期 10-20 年。AI 把这个过程变成了「预测 → 合成 → 验证」的高效循环。DeepMind 2023 年发布的 GNoME 项目，用 AI 预测了 220 万种新晶体材料，相当于人类材料学家 800 年的工作量。</p>
+
+    <h3 class="section">3.1 技术方法</h3>
+    <pre><code class="language-python"># AI 材料发现的技术路线
+materials_ai_pipeline = {
+    "第一步：数据积累": """
+    从 Materials Project、ICSD 等数据库收集已知的晶体结构和性质。
+    这些数据来自几十年的实验积累，约 10-20 万种已知材料。
+    """,
+    "第二步：训练生成模型": """
+    用图神经网络（GNN）学习「元素组合 → 晶体结构」的映射。
+    GNoME 用的是两阶段方法：
+    - 装饰：把抽象的结构模板填入具体元素
+    - 评估：用密度泛函理论（DFT）验证稳定性
+    """,
+    "第三步：大规模预测": """
+    生成数百万个候选结构，用 AI 快速筛选稳定的。
+    GNoME 一次预测了 220 万种新材料，其中 38 万种是稳定的。
+    """,
+    "第四步：实验验证": """
+    选出最有价值的（如电池材料、超导候选），交给实验室合成。
+    全球多个实验室已经独立合成了 GNoME 预测的 7 种新材料。
+    """,
+}
+
+# 关键价值：
+# 传统：10-20 年发现一个新材料
+# AI 辅助：2-5 年，且成功率更高
+# GNoME 一次扩充了人类已知稳定材料的 2.8 倍</code></pre>
+
+    <h3 class="section">3.2 应用方向</h3>
+    <p>AI 发现的材料集中在几个高价值领域：<strong>电池材料</strong>（更高能量密度、更快充电）、<strong>太阳能材料</strong>（更高光电转换效率）、<strong>超导材料</strong>（寻找室温常压超导）、<strong>催化剂</strong>（更高效的化学反应）。这些方向直接影响能源转型和碳中和的进程。</p>
+
+    <h2 class="section" id="drug-design"><span class="idx">★</span> 四、AI 药物设计：从大海捞针到精准狙击</h2>
+    <p>药物研发是出了名的「双十规律」：花 10-20 亿美元、用 10-15 年时间，才能把一个新药推向市场，而且 90% 的候选会在临床试验阶段失败。AI 正在冲击这个流程的各个环节。</p>
+
+    <h3 class="section">4.1 AI 在药物设计中的四个环节</h3>
+    <pre><code class="language-python"># AI 在药物研发各环节的应用
+drug_discovery_ai = {
+    "靶点发现": {
+        "问题": "疾病和哪个蛋白质相关？",
+        "AI 方法": "分析海量生物数据（基因组、蛋白质组），找出疾病关联靶点",
+        "价值": "靶点发现周期从 2-3 年缩短到几个月",
+    },
+    "分子生成": {
+        "问题": "设计能结合靶点的小分子",
+        "AI 方法": "生成模型（VAE、Diffusion）设计新分子结构",
+        "价值": "一次性生成百万级候选分子，远超化学家想象力",
+    },
+    "性质预测": {
+        "问题": "这个分子有毒吗？能被吸收吗？",
+        "AI 方法": "图神经网络预测 ADMET 性质（吸收/分布/代谢/排泄/毒性）",
+        "价值": "早期淘汰有问题的候选，省下数千万的实验费",
+    },
+    "蛋白质设计": {
+        "问题": "设计能治病的蛋白质药物（抗体、酶）",
+        "AI 方法": "RFdiffusion 等工具，从零设计蛋白质结构",
+        "价值": "开创「按需设计蛋白质」的新范式",
+    },
+}
+
+# 真实案例：
+# 1. Insilico Medicine 用 AI 设计的药物 INS018_055 进入临床 II 期
+#    从靶点发现到临床只用了 30 个月（传统要 4-5 年）
+# 2. Recursion Pharma 用 AI 筛选出多个罕见病药物候选
+# 3. David Baker 实验室的 RFdiffusion 能设计自然界不存在的蛋白质
+#    （Baker 因这项工作获得 2024 年诺贝尔化学奖）</code></pre>
+
+    <h3 class="section">4.2 生成模型设计分子的原理</h3>
+    <pre><code class="language-python"># 简化的分子生成模型示意
+class MoleculeGenerator:
+    """用生成模型设计新药物分子。"""
+    def __init__(self):
+        # 把分子表示成图（原子是节点，化学键是边）
+        # 或表示成 SMILES 字符串（如 "CC(=O)OC1=CC=CC=C1C(=O)O" 是阿司匹林）
+        self.encoder = MoleculeEncoder()
+        self.decoder = MoleculeDecoder()
+        self.property_predictor = PropertyPredictor()
+
+    def generate_for_target(self, target_protein, desired_properties):
+        """为特定靶点生成候选分子。"""
+        # 1. 理解靶点的结合口袋（3D 结构）
+        binding_pocket = self.analyze_pocket(target_protein)
+        # 2. 在潜在空间里搜索满足条件的分子
+        latent = self.optimize_latent(binding_pocket, desired_properties)
+        # 3. 解码成具体的分子结构
+        molecules = self.decoder.sample(latent, num_samples=1000)
+        # 4. 用预测模型打分，筛选最优
+        scored = [(m, self.property_predictor.score(m)) for m in molecules]
+        scored.sort(key=lambda x: -x[1])
+        return scored[:10]  # 返回 Top 10 候选
+
+# AI 设计的分子已经在多个维度超越人类化学家：
+# - 多样性：一次生成百万种结构不同的分子
+# - 新颖性：能设计出人类想不到的结构
+# - 可合成性：考虑实际合成的难度</code></pre>
+
+    <h2 class="section" id="common-patterns"><span class="idx">★</span> 五、AI for Science 的共同模式</h2>
+    <p>看完这三个案例，你能发现 AI for Science 有几个共同的方法论：</p>
+    <ul>
+      <li><strong>数据是基础</strong>：AlphaFold 依赖 PDB 蛋白质数据库几十年的积累，GNoME 依赖 Materials Project 的数据。没有高质量数据，AI 无从学习。</li>
+      <li><strong>领域知识嵌入模型</strong>：最成功的 AI for Science 模型都把物理/化学/生物的先验知识编码进了架构。AlphaFold 的三角更新就是几何约束的体现。</li>
+      <li><strong>预测 + 实验闭环</strong>：AI 预测必须经过实验验证，验证结果反哺模型改进。这是一个迭代闭环，不是一次性的。</li>
+      <li><strong>规模化是关键</strong>：AI 的价值在于能一次性处理百万级的问题空间，这是人类做不到的规模。</li>
+    </ul>
+
+    <h2 class="section" id="future"><span class="idx">★</span> 六、下一个前沿</h2>
+    <p>AI for Science 还在快速演进。几个值得关注的方向：</p>
+    <ul>
+      <li><strong>AI + 数学证明</strong>：DeepMind 的 AlphaProof 在 2024 年接近解决奥数级别的证明问题。</li>
+      <li><strong>核聚变控制</strong>：DeepMind 用 RL 控制托卡马克装置的等离子体，朝可控核聚变迈进。</li>
+      <li><strong>气候建模</strong>：华为盘古气象大模型把天气预报速度提升 1 万倍，精度超越传统方法。</li>
+      <li><strong>从 AI 工具到 AI 科学家</strong>：未来的方向是让 AI 自主提出假设、设计实验、解释结果，成为真正的「科研伙伴」。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们看了 AI 在科学发现领域的三个标杆案例。核心要点：</p>
+    <ul>
+      <li><strong>AlphaFold</strong>：用 Evoformer + 三角几何约束解决蛋白质折叠，把结构预测从数月压缩到分钟，覆盖 2 亿+蛋白质，是生物学 50 年来最大突破。</li>
+      <li><strong>AI 材料发现</strong>：GNoME 一次预测 220 万种新材料，等于人类 800 年工作量，新材料研发周期从 20 年压缩到 2-5 年。</li>
+      <li><strong>AI 药物设计</strong>：覆盖靶点发现、分子生成、性质预测、蛋白质设计四个环节，已有 AI 设计药物进入临床 II 期。</li>
+      <li><strong>共同模式</strong>：高质量数据是基础，领域知识嵌入模型，预测与实验形成闭环，规模化是 AI 的核心价值。</li>
+      <li><strong>未来方向</strong>：数学证明、核聚变、气候建模、自主 AI 科学家——AI 正在成为科学发现的核心引擎。</li>
+    </ul>
+    <p>AI for Science 是 AI 最有社会价值的应用方向之一——它直接推动人类对自然的理解，解决能源、健康、环境这些根本性问题。下一章我们回到安全领域，看 AI 系统的对抗性测试。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

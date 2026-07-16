@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -196,7 +194,7 @@
       <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
       <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
-      <a href="165-agent-continue-arch.html" class="active" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
+      <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
@@ -305,81 +303,201 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 165 章 · 开源 Agent 源码深挖</span>
-<h1>Continue 的 IDE 架构</h1><p class="lead">VSCode/JetBrains 扩展 + 后端。@-mention 上下文、slash command、chat 模式。前后端协议。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>VSCode/JetBrains 扩展 + 后端。@-mention 上下文、slash command、chat 模式。前后端协议。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>VSCode/JetBrains 扩展 + 后端。@-mention 上下文、slash command、chat 模式。前后端协议。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 48 · Agent 源码深挖系列</span>
+      <h1>Continue 架构<br>IDE 扩展形态的 autocomplete + chat 双模式 Agent</h1>
+      <p class="lead">Continue 不是一个独立的 CLI Agent，而是一个 IDE 扩展——同时支持 VSCode 和 JetBrains 全家桶。它把两种 AI 能力集成进了 IDE：autocomplete（输入时的行内补全）和 chat（侧边栏对话）。这两种模式对延迟、上下文、交互的要求截然不同，却被统一在一个架构里。本章我们拆解 Continue 的 core + extension 分层，看清一个跨 IDE 的 Agent 是怎么组织的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="two-modes"><span class="idx">★</span> 一、两种模式，两种约束</h2>
+    <p>Continue 同时服务两个场景，而它们对系统的约束几乎相反：</p>
+    <ul>
+      <li><strong>Autocomplete</strong>：用户每敲几个字符就触发，要求 <strong>亚秒级响应</strong>（&gt;500ms 就觉得卡）。只能用极小的本地模型或专门的 fill-in-the-middle 模型。上下文只有当前文件附近几行。不能打扰用户，补全结果直接显示在光标处，用户按 Tab 接受或继续打字忽略。</li>
+      <li><strong>Chat</strong>：用户主动发起，可以等几秒甚至几十秒。用大模型（GPT-4、Claude）。上下文可以包含整个文件、@引用的其他文件、@codebase 检索结果。交互是对话式的，有完整的工具调用能力。</li>
+    </ul>
+    <p>把这两个截然不同的场景塞进一个扩展，是 Continue 架构设计的核心挑战。它的解法是 <strong>共享 core，分化 frontend 和 provider</strong>——下一节详述。</p>
+
+    <h2 class="section" id="core-extension"><span class="idx">★</span> 二、core 与 extension 的分层</h2>
+    <p>Continue 的代码分两层：<strong>core</strong>（TypeScript/JavaScript，与 IDE 无关）和 <strong>extension</strong>（IDE 特定的胶水层）。core 包含所有业务逻辑——模型调用、上下文构建、索引、配置解析；extension 负责把 core 的能力绑定到具体 IDE 的 API（VSCode 的 commands、JetBrains 的 action）。</p>
+    <pre><code class="language-text">continue/
+├── core/                       # IDE 无关的业务逻辑
+│   ├── llm/                    # 模型 provider（OpenAI/Anthropic/本地）
+│   ├── autocomplete/           # 补全逻辑
+│   ├── context/                # 上下文构建（@file @codebase）
+│   ├── indexing/               # 代码库索引
+│   ├── config/                 # 配置加载（config.json）
+│   └── protocol/               # core-extension 通信协议
+├── extensions/
+│   ├── vscode/                 # VSCode 特定代码
+│   │   ├── activate.ts         # 扩展入口
+│   │   ├── autocomplete.ts     # 调 VSCode InlineCompletion API
+│   │   └── chat-webview/       # 侧边栏 chat 的 WebView
+│   └── intellij/               # JetBrains 特定代码（Kotlin/Scala）
+│       ├── src/main/kotlin/
+│       └── autocomplete.kt</code></pre>
+    <p>这种分层的价值是 <strong>core 可以被任何 IDE 复用</strong>。Continue 团队后来还做了 JetBrains 扩展，core 几乎不用改，只需要写新的 extension 层。这也是为什么 Continue 能比纯 VSCode 扩展（如早期的 GitHub Copilot）更快扩展到多个 IDE。</p>
+
+    <h2 class="section" id="config-json"><span class="idx">★</span> 三、config.json：Continue 的配置中心</h2>
+    <p>Continue 的所有配置集中在一个 <code>~/.continue/config.json</code> 文件里。这个文件定义了：用哪些模型、每种模式用哪个、上下文提供者、快捷键、MCP server 等。我们看一个典型配置：</p>
+    <pre><code class="language-json">{
+  "models": [
     {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+      "title": "GPT-4",
+      "provider": "openai",
+      "model": "gpt-4",
+      "apiKey": "{OPENAI_API_KEY}"
     },
     {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+      "title": "Claude Sonnet",
+      "provider": "anthropic",
+      "model": "claude-sonnet-4",
+      "apiKey": "{ANTHROPIC_API_KEY}"
+    },
+    {
+      "title": "Local Llama",
+      "provider": "ollama",
+      "model": "llama3",
+      "apiBase": "http://localhost:11434"
     }
-]
+  ],
+  "tabAutocompleteModel": {
+    "title": "StarCoder2",
+    "provider": "ollama",
+    "model": "starcoder2:3b"
+  },
+  "embeddingsProvider": {
+    "provider": "transformers.js",
+    "model": "all-MiniLM-L6-v2"
+  },
+  "contextProviders": [
+    { "name": "file", "params": {} },
+    { "name": "codebase", "params": {} },
+    { "name": "github", "params": { "repoUrl": "..." } }
+  ],
+  "allowAnonymousTelemetry": false
+}</code></pre>
+    <p>注意几个设计细节。第一，<strong>models 是数组</strong>，用户可以配置多个模型，在 chat 时下拉切换。第二，<strong>tabAutocompleteModel 单独配置</strong>，因为补全用的模型和 chat 用的往往是不同的（补全要快、chat 要强）。第三，<strong>embeddingsProvider 独立</strong>，codebase 检索用的 embedding 模型可以和生成模型不同。第四，<strong>环境变量用 {VAR} 占位</strong>，避免在配置文件里硬编码 API key——这和 docker-compose 的语法一致，降低学习成本。</p>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="autocomplete-flow"><span class="idx">★</span> 四、autocomplete 的极速流水线</h2>
+    <p>autocomplete 是 Continue 技术含量最高的部分。它要在用户停止打字后 ~100ms 内发起请求，500ms 内返回结果，期间还要处理「用户继续打字导致上次请求作废」的竞态。我们看核心流程：</p>
+    <pre><code class="language-typescript">// core/autocomplete/CompletionProvider.ts（简化）
+export class CompletionProvider {
+  private currentRequest: AbortController | null = null;
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+  async getCompletions(opts: CompletionOptions): Promise&lt;CompletionResult&gt; {
+    // 1. 取消上一次还在进行的请求（debounce 已经在外层做了）
+    this.currentRequest?.abort();
+    this.currentRequest = new AbortController();
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Continue 的 IDE 架构"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="164-agent-aider-git.html"><div class="lbl">← 上一章</div><div class="ttl">164 · Aider 的 Git 集成</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="166-agent-continue-codebase.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">166 · Continue 的代码库索引</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 165 章 · Continue 的 IDE 架构</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    // 2. 构建极简上下文（只取当前文件光标前后各 ~50 行）
+    const prefix = opts.fileContent.slice(0, opts.cursorOffset);
+    const suffix = opts.fileContent.slice(opts.cursorOffset);
+    // 只取最近的几行，控制 token 数
+    const trimmedPrefix = prefix.slice(-1500);
+    const trimmedSuffix = suffix.slice(0, 1500);
+
+    // 3. 用 FIM（fill-in-the-middle）格式包装
+    const prompt = this.model.fillInMiddle(trimmedPrefix, trimmedSuffix);
+
+    // 4. 请求（带 abort signal）
+    try {
+      const result = await this.model.complete(prompt, {
+        maxTokens: 30,         // 补全不需要长输出
+        temperature: 0.1,      // 低温度保证稳定
+        stop: ["\n\n"],        // 遇到空行就停
+        signal: this.currentRequest.signal,
+      });
+      return { completion: result, stopReason: "finished" };
+    } catch (err) {
+      if (err.name === "AbortError") return { completion: "" };
+      throw err;
+    }
+  }
+}</code></pre>
+    <p>这段代码揭示了 autocomplete 的几个关键优化。第一，<strong>FIM（Fill-In-the-Middle）格式</strong>：补全模型不是只看前文，而是同时看「光标前」和「光标后」的内容，预测中间该填什么。这比纯前文续写准确得多——比如函数已经写了一半，光标在中间，FIM 能基于「函数签名 + 后续的 return 语句」推断中间该填什么。第二，<strong>maxTokens=30</strong>：补全只生成一小段（一两行），不生成完整函数——那是 chat 的活。第三，<strong>stop=["\n\n"]</strong>：遇到空行停止，因为补全通常是一行内或连续几行，跨空行通常是新的语义块边界。第四，<strong>abort 机制</strong>：用户每打一个字就可能让上次补全作废，必须能立即取消。</p>
+
+    <h2 class="section" id="debounce"><span class="idx">★</span> 五、debounce 与触发时机</h2>
+    <p>什么时候触发 autocomplete？每次按键都触发会淹没模型 API。Continue 的策略是 <strong>debounce + 智能触发</strong>：</p>
+    <pre><code class="language-typescript">// 触发逻辑（简化）
+const TRIGGER_DELAY = 75;          // 停止打字后 75ms 触发
+const TRIGGER_CHARS = new Set([
+  ".", "(", " ", "=", ":",
+]);  // 这些字符后立即触发，不等 debounce
+
+function shouldTrigger(event: TextDocumentChangeEvent): boolean {
+  // 1. 用户主动触发（Alt+\）总是立即
+  if (event.manuallyTriggered) return true;
+
+  // 2. 输入了触发字符（如 . 或 (）立即触发
+  if (event.lastChar &amp;&amp; TRIGGER_CHARS.has(event.lastChar)) return true;
+
+  // 3. 普通 debounce
+  scheduleDebounce(TRIGGER_DELAY);
+  return false;
+}</code></pre>
+    <p>这种「触发字符立即响应 + 其他情况 debounce」的策略，平衡了响应性和成本。打 <code>.</code> 后用户大概率在等成员补全，立即触发；打普通字母时 debounce，等用户停下来再触发，避免每个字母都请求。</p>
+
+    <h2 class="section" id="chat-flow"><span class="idx">★</span> 六、chat 模式的上下文与工具</h2>
+    <p>chat 模式和 autocomplete 几乎是两个世界。它用大模型、接受长上下文、支持 @ 引用和工具调用。用户在侧边栏输入框打 <code>@file auth.py 帮我审查这个文件</code>，Continue 会把 auth.py 的内容作为上下文塞进 prompt。</p>
+    <pre><code class="language-typescript">// core/chat/ChatSession.ts（简化）
+export class ChatSession {
+  async sendMessage(text: string, contextItems: ContextItem[] = []) {
+    // 1. 解析 @ 引用（已经在外层转成 contextItems）
+    // 2. 把 contextItems 内容注入到消息
+    const contextText = contextItems.map(item =&gt;
+      `&lt;file path="${item.name}"&gt;\n${item.content}\n&lt;/file&gt;`
+    ).join("\n\n");
+
+    const fullPrompt = contextText
+      ? `${contextText}\n\n用户问题：${text}`
+      : text;
+
+    // 3. 流式调用 LLM
+    const stream = await this.model.streamComplete(fullPrompt, {
+      systemPrompt: this.systemPrompt,
+      tools: this.availableTools,
+    });
+
+    // 4. 边收边推给 WebView 渲染
+    for await (const chunk of stream) {
+      this.emit("chunk", chunk);
+    }
+
+    // 5. 如果模型请求了工具，执行后继续
+    if (stream.toolCalls) {
+      for (const call of stream.toolCalls) {
+        const result = await this.executeTool(call);
+        // 把工具结果作为新消息，再调一轮
+      }
+    }
+  }
+}</code></pre>
+    <p>chat 模式的工具调用和 OpenCode、Codex 的循环类似（参见 148、154 章），区别在于 Continue 的工具集更偏向 IDE 操作——读当前选中的代码、运行 IDE 的 format 命令、跳转到定义等，而不是文件系统和 shell。这是 IDE 扩展形态 Agent 的特色：它复用 IDE 已有的能力，而不是另起炉灶。</p>
+
+    <h2 class="section" id="webview"><span class="idx">★</span> 七、WebView：chat 界面的渲染</h2>
+    <p>VSCode 的侧边栏 chat 界面是用 WebView 实现的——本质上是一个内嵌的浏览器，加载 Continue 自己的 React 应用。core 通过 postMessage 和 WebView 通信：用户输入通过 postMessage 传给 core，core 的流式响应通过 postMessage 推回 WebView 渲染。</p>
+    <p>这种架构让 Continue 的 chat 界面可以做得非常丰富（支持 Markdown 渲染、代码高亮、diff 视图、按钮交互），而不受 VSCode 原生 UI 组件的限制。代价是 WebView 比原生 UI 重（启动慢、占内存），但对于 chat 这种重交互场景是值得的。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Continue 展示了一个 IDE 扩展形态 Agent 的典型架构。要点回顾：</p>
+    <ul>
+      <li><strong>双模式不同约束</strong>：autocomplete 要亚秒级、极小上下文、不打扰；chat 可慢、长上下文、工具调用。</li>
+      <li><strong>core/extension 分层</strong>：core 是 IDE 无关的业务逻辑，extension 是 IDE 胶水，支持 VSCode 和 JetBrains 复用。</li>
+      <li><strong>config.json 中心化</strong>：models 数组多模型、tabAutocompleteModel 独立、embeddingsProvider 独立、{VAR} 占位环境变量。</li>
+      <li><strong>autocomplete 流水线</strong>：FIM 格式看前后文、maxTokens=30、stop 遇空行、abort 机制取消旧请求。</li>
+      <li><strong>触发策略</strong>：触发字符（. ( 等）立即响应，普通输入 debounce 75ms，平衡响应性和成本。</li>
+      <li><strong>chat 工具偏 IDE</strong>：复用 IDE 的 format、跳转、选中代码等能力，而非另起 shell。</li>
+      <li><strong>WebView 渲染</strong>：React 应用跑在内嵌浏览器，postMessage 通信，UI 丰富但较重。</li>
+    </ul>
+    <p>下一章（166 章）我们深入 Continue 的另一项核心技术——codebase 索引和 @codebase 检索，看它如何让 Agent 真正「理解」整个项目。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

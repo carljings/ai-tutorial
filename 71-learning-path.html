@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 学习路径规划 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 学习路径规划 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -85,7 +92,7 @@
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
-      <a href="71-learning-path.html" class="active" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
+      <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
@@ -295,13 +302,326 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 学习路径规划</h1><p class="lead">从零到一——系统学习 AI 工程的路线图</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 工程学习的三条路径</h2>
-    <p>不同背景的人学 AI 的路径不同：程序员→补 ML 理论；数据科学家→补工程能力；产品经理→补技术理解。但核心知识结构是共通的。</p>
-    <table class="data-table"><thead><tr><th>阶段</th><th>学什么</th><th>产出</th><th>用时</th></tr></thead><tbody><tr><td>基础</td><td>Python + ML 基础 + LLM API</td><td>能调 API 做应用</td><td>2-4 周</td></tr><tr><td>应用</td><td>Prompt 工程 + RAG + Agent</td><td>独立做 AI 应用</td><td>1-2 月</td></tr><tr><td>深入</td><td>Transformer 原理 + 微调 + 评估</td><td>能调优/微调</td><td>2-3 月</td></tr><tr><td>前沿</td><td>推理优化 + 多模态 + 安全</td><td>能做生产级系统</td><td>持续</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 工程学习四阶段：基础（API/Prompt）→应用（RAG/Agent）→深入（Transformer/微调）→前沿（优化/安全）。最重要的一步是"动手做项目"——看 100 篇文章不如自己做一个 RAG 应用。</p>
-    <div class="chapter-nav">
-      <a href="70-advanced-orchestration.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 71 章 · AI 学习路径规划</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 71 · 实战案例系列</span>
+      <h1>完整学习路径<br>五个阶段带你从零到 AI 全栈</h1>
+      <p class="lead">面对铺天盖地的 AI 知识，最大的痛点不是「学不到」，而是「不知道学什么、按什么顺序学」。这一章给你一条经过验证的完整学习路径：五个阶段、每阶段 4 周计划、配套资源、实战项目、检验里程碑。无论你是想转型 AI 工程师，还是在现有技能上拓展，按这条路走，20 周后你会具备 AI 全栈的实战能力。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="overview"><span class="idx">★</span> 一、学习路径全景</h2>
+    <p>这条路径分为五个阶段，每阶段 4 周，总共 20 周。每个阶段都有明确的能力目标和检验标准，不是「学完就算」，而是「做到才算」。</p>
+    <pre><code class="language-text">AI 全栈学习路径总览：
+
+阶段一（第1-4周）：基础筑基
+  目标：建立 Python + 数学 + 机器学习基础
+  产出：能跑通一个简单的 ML 模型
+
+阶段二（第5-8周）：深度学习入门
+  目标：理解神经网络、Transformer、用 PyTorch 搭模型
+  产出：从零实现一个 mini-GPT
+
+阶段三（第9-12周）：LLM 工程实战
+  目标：掌握 prompt 工程、RAG、微调、部署
+  产出：上线一个 RAG 应用
+
+阶段四（第13-16周）：Agent 与高级应用
+  目标：掌握 Agent 编排、工具调用、多模态
+  产出：构建一个能完成真实任务的 Agent
+
+阶段五（第17-20周）：生产化与专精
+  目标：掌握性能优化、安全合规、选定专精方向
+  产出：一个生产级项目 + 技术博客系列</code></pre>
+
+    <h2 class="section" id="phase1"><span class="idx">★</span> 二、阶段一：基础筑基（第 1-4 周）</h2>
+    <p>这个阶段的目标是让你具备读 AI 代码和理解原理的基础。很多人想跳过这一步直接搞大模型，结果处处卡壳。基础不牢，地动山摇。</p>
+    <pre><code class="language-text">第 1-4 周详细计划：
+
+【第 1 周：Python 进阶】
+- 学习内容：
+  - Python 高级特性（装饰器、生成器、上下文管理器）
+  - 类型注解和 Pydantic
+  - 异步编程（asyncio）
+  - NumPy 向量运算
+- 实战任务：
+  - 用 NumPy 手写矩阵乘法和 softmax（参考第 51 章）
+  - 重构一段你写过的 Python 代码，用类型注解
+- 检验标准：
+  - 能 10 分钟内手写一个 softmax + 交叉熵损失
+  - 能解释装饰器和生成器的区别
+
+【第 2 周：数学基础】
+- 学习内容：
+  - 线性代数：向量、矩阵、特征分解
+  - 概率论：分布、贝叶斯、期望
+  - 微积分：偏导、链式法则、梯度下降
+  - 推荐资源：《Mathematics for Machine Learning》（免费 PDF）
+- 实战任务：
+  - 用 NumPy 实现梯度下降求函数最小值
+  - 手算一个 2x2 矩阵的特征值
+- 检验标准：
+  - 能解释为什么 softmax 要除以 √d_k
+  - 能推导简单函数的梯度
+
+【第 3 周：机器学习基础】
+- 学习内容：
+  - 监督学习：线性回归、逻辑回归、决策树
+  - 模型评估：准确率、精确率、召回率、F1、AUC
+  - 过拟合与正则化
+  - 推荐资源：吴恩达 Machine Learning 课（Coursera）
+- 实战任务：
+  - 用 scikit-learn 做一个泰坦尼克号生存预测
+  - 分析模型的混淆矩阵和 ROC 曲线
+- 检验标准：
+  - 能解释精确率和召回率的权衡
+  - 能识别模型是否过拟合
+
+【第 4 周：深度学习初步】
+- 学习内容：
+  - 神经网络基本结构
+  - 反向传播原理
+  - 激活函数（ReLU、GELU）
+  - 推荐资源：3Blue1Brown 神经网络系列（YouTube）
+- 实战任务：
+  - 用 PyTorch 搭一个两层 MLP 做 MNIST 分类
+  - 画出训练过程的 loss 曲线
+- 检验标准：
+  - 能解释反向传播的链式法则
+  - 能用 PyTorch 跑通一个训练循环</code></pre>
+
+    <h2 class="section" id="phase2"><span class="idx">★</span> 三、阶段二：深度学习入门（第 5-8 周）</h2>
+    <p>这个阶段深入深度学习的核心，重点是理解 Transformer——这是所有现代大模型的骨架。</p>
+    <pre><code class="language-text">第 5-8 周详细计划：
+
+【第 5 周：PyTorch 实战】
+- 学习内容：
+  - Tensor 操作、自动求导（autograd）
+  - 自定义 Dataset 和 DataLoader
+  - 模型定义、训练循环、保存加载
+- 实战任务：
+  - 用 PyTorch 搭一个 CNN 做 CIFAR-10 分类
+  - 实现数据增强和学习率调度
+- 检验标准：能独立写一个完整的 PyTorch 训练脚本
+
+【第 6 周：Transformer 架构】
+- 学习内容：
+  - Attention 机制（参考第 57 章论文精读）
+  - 多头注意力、位置编码
+  - Encoder-Decoder 结构
+  - 推荐资源：《Attention is All You Need》原论文
+- 实战任务：
+  - 用 NumPy 手写一个注意力计算（参考第 51 章）
+  - 用 PyTorch 实现一个 MultiHeadAttention 类
+- 检验标准：
+  - 能画出 Transformer 的结构图并解释每个组件
+  - 能解释 causal mask 的作用
+
+【第 7 周：从零实现 mini-GPT】
+- 学习内容：
+  - Decoder-Only 架构（参考第 109 章）
+  - Token 化（BPE）
+  - 语言模型的训练和生成
+  - 推荐资源：Andrej Karpathy 的 nanoGPT 视频
+- 实战任务：
+  - 跟着 nanoGPT 实现一个字符级语言模型
+  - 在莎士比亚文本上训练，能生成像样的文本
+- 检验标准：训练 loss 能稳定下降，生成的文本有语法结构
+
+【第 8 周：预训练与微调】
+- 学习内容：
+  - 预训练范式（MLM、CLM）
+  - 微调方法（全量、LoRA、QLoRA）
+  - Hugging Face Transformers 库
+- 实战任务：
+  - 用 transformers 库加载一个预训练模型
+  - 用 LoRA 在自定义数据上微调
+- 检验标准：
+  - 能解释 LoRA 的原理和优势
+  - 能跑通一个微调流程</code></pre>
+
+    <h2 class="section" id="phase3"><span class="idx">★</span> 四、阶段三：LLM 工程实战（第 9-12 周）</h2>
+    <p>这个阶段是转折点——从「理解原理」转向「构建应用」。掌握 prompt 工程、RAG、部署，让你能做出真正可用的 AI 产品。</p>
+    <pre><code class="language-text">第 9-12 周详细计划：
+
+【第 9 周：Prompt 工程】
+- 学习内容：
+  - Prompt 设计原则（角色、上下文、示例、格式）
+  - Few-shot、Chain-of-Thought
+  - 结构化输出（JSON mode）
+  - 推荐资源：OpenAI Prompt Engineering Guide
+- 实战任务：
+  - 为你的业务场景设计一套 prompt 模板
+  - 对比不同 prompt 在 100 个测试用例上的效果
+- 检验标准：
+  - 能写出稳定的、输出格式可控的 prompt
+  - 建立了 prompt 的测试和评估流程
+
+【第 10 周：RAG 系统构建】
+- 学习内容：
+  - 向量数据库（Chroma、Qdrant、Pinecone）
+  - Embedding 模型选择
+  - 文档切分策略
+  - 检索质量优化（参考第 72 章知识图谱）
+- 实战任务：
+  - 构建一个基于私有文档的问答系统
+  - 实现多路召回 + 重排序
+- 检验标准：
+  - RAG 系统在测试集上召回率 > 80%
+  - 能处理多轮对话和追问
+
+【第 11 周：模型部署与推理优化】
+- 学习内容：
+  - vLLM、TGI 部署框架
+  - 量化（INT8、INT4）（参考第 67 章性能调优）
+  - API 服务化（FastAPI + SSE 流式）
+- 实战任务：
+  - 用 vLLM 部署一个开源模型
+  - 做延迟和吞吐的 benchmark
+- 检验标准：
+  - 能独立部署一个模型 API 服务
+  - 能量化对比不同优化方案的效果
+
+【第 12 周：完整 RAG 应用上线】
+- 实战项目：
+  - 整合前 3 周的技能，做一个完整的 RAG 应用
+  - 前端 + 后端 + 向量库 + 模型
+  - 部署到云服务器，能被真实访问
+- 检验标准：
+  - 应用可公网访问
+  - 有基本的监控和日志
+  - 写了一篇项目复盘博客</code></pre>
+
+    <h2 class="section" id="phase4"><span class="idx">★</span> 五、阶段四：Agent 与高级应用（第 13-16 周）</h2>
+    <p>这个阶段进入当前 AI 最前沿的领域——Agent 系统。这是 LLM 从「回答」走向「行动」的关键。</p>
+    <pre><code class="language-text">第 13-16 周详细计划：
+
+【第 13 周：Function Calling 与工具调用】
+- 学习内容：
+  - LLM 的 function calling 能力
+  - 工具定义和调用流程
+  - 错误处理和重试
+- 实战任务：
+  - 实现一个能调用搜索引擎和计算器的简单 Agent
+- 检验标准：Agent 能正确选择和调用工具
+
+【第 14 周：Agent 编排框架】
+- 学习内容：
+  - LangGraph 状态图（参考第 70 章）
+  - 条件分支和循环
+  - 多 Agent 协作
+- 实战任务：
+  - 构建一个带条件路由的客服 Agent
+  - 加入人在回路机制
+- 检验标准：
+  - 能用 LangGraph 搭建多节点工作流
+  - 实现了 HITL 的关键节点确认
+
+【第 15 周：多模态应用】
+- 学习内容：
+  - 视觉语言模型（VLM）
+  - 图像理解和生成
+  - 语音转文字 / 文字转语音
+- 实战任务：
+  - 做一个能理解图片内容的问答系统
+- 检验标准：系统正确理解图片并回答相关问题
+
+【第 16 周：综合 Agent 项目】
+- 实战项目：
+  - 构建一个能完成真实工作流的 Agent
+  - 示例：自动化研究报告 Agent（搜索→分析→写作→输出 PDF）
+- 检验标准：
+  - Agent 能自主完成多步骤任务
+  - 有完整的可观测性和错误处理
+  - 输出质量可接受</code></pre>
+
+    <h2 class="section" id="phase5"><span class="idx">★</span> 六、阶段五：生产化与专精（第 17-20 周）</h2>
+    <p>最后一个阶段的目标是把前面的能力打磨到生产级，并选定一个专精方向深入。</p>
+    <pre><code class="language-text">第 17-20 周详细计划：
+
+【第 17 周：生产化工程】
+- 学习内容：
+  - 监控告警（Prometheus + Grafana，参考第 58 章运维）
+  - 成本控制和 token 管理
+  - 安全合规（参考第 62、69 章）
+- 实战任务：
+  - 给你的应用加完整的监控
+  - 做一次对抗性安全测试
+
+【第 18 周：选专精方向深入】
+- 选择一个方向深入（三选一）：
+  A. 模型训练方向：深入研究预训练和微调技术
+  B. Agent 方向：研究多 Agent 系统和复杂编排
+  C. 垂直应用方向：选择一个行业（金融/医疗/教育）深入
+- 实战任务：
+  - 在选定方向做一个有深度的项目
+
+【第 19 周：论文阅读与技术写作】
+- 学习内容：
+  - 精读 3-5 篇选定方向的经典论文（参考第 57 章）
+  - 技术写作技巧
+- 实战任务：
+  - 写 2-3 篇技术博客发布
+  - 在社区做一次分享
+
+【第 20 周：求职/项目展示】
+- 整理所有项目，建立作品集
+- 准备技术面试（参考各章节的知识点）
+- 持续学习的心态：AI 领域变化快，保持学习是常态</code></pre>
+
+    <h2 class="section" id="resources"><span class="idx">★</span> 七、推荐学习资源汇总</h2>
+    <pre><code class="language-text">分级资源推荐：
+
+【入门级】
+- 课程：吴恩达 Machine Learning + Deep Learning Specialization
+- 书籍：《动手学深度学习》（李沐，免费）
+- 视频：3Blue1Brown 神经网络系列
+- 社区：Hugging Face Learn
+
+【进阶级】
+- 课程：Stanford CS224N（NLP）、CS231N（CV）
+- 论文：Attention is All You Need、GPT-3、Chinchilla、InstructGPT
+- 代码：Andrej Karpathy 的 nanoGPT、MinBPE
+- 实践：Kaggle 竞赛、Hugging Face 比赛
+
+【前沿级】
+- 论文追踪：arXiv（cs.CL、cs.LG）、Papers with Code
+- 会议：NeurIPS、ICML、ACL、ICLR
+- 博客：OpenAI Blog、Anthropic Blog、DeepMind Blog
+- 社区：Twitter 上的 AI 研究者、Reddit r/MachineLearning
+
+【工程实践】
+- 框架文档：LangChain、LangGraph、vLLM、Hugging Face
+- 开源项目：阅读优秀项目的源码（参考第 81 章源码导读）
+- 部署实战：在云上跑真实服务</code></pre>
+
+    <h2 class="section" id="learning-principles"><span class="idx">★</span> 八、高效学习的几个原则</h2>
+    <ul>
+      <li><strong>以输出倒逼输入</strong>：每学一个概念，就写一段代码或一篇笔记。不输出等于没学。</li>
+      <li><strong>项目驱动</strong>：不要只看课不动手。每个阶段都有一个实战项目，做出来才算学会。</li>
+      <li><strong>建立反馈循环</strong>：加入学习社区，让别人 review 你的代码和笔记。闭门造学效果差。</li>
+      <li><strong>拥抱不确定性</strong>：AI 领域变化快，很多「最佳实践」半年后就过时。学会学习本身比学具体知识重要。</li>
+      <li><strong>深度优于广度</strong>：与其蜻蜓点水学 10 个框架，不如深入吃透 1 个。深度理解能迁移。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们规划了一条 20 周的完整学习路径。核心要点：</p>
+    <ul>
+      <li><strong>五阶段递进</strong>：基础筑基 → 深度学习入门 → LLM 工程实战 → Agent 与高级应用 → 生产化与专精。</li>
+      <li><strong>每周有明确目标</strong>：不是「学完就算」，而是「做到才算」。每阶段都有实战项目和检验标准。</li>
+      <li><strong>阶段产出</strong>：mini-GPT → RAG 应用 → Agent 系统 → 生产级项目 + 技术博客。</li>
+      <li><strong>资源分级</strong>：入门（吴恩达 + 动手学 DL）、进阶（Stanford + 论文）、前沿（arXiv + 会议）、工程（框架文档 + 开源源码）。</li>
+      <li><strong>学习原则</strong>：输出倒逼输入、项目驱动、建立反馈、拥抱变化、深度优于广度。</li>
+    </ul>
+    <p>这条路径不是唯一的，但它经过验证、节奏合理、产出明确。关键不是路径多完美，而是你今天就开始走第一步。下一章我们看知识图谱与 GraphRAG，把检索增强生成推向新高度。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

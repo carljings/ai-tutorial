@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 经典论文精读 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 经典论文精读 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -71,7 +78,7 @@
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
-      <a href="57-paper-readings.html" class="active" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
+      <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
@@ -295,22 +302,245 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 经典论文精读</h1><p class="lead">改变 AI 的 10 篇论文——从 Attention 到 RLHF</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么读论文</h2>
-    <p>AI 领域变化极快，但真正改变方向的论文只有十几篇。读懂这些"里程碑论文"，你就建立了对 AI 全貌的理解框架——不再被新技术名词吓到，因为你知道它的来龙去脉。本章精选 10 篇必读论文，每篇讲清"它改变了什么"。</p>
-    <h2><span class="idx"></span>10 篇里程碑论文</h2>
-    <table class="data-table"><thead><tr><th>论文</th><th>年份</th><th>改变了什么</th><th>如果只读一篇</th></tr></thead><tbody><tr><td>Attention Is All You Need</td><td>2017</td><td>Transformer 架构诞生</td><td>★ 必读</td></tr><tr><td>BERT</td><td>2018</td><td>预训练+微调范式</td><td>★ 必读</td></tr><tr><td>GPT-3 (Language Models are Few-Shot Learners)</td><td>2020</td><td>Scaling + Few-shot</td><td>★ 必读</td></tr><tr><td>Scaling Laws (Kaplan)</td><td>2020</td><td>大力出奇迹的数学</td><td>★ 必读</td></tr><tr><td>Chinchilla</td><td>2022</td><td>数据vs参数配比</td><td>★ 必读</td></tr><tr><td>InstructGPT (RLHF)</td><td>2022</td><td>人类偏好对齐</td><td>★ 必读</td></tr><tr><td>Chain-of-Thought</td><td>2022</td><td>推理能力涌现</td><td>推荐</td></tr><tr><td>Emergent Abilities (Wei)</td><td>2022</td><td>涌现现象定义</td><td>推荐</td></tr><tr><td>Constitutional AI</td><td>2022</td><td>AI自我对齐</td><td>推荐</td></tr><tr><td>Direct Preference Optimization (DPO)</td><td>2023</td><td>简化RLHF</td><td>推荐</td></tr></tbody></table>
-    <h3>Attention Is All You Need (2017)</h3>
-    <p>这篇论文提出了 Transformer——用 self-attention 替代 RNN/CNN，实现完全并行的序列建模。它是所有现代 LLM 的基础架构。读这篇论文要理解：为什么 self-attention 比 RNN 好（并行+长距离依赖）、Multi-Head 的作用（多角度看）、Positional Encoding 为什么需要（attention 本身无位置信息）。</p>
-    <h3>InstructGPT / RLHF (2022)</h3>
-    <p>GPT-3 能力很强但"不听话"——它会续写但不遵循指令。InstructGPT 用 RLHF（人类偏好强化学习）让模型"听话"：人类标注员写更好的回答（SFT）+ 比较哪个回答更好（偏好数据）+ 用偏好数据训练奖励模型 + PPO 强化学习。这篇论文定义了"对齐"——让模型的行为符合人类意图。后续的 ChatGPT 就建立在 InstructGPT 的方法之上。</p>
-    <h3>DPO (2023)</h3>
-    <p>RLHF 的 PPO 训练不稳定且复杂。DPO（Direct Preference Optimization）的突破：**不需要训练奖励模型+PPO，直接用偏好数据优化模型**——数学上证明了这等价于 RLHF，但简单稳定得多。这让对齐训练从"大厂专属"变成了"人人可用"——LoRA+DRA 能在单卡上微调对齐。</p>
-    <h2><span class="idx"></span>怎么读论文</h2>
-    <div class="callout"><strong>💡 要点</strong><br>读论文的正确顺序：① 先读 Abstract + Introduction（5分钟，知道讲什么）→ ② 看 Figure/Table（10分钟，直觉理解）→ ③ 读 Method 核心部分（30分钟，理解机制）→ ④ 跳过细节（证明/超参）→ ⑤ 看结论+局限性。不要从头到尾逐字读——那样你会在数学细节里迷失，失去对全局的理解。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>10 篇里程碑论文：Transformer(2017)、BERT(2018)、GPT-3(2020)、Scaling Laws(2020)、Chinchilla(2022)、InstructGPT/RLHF(2022)、CoT(2022)、Emergent Abilities(2022)、Constitutional AI(2022)、DPO(2023)。读法：Abstract→Figure→Method核心→跳过细节→结论。读论文建立的是"框架感"——知道每个新技术从哪来、要去哪。</p>
-    <div class="chapter-nav">
-      <a href="56-llm-history.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 57 章 · AI 经典论文精读</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 57 · 实战案例系列</span>
+      <h1>经典论文精读<br>五篇奠定 LLM 时代的奠基之作</h1>
+      <p class="lead">要真正理解大模型，绕不开这五篇论文：《Attention is All You Need》定义了 Transformer，《GPT-3》证明了规模法则，《Chinchilla》纠正了数据与参数的比例，《InstructGPT》教会模型听话，《Constitutional AI》让模型自我约束。这一章不照搬论文摘要，而是把每篇的核心思想、关键公式、工程启示讲透——读完你就能在面试、技术选型、论文讨论里游刃有余。</p>
+      <div class="meta">
+        <span class="chip">阅读约 32 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-papers"><span class="idx">★</span> 一、为什么要读论文</h2>
+    <p>很多工程师觉得「我会用 API 就行了，读论文有什么用」。但在快速演进的 AI 领域，读论文有三个不可替代的价值：</p>
+    <ul>
+      <li><strong>理解「为什么」</strong>：API 文档告诉你「怎么做」，论文告诉你「为什么这么做」。理解了原理，你才能在遇到新问题时举一反三。</li>
+      <li><strong>预判技术趋势</strong>：今天的论文是明天的产品。读 Chinchilla 你就知道为什么所有新模型都在扩数据，读 InstructGPT 你就预判了 ChatGPT 的诞生。</li>
+      <li><strong>技术选型的底气</strong>：当老板问你「要不要用 LoRA 微调」，你得能说清楚 LoRA 背后的数学原理和适用边界。</li>
+    </ul>
+    <p>这五篇论文是 LLM 领域的「圣经」，我们逐一拆解。</p>
+
+    <h2 class="section" id="attention-paper"><span class="idx">★</span> 二、《Attention is All You Need》（2017）</h2>
+    <p>这是整个 Transformer 时代的开端。Google Brain 和多伦多大学的团队在这篇论文里提出了一个大胆的论断：不需要 RNN，不需要 CNN，只用注意力机制就能做好序列建模。论文标题本身就是宣言。</p>
+
+    <h3 class="section">2.1 核心贡献</h3>
+    <p>这篇论文最大的贡献是证明了「纯注意力」架构的有效性。在此之前，NLP 的主流是 LSTM 和 GRU 这类循环神经网络，它们有致命缺陷：必须逐步处理序列（无法并行），而且长距离依赖容易遗忘。Transformer 用注意力机制一次性让所有位置互相「看见」，既解决了并行问题，又解决了长距离依赖。</p>
+
+    <h3 class="section">2.2 关键公式</h3>
+    <p>论文里最核心的公式就是缩放点积注意力：</p>
+    <p><code>Attention(Q, K, V) = softmax(Q · K^T / √d_k) · V</code></p>
+    <p>这个公式我们在数学基础章详细推演过。这里强调一个容易被忽略的细节——为什么要除以 √d_k？论文里的解释是：当 d_k 较大时，Q·K^T 的值会变大，导致 softmax 进入梯度极小的饱和区。除以 √d_k 是把方差控制回 1，让 softmax 保持有意义的梯度。这个细节体现了作者对数值稳定性的深刻理解。</p>
+    <pre><code class="language-python"># 复现论文里的多头注意力
+import torch
+import torch.nn as nn
+import math
+
+class MultiHeadAttention(nn.Module):
+    def __init__(self, d_model=512, num_heads=8):
+        super().__init__()
+        assert d_model % num_heads == 0
+        self.d_k = d_model // num_heads
+        self.num_heads = num_heads
+        # 4 个线性变换：Q, K, V 和最后的输出
+        self.W_q = nn.Linear(d_model, d_model)
+        self.W_k = nn.Linear(d_model, d_model)
+        self.W_v = nn.Linear(d_model, d_model)
+        self.W_o = nn.Linear(d_model, d_model)
+
+    def forward(self, x, mask=None):
+        batch, seq_len, _ = x.shape
+        # 线性变换后 reshape 成 (batch, heads, seq_len, d_k)
+        Q = self.W_q(x).view(batch, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        K = self.W_k(x).view(batch, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+        V = self.W_v(x).view(batch, seq_len, self.num_heads, self.d_k).transpose(1, 2)
+
+        # 注意力分数：Q·K^T / √d_k
+        scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(self.d_k)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        # softmax 归一化
+        attn = torch.softmax(scores, dim=-1)
+        # 加权求和
+        context = torch.matmul(attn, V)
+        # 合并多头
+        context = context.transpose(1, 2).contiguous().view(batch, seq_len, -1)
+        return self.W_o(context)</code></pre>
+
+    <h3 class="section">2.3 工程启示</h3>
+    <p>这篇论文给工程界的启示有三点：第一，注意力机制让训练可以高度并行，GPU 利用率大幅提升；第二，多头机制（Multi-Head）让模型能同时关注不同子空间的信息，相当于多个「视角」并行工作；第三，位置编码（Positional Encoding）弥补了注意力机制本身没有位置感知的缺陷。这三点构成了后续所有 Transformer 变体的地基。</p>
+
+    <h2 class="section" id="gpt3-paper"><span class="idx">★</span> 三、《GPT-3: Language Models are Few-Shot Learners》（2020）</h2>
+    <p>如果说第一篇论文定义了架构，GPT-3 这篇论文就定义了「规模」这个新维度。OpenAI 团队用 1750 亿参数的模型，证明了「大力真的能出奇迹」。</p>
+
+    <h3 class="section">3.1 核心论点</h3>
+    <p>GPT-3 论文的核心论点可以用一句话概括：<strong>当模型足够大时，它通过 in-context learning（上下文学习）就能掌握新任务，完全不需要更新参数</strong>。你只要在 prompt 里给几个例子，模型就能模仿这个模式。这打破了「每个任务都要微调」的传统范式。</p>
+
+    <h3 class="section">3.2 scaling law 的实证</h3>
+    <p>论文里最有价值的部分是不同规模模型在各类任务上的表现曲线。作者训练了从 1.25 亿到 1750 亿的 8 个不同规模模型，发现：模型越大，few-shot 学习的能力增长越快，而且某些能力（如三位数运算、翻译）在大模型上才「涌现」出来。这是「涌现能力」（emergent abilities）概念的实证基础。</p>
+    <pre><code class="language-python"># GPT-3 论文里展示的 few-shot 范式对比
+# Zero-shot：只给指令，不给例子
+zero_shot = "Translate English to French: cheese =>"
+
+# One-shot：给一个例子
+one_shot = """Translate English to French:
+cheese => fromage
+sea otter =>"""
+
+# Few-shot：给多个例子
+few_shot = """Translate English to French:
+cheese => fromage
+sea otter => loutre de mer
+hello => bonjour
+thank you =>"""
+
+# 论文结论：例子越多，小模型和大模型的差距越大
+# 大模型从 few-shot 中获益远超小模型
+# 这就是为什么 GPT-3 是分水岭——它证明了规模的价值</code></pre>
+
+    <h3 class="section">3.3 工程启示</h3>
+    <p>GPT-3 论文最大的启示是：不要低估规模。很多在小模型上不 work 的方法（如零样本、少样本学习），在足够大的模型上会突然 work。这改变了整个 AI 研究的价值观——从「设计更聪明的架构」转向「把现有架构做到更大」。同时，它也埋下了 prompt engineering 这门新学科的种子。</p>
+
+    <h2 class="section" id="chinchilla-paper"><span class="idx">★</span> 四、《Chinchilla: Training Compute-Optimal LLMs》（2022）</h2>
+    <p>这是 DeepMind 的一篇「纠偏」论文。它指出 GPT-3 之后的一个普遍误区：大家都在疯狂堆参数，却忽略了数据量。Chinchilla 用实验证明：<strong>在固定算力预算下，模型参数和训练数据应该按比例增长，比例大约是每个参数对应 20 个 token</strong>。</p>
+
+    <h3 class="section">4.1 核心发现</h3>
+    <p>论文训练了 400 多个不同规模的小模型，外推出 scaling law 的最优配比。结论是：GPT-3 用了 1750 亿参数但只训练了 3000 亿 token，严重「参数过剩、数据不足」。如果在同样算力下做一个 700 亿参数、训练 1.4 万亿 token 的模型（这就是 Chinchilla），效果反而更好。</p>
+    <pre><code class="language-python"># Chinchilla 法则的计算示例
+# 最优配比：训练 token 数 ≈ 20 × 参数量
+
+models = {
+    "GPT-3（违反法则）": {"params": 175e9, "tokens": 300e9},
+    "Chinchilla（最优）": {"params": 70e9, "tokens": 1400e9},
+    "LLaMA-2 7B": {"params": 7e9, "tokens": 2000e9},  # 过训练，为推理优化
+}
+
+print(f"{'模型':<20} {'参数(B)':<10} {'tokens(T)':<12} {'tokens/param':<12}")
+for name, cfg in models.items():
+    ratio = cfg["tokens"] / cfg["params"]
+    print(f"{name:<20} {cfg['params']/1e9:<10.1f} {cfg['tokens']/1e12:<12.2f} {ratio:<12.1f}")
+
+# Chinchilla 法则：ratio ≈ 20 是 compute-optimal
+# LLaMA 系列故意 ratio 远高于 20，用更多训练换更小的推理成本
+# 这是「训练时多花钱，推理时省钱」的策略选择</code></pre>
+
+    <h3 class="section">4.2 工程启示</h3>
+    <p>Chinchilla 的发现彻底改变了大模型的训练策略。2022 年之后的所有模型（LLaMA、Qwen、DeepSeek）都在大幅增加训练数据量。同时，它也解释了一个工程现象：<strong>为什么很多小模型（7B、8B）在经过充分训练后，能力能超过早期的大模型</strong>——因为数据配比更优。这条法则也是你做模型选型时的重要参考：别只看参数量，还要看训练数据量。</p>
+
+    <h2 class="section" id="instructgpt-paper"><span class="idx">★</span> 五、《InstructGPT》（2022）</h2>
+    <p>这是 ChatGPT 的技术前身。OpenAI 团队在这篇论文里系统阐述了 RLHF（人类反馈强化学习）的三步法，解决了「模型能力强但不听指令」的问题。</p>
+
+    <h3 class="section">5.1 三步训练法</h3>
+    <p>InstructGPT 的训练分三步，每一步都有明确的目标：</p>
+    <ul>
+      <li><strong>第一步：有监督微调（SFT）</strong>。让人类标注员写出高质量的指令-回答对，用这些数据微调基础模型，让它学会「按指令回答」的基本格式。</li>
+      <li><strong>第二步：训练奖励模型（RM）</strong>。让模型对同一个指令生成多个回答，人类标注员对这些回答排序，用这个排序数据训练一个能打分的奖励模型。</li>
+      <li><strong>第三步：强化学习（PPO）</strong>。用奖励模型的分数作为信号，用 PPO 算法优化模型，让它生成奖励模型更喜欢（即人类更可能喜欢）的回答。</li>
+    </ul>
+    <pre><code class="language-python"># InstructGPT 的 RLHF 三步法（概念实现）
+# 注意：完整实现非常复杂，这里只展示核心逻辑
+
+# 第一步：SFT，用人工标注数据微调
+def supervised_finetune(base_model, labeled_data):
+    """labeled_data: [(prompt, ideal_response), ...]"""
+    for prompt, response in labeled_data:
+        loss = -model.log_prob(base_model, prompt, response)
+        loss.backward()  # 标准的语言模型微调
+    return base_model
+
+# 第二步：训练奖励模型
+def train_reward_model(sft_model, ranking_data):
+    """ranking_data: [(prompt, [resp1, resp2, resp3], rank)]"""
+    for prompt, responses, rank in ranking_data:
+        scores = [reward_model(prompt, r) for r in responses]
+        # 用排序损失训练奖励模型，让它学会人类偏好
+        loss = ranking_loss(scores, rank)
+    return reward_model
+
+# 第三步：PPO 强化学习
+def ppo_optimization(sft_model, reward_model):
+    for prompt in prompts:
+        response = sft_model.generate(prompt)
+        reward = reward_model(prompt, response)
+        # KL 散度约束，防止模型偏离原始分布太远（避免「钻空子」）
+        kl_penalty = kl_divergence(sft_model, original_model)
+        loss = -(reward - 0.1 * kl_penalty)
+        ppo_update(sft_model, loss)</code></pre>
+
+    <h3 class="section">5.2 关键洞察</h3>
+    <p>论文里最有冲击力的结论是：<strong>1.3B 参数的 InstructGPT，在人类评估中胜过 175B 的 GPT-3</strong>。这意味着对齐（alignment）的价值远超规模——一个听话的小模型，比一个不听话的大模型有用得多。这个洞察直接催生了 ChatGPT，也确立了「能力 + 对齐」是 AI 产品的两个支柱。</p>
+
+    <h2 class="section" id="constitutional-ai"><span class="idx">★</span> 六、《Constitutional AI》（2022）</h2>
+    <p>这是 Anthropic 提出的对齐新方法，也是 Claude 系列模型的核心技术。它的核心思想是：<strong>用一套「宪法」（原则）指导模型自我改进，减少对人类标注的依赖</strong>。</p>
+
+    <h3 class="section">6.1 与 RLHF 的区别</h3>
+    <p>RLHF 的瓶颈是：需要大量人类标注员给回答排序，成本极高、难以规模化、且标注员之间的偏好不一致。Constitutional AI（CAI）的做法是：写一份包含若干原则的「宪法」（如「回答要诚实」「不要有害」「要乐于承认不确定」），然后让模型自己根据宪法评估和修改自己的回答。</p>
+    <pre><code class="language-python"># Constitutional AI 的核心循环（概念演示）
+constitution = [
+    "请给出最有帮助的回答。",
+    "如果不确定，请诚实说明。",
+    "不要生成有害、歧视性或危险的内容。",
+    "回答要基于事实，不要编造信息。",
+]
+
+def self_correct(prompt, model_response, constitution):
+    """让模型根据宪法自我修改回答。"""
+    eval_prompt = f"""请根据以下原则评估并改进这个回答：
+
+原则：
+{chr(10).join('- ' + c for c in constitution)}
+
+原回答：{model_response}
+
+请指出回答违反了哪些原则，并给出改进后的版本。"""
+    improved = call_llm(eval_prompt)
+    return improved
+
+# CAI 的训练流程：
+# 1. 模型生成回答
+# 2. 模型根据宪法自我批评
+# 3. 模型修改成更好的回答
+# 4. 用修改后的回答做强化学习的训练信号
+# 整个过程几乎不需要人类标注，可大规模扩展</code></pre>
+
+    <h3 class="section">6.2 工程启示</h3>
+    <p>CAI 的价值在于把对齐的成本从「人力密集」降到了「算力密集」。它的思想也启发了大量工程实践：比如在 prompt 里加入「宪法式」的行为约束（「你必须诚实」「你不得编造」），本质就是 CAI 思想的轻量级应用。理解了 CAI，你就理解了为什么 Claude 在「无害性」和「诚实性」上表现突出。</p>
+
+    <h2 class="section" id="cross-paper"><span class="idx">★</span> 七、五篇论文的内在脉络</h2>
+    <p>把这五篇论文串起来看，你能发现 LLM 发展的清晰主线：</p>
+    <ul>
+      <li><strong>Attention 论文</strong>解决了「架构」问题——用什么结构训练模型。</li>
+      <li><strong>GPT-3 论文</strong>解决了「规模」问题——多大算够大。</li>
+      <li><strong>Chinchilla 论文</strong>解决了「配比」问题——参数和数据怎么搭配最优。</li>
+      <li><strong>InstructGPT 论文</strong>解决了「对齐」问题——怎么让模型听话。</li>
+      <li><strong>Constitutional AI 论文</strong>解决了「规模化对齐」问题——怎么低成本地对齐。</li>
+    </ul>
+    <p>这五步，恰好是 LLM 从「实验室技术」变成「大众产品」的完整路径。每一步都解决了一个关键瓶颈，缺一不可。</p>
+
+    <h2 class="section" id="how-to-read"><span class="idx">★</span> 八、怎么高效读论文</h2>
+    <p>最后分享几个高效读论文的技巧，避免你陷入「读完就忘」的困境：</p>
+    <ul>
+      <li><strong>三遍阅读法</strong>：第一遍只读标题、摘要、结论，判断值不值得读；第二遍读图表和方法部分，理解核心思想；第三遍精读细节，尝试复现。</li>
+      <li><strong>带问题读</strong>：读之前问自己「这篇论文要解决什么问题」「它的解法是什么」「有什么局限」，带着问题找答案。</li>
+      <li><strong>动手复现</strong>：哪怕只复现一个核心公式或一张图，理解深度都会完全不同。纸上得来终觉浅。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们精读了五篇奠定 LLM 时代的论文。核心要点：</p>
+    <ul>
+      <li><strong>Attention is All You Need</strong>：定义 Transformer 架构，注意力机制让训练可并行、能捕捉长距离依赖，√d_k 缩放保证数值稳定。</li>
+      <li><strong>GPT-3</strong>：证明规模法则，in-context learning 是大模型涌现的能力，少样本学习改变范式。</li>
+      <li><strong>Chinchilla</strong>：纠正「只堆参数」的误区，最优配比是每个参数 20 个 token，解释了小模型也能很强的原因。</li>
+      <li><strong>InstructGPT</strong>：RLHF 三步法（SFT + RM + PPO），1.3B 听话模型胜过 175B 不听话模型，对齐价值超过规模。</li>
+      <li><strong>Constitutional AI</strong>：用「宪法」让模型自我改进，把对齐从人力密集变成算力密集，是 Claude 的技术核心。</li>
+    </ul>
+    <p>这五篇论文构成了理解整个 LLM 领域的认知地基。下一章我们会转向工程实操——LLM 运维手册，看怎么把这些模型稳定地部署到生产环境。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

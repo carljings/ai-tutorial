@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -162,7 +160,7 @@
       <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
-      <a href="133-vec-rerank.html" class="active" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
+      <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
@@ -305,66 +303,141 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 133 章 · 向量索引与 RAG 原理深挖</span>
-<h1>重排序 Rerank：精排召回结果</h1><p class="lead">召回阶段用快的双塔/ANN 拿 top-1000，精排用交叉编码器（cross-encoder）逐对打分取 top-10。bge-reranker、Cohere rerank 的原理。延迟换精度。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>召回阶段用快的双塔/ANN 拿 top-1000，精排用交叉编码器（cross-encoder）逐对打分取 top-10。bge-reranker、Cohere rerank 的原理。延迟换精度。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>召回阶段用快的双塔/ANN 拿 top-1000，精排用交叉编码器（cross-encoder）逐对打分取 top-10。bge-reranker、Cohere rerank 的原理。延迟换精度。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 133 · 向量检索系列</span>
+      <h1>重排序 Rerank<br>cross-encoder vs bi-encoder 与 top-N 策略</h1>
+      <p class="lead">检索召回的 top-50，质量往往参差不齐——有的语义相关，有的只是关键词巧合。重排序（Rerank）用一个更精确但更慢的模型，对这 50 个重新打分，把真正相关的推到前面。这一步通常能让最终答案准确率提升 10-20 个百分点，是 RAG 里 ROI 最高的环节之一。本文拆解 cross-encoder 和 bi-encoder 的本质区别、bge-reranker 的实操、以及 top-N 怎么选。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="cross-vs-bi"><span class="idx">★</span> cross-encoder vs bi-encoder：精度与速度的根本权衡</h2>
+    <p>embedding 模型（用于检索）是 <strong>bi-encoder（双塔）</strong>：query 和 document 分别独立编码成向量，再用余弦相似度比较。因为 document 可以离线编码好存进向量库，查询时只需要编码 query + 一次向量检索，速度极快（毫秒级，可扛上万 QPS）。代价是 query 和 document 的交互发生在"最后的相似度计算"——只有点积这一步，没有更深的信息流动，精度有天花板。</p>
+    <p>rerank 模型是 <strong>cross-encoder（交叉编码）</strong>：把 query 和 document 拼成一个序列 [CLS] query [SEP] document [SEP]，喂给一个 transformer，让它们在 self-attention 里充分交互，最后输出一个相关性分数。这种深度交互让 cross-encoder 的精度远高于 bi-encoder（在 MS MARCO 上，cross-encoder 的 MRR 通常比 bi-encoder 高 10-20 个点）。</p>
+    <p>代价是<strong>速度</strong>：cross-encoder 不能离线编码 document，每次都要把 (query, document) 一起喂进模型算一次 forward。所以它不能用于全库检索（1 亿次 forward 要几小时），只能用于<strong>对少量候选重排序</strong>。这就是经典的"先 bi-encoder 粗召 → 再 cross-encoder 精排"两阶段架构。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <pre><code class="language-text">两阶段架构
+┌─────────────────┐    top-50    ┌─────────────────┐   top-5    ┌─────────┐
+│ bi-encoder 检索  │ ───────────▶ │ cross-encoder   │ ─────────▶ │ 喂给 LLM │
+│ (毫秒, 全库)     │              │ 重排序 (几十ms) │            │         │
+└─────────────────┘              └─────────────────┘            └─────────┘
+快但不准                            慢但准                          最终答案</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h3>为什么 cross-encoder 更准：一个直觉</h3>
+    <p>bi-encoder 把 document 压成一个 768 维向量，信息损失巨大——一个 500 字的文档被压成 768 个数字，查询里某个关键词和文档里某个具体段落的细粒度关系早就丢了。cross-encoder 不压缩，query 的每个 token 直接和 document 的每个 token 做 attention，能捕捉"这个词和那段话在语义上对应"这种细粒度关系。用类比：bi-encoder 像看摘要判断相关性，cross-encoder 像读全文判断——前者快但粗，后者慢但准。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"重排序 Rerank：精排召回结果"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="132-vec-hybrid-search.html"><div class="lbl">← 上一章</div><div class="ttl">132 · 混合检索：BM25 + 向量的正确姿势</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="134-vec-embedding-models.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">134 · 嵌入模型选型：BGE、E5、Cohere</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 133 章 · 重排序 Rerank：精排召回结果</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="bge-reranker"><span class="idx">★</span> bge-reranker 实操</h2>
+    <p>BAAI 的 bge-reranker 系列是中文场景最受欢迎的开源 rerank 模型，有 base/large/重排多种规格。我们用 FlagEmbedding 走一遍。</p>
+
+    <pre><code class="language-python"># pip install FlagEmbedding
+from FlagEmbedding import FlagReranker
+import time
+
+# 加载 reranker（中文场景用 bge-reranker-large，英文用 bge-reranker-base）
+reranker = FlagReranker(
+    "BAAI/bge-reranker-large",
+    use_fp16=True                  # 半精度，速度快一倍，精度损失可忽略
+)
+
+# 1. 对一批 (query, document) 对打分
+query = "怎么排查 Java 内存泄漏"
+documents = [
+    "Java 内存泄漏通常用 jmap 查看堆内存占用，用 MAT 分析对象引用链。",
+    "Python 的内存管理是自动的，一般不需要手动释放。",
+    "OutOfMemoryError 是 Java 常见错误，可以通过调整 JVM 堆大小 -Xmx 解决。",
+    "JavaScript 的垃圾回收机制和 Java 类似，都是标记清除。",
+    "使用 VisualVM 可以实时监控 JVM 的内存和线程状态。",
+]
+
+pairs = [[query, doc] for doc in documents]
+t0 = time.time()
+scores = reranker.compute_score(pairs, normalize=True)   # normalize 输出 0-1
+print(f"重排序耗时: {(time.time()-t0)*1000:.0f} ms")
+
+# 按分数排序
+ranked = sorted(zip(scores, documents), key=lambda x: -x[0])
+for score, doc in ranked:
+    print(f"{score:.4f}  {doc}")
+# 输出：Java 内存泄漏相关文档（1,3,5）会排到前面，Python/JS 的会沉下去
+</code></pre>
+
+    <h3>FP16 与 batch 调优</h3>
+    <ul>
+      <li><code>use_fp16=True</code>：GPU 上速度翻倍，精度损失 &lt;0.5%，生产环境默认开。</li>
+      <li><code>compute_score</code> 支持 batch：候选多时一次传入，比循环单条快几倍。</li>
+      <li>文档超长要截断：reranker 的 max_length 通常 512，长文档要截前 512 token 或分块打分取 max。</li>
+    </ul>
+
+    <h2 class="section" id="top-n-strategy"><span class="idx">★</span> top-N 选择策略：召回多少、重排多少、喂 LLM 多少</h2>
+    <p>三个数字的权衡是 RAG 调优的核心：<strong>bi-encoder 召回 K1</strong>（送进 reranker 的数量）、<strong>rerank 输出 K2</strong>（送进 LLM 的数量）、<strong>rerank 内部计算 K3</strong>（reranker 实际打分的数量，可等于 K1）。常见配置和取舍：</p>
+
+    <pre><code class="language-text">典型配置（按场景）
+┌──────────────────┬────────┬────────┬─────────┬──────────────────────────┐
+│ 场景              │ 召回K1 │ 重排K2 │ 重排K3  │ 说明                     │
+├──────────────────┼────────┼────────┼─────────┼──────────────────────────┤
+│ 高质量问答（QA）   │ 50     │ 5      │ 50      │ 重排全部，喂 5 个        │
+│ 长文档摘要         │ 30     │ 3      │ 30      │ 文档长，喂太多撑爆上下文 │
+│ 低延迟实时搜索     │ 20     │ 10     │ 20      │ 牺牲精度换速度           │
+│ 多轮对话           │ 100    │ 5      │ 50      │ 大召回小重排，避免遗漏   │
+└──────────────────┴────────┼────────┼─────────┼──────────────────────────┘</code></pre>
+
+    <p>几个经验法则：</p>
+    <ul>
+      <li><strong>K1（召回）宁多勿少</strong>：reranker 能纠正排序但救不回没召回的。K1 通常 30-100，看 latency 预算。</li>
+      <li><strong>K2（喂 LLM）看上下文窗口</strong>：4K 窗口喂 3-5 个 500 字的片段；128K 窗口可喂 10-20 个。但注意"Lost in the Middle"问题（139 篇），喂太多中间的会被忽略。</li>
+      <li><strong>threshold 过滤</strong>：rerank 分数低于阈值（比如 0.3）的直接丢弃，避免喂噪声给 LLM。bge-reranker normalize 后 0.3 是个常见阈值。</li>
+      <li><strong>不要过度重排</strong>：K3=K1 全重排是默认，但如果 K1 很大（如 500），可以先做一遍轻量 rerank（小模型）取 top-50，再用大 reranker 精排，省时间。</li>
+    </ul>
+
+    <pre><code class="language-python"># 完整的两阶段检索 + 重排 + 阈值过滤
+def retrieve_and_rerank(query, vector_index, reranker,
+                       k1=50, k2=5, threshold=0.3):
+    # 1. bi-encoder 粗召
+    q_vec = embed(query)
+    candidates = vector_index.search(q_vec, k=k1)     # [(id, score, doc), ...]
+
+    # 2. cross-encoder 重排
+    pairs = [[query, c.doc_text] for c in candidates]
+    scores = reranker.compute_score(pairs, normalize=True)
+
+    # 3. 阈值过滤 + 取 top-k2
+    ranked = sorted(zip(scores, candidates), key=lambda x: -x[0])
+    final = [(s, c) for s, c in ranked if s >= threshold][:k2]
+
+    if not final:
+        # 兜底：阈值太严一个都没过，退回 top-k2
+        final = ranked[:k2]
+    return final
+
+# A/B 测试：有重排 vs 无重排的答案质量
+# 通常 RAGAS 的 answer_relevancy 提升 10-20 个点（见 140 篇）
+</code></pre>
+
+    <h2 class="section" id="models-comparison"><span class="idx">★</span> 主流 rerank 模型对比</h2>
+    <ul>
+      <li><strong>bge-reranker（BAAI）</strong>：中文首选，base/large/重排都有，开源免费，FlagEmbedding 库调用方便。</li>
+      <li><strong>Cohere rerank</strong>：商用 API，英文效果顶级，中文也不错，按调用收费。</li>
+      <li><strong>jina-reranker</strong>：多语言，长文档支持好（支持 8K token），开源。</li>
+      <li><strong>Voyage rerank</strong>：商用，和自家 embedding 配合最佳。</li>
+      <li><strong>LLM as reranker</strong>：直接用 GPT-4/Claude 给候选打分或做 pairwise 比较，精度最高但成本极高（每候选一次 LLM 调用），只适合候选很少的精排。</li>
+    </ul>
+    <p>选型建议：中文开源首选 bge-reranker-large；英文预算够选 Cohere；要长文档选 jina；追求极致精度且不在乎成本可上 LLM as reranker。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>bi-encoder 快但粗（独立编码 + 点积），用于全库检索；cross-encoder 慢但准（拼接 + 深度交互），用于少量候选重排。两阶段架构是 RAG 标准。</li>
+      <li>cross-encoder 更准的本质是不压缩、query 和 document 的 token 级深度交互。</li>
+      <li>bge-reranker 是中文首选，FP16 + batch 调优，长文档要截断或分块。</li>
+      <li>三个数字：召回 K1（30-100，宁多勿少）、重排输出 K2（看上下文窗口）、重排计算 K3（默认=K1）。</li>
+      <li>阈值过滤避免喂噪声给 LLM；模型选型看语言/预算/长文档需求。</li>
+    </ul>
+    <p>下一篇我们往前一步，看检索的源头——embedding 模型怎么选，BGE/E5/GTE/m3e 在中文场景下到底谁更强。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

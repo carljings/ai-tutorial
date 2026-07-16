@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -195,7 +193,7 @@
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
       <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
       <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
-      <a href="164-agent-aider-git.html" class="active" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
+      <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
@@ -305,81 +303,221 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 164 章 · 开源 Agent 源码深挖</span>
-<h1>Aider 的 Git 集成</h1><p class="lead">每次编辑自动 commit，提交信息由模型生成。可回滚、可 diff、可 branch。把 AI 编辑纳入版本控制工作流。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>每次编辑自动 commit，提交信息由模型生成。可回滚、可 diff、可 branch。把 AI 编辑纳入版本控制工作流。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>每次编辑自动 commit，提交信息由模型生成。可回滚、可 diff、可 branch。把 AI 编辑纳入版本控制工作流。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
-    }
-]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 47 · Agent 源码深挖系列</span>
+      <h1>Aider 的 Git 集成<br>auto-commit、git undo 与 SEARCH/REPLACE diff</h1>
+      <p class="lead">Aider 有两个让用户爱不释手的特性：一是每次 AI 修改代码后自动 git commit，让你随时能回滚；二是 git undo，一句话撤销最近一轮 AI 改动。这两个特性的底层都依赖 Aider 对 Git 的深度集成。而 AI 修改代码本身，用的是 Aider 独创的 SEARCH/REPLACE 块格式——一种比 unified diff 更适合 LLM 生成的编辑协议。本章我们拆解这三件事。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="auto-commit"><span class="idx">★</span> 一、auto-commit：每轮改动一个 commit</h2>
+    <p>Aider 的默认行为是：每当 AI 修改了文件（无论是新增还是编辑），立即自动生成一个 git commit。这个 commit 的 message 由 LLM 根据本轮对话生成，通常是「feat: 添加用户登录验证」这种符合规范的描述。用户不需要手动 commit，每轮交互都自然成为一个可回滚的检查点。</p>
+    <p>这个设计解决了一个真实痛点：用 AI 写代码时，改动很快、很多，如果人工管理 commit，要么忘记 commit 导致没法回滚，要么 commit 粒度太粗（一次包含太多改动）失去回滚价值。auto-commit 让每次 AI 改动都成为原子提交，配合 git undo 可以精确撤销任何一步。</p>
+    <pre><code class="language-python"># aider/coders/base_coder.py（简化）
+import subprocess
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+class Coder:
+    def commit(self, message=None):
+        """把当前所有改动 commit 掉。"""
+        if not self.repo:
+            return  # 没初始化 git，跳过
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Aider 的 Git 集成"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="163-agent-aider-repomap.html"><div class="lbl">← 上一章</div><div class="ttl">163 · Aider 的 Repo Map</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="165-agent-continue-arch.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">165 · Continue 的 IDE 架构</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 164 章 · Aider 的 Git 集成</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+        # 1. 检查有没有改动
+        diffs = self.get_diffs()
+        if not diffs:
+            return
+
+        # 2. 如果没给 message，让 LLM 生成
+        if message is None:
+            message = self.generate_commit_message(diffs)
+
+        # 3. add 所有被追踪的文件（aider 知道本轮改了哪些）
+        for fname in self.aider_edited_files:
+            subprocess.run(["git", "add", fname], check=True,
+                           cwd=self.root)
+
+        # 4. commit
+        full_message = f"{message}\n\n# Generated by aider"
+        subprocess.run(
+            ["git", "commit", "-m", full_message, "--no-verify"],
+            cwd=self.root, check=True,
+        )
+
+        # 5. 记录这个 commit 的 hash，供 git undo 用
+        commit_hash = self.get_head_hash()
+        self.aider_commit_hashes.append(commit_hash)
+
+    def generate_commit_message(self, diffs):
+        """让 LLM 根据本轮 diff 生成 commit message。"""
+        prompt = f"""根据以下代码改动，生成一条简洁的 commit message（&lt;=50 字符）。
+遵循 conventional commits 规范（feat/fix/refactor/...）。
+
+改动内容：
+{diffs[:2000]}
+"""
+        return self.model.complete(prompt).strip().split("\n")[0]</code></pre>
+    <p>注意第 4 步的 <code>--no-verify</code>。Aider 默认跳过 git hook（pre-commit、commit-msg），因为很多项目的 hook 会做 lint/test，可能拒绝 AI 生成的 commit（格式不符、测试不过）。跳过 hook 让 auto-commit 流畅，但也意味着可能提交不符合规范的代码。Aider 提供了配置选项让用户选择是否尊重 hook。</p>
+    <p>还有一个细节：<code>aider_commit_hashes</code> 列表记录了所有「由 Aider 创建的 commit」的 hash。这是 git undo 功能的基础——只有被记录的 Aider commit 才能被 undo，用户手动 commit 的不会被动到。</p>
+
+    <h2 class="section" id="git-undo"><span class="idx">★</span> 二、git undo：精确撤销 AI 的改动</h2>
+    <p>有了 commit hash 列表，git undo 的实现就很直接了：找到最近一个 Aider commit，用 git reset 撤销它，把代码恢复到之前的状态。</p>
+    <pre><code class="language-python"># aider/commands.py（简化）
+class Commands:
+    def cmd_undo(self, args):
+        """撤销最近一次 Aider 的 commit。"""
+        if not self.coder.aider_commit_hashes:
+            self.io.tool_error("没有可撤销的 Aider commit")
+            return
+
+        last_hash = self.coder.aider_commit_hashes.pop()
+
+        # 检查 HEAD 是不是这个 commit（防止用户在中间手动 commit）
+        head = self.coder.get_head_hash()
+        if head != last_hash:
+            self.io.tool_warning(
+                "警告：HEAD 已经不是最后一次 Aider commit，"
+                "可能有手动 commit 混入。仍要继续吗？(y/n)"
+            )
+            if not self.io.confirm_ask():
+                return
+
+        # 用 reset --hard 撤销（Aider 的设计假设改动已经 commit，
+        # 不需要 --soft 保留工作区改动）
+        subprocess.run(
+            ["git", "reset", "--hard", "HEAD^"],
+            cwd=self.coder.root, check=True,
+        )
+        self.io.tool_output(f"已撤销 commit {last_hash[:8]}")
+
+        # 把撤销涉及的文件重新读进 Aider 的上下文
+        self.coder.abs_fnames.discard(affected_file)  # 等等</code></pre>
+    <p>git undo 的关键风险是 <strong>HEAD 校验</strong>。如果用户在两次 Aider commit 之间手动 commit 了东西，直接 reset HEAD^ 会把用户的 commit 也撤销。Aider 通过检查 HEAD == last_hash 来检测这种情况，发现不一致就警告用户确认。这种「乐观执行 + 异常检测 + 确认兜底」的模式，在涉及破坏性操作时是稳妥的工程选择。</p>
+
+    <h2 class="section" id="search-replace"><span class="idx">★</span> 三、SEARCH/REPLACE：为什么不用 unified diff</h2>
+    <p>现在进入本章的重头戏：Aider 是怎么让 LLM 修改代码的？最直觉的方案是让 LLM 输出 unified diff（就是 <code>git diff</code> 那种格式），然后在本地 apply。但 Aider 没用这个，而是设计了自己的 SEARCH/REPLACE 块格式。原因值得深究。</p>
+    <p>unified diff 的问题在于 <strong>它依赖行号和精确上下文</strong>。一个 unified diff 的 hunk 长这样：<code>@@ -10,7 +10,9 @@</code> 表示「从第 10 行开始，原来的 7 行替换成 9 行」。这要求 LLM 精确记住「这段代码在第几行」——但 LLM 对行号的记忆是不可靠的，特别是长文件里。一旦行号对不上，apply 就失败。</p>
+    <p>SEARCH/REPLACE 块用 <strong>内容匹配代替行号</strong>。LLM 只需要输出「要找的旧代码」和「替换成的新代码」，工具自己在文件里搜索旧代码块的位置。这避开了 LLM 不擅长记行号的弱点。</p>
+    <pre><code class="language-text">SEARCH/REPLACE 块的格式：
+
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+def greet(name):
+    return "Hello, " + name
+=======
+def greet(name):
+    # 添加了 None 检查
+    if name is None:
+        return "Hello, stranger"
+    return "Hello, " + name
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE</code></pre>
+
+    <h2 class="section" id="apply-logic"><span class="idx">★</span> 四、apply 的核心逻辑与容错</h2>
+    <p>解析这个格式并应用到文件，是 Aider 的 editblock_coder 的核心。逻辑看起来简单（找到 SEARCH 块在文件里的位置，替换成 REPLACE 内容），但工程实现要处理大量边界情况。</p>
+    <pre><code class="language-python"># aider/diff.py（简化）
+import re
+
+def do_replace(fname, content, hunk):
+    """把一个 SEARCH/REPLACE hunk 应用到 content 上。"""
+    # 解析 hunk
+    parts = hunk.split("=======")
+    if len(parts) != 2:
+        return None, "格式错误：缺少 ======= 分隔符"
+    before_text = parts[0].split("&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH\n", 1)[-1]
+    after_text = parts[1].rsplit("\n&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE", 1)[0]
+
+    # 完全匹配（最理想情况）
+    if before_text in content:
+        new_content = content.replace(before_text, after_text, 1)
+        return new_content, None
+
+    # 容错 1：忽略首尾空白差异
+    stripped_before = before_text.strip()
+    for candidate in re.finditer(re.escape(stripped_before), content):
+        # 检查去掉空白后是否匹配
+        actual = content[candidate.start():candidate.end()]
+        if actual.strip() == stripped_before:
+            # 用实际位置替换
+            new_content = content[:candidate.start()] + after_text + content[candidate.end():]
+            return new_content, "warn: 通过 strip 匹配成功"
+
+    # 容错 2：用 difflib 模糊匹配
+    import difflib
+    lines = content.splitlines(keepends=True)
+    before_lines = before_text.splitlines(keepends=True)
+    # 找最相似的连续 N 行
+    best_ratio = 0
+    best_start = -1
+    for i in range(len(lines) - len(before_lines) + 1):
+        window = lines[i:i+len(before_lines)]
+        ratio = difflib.SequenceMatcher(None, window, before_lines).ratio()
+        if ratio &gt; best_ratio:
+            best_ratio = ratio
+            best_start = i
+    if best_ratio &gt;= 0.85:   # 相似度阈值
+        new_lines = lines[:best_start] + after_text.splitlines(keepends=True) + lines[best_start+len(before_lines):]
+        return "".join(new_lines), f"warn: 模糊匹配（相似度 {best_ratio:.2f}）"
+
+    # 全部失败
+    return None, f"找不到要替换的代码块：\n{before_text[:200]}"</code></pre>
+    <p>这段代码展示了 <strong>三级容错策略</strong>：完全匹配 → strip 匹配（忽略首尾空白）→ difflib 模糊匹配（相似度 &gt; 0.85）。为什么要这么多容错？因为 LLM 输出的 SEARCH 块和文件里的实际代码经常有细微差异——多一个空格、tab vs 空格、行尾换行符不同。如果只做严格匹配，失败率会高得让用户体验崩溃。</p>
+    <p>模糊匹配的阈值 0.85 是经验值——太高则容错不够，太低可能误匹配到无关代码。Aider 在模糊匹配成功时会返回 warn 信息，让用户知道「这次替换不是精确的」，可以选择检查。</p>
+
+    <h2 class="section" id="multi-hunk"><span class="idx">★</span> 五、多 hunk 与多文件编辑</h2>
+    <p>一次 AI 改动往往涉及多个文件、每个文件多处修改。SEARCH/REPLACE 格式天然支持这种场景——LLM 输出多个块，每个块指定文件名和修改内容：</p>
+    <pre><code class="language-text">用户：给 User 类添加 email 字段，并在 register 函数里验证 email 格式
+
+AI 的输出：
+
+models.py
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+class User:
+    def __init__(self, name):
+        self.name = name
+=======
+class User:
+    def __init__(self, name, email=None):
+        self.name = name
+        self.email = email
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE
+
+auth.py
+&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+def register(name):
+    user = User(name)
+    db.save(user)
+=======
+import re
+
+def register(name, email):
+    if not re.match(r"^\S+@\S+$", email):
+        raise ValueError("无效的 email 格式")
+    user = User(name, email=email)
+    db.save(user)
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE</code></pre>
+    <p>每个文件名后面跟着若干个 SEARCH/REPLACE 块。Aider 的解析器先按文件名切分，再对每个文件应用其中的所有块。如果一个块失败，Aider 会把失败信息反馈给 LLM，让它在下一轮重试。这种「逐块应用 + 失败反馈」的机制，让 AI 能处理复杂的多文件改动，且单点失败不阻塞整体。</p>
+
+    <h2 class="section" id="why-not-tools"><span class="idx">★</span> 六、为什么用文本协议而非工具调用</h2>
+    <p>现代 Agent（OpenCode、Codex）都用工具调用（tool_call）来编辑文件——LLM 通过结构化的 JSON 参数调用 write_file 工具。为什么 Aider 还坚持用文本协议的 SEARCH/REPLACE？</p>
+    <p>一个历史原因：Aider 比 tool-use API 出现得早，最初只能用纯文本交互。但更深层的原因是 <strong>模型兼容性</strong>。SEARCH/REPLACE 是纯文本，任何能生成文本的模型都能用——包括本地模型、开源模型、不支持 function calling 的小模型。而 tool-call 要求模型支持特定 API，限制了选择范围。Aider 作为一个支持「用任何模型」的工具，文本协议是更普适的选择。</p>
+    <p>代价是 <strong>解析复杂度和容错负担</strong>——如上面所见，要写很多容错代码来处理 LLM 输出的格式偏差。tool-call 把这个负担转移给了 API 层（模型 provider 保证结构化输出的正确性）。两种方案的权衡，本质是「兼容性 vs 工程复杂度」的取舍。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Aider 的 Git 集成和编辑协议是「以用户为中心」的设计典范。要点回顾：</p>
+    <ul>
+      <li><strong>auto-commit</strong>：每轮 AI 改动自动生成 commit，message 由 LLM 生成，记录 hash 供 undo 用，默认跳过 hook 保证流畅。</li>
+      <li><strong>git undo</strong>：基于 commit hash 列表精确撤销 Aider commit，HEAD 校验防止误撤用户手动 commit。</li>
+      <li><strong>SEARCH/REPLACE 而非 unified diff</strong>：用内容匹配代替行号，避开 LLM 不擅长记行号的弱点。</li>
+      <li><strong>三级容错</strong>：完全匹配 → strip 匹配 → difflib 模糊匹配（阈值 0.85），应对 LLM 输出的细微格式偏差。</li>
+      <li><strong>多文件多 hunk</strong>：文本协议天然支持，逐块应用 + 失败反馈让复杂改动可处理。</li>
+      <li><strong>文本协议的代价与价值</strong>：兼容任何模型（包括不支持 tool-call 的），但解析复杂度高，是兼容性 vs 工程复杂度的取舍。</li>
+    </ul>
+    <p>下一章（165 章）我们转向 Continue——一个 IDE 扩展形态的 Agent，看它如何在 VSCode 和 JetBrains 里同时运行，以及 autocomplete + chat 双模式的设计。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

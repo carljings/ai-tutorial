@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -141,7 +139,7 @@
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
-      <a href="114-tfm-speculative-decoding.html" class="active" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
+      <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
       <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
@@ -305,67 +303,190 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 114 章 · Transformer 原理深挖</span>
-<h1>投机解码：用小模型加速大模型</h1><p class="lead">小模型草拟多个 token、大模型批量验证、接受匹配前缀。Medusa 多头并行预测。2-3 倍加速且无损，是 serving 的免费午餐。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>小模型草拟多个 token、大模型批量验证、接受匹配前缀。Medusa 多头并行预测。2-3 倍加速且无损，是 serving 的免费午餐。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 14 · Transformer 深度系列</span>
+      <h1>投机解码<br>用小模型猜测，大模型批量验证的加速魔法</h1>
+      <p class="lead">大模型推理慢，瓶颈在于每生成一个 token 都要跑一次完整的前向。但如果我们能让一个轻量小模型先「投机」猜出后面好几个 token，再让大模型一次性批量验证，就能把多次串行调用压缩成一次并行调用。这就是 Speculative Decoding——它在数学上保证输出和纯大模型完全一致，却能带来 2 到 3 倍的实际加速。本章拆解它的原理、接受拒绝采样的概率推导，以及从零的实现。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="motivation"><span class="idx">★</span> 一、为什么需要投机解码</h2>
+    <p>先理解大模型推理慢在哪。Decoder-Only 模型生成时，每吐出一个 token 都要跑一次完整的前向传播，而前向里最贵的是 attention 的 KV 计算和 FFN 的矩阵乘。假设要生成 100 个 token，就要串行跑 100 次前向，延迟和 token 数严格成正比。</p>
+    <p>更关键的是，现代 GPU 的并行计算能力在「只生成一个 token」时严重浪费——一次前向只算一个 query，但 attention 的 key/value 和 FFN 的矩阵都铺满了显存带宽。这就像用一辆大卡车一次只运一个快递，运力利用率极低。</p>
+    <p>投机解码的核心洞察是：<strong>大模型并行处理多个 token 的成本，和处理单个 token 几乎一样</strong>。因为前向的主要开销是读取权重和 KV cache（memory-bound），多算几个 query 的增量很小。于是，如果我们能让小模型先猜出一串 token，再让大模型一次性验证这串 token，就能用「一次大模型前向」替代「多次小步前进」，把延迟大幅压缩。</p>
+
+    <h3 class="section">1.1 一个直观的生活类比</h3>
+    <p>把大模型想象成一位严谨的资深编辑，校对一个字要 10 分钟。把小模型想象成一位实习编辑，写草稿很快但偶尔出错。如果你让资深编辑一个字一个字地校，写 100 个字要 1000 分钟。但如果你让实习编辑先一口气写 8 个字，再把这 8 个字交给资深编辑一次性审——资深编辑审 8 个字大概只要 12 分钟（因为审 1 个和审 8 个的边际成本很低），如果前 5 个字对、第 6 个字错，资深编辑划掉第 6 个字并改正，然后让实习编辑从改正处继续。这样平均下来，资深编辑的时间利用效率大大提升。</p>
+    <p>这里的「时间利用效率」就是投机解码的加速比。加速多少取决于小模型猜得有多准——猜对的越多，大模型一次验证通过的越多，加速越大。</p>
+
+    <h2 class="section" id="core-idea"><span class="idx">★</span> 二、投机解码的完整流程</h2>
+    <p>把上面的类比翻译成算法。设大模型为 M（目标模型，target），小模型为 D（草稿模型，draft）。当前已经生成的序列是 x，我们要往后生成若干 token。一次投机解码的迭代包括四步。</p>
+
+    <h3 class="section">2.1 四步走：起草、验证、接受、修正</h3>
+    <ul>
+      <li><strong>第一步 起草（Draft）</strong>：用小模型 D 自回归地生成 k 个候选 token，记为 d1, d2, ..., dk。同时记录 D 在每一步的概率分布 q1, ..., qk。</li>
+      <li><strong>第二步 验证（Verify）</strong>：把 [x, d1, d2, ..., dk] 一次性喂给大模型 M 做一次前向（因为是一次输入多个 token，能并行计算）。M 会输出在每个位置的概率分布 p1, ..., p(k+1)。</li>
+      <li><strong>第三步 接受/拒绝（Accept/Reject）</strong>：从前往后逐个检查 d_i 是否被 M 接受。对每个 d_i，从均匀分布 U(0,1) 采样一个数 r；如果 r &lt; min(1, p_i(d_i) / q_i(d_i))，则接受 d_i，继续检查下一个；否则拒绝 d_i 及其之后的所有草稿。</li>
+      <li><strong>第四步 修正（Correct）</strong>：如果接受了前 j 个 token（d1 到 dj 被接受，d(j+1) 被拒绝），则从修正分布重新采样一个 token 替代 d(j+1)；如果所有 k 个都接受了，则额外从 p(k+1) 里采样一个 bonus token。然后把接受的 token 加到序列里，开始下一轮投机。</li>
+    </ul>
+    <p>这里的 accept/reject 规则和修正分布不是随便定的，它们背后有严格的数学保证——保证最终输出的分布和大模型 M 单独生成的分布<strong>完全一致</strong>。下面我们就来推导这个关键性质。</p>
+
+    <h2 class="section" id="math-proof"><span class="idx">★</span> 三、接受拒绝采样的数学保证</h2>
+    <p>投机解码最精妙的地方，是它能保证输出分布和纯大模型采样完全一致。这意味着：无论小模型猜得多烂，投机解码的输出质量都不会比大模型单独生成差，区别只是速度。这个保证来自拒绝采样（rejection sampling）的理论。</p>
+
+    <h3 class="section">3.1 单个 token 的接受概率</h3>
+    <p>考虑草稿 token d_i。大模型给它的概率是 p_i(d_i)，小模型给的是 q_i(d_i)。我们设定的接受规则是：以概率 min(1, p_i(d_i) / q_i(d_i)) 接受 d_i。这看起来随意，但配合修正分布就能保证正确性。</p>
+    <p>修正分布的设定是：如果拒绝 d_i，则从修正分布 p'_i(x) = max(0, p_i(x) - q_i(x)) / Z 里重新采样，其中 Z 是归一化常数，Z = sum_x max(0, p_i(x) - q_i(x))。这个修正分布的物理含义是「大模型概率超出小模型的那部分」。</p>
+
+    <h3 class="section">3.2 为什么最终分布等于大模型分布</h3>
+    <p>现在证明：经过「以 min(1, p/q) 接受 d，否则从 (p-q)+/Z 采样」这套流程，最终输出某个 token x 的总概率，等于大模型概率 p(x)。分两种情况讨论。</p>
+    <p>当草稿恰好等于 x（即 d = x）时，输出 x 的概率是「接受 x 的概率」= min(1, p(x)/q(x)) * q(x)。当草稿不等于 x（即 d != x）且最终修正到 x 时，输出 x 的概率是「拒绝后修正到 x」= sum_{d != x} q(d) * (1 - min(1, p(d)/q(d))) * max(0, p(x)-q(x))/Z。</p>
+    <p>经过代数化简（过程略，关键是用到 Z 的定义和 max(0, p-q) 的性质），两种情况加起来恰好等于 p(x)。这就是投机解码的理论核心：<strong>拒绝采样保证了输出分布的精确还原</strong>。所以小模型越准，接受率越高，加速越大；小模型再烂，也只是接受率低、速度退回到和纯大模型一样，质量绝不会下降。</p>
+
+    <h2 class="section" id="implementation"><span class="idx">★</span> 四、从零实现投机解码</h2>
+    <p>理论讲透了，现在动手实现。为了可在 CPU 上跑通，我们用两个不同大小的 GPT-2 模型（标准版做 target，蒸馏版做 draft），实现一个简化但完整的投机解码循环。</p>
+
+    <h3 class="section">4.1 核心实现</h3>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
-import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+@torch.no_grad()
+def draft_generate(draft_model, input_ids, num_draft, temperature=1.0):
+    """用小模型自回归生成 num_draft 个草稿 token，同时记录每步概率分布 q。"""
+    draft_tokens = []
+    draft_probs = []    # q_i 分布
+    seq = input_ids
+    for _ in range(num_draft):
+        logits = draft_model(seq).logits[0, -1] / temperature
+        q = F.softmax(logits, dim=-1)
+        next_id = torch.multinomial(q, num_samples=1)
+        draft_tokens.append(next_id.item())
+        draft_probs.append(q)
+        seq = torch.cat([seq, next_id.unsqueeze(0)], dim=-1)
+    return draft_tokens, draft_probs
+
+@torch.no_grad()
+def speculative_step(target_model, draft_model, input_ids, num_draft=4):
+    """一轮投机解码。返回 (新生成的 token 列表, 更新后的 input_ids)。"""
+    # 1. 起草
+    draft_tokens, draft_probs = draft_generate(draft_model, input_ids, num_draft)
+    # 2. 验证：把 [input_ids, draft...] 一次性喂给 target
+    full = torch.cat([input_ids,
+                      torch.tensor([draft_tokens]).T], dim=-1)
+    target_logits = target_model(full).logits[0]   # (L+k, vocab)
+    # 我们关心的是每个草稿位置 i 对应的 target 分布 p_i
+    # 位置：input_ids 长度 L，草稿从 L 开始，target_logits[L-1] 预测第 1 个草稿
+    L = input_ids.shape[1]
+    target_probs = [F.softmax(target_logits[L-1+i], dim=-1) for i in range(num_draft)]
+
+    # 3. 接受/拒绝
+    accepted = []
+    for i in range(num_draft):
+        d = draft_tokens[i]
+        p = target_probs[i][d].item()
+        q = draft_probs[i][d].item()
+        r = torch.rand(1).item()
+        if r &lt; min(1.0, p / max(q, 1e-8)):
+            accepted.append(d)
+        else:
+            # 拒绝：从修正分布采样一个 token 替代
+            correction = torch.clamp(target_probs[i] - draft_probs[i], min=0)
+            if correction.sum() &gt; 0:
+                correction = correction / correction.sum()
+                fixed = torch.multinomial(correction, num_samples=1).item()
+                accepted.append(fixed)
+            break
+    else:
+        # 所有草稿都接受：bonus token 从 target_probs[-1] 的下一步采样
+        bonus_logits = target_model(full).logits[0, -1]
+        bonus = torch.multinomial(F.softmax(bonus_logits, dim=-1), num_samples=1).item()
+        accepted.append(bonus)
+
+    new_ids = torch.tensor([accepted]).T
+    return accepted, torch.cat([input_ids, new_ids], dim=-1)</code></pre>
+    <p>这段代码完整实现了四步流程：起草、验证、接受拒绝、修正加 bonus。注意关键细节：接受判断用 min(1, p/q) 的拒绝采样；拒绝时从 (p-q)+ 的修正分布重采样；全接受时额外送一个 bonus token。这些都对应前面的数学推导。</p>
+
+    <h3 class="section">4.2 完整的投机解码循环</h3>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
+
+target_name = "gpt2"              # 大模型
+draft_name = "distilgpt2"         # 小模型（草稿）
+tokenizer = AutoTokenizer.from_pretrained(target_name)
+target = AutoModelForCausalLM.from_pretrained(target_name).eval()
+draft = AutoModelForCausalLM.from_pretrained(draft_name).eval()
+
+def speculative_decode(prompt, max_new_tokens=30, num_draft=4):
+    ids = tokenizer(prompt, return_tensors="pt").input_ids
+    total = 0
+    rounds = 0
+    while total &lt; max_new_tokens:
+        accepted, ids = speculative_step(target, draft, ids, num_draft)
+        total += len(accepted)
+        rounds += 1
+    return tokenizer.decode(ids[0], skip_special_tokens=True), rounds
+
+text, rounds = speculative_decode("The future of AI is", max_new_tokens=30, num_draft=4)
+print("输出：", text)
+print(f"投机轮数: {rounds}（如果纯 target 需要 30 次前向，这里只用了 {rounds} 次 target 前向）")</code></pre>
+    <p>运行后你会看到一个惊人的事实：生成同样多的 token，投机解码只用了一小部分大模型前向调用。在 distilgpt2 猜得比较准的简单 prompt 上，30 个 token 可能只要 8 到 10 轮投机，即 8 到 10 次大模型前向——相比纯 target 的 30 次前向，节省了三分之二。</p>
+
+    <h2 class="section" id="speedup-analysis"><span class="idx">★</span> 五、加速效果分析</h2>
+    <p>投机解码能加速多少，取决于三个因素：草稿长度 k、小模型的接受率 alpha、大小模型的前向耗时比。我们用一个简化模型来分析。</p>
+
+    <h3 class="section">5.1 接受率与加速比的关系</h3>
+    <p>设小模型每步的接受概率为 alpha（0 到 1），草稿长度为 k。则一轮投机平均接受的 token 数为 (1 - alpha^(k+1)) / (1 - alpha)（几何级数）。一轮投机的时间成本是 1 次大模型前向 + k 次小模型前向。假设大模型前向耗时 T_t，小模型前向耗时 T_d（通常 T_d 远小于 T_t）。</p>
+    <p>于是平均每生成一个 token 的有效时间为 (T_t + k*T_d) / 平均接受数。而纯大模型每生成一个 token 需要 T_t。加速比就是 T_t / 这个有效时间。把 alpha 提高或把 T_d 压低，都能提升加速比。</p>
+    <p>下面这段代码帮你直观感受不同接受率下的加速比。</p>
+    <pre><code class="language-python">def speculative_speedup(alpha, k, Tt_Td_ratio=10):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    估算投机解码相对纯 target 的加速比。
+    alpha: 接受率; k: 草稿长度; Tt_Td_ratio: 大小模型前向耗时比。
+    """
+    if alpha == 1.0:
+        accepted = k + 1   # 全接受，加 bonus
+    else:
+        accepted = (1 - alpha**(k+1)) / (1 - alpha)
+    Tt = 1.0
+    Td = 1.0 / Tt_Td_ratio
+    time_per_round = Tt + k * Td
+    time_per_token_spec = time_per_round / accepted
+    time_per_token_pure = Tt
+    return time_per_token_pure / time_per_token_spec
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"投机解码：用小模型加速大模型"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="113-tfm-attention-mask.html"><div class="lbl">← 上一章</div><div class="ttl">113 · 注意力掩码：因果、双向、文档级</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="115-tfm-quantization.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">115 · 量化：让大模型跑在消费级显卡上</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 114 章 · 投机解码：用小模型加速大模型</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+print(f"{'接受率':&gt;8} {'k=4 加速比':&gt;12} {'k=8 加速比':&gt;12}")
+for alpha in [0.5, 0.7, 0.85, 0.95]:
+    s4 = speculative_speedup(alpha, 4)
+    s8 = speculative_speedup(alpha, 8)
+    print(f"{alpha:&gt;8.2f} {s4:&gt;12.2f}x {s8:&gt;12.2f}x")</code></pre>
+    <p>你会看到：接受率 0.7、k=4 时大约 2 倍加速；接受率 0.85 时接近 3 倍。接受率越高，加速越显著；但 k 不是越大越好——k 太大时如果末尾几个草稿老被拒，反而浪费了小模型的前向。实践中 k 通常取 4 到 8，需要根据具体模型动态调整。</p>
+
+    <h2 class="section" id="variants"><span class="idx">★</span> 六、投机解码的变体与工程实践</h2>
+    <p>基础的投机解码已经很有用，研究社区还发展出几个值得关注的变体，进一步提升了适用性。</p>
+    <ul>
+      <li><strong>Self-Speculative / Layer Skipping</strong>：不引入独立的小模型，而是跳过目标模型的若干层来当 draft（如 LayerSkip）。省去了维护第二个模型的开销。</li>
+      <li><strong>Medusa</strong>：在目标模型上额外训练几个「头」，每个头并行预测未来第 2、3、4 个位置，相当于让目标模型自己当 draft，省去小模型。</li>
+      <li><strong>Lookahead Decoding</strong>：用 Jacobi 迭代并行生成多个 token，不需要任何 draft 模型，纯靠并行化加速。</li>
+      <li><strong>EAGLE / EAGLE-2</strong>：训练一个轻量 draft 模型，不仅输入 token 还输入隐状态，接受率大幅提高，是目前实际效果最好的方案之一。</li>
+    </ul>
+    <p>工程上，投机解码已经在 vLLM、TensorRT-LLM、TGI 等主流推理框架里落地。它的主要适用场景是<strong>低并发、长输出的交互式推理</strong>（比如聊天助手），因为这种场景下单次请求延迟的降低能直接提升用户体验。在高并发的批处理场景，收益会打折扣，因为 GPU 已经被多个请求填满了。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把投机解码从原理到实现完整过了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>核心动机</strong>：大模型推理是 memory-bound，一次前向算一个 token 和算多个 token 的成本接近，所以可以让小模型先猜多个再让大模型批量验证。</li>
+      <li><strong>四步流程</strong>：起草（draft model 生成 k 个候选）、验证（target model 一次前向）、接受拒绝（min(1, p/q) 规则）、修正（从修正分布重采样或 bonus token）。</li>
+      <li><strong>数学保证</strong>：拒绝采样保证最终输出分布和纯 target 模型完全一致，小模型越准加速越大，再烂也不影响质量。</li>
+      <li><strong>加速因素</strong>：接受率越高、草稿长度适中、大小模型耗时比越大，加速越显著，典型加速 2 到 3 倍。</li>
+      <li><strong>工程落地</strong>：vLLM、TensorRT-LLM 已支持；变体包括 self-speculative、Medusa、EAGLE 等，适用于交互式低并发场景。</li>
+    </ul>
+    <p>投机解码是「不改模型、只改解码算法」就能加速的优雅方案。接下来我们转向另一个方向的优化——模型量化，它通过把权重从 FP16 压到 INT8 甚至 INT4，直接砍掉显存和计算开销。这是让大模型跑在消费级显卡上的关键技术。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

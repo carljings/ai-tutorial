@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -171,7 +169,7 @@
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
-      <a href="142-vec-multivec.html" class="active" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
+      <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
       <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
       <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
@@ -305,66 +303,142 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 142 章 · 向量索引与 RAG 原理深挖</span>
-<h1>ColBERT 与多向量检索</h1><p class="lead">单向量压缩信息的损失。ColBERT 每个 token 一个向量，MaxSim 逐 token 交互。比双塔准、比 cross-encoder 快。PLAID 加速引擎。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>单向量压缩信息的损失。ColBERT 每个 token 一个向量，MaxSim 逐 token 交互。比双塔准、比 cross-encoder 快。PLAID 加速引擎。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>单向量压缩信息的损失。ColBERT 每个 token 一个向量，MaxSim 逐 token 交互。比双塔准、比 cross-encoder 快。PLAID 加速引擎。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 142 · 向量检索系列</span>
+      <h1>多向量检索 ColBERT<br>token 级向量与 late interaction</h1>
+      <p class="lead">传统的 embedding 把整个文档压成一个向量——500 个 token 压成 768 维，信息密度极低，这就是为什么它对细节问题召回不稳。ColBERT（Contextualized Late Interaction over BERT）反其道而行：每个 token 都有自己的向量，文档和查询在 token 级别交互，精度大幅超越单向量。本文拆解它的 late interaction 机制、多向量索引的工程挑战，以及它和单向量的取舍。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="single-vec-limit"><span class="idx">★</span> 单向量的信息瓶颈</h2>
+    <p>回顾传统 bi-encoder：一个文档（比如 300 token）经过 embedding 模型，所有 token 的表示被 pooling（CLS 或 mean）压成一个固定维度（如 768）的向量。这个向量要"代表"整个文档。问题在于：<strong>300 个 token 的语义被压成 768 个数字，平均每个 token 的语义信息被稀释到几个数字</strong>。</p>
+    <p>这对"文档讲什么主题"这种粗粒度匹配够用，但对"文档里有没有提到 X 的 Y 属性"这种细粒度匹配就吃力——因为细节信息在 pooling 时和其它信息混在一起、被稀释了。这就是单向量召回在高精度场景（如法律条款匹配、技术规格查询）的瓶颈。</p>
+    <p>cross-encoder（rerank）解决了精度问题但太慢。ColBERT 是个绝妙的中间路线：<strong>保留 token 级向量（精度高），但在最后用一种叫 late interaction 的轻量交互（速度快）</strong>。</p>
+
+    <h2 class="section" id="late-interaction"><span class="idx">★</span> late interaction：token 级的 MaxSim</h2>
+    <p>ColBERT 的架构分两段：</p>
+    <ol>
+      <li><strong>独立编码（late）</strong>：query 和 document 各自独立通过一个 BERT 编码器，每个 token 输出一个向量。query 变成 Lq 个向量，document 变成 Ld 个向量。注意这里和 cross-encoder 不同——query 和 doc 没有交互（late 之意在此），各自独立编码。</li>
+      <li><strong>late interaction</strong>：对 query 的每个 token 向量 q_i，在 document 的所有 token 向量里找最相似的那个（max similarity），把所有 query token 的 max sim 求和，作为最终相关性分数。</li>
+    </ol>
+    <p>形式化：score = Σ_i max_j (q_i · d_j)，其中 q_i 是 query 第 i 个 token，d_j 是 document 第 j 个 token。这个 MaxSim 操作就是 late interaction。</p>
+
+    <h3>为什么 MaxSim 既快又准</h3>
+    <p>对比三种方案的交互程度：</p>
+    <ul>
+      <li><strong>cross-encoder</strong>：query 和 doc 拼一起过 transformer，每个 token 互相 attention。交互最深，最准，但要为每个 (query, doc) 对做一次完整 transformer forward，O(N²) 不可扩展。</li>
+      <li><strong>单向量 bi-encoder</strong>：query 和 doc 各自压成一个向量，最后点积。交互最浅，最快，但精度低。</li>
+      <li><strong>ColBERT</strong>：query 和 doc 各自保留 token 向量（独立编码，可离线），只在最后做 MaxSim。交互中等，精度接近 cross-encoder，速度接近单向量（doc 端可离线编码）。</li>
+    </ul>
+    <p>关键洞察：MaxSim 是个<strong>可分解的轻量交互</strong>——document 的每个 token 向量可以离线编码好存起来，查询时只对 query 的 Lq 个 token 各做一次 max（在 doc 的 Ld 个向量里）。计算量是 O(Lq · Ld · d)，对 Lq=30、Ld=300、d=128 大约百万次点积，毫秒级。</p>
+
+    <pre><code class="language-python"># ColBERT MaxSim 的纯 Python 实现
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+def colbert_score(q_vecs, d_vecs):
+    """
+    q_vecs: (Lq, d)  query 的 token 向量（已归一化）
+    d_vecs: (Ld, d)  document 的 token 向量（已归一化）
+    return: scalar MaxSim 分数
+    """
+    sim_matrix = q_vecs @ d_vecs.T        # (Lq, Ld) 每个 query token 对每个 doc token 的相似度
+    max_sim_per_q = sim_matrix.max(axis=1) # (Lq,) 每个 query token 的最大相似度
+    return max_sim_per_q.sum()             # 求和作为总分
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 直觉：query 的每个词都能"找到" doc 里最像的那个词，全部命中则高分
+q = np.random.randn(10, 128); q /= np.linalg.norm(q, axis=1, keepdims=True)
+d = np.random.randn(50, 128); d /= np.linalg.norm(d, axis=1, keepdims=True)
+print("ColBERT score:", colbert_score(q, d))
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+# 对比单向量：mean pool 后单次点积
+q_single = q.mean(axis=0); q_single /= np.linalg.norm(q_single)
+d_single = d.mean(axis=0); d_single /= np.linalg.norm(d_single)
+print("Single-vec score:", q_single @ d_single)
+# ColBERT 保留细节，单向量丢失细节
+</code></pre>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"ColBERT 与多向量检索"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="141-vec-graphrag.html"><div class="lbl">← 上一章</div><div class="ttl">141 · GraphRAG：知识图谱增强检索</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="143-vec-splade.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">143 · SPLADE 稀疏向量：学习型 BM25</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 142 章 · ColBERT 与多向量检索</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="indexing"><span class="idx">★</span> 多向量索引的工程挑战</h2>
+    <p>ColBERT 的精度优势伴随着存储和检索的工程挑战：<strong>每个文档不再是 1 个向量，而是 Ld 个向量</strong>（Ld 是文档 token 数，典型几百）。一个 100 万文档的库，单向量索引存 100 万向量，ColBERT 要存几亿向量。</p>
+    <p>具体问题：</p>
+    <ul>
+      <li><strong>存储爆炸</strong>：每个 token 向量 128 维 float32 = 512 字节，300 token 文档 = 150KB，100 万文档 = 150GB。ColBERTv2 用残差压缩 + 量化把存储压到原来的 1/10 左右，但仍比单向量重。</li>
+      <li><strong>检索复杂度</strong>：查询时对 query 的 Lq 个 token，每个都要在全库找最近邻，再做 MaxSim 聚合。ColBERTv2 用一种"先 PLAID 候选筛选（用 centroid block 找候选文档）+ 精细 MaxSim"的两阶段方案，把延迟压到几十毫秒。</li>
+      <li><strong>索引更新</strong>：文档新增/修改要重新编码它的所有 token 向量，比单向量重。</li>
+    </ul>
+
+    <pre><code class="language-python"># 用官方 RAGatouille 库（封装了 ColBERT）实操
+# pip install ragatouille
+from ragatouille import RAGPretrainedModel
+
+# 1. 加载 ColBERT 模型（英文用 jinaai/colbertv2，中文可用 lightembedrics 的中文版）
+model = RAGPretrainedModel.from_pretrained("colbert-ir/colbertv2.0")
+
+# 2. 索引文档
+docs = [
+    "Acme Corp 2024 年云服务营收 30 亿美元，同比增长 60%。",
+    "公司整体营收 50 亿，云服务贡献主要增长。",
+    "研发投入同比增加 15%，聚焦 AI 基础设施。",
+]
+model.index(
+    collection=docs,
+    index_name="acme_report",
+    overwrite_index=True,
+    # 中文文档指定 split_documents=True 让它按 token 处理
+)
+
+# 3. 查询
+results = model.search(query="Acme Corp 云服务营收增长", k=3)
+for r in results:
+    print(f"{r['score']:.4f}  {r['content'][:50]}")
+# ColBERT 对这种"细节属性匹配"通常优于单向量
+</code></pre>
+
+    <h2 class="section" id="colbertv2"><span class="idx">★</span> ColBERTv2 的优化：让多向量可扩展</h2>
+    <p>原始 ColBERT（v1）的存储和检索太重，无法落地。ColBERTv2 做了几个关键优化让它进入实用：</p>
+    <ul>
+      <li><strong>残差量化</strong>：把每个 token 向量减去所属 centroid（用 K-means 聚的簇心），只存残差的量化编码。残差通常很小，用 1-2 比特就能编码，存储压缩到 1/10。</li>
+      <li><strong>PLAID 候选筛选</strong>：先用 centroid 倒排（每个 centroid 维护落在它附近的 token 列表）快速找出"和 query token 接近的文档候选"，只对这些候选做精细 MaxSim。这把检索从全库扫降到几百个候选。</li>
+      <li><strong>batch 查询优化</strong>：把 query 的多个 token 向量合并成一次 ANN 查询，减少检索次数。</li>
+    </ul>
+    <p>经过这些优化，ColBERTv2 在 recall@1000 上长期霸榜 BEIR/KILT 等 IR 基准，同时检索延迟控制在几十毫秒。它是当前"精度优先"检索的事实标杆。</p>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 单向量 vs ColBERT vs cross-encoder</h2>
+
+    <pre><code class="language-text">三种方案对比
+┌────────────────┬────────┬────────┬──────────┬───────────────────────┐
+│ 方案            │ 精度   │ 速度   │ 存储     │ 适用                  │
+├────────────────┼────────┼────────┼──────────┼───────────────────────┤
+│ 单向量 bi-enc  │ 中     │ 极快   │ 小       │ 主流默认，大规模      │
+│ ColBERT        │ 高     │ 中     │ 大(压缩后中) │ 高精度检索          │
+│ cross-encoder  │ 极高   │ 慢     │ N/A      │ 重排 top-N            │
+└────────────────┴────────┴────────┴──────────┴───────────────────────┘</code></pre>
+
+    <p>典型组合：<strong>单向量粗召（全库）→ ColBERT 精排（top-100）→ cross-encoder 终排（top-20）</strong>。但这种三级架构复杂、成本高，只在极致精度场景（法律、医疗）用。多数场景单向量 + cross-encoder rerank 已经够。</p>
+
+    <h2 class="section" id="when-colbert"><span class="idx">★</span> 什么时候选 ColBERT</h2>
+    <ul>
+      <li><strong>高精度检索</strong>：法律条款匹配、技术规格查询、学术文献检索等细节敏感场景。</li>
+      <li><strong>长尾词召回</strong>：单向量对罕见术语、专有名词召回差，ColBERT 的 token 级匹配更稳。</li>
+      <li><strong>跨语言/多语言</strong>：ColBERT 的 token 级交互对词级对齐更敏感，多语言场景常优于单向量。</li>
+    </ul>
+    <p>反之，规模超大（亿级）、精度要求中等、延迟敏感，单向量仍是默认。ColBERT 的存储和检索成本是它的主要门槛。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>单向量把整个文档压成一个向量，信息稀释，细节匹配不稳，这是它的精度瓶颈。</li>
+      <li>ColBERT 保留每个 token 的向量（独立编码，late），查询时用 MaxSim（score = Σ_i max_j q_i·d_j）做轻量交互，精度接近 cross-encoder，速度接近单向量。</li>
+      <li>MaxSim 是可分解的：doc 端 token 向量可离线编码，查询时只对 query 的 Lq 个 token 各做一次 max。</li>
+      <li>工程挑战是存储爆炸（每文档 Ld 个向量）和检索复杂度。ColBERTv2 用残差量化、PLAID 候选筛选、batch 优化让它进入实用，是精度优先检索的标杆。</li>
+      <li>选型：高精度/长尾/多语言场景选 ColBERT；超大规摸/中等精度/延迟敏感选单向量；极致精度可叠三级（单向量→ColBERT→cross-encoder）。</li>
+    </ul>
+    <p>下一篇看另一种打破单向量瓶颈的思路——SPLADE 稀疏向量，它把"学习型倒排索引"带回了向量检索。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

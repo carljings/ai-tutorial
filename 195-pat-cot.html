@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -230,7 +228,7 @@
       <a href="192-pat-memory.html" title="Agent 记忆架构：短期、长期、情景记忆"><span class="num">192</span>Agent 记忆架构</a>
       <a href="193-pat-router-supervisor.html" title="路由/主管模式：一个调度器分发任务"><span class="num">193</span>路由/主管模式</a>
       <a href="194-pat-tool-chaining.html" title="工具调用模式：agent 如何选择和组合工具"><span class="num">194</span>工具调用模式</a>
-      <a href="195-pat-cot.html" class="active" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
+      <a href="195-pat-cot.html" title="Chain of Thought：一切推理模式的起点"><span class="num">195</span>Chain of T</a>
       <a href="196-pat-autonomous.html" title="自主循环模式：持续运行的 goal-driven agent"><span class="num">196</span>自主循环模式</a>
     </div>
     <div class="nav-group"><h3>★Agent框架</h3>
@@ -305,31 +303,136 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 219 章 · Agent 设计模式</span>
-    <h1>Chain of Thought</h1><p class="lead">让模型"想出来"而非"背出来"</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么"一步步想"效果更好</h2>
-    <p>Chain of Thought（CoT）是所有推理模式的鼻祖。它的发现来自一个观察：当你让 LLM"一步步推理"而不是直接给答案，它在数学、逻辑、多步推理任务上的准确率大幅提升。原因是 LLM 的"推理"发生在生成 token 的过程中——给它更多 token 去"想"，它就有更多"计算预算"去推导。直接要答案，等于剥夺了它思考的空间。</p>
-    <h2><span class="idx"></span>CoT 的三种触发方式</h2>
-    <table class="data-table"><thead><tr><th>方式</th><th>怎么做</th><th>效果</th></tr></thead><tbody><tr><td>Zero-shot CoT</td><td>prompt 末尾加"让我们一步步思考"</td><td>简单有效，提升明显</td></tr><tr><td>Few-shot CoT</td><td>给几个带推理过程的示例</td><td>效果最好，但要构造示例</td></tr><tr><td>Auto-CoT</td><td>让模型自己生成示例</td><td>省人工，但质量不稳定</td></tr></tbody></table>
-    <pre class="code"><code class="language-text"># Zero-shot CoT：一行话的魔力
-普通 prompt: "小明有5个苹果，吃了2个，又买了3个，还有几个？"
-模型可能直接说: "6个"（碰巧对，但复杂题易错）
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 195 · 深度应用</span>
+      <h1>思维链 CoT 模式<br>让大模型学会"想一想再回答"</h1>
+      <p class="lead">你问一个模型"17 乘以 24 是多少",它脱口而出"408"。错了,正确答案是 408——这次它蒙对了,但下次换个数可能就错。问题在于模型是"直觉式"回答,没有展开推理过程。思维链(Chain-of-Thought, CoT)的核心洞察是:让模型把推理步骤写出来,准确率会大幅提升。本章深入剖析 CoT 的三种形态,并给出可直接复用的 prompt 和代码。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="cot-insight"><span class="idx">★</span> CoT 为什么有效:直觉与推理的差别</h2>
+    <p>人类面对复杂问题时不直接给答案,而是"想一下":拆解、推理、验证,最后才说出来。这个思考过程对正确率至关重要。而大语言模型默认的生成方式是"next token prediction"——逐 token 生成,没有显式的"思考缓冲"。这导致模型在需要多步推理的数学、逻辑、规划任务上表现不稳定,因为每一步的小误差会在后续步骤中放大。</p>
+    <p>CoT(Chain-of-Thought)的洞察来自 2022 年 Google 的论文《Chain-of-Thought Prompting Elicits Reasoning in Large Language Models》。它发现,只要让模型在给答案前先输出推理步骤,复杂推理任务的准确率会显著提升。背后的原理可以从几个角度理解。</p>
+    <p>第一,<strong>推理过程本身就是计算</strong>。神经网络每生成一个 token 都做了一次前向计算,生成一串推理步骤相当于展开了一个"程序",每一步的计算结果被写进上下文,供下一步使用。这打破了单次前向的表达力限制,本质上是用"生成"做"计算"。</p>
+    <p>第二,<strong>训练数据里有推理样本</strong>。预训练语料里有大量带过程的解题、论证文本,模型见过"先分析再结论"的模式。CoT 提示唤醒了这种模式,让模型调用它在预训练中学到的推理能力。</p>
+    <p>第三,<strong>分解降低了任务难度</strong>。复杂问题一步做对很难,但拆成几步,每步都不难。CoT 把困难的整体任务分解为简单的子任务,每步的错误率低,整体准确率自然上升。</p>
+    <h2 class="section" id="zero-shot-cot"><span class="idx">★</span> Zero-shot CoT:一句咒语的力量</h2>
+    <p>CoT 最简单的形态是 zero-shot CoT,来自同一时期的论文《Large Language Models are Zero-Shot Reasoners》。它的做法极其简洁:在原始问题后加一句"Let's think step by step"(让我们一步一步思考),仅此而已。这句"咒语"在没有示例的情况下,就能让模型展开推理,在多个推理 benchmark 上提升两位数百分点。</p>
+    <p>这听起来像魔法,但原理清楚:模型在预训练中见过大量"step by step"开头的推理文本,这句话把模型引导到"推理模式",激活了它已具备的推理能力。这印证了 CoT 的本质是"释放"而非"赋予"推理能力——大模型本身就有推理潜力,只是默认没被激活。</p>
+    <p>下面是 zero-shot CoT 的对比示例。同一个数学问题,不加提示和加提示的效果天壤之别:</p>
+    <pre><code class="language-python">from anthropic import Anthropic
+client = Anthropic()
 
-CoT prompt: "小明有5个苹果，吃了2个，又买了3个，还有几个？让我们一步步思考。"
-模型输出: "小明一开始有5个苹果。吃了2个，剩下 5-2=3 个。
-          又买了3个，变成 3+3=6 个。答案是6个。"</code></pre>
-    <h2><span class="idx"></span>CoT 为什么是 agent 的基础</h2>
-    <p>ReAct 里的"Thought"就是 CoT——模型在行动前先推理。ToT 是"多路的 CoT"。Reflection 里的"Reflect"也是 CoT（反思推理）。可以说 agent 的所有高级推理能力都建立在 CoT 之上。理解了 CoT 的"给模型思考空间"这个核心思想，后续的模式都是它的扩展。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>CoT 让 LLM"先想后答"，是所有推理模式的基石。一行"让我们一步步思考"就能显著提升复杂推理的准确率。ReAct 的 Thought、ToT 的搜索、Reflection 的反思，本质上都是 CoT 的变体。掌握 CoT，你就掌握了 agent 推理的"原语"。</p>
-    <div class="chapter-nav">
-    <a href="194-pat-tool-chaining.html"><div class="lbl">← 上一章</div><div class="ttl">194 · 工具调用模式：agent 如何选择和组合工具</div></a>
-    <a href="196-pat-autonomous.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">196 · 自主循环模式：持续运行的 goal-driven agent</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 219 章 · Chain of Thought：一切推理模式的起点</p></footer>
-  </main>
+question = "食堂里有 23 个苹果,用了 20 个做午餐,又买了 6 个,问现在有多少个苹果?"
+
+# 普通 prompt:模型可能直接给错误答案
+plain_prompt = f"{question}\n\n答案:"
+# 典型输出: "29" (可能正确,但不稳定,复杂题易错)
+
+# Zero-shot CoT:加一句引导
+cot_prompt = f"{question}\n\nLet's think step by step."
+# 典型输出:
+# "1. 初始有 23 个苹果。
+#  2. 做午餐用了 20 个,所以还剩 23 - 20 = 3 个。
+#  3. 又买了 6 个,所以现在有 3 + 6 = 9 个。
+#  4. 答案是 9。"
+
+resp = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=1024,
+    messages=[{"role": "user", "content": cot_prompt}],
+)
+print(resp.content[0].text)
+</code></pre>
+    <p>Zero-shot CoT 的优势是<strong>零成本、通用、无需构造示例</strong>。它的局限是效果不如 few-shot CoT 稳定,对某些需要特定推理范式的任务(如几何证明)引导不够具体。但作为"默认加在推理任务后的一句话",它的性价比无可匹敌——几乎没有任何理由不用。</p>
+    <h2 class="section" id="few-shot-cot"><span class="idx">★</span> Few-shot CoT:用示例定义推理范式</h2>
+    <p>Few-shot CoT 通过在提示里给出几个"问题 + 完整推理过程 + 答案"的示例,让模型学会按你期望的推理范式解题。它的效果通常优于 zero-shot,尤其适用于有特定推理格式的领域(数学要用方程、法律要用法条)。</p>
+    <p>构造 few-shot 示例的关键是<strong>示范的推理过程要规范、清晰</strong>。模型会模仿示例的推理风格——如果示例跳步,模型也会跳步;如果示例严谨,模型也会严谨。下面是一个数学推理的 few-shot CoT 模板,注意推理过程的规范度:</p>
+    <pre><code class="language-text">Q: 小明有 15 元,买了 3 支铅笔,每支 2 元,又买了一本笔记本 6 元。他还剩多少钱?
+A: 让我们一步步分析。
+   第一步,计算铅笔的总花费:3 支 × 2 元/支 = 6 元。
+   第二步,计算总花费:铅笔 6 元 + 笔记本 6 元 = 12 元。
+   第三步,计算剩余:15 元 - 12 元 = 3 元。
+   所以,小明还剩 3 元。
+
+Q: 一辆车以 60 公里/小时的速度行驶,行驶了 2.5 小时后休息 30 分钟,
+   然后以 80 公里/小时继续行驶 1.5 小时。总共行驶了多少公里?
+A: 让我们一步步分析。
+   第一阶段:60 × 2.5 = 150 公里。休息阶段不产生行驶距离。
+   第二阶段:80 × 1.5 = 120 公里。
+   总行驶距离:150 + 120 = 270 公里。
+   所以,总共行驶了 270 公里。
+
+Q: [你的实际问题]
+A:
+</code></pre>
+    <p>给模型看了这两个示例后,它会按"分阶段计算 + 汇总"的范式解决新的行程问题。Few-shot CoT 的示例数量通常 2-5 个足够,关键不是多而是精——每个示例都要展示一种典型的推理模式。示例选择上,应覆盖问题的不同难度和题型,让模型学会泛化而非死记。</p>
+    <p>一个进阶技巧是<strong>自洽(self-consistency)</strong>:让模型对同一个问题用 CoT 生成多个不同推理路径的答案,取多数投票作为最终答案。因为每条推理路径的误差独立,投票能显著降低出错概率。我们下一节专门讲。</p>
+    <h2 class="section" id="self-consistency"><span class="idx">★</span> Self-Consistency:投票提升可靠性</h2>
+    <p>CoT 有一个绕不开的问题:<strong>推理路径不唯一,模型可能选错路径</strong>。Self-Consistency(SC)是 Google 提出的改进方案,核心思想简单却有效:对同一问题采样多条不同的推理路径,看哪条结论出现最多,取多数投票结果。</p>
+    <p>为什么有效?假设对某道数学题,正确的推理路径有 60% 的概率被采样到,错误路径各占 10%、10%、20%。单次 CoT 准确率 60%。但采样 5 次后,正确答案获得多数票的概率会大幅提升(因为错误路径分散,正确路径集中)。这是"集成学习"思想在 LLM 推理上的应用。</p>
+    <p>实现 SC 的关键是<strong>用较高 temperature 采样</strong>(如 0.7-1.0),让模型生成不同的推理路径;如果 temperature 为 0,所有路径都一样,投票就失去意义。下面是完整实现:</p>
+    <pre><code class="language-python">import re
+from collections import Counter
+
+def self_consistent_answer(question, n_samples=5):
+    """对同一问题采样多条 CoT,投票选最终答案"""
+    cot_prompt = f"""{question}
+
+Let's think step by step. 最后用 "The answer is X." 给出答案。"""
+
+    answers = []
+    for _ in range(n_samples):
+        resp = client.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=1024,
+            temperature=0.8,            # 关键:高温度产生多样路径
+            messages=[{"role": "user", "content": cot_prompt}],
+        )
+        text = resp.content[0].text
+        # 抽取最终答案
+        m = re.search(r"answer is\s*([^\.\n]+)", text, re.IGNORECASE)
+        if m:
+            answers.append(m.group(1).strip())
+
+    # 多数投票
+    counter = Counter(answers)
+    best, count = counter.most_common(1)[0]
+    print(f"投票分布: {dict(counter)}")
+    return best
+
+print(self_consistent_answer("一个数加上 7,再乘以 3,等于 36。这个数是多少?"))
+# 投票分布: {'9': 4, '8': 1}
+# 9
+</code></pre>
+    <p>SC 的代价是<strong>推理成本翻倍</strong>:采样 N 次意味着 N 倍的 token 消耗。所以它适合对准确率要求高、对延迟和成本不敏感的场景(如数学竞赛、代码生成、关键决策)。日常对话用 zero-shot CoT 足矣。</p>
+    <h2 class="section" id="advanced-variants"><span class="idx">★</span> CoT 的进阶变体</h2>
+    <p>CoT 的成功催生了一系列变体,针对不同需求做优化。了解它们能让你在合适场景用对工具。</p>
+    <p><strong>Zero-shot CoT 的中文变体</strong>:中文场景下"让我们一步一步思考"同样有效。也可以用"请仔细分析"或"请逐步推理"。关键是引导模型展开过程,而非直接给答案。</p>
+    <p><strong>Tree of Thoughts(ToT)</strong>:把推理组织成一棵搜索树,每个节点是一个推理状态,允许回溯和多路径探索。ToT 适合需要前瞻和试错的复杂任务(如填字游戏、24 点)。它的效果好但成本极高,因为要做树搜索,通常只在极难任务上才划算。</p>
+    <p><strong>Graph of Thoughts(GoT)</strong>:把推理扩展成图,允许不同推理分支合并。比 ToT 更灵活,适合需要综合多种思路的任务。</p>
+    <p><strong>Least-to-Most Prompting</strong>:先把复杂问题分解为一系列由易到难的子问题,逐个解决。适合需要复杂规划的任务。</p>
+    <p><strong>ReAct(Reason + Act)</strong>:把推理和行动交替进行——推理一步,执行一个工具调用(搜索、计算),看到结果再推理下一步。这是 Agent 的核心范式,我们会在 Agent 章节深入。</p>
+    <p>选择建议:简单推理用 zero-shot CoT,需要稳定用 few-shot CoT,需要高准确率用 self-consistency,需要复杂规划用 ToT 或 ReAct。不要一上来就用最复杂的,先试最简单的能否达标。</p>
+    <h2 class="section" id="when-cot"><span class="idx">★</span> 什么时候该用 CoT,什么时候不该</h2>
+    <p>CoT 不是万能的,误用反而可能帮倒忙。判断标准是任务是否真的需要"多步推理"。</p>
+    <p><strong>适合 CoT 的场景</strong>:数学计算、逻辑推理、多约束规划、因果分析、需要分解的复杂问答、代码生成中的算法设计。这些任务的特点是"一步想不清楚,需要拆解"。</p>
+    <p><strong>不适合 CoT 的场景</strong>:事实性问答(首都、生日)、简单分类(情感分析)、创意写作(写诗)、翻译。这些任务直接给答案更好,加 CoT 反而可能引入错误(比如让它"推理"法国首都,它可能绕一圈还答错)。一个经验法则:如果人类做这个任务也需要一步步想,就用 CoT;如果人类是直觉反应,就不用。</p>
+    <p><strong>CoT 可能带来风险</strong>的场景:涉及安全或合规的决策。CoT 会暴露模型的推理过程,如果推理过程包含偏见或不当内容,即使最终答案没问题,过程也可能引发问题。这类场景要审慎,或对推理过程做过滤。</p>
+    <h2 class="section" id="model-size"><span class="idx">★</span> 模型大小与 CoT 效果的关系</h2>
+    <p>一个重要发现:CoT 对大模型有效,对小模型可能无效甚至有害。原始 CoT 论文显示,CoT 的收益在模型规模超过某个阈值(约 60B 参数)后才显著出现,小模型用 CoT 反而不如直接答。</p>
+    <p>原因不难理解:小模型的推理能力本来就弱,让它展开推理反而会暴露更多错误。这就像让一个数学不好的小学生"写出详细解题过程",过程错了,答案更糟。所以用 CoT 前,先确认你用的模型足够大——现代主流模型(7B 以上,尤其 70B+ 和 GPT-4 级别)都能从 CoT 获益。</p>
+    <p>这也解释了为什么 prompt 工程没有"放之四海皆准"的方案:同一个提示,在 7B 模型上有效,在 70B 上未必;在 GPT-4 上有效,在小模型上未必。永远要在你的目标模型上实测,别照搬论文结论。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>CoT 的核心洞察是:让模型写出推理过程,而非直接给答案,能显著提升复杂推理任务的准确率。它的原理在于"生成即计算"、"激活预训练中的推理模式"、"分解降低难度"。</p>
+    <p>三种形态各有定位:Zero-shot CoT 加一句"Let's think step by step",零成本,是推理任务的默认选项;Few-shot CoT 用规范示例定义推理范式,效果更稳;Self-Consistency 采样多条路径投票,适合高准确率需求但成本翻倍。进阶变体如 ToT、ReAct 适合复杂规划和 Agent 场景。</p>
+    <p>使用判断:需要多步推理的任务用 CoT,直觉性任务不用;大模型受益于 CoT,小模型未必;安全敏感场景要审视推理过程。记住 CoT 是工具不是目的——目标是把任务做对,CoT 只是达到目标的一条路径。在简单方法够用时,不要为了用 CoT 而用 CoT。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

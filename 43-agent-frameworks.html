@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM Agent 框架对比深度 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM Agent 框架对比深度 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -57,7 +64,7 @@
       <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
       <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
-      <a href="43-agent-frameworks.html" class="active" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
       <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
       <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
@@ -295,16 +302,255 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM Agent 框架对比深度</h1><p class="lead">LangChain/LangGraph/AutoGen/CrewAI——怎么选</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么需要Agent框架</h2>
-    <p>手搓一个Agent（工具调用+循环+状态管理）不难，但要做得健壮（错误处理/并发/可观测/可调试）很难。Agent框架封装了这些工程细节，让你专注业务逻辑。但框架选错了反而增加复杂度——每个框架的设计哲学不同，适合的场景不同。</p>
-    <h2><span class="idx"></span>四大框架对比</h2>
-    <table class="data-table"><thead><tr><th>框架</th><th>设计哲学</th><th>最适合</th><th>学习曲线</th></tr></thead><tbody><tr><td>LangChain</td><td>链式组合（一切皆Chain）</td><td>原型/简单流程</td><td>低-中</td></tr><tr><td>LangGraph</td><td>状态图（节点+边+状态）</td><td>复杂多步/有条件分支</td><td>中</td></tr><tr><td>AutoGen</td><td>多Agent对话（Actor模型）</td><td>多Agent协作</td><td>中</td></tr><tr><td>CrewAI</td><td>角色驱动（Agent+Task+Crew）</td><td>团队分工场景</td><td>低</td></tr></tbody></table>
-    <h3>LangGraph：当前最推荐的Agent框架</h3>
-    <p>LangGraph（LangChain团队出品）把Agent建模成"状态图"——每个节点是一步操作（调用工具/LLM），边是条件路由。这比LangChain的链式更灵活：支持循环（Agent核心）、条件分支、并行、人在回路。当前构建复杂Agent系统的首选。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>四大Agent框架：LangChain（链式，原型）、LangGraph（状态图，复杂Agent首选）、AutoGen（多Agent对话）、CrewAI（角色驱动）。选型：简单流程用LangChain，复杂多步用LangGraph，多Agent协作用AutoGen，团队分工用CrewAI。我们在第197-203章深入讲了每个框架的源码。</p>
-    <div class="chapter-nav">
-      <a href="42-system-design.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 43 章 · LLM Agent 框架对比深度</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 43 · 核心知识系列</span>
+      <h1>Agent 框架横评<br>LangChain、LangGraph、AutoGen、CrewAI、OpenAI Agents</h1>
+      <p class="lead">"到底该用哪个 Agent 框架？"这是 2024-2025 年开发者问得最多的问题。答案不是"哪个最好"，而是"哪个最适合你的场景"。本章用每个框架约 20 行的最小可运行示例，让你直观感受它们的 API 风格、抽象层级和设计哲学。从 LangChain 的全能工具箱，到 LangGraph 的状态图，到 CrewAI 的角色扮演，到 OpenAI Agents 的官方简洁，一次看个明白。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> Agent 框架的三个抽象层级</h2>
+    <p>所有 Agent 框架本质上都在解决同一个问题：如何把"LLM 调用 + 工具使用 + 状态管理"封装成可复用的抽象。但不同框架选择了不同的抽象层级，这决定了它们的易用性和灵活性。<strong>低层框架</strong>（如 LangChain 的核心）提供细粒度的组件（Prompt、Memory、Tool、Chain），需要你自己组装。<strong>中层框架</strong>（如 LangGraph）提供"状态图"抽象，让你用节点和边描述 Agent 的工作流。<strong>高层框架</strong>（如 CrewAI）提供"角色"和"任务"抽象，用最自然的语言描述多 Agent 协作。</p>
+    <p>选型的核心原则是：<strong>抽象层级越高，上手越快但灵活性越低</strong>。如果你做的是标准的多步推理 Agent，高层框架能帮你省大量代码；如果你需要精细控制每一步的行为（如自定义路由、人在环路、复杂的错误恢复），中层或低层框架更合适。下面逐一拆解五大框架。</p>
+
+    <h2 class="section" id="langchain"><span class="idx">★</span> LangChain：大而全的工具箱</h2>
+    <p>LangChain 是最早也是最知名的 LLM 应用框架。它的定位是"LLM 应用的瑞士军刀"——从 prompt 管理、记忆系统、工具调用、文档加载到向量库集成，几乎覆盖了 LLM 应用的每一个环节。LangChain 的优势是生态庞大、文档丰富、集成众多（支持上百种工具和数据源）。但它的缺点也很明显：抽象层级多、API 变动频繁（v0.1 到 v0.3 大改多次）、过度封装导致调试困难。</p>
+    <p>LangChain 最适合"快速搭建原型"和"需要大量第三方集成的场景"。但如果你只需要简单的 Agent 功能，LangChain 可能过于笨重。它更适合作为"组件库"按需使用，而不是全盘采用。</p>
+    <pre><code class="language-python"># LangChain 最小 Agent 示例（ReAct 模式）
+from langchain.agents import create_tool_calling_agent, AgentExecutor
+from langchain_openai import ChatOpenAI
+from langchain.tools import tool
+from langchain_core.prompts import ChatPromptTemplate
+
+# 定义工具（用装饰器自动生成 schema）
+@tool
+def search_web(query: str) -> str:
+    """搜索网络获取最新信息"""
+    return f"搜索结果: 关于'{query}'的最新信息..."
+
+@tool
+def calculate(expression: str) -> str:
+    """计算数学表达式"""
+    return str(eval(expression))  # 生产环境请用安全的计算库
+
+# 创建 Agent
+llm = ChatOpenAI(model="gpt-4o-mini", temperature=0)
+tools = [search_web, calculate]
+prompt = ChatPromptTemplate.from_messages([
+    ("system", "你是助手，可以用工具回答问题。"),
+    ("human", "{input}"),
+    ("placeholder", "{agent_scratchpad}"),
+])
+
+agent = create_tool_calling_agent(llm, tools, prompt)
+executor = AgentExecutor(agent=agent, tools=tools, verbose=True)
+
+# 运行
+result = executor.invoke({"input": "3 的 5 次方是多少？再搜一下今天的新闻。"})
+print(result["output"])
+# LangChain 会自动: 理解问题 → 调 calculate → 调 search_web → 综合回答
+</code></pre>
+
+    <h2 class="section" id="langgraph"><span class="idx">★</span> LangGraph：状态图驱动的精细控制</h2>
+    <p>LangGraph 是 LangChain 团队推出的"Agent 编排框架"，弥补了 LangChain Agent 在复杂工作流上的不足。它的核心抽象是<strong>有状态的循环图（Stateful Cyclic Graph）</strong>——你定义一个状态对象、若干节点函数和条件边，LangGraph 负责按图执行、维护状态、支持循环和分支。这让你可以实现任意复杂的 Agent 工作流：多步推理、人在环路审批、错误重试、多 Agent 协作。</p>
+    <p>LangGraph 的优势是"可控性"——你可以精确定义每一步做什么、什么条件下跳转、状态如何传递。它还内置了 checkpoint 持久化（支持中断恢复）、流式输出、并行节点等生产级特性。对于需要精细控制 Agent 行为的场景（如合规审批、复杂决策树），LangGraph 是当前最佳选择。</p>
+    <pre><code class="language-python"># LangGraph 最小示例：带反思的写作 Agent
+from typing import TypedDict, Literal
+from langgraph.graph import StateGraph, END
+from langchain_openai import ChatOpenAI
+
+llm = ChatOpenAI(model="gpt-4o-mini")
+
+class State(TypedDict):
+    topic: str
+    draft: str
+    critique: str
+    approved: bool
+
+def write_node(state: State) -> State:
+    """写作节点：生成初稿"""
+    state["draft"] = llm.invoke(f"写一段关于{state['topic']}的短文").content
+    return state
+
+def review_node(state: State) -> State:
+    """审查节点：评估并决定是否通过"""
+    feedback = llm.invoke(f"评估这段文字的质量，回答 PASS 或 FAIL：\n{state['draft']}").content
+    state["approved"] = "PASS" in feedback
+    state["critique"] = feedback
+    return state
+
+def route(state: State) -> Literal["write", "__end__"]:
+    """路由：通过则结束，否则重写"""
+    return "__end__" if state["approved"] else "write"
+
+# 构建状态图
+graph = StateGraph(State)
+graph.add_node("write", write_node)
+graph.add_node("review", review_node)
+graph.add_edge("__start__", "write")
+graph.add_edge("write", "review")
+graph.add_conditional_edges("review", route)  # review → write 或 END
+
+app = graph.compile()
+result = app.invoke({"topic": "人工智能的未来"})
+print(result["draft"])  # 通过审查的最终版本
+</code></pre>
+
+    <h2 class="section" id="autogen"><span class="idx">★</span> AutoGen：多 Agent 对话的先驱</h2>
+    <p>AutoGen 由微软研究院开发，是最早专注于"多 Agent 对话"的框架。它的核心思路是：定义多个具有不同角色和能力（如 AssistantAgent、UserProxyAgent）的 Agent，让它们通过对话协作完成任务。一个典型的设置是：一个"程序员 Agent"写代码，一个"执行 Agent"（UserProxy）运行代码并反馈结果，两者循环对话直到任务完成。</p>
+    <p>AutoGen 的优势在于"对话式协作"的自然性——多个 Agent 像人类团队一样讨论、分工、迭代。特别适合代码生成、数据分析等需要"生成-执行-反馈"循环的任务。AutoGen 0.4 版本（原 AG2）进行了大规模重构，引入了更灵活的事件驱动架构。它的局限是配置较复杂，多 Agent 对话的"收敛性"（防止无限循环）需要仔细调参。</p>
+    <pre><code class="language-python"># AutoGen 最小示例：代码编写 + 执行协作
+from autogen_agentchat.agents import AssistantAgent, CodeExecutorAgent
+from autogen_agentchat.teams import RoundRobinGroupChat
+from autogen_ext.models.openai import OpenAIChatCompletionClient
+from autogen_ext.code_executors.local import LocalCommandLineCodeExecutor
+
+model_client = OpenAIChatCompletionClient(model="gpt-4o-mini")
+
+# Agent 1：程序员（写代码）
+coder = AssistantAgent(
+    name="coder",
+    model_client=model_client,
+    system_message="你是 Python 程序员，用代码解决问题。代码用 ```python 块包裹。",
+)
+
+# Agent 2：执行者（运行代码并反馈）
+executor = CodeExecutorAgent(
+    name="executor",
+    code_executor=LocalCommandLineCodeExecutor(work_dir="code_output"),
+)
+
+# 组成团队：轮流发言
+team = RoundRobinGroupChat([coder, executor], max_turns=6)
+
+# 运行任务
+import asyncio
+result = asyncio.run(team.run(task="计算斐波那契数列前 20 项并打印"))
+print(result)
+# AutoGen 流程: coder 写代码 → executor 执行 → 如果报错 coder 修复 → 循环
+</code></pre>
+
+    <h2 class="section" id="crewai"><span class="idx">★</span> CrewAI：角色扮演的多 Agent 协作</h2>
+    <p>CrewAI 是最"高层"的 Agent 框架——它的抽象是"船员"（Agent/角色）和"任务"（Task），你像组建一个团队一样描述每个成员的角色、目标、背景，然后分配任务。CrewAI 自动协调各角色按顺序或并行执行任务，共享上下文。这种"角色驱动"的设计让代码读起来像剧本，非常适合非技术背景的人理解 Agent 工作流。</p>
+    <p>CrewAI 的优势是"开发体验极佳"——几行代码就能定义一个多角色团队。适合内容创作、市场调研、文档撰写等"创意型"任务。它的局限是控制粒度较粗——如果你想精细控制某一步的行为，会发现 CrewAI 的抽象不够灵活。CrewAI 也是纯 Python 框架，与 LangChain 的组件生态部分兼容。</p>
+    <pre><code class="language-python"># CrewAI 最小示例：内容创作团队
+from crewai import Agent, Task, Crew, Process
+
+# 定义角色（像招人一样描述每个成员）
+researcher = Agent(
+    role="研究员",
+    goal="收集关于给定主题的全面信息",
+    backstory="你是有 10 年经验的研究员，擅长快速搜集和整理信息。",
+    llm="gpt-4o-mini",
+    verbose=True,
+)
+
+writer = Agent(
+    role="撰稿人",
+    goal="把研究结果写成一篇引人入胜的文章",
+    backstory="你是资深科技撰稿人，擅长把复杂概念讲得通俗有趣。",
+    llm="gpt-4o-mini",
+)
+
+# 分配任务（每个任务指定给一个角色）
+research_task = Task(
+    description="研究 {topic} 的核心概念、最新进展和争议点。",
+    agent=researcher,
+    expected_output="一份结构化的研究笔记",
+)
+
+write_task = Task(
+    description="基于研究结果写一篇 800 字的科普文章。",
+    agent=writer,
+    expected_output="一篇完整的科普文章",
+    context=[research_task],  # 依赖研究任务的输出
+)
+
+# 组建团队，按顺序执行
+crew = Crew(
+    agents=[researcher, writer],
+    tasks=[research_task, write_task],
+    process=Process.sequential,  # 顺序执行：先研究后写作
+)
+
+result = crew.kickoff(inputs={"topic": "扩散模型"})
+print(result.raw)  # 最终的文章
+</code></pre>
+
+    <h2 class="section" id="openai-agents"><span class="idx">★</span> OpenAI Agents SDK：官方极简主义</h2>
+    <p>2025 年 3 月，OpenAI 发布了 Agents SDK（取代了之前的 Swarm 实验框架），它的设计哲学是"极简主义"——用最少的抽象，提供最核心的 Agent 能力。核心概念只有三个：Agent（定义角色和工具）、Handoff（Agent 之间的转交）、Guardrails（输入输出安全检查）。没有复杂的图、没有事件系统，就是纯粹的函数调用循环。</p>
+    <p>OpenAI Agents 的优势是与 OpenAI 生态深度集成（模型、工具、追踪开箱即用），学习成本极低（核心 API 不超过 10 个函数）。特别适合"以 OpenAI 模型为主、需要快速上线"的场景。它的局限是绑定 OpenAI 生态较深，虽然支持其他模型但体验不如原生。</p>
+    <pre><code class="language-python"># OpenAI Agents SDK 最小示例
+from agents import Agent, Runner, function_tool
+
+# 定义工具
+@function_tool
+def get_weather(city: str) -> str:
+    """获取指定城市的天气"""
+    return f"{city}今天晴，25度"
+
+# 定义 Agent（角色 + 工具 + 指令）
+travel_agent = Agent(
+    name="旅行助手",
+    instructions="你是一个旅行规划助手，帮用户查询天气和规划行程。",
+    tools=[get_weather],
+)
+
+# 运行（Runner 自动处理工具调用循环）
+result = Runner.run_sync(travel_agent, "帮我查查北京的天气")
+print(result.final_output)
+
+# 多 Agent 转交（Handoff）
+billing_agent = Agent(
+    name="账单助手",
+    instructions="你负责处理账单和退款问题。",
+)
+
+support_agent = Agent(
+    name="客服",
+    instructions="你是通用客服，账单问题转给 billing_agent。",
+    handoffs=[billing_agent],  # 遇到账单问题自动转交
+)
+
+result = Runner.run_sync(support_agent, "我要退款")
+# support_agent 会把请求转交给 billing_agent 处理
+</code></pre>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 五大框架横向对比与选型</h2>
+    <pre><code class="language-text">┌────────────┬──────────┬──────────┬──────────┬──────────┬──────────┐
+│   维度     │LangChain │LangGraph │ AutoGen  │ CrewAI   │OpenAI    │
+│            │          │          │          │          │ Agents   │
+├────────────┼──────────┼──────────┼──────────┼──────────┼──────────┤
+│ 抽象层级   │ 低(组件) │ 中(状态图)│ 中(对话) │ 高(角色) │ 中(函数) │
+│ 学习曲线   │ 陡峭     │ 中等     │ 中等     │ 平缓     │ 极平缓   │
+│ 灵活性     │ 极高     │ 高       │ 高       │ 中       │ 中       │
+│ 多Agent    │ 弱       │ 强       │ 极强     │ 极强     │ 强       │
+│ 生产就绪   │ 中       │ 高       │ 中       │ 中       │ 高       │
+│ 生态集成   │ 极多     │ 多       │ 中       │ 少       │ OpenAI系 │
+│ 适合场景   │ 原型/RAG │ 复杂工作流│代码协作  │ 内容创作 │ OpenAI生态│
+└────────────┴──────────┴──────────┴──────────┴──────────┴──────────┘
+
+选型建议：
+- 快速原型 + 大量集成 → LangChain
+- 需要精细控制工作流 → LangGraph（推荐生产环境）
+- 多 Agent 代码协作 → AutoGen
+- 非技术人员描述工作流 → CrewAI
+- 纯 OpenAI 生态 + 快速上线 → OpenAI Agents SDK
+- 不确定？先从 LangGraph 或 OpenAI Agents 入手，它们最通用
+</code></pre>
+    <p>一个值得注意的趋势是：<strong>框架在收敛，概念在趋同</strong>。几乎所有框架都在向"工具调用 + 循环 + 状态管理"这个核心模型靠拢，差异主要在 API 风格和抽象层级。这意味着框架之间的迁移成本会越来越低。所以不必纠结"选错框架"——先选一个最顺手的开始做，理解了 Agent 的核心模式后，切换框架只是 API 适配的问题。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>五大 Agent 框架各有定位：LangChain 是组件齐全的工具箱，适合需要大量集成的原型开发；LangGraph 用状态图提供精细的工作流控制，是复杂生产级 Agent 的最佳选择；AutoGen 专注多 Agent 对话协作，适合代码生成-执行循环；CrewAI 用角色和任务的高层抽象让多 Agent 协作像写剧本一样简单；OpenAI Agents SDK 以极简主义提供官方级体验，适合 OpenAI 生态快速上线。所有框架的核心模式都是"LLM + 工具调用 + 状态循环"，差异只在抽象层级和 API 风格。选型原则：抽象越高上手越快但越不灵活，根据场景的复杂度和控制需求对号入座。不必纠结选错——先动手做，理解核心模式后切换框架成本低。未来框架会继续收敛，但"理解 Agent 的核心原理"这项能力永远保值。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

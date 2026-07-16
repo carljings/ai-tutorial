@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -133,7 +131,7 @@
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
-      <a href="106-tfm-context-length.html" class="active" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
+      <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
@@ -305,67 +303,283 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 106 章 · Transformer 原理深挖</span>
-<h1>上下文窗口的物理极限与突破</h1><p class="lead">n² 显存/计算、KV cache 显存、位置编码外推三重瓶颈。Ring Attention、序列并行、稀疏注意力如何支撑百万 token 上下文。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>n² 显存/计算、KV cache 显存、位置编码外推三重瓶颈。Ring Attention、序列并行、稀疏注意力如何支撑百万 token 上下文。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
-import math
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 106 · Transformer 深度系列</span>
+      <h1>上下文窗口的物理极限与突破<br>从 4K 到 128K+ 的技术拼图</h1>
+      <p class="lead">2020 年 GPT-3 的上下文是 2K，2026 年 GLM、Llama、Claude 动辄 128K、200K 甚至百万 token。这 500 倍的飞跃不是单一突破，而是位置外推、KV cache 压缩、注意力优化、分布式训练多项技术合力的结果。本章把前面学到的 RoPE 外推（PI/NTK/YaRN）、GQA、Flash Attention、PagedAttention、Ring Attention 串成一个完整拼图，讲清从 4K 扩到 128K+ 到底要克服哪三重瓶颈。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+        <span class="chip">前置：第 97、99-105 章</span>
+      </div>
+    </section>
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+    <h2 class="section" id="three-bottlenecks"><span class="idx">★</span> 三重瓶颈</h2>
+    <p>把上下文从 4K 扩到 128K，表面看只是「数字变大」，实际要同时突破三重物理瓶颈：</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div class="node sky">瓶颈一<br>位置编码外推</div>
+          <div class="node sky">瓶颈二<br>注意力 O(n²)</div>
+          <div class="node sky">瓶颈三<br>KV cache 显存</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ 分别对应</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div class="node violet">NTK/YaRN</div>
+          <div class="node violet">Flash Attn / 稀疏</div>
+          <div class="node violet">GQA / 量化 / Paged</div>
+        </div>
+        <div class="node accent">三者必须同时解决，缺一不可</div>
+      </div>
+      <div class="cap">图 106-1 · 长上下文的三重瓶颈与对应技术</div>
+    </div>
+
+    <ul>
+      <li><strong>位置编码外推</strong>：训练时位置只见过 0~4096，推理到 131072 时位置编码失灵（第 97 章讲过）。</li>
+      <li><strong>注意力 O(n²) 计算/显存</strong>：128K 的分数矩阵是 16B 元素，光存就几十 GB（第 101 章讲过 Flash Attention 怎么绕）。</li>
+      <li><strong>KV cache 显存爆炸</strong>：128K 的 KV cache 可能比模型参数还大（第 99、100 章讲过 GQA 和 PagedAttention）。</li>
+    </ul>
+
+    <p>这三重瓶颈相互独立，必须<strong>同时</strong>解决才能让长上下文落地。下面逐个看现代大模型是怎么组合现有技术的。</p>
+
+    <h2 class="section" id="bottleneck-1"><span class="idx">01</span> 瓶颈一：位置编码外推</h2>
+    <p>第 97 章详细讲过 RoPE 的外推方案，这里做个总结。核心问题是：训练时见过的旋转角度范围有限，超出后模型行为失控。三种主流解法：</p>
+
+    <table>
+      <thead><tr><th>方法</th><th>思路</th><th>是否需微调</th><th>效果</th></tr></thead>
+      <tbody>
+        <tr><td>位置插值（PI）</td><td>等比压缩位置 m' = m × (L_train/L_infer)</td><td>需要少量</td><td>基础方案，损近距离分辨</td></tr>
+        <tr><td>NTK-aware</td><td>调 base，主要压低频</td><td>需要少量</td><td>比 PI 好，保留近距离</td></tr>
+        <tr><td>YaRN</td><td>按频率分段插值</td><td>需要少量</td><td>当前最佳，Llama 3/Qwen2 用</td></tr>
+      </tbody>
+    </table>
+
+    <p>实战流程通常是：①拿一个 4K/8K 训练好的模型；②改 RoPE 的 base（NTK）或加位置插值；③在长文本数据上继续预训练几百亿 token（约原训练量的 5~10%），让模型适应新的角度分布；④得到 32K 或 128K 版本。</p>
+
+    <blockquote>
+      <strong>关键认知：</strong>纯外推（不微调）效果都有限。所有「训练 4K 推理 128K」的宣传，背后都有<strong>长文本继续预训练</strong>。这是为什么 GLM-4-Long、Llama-3-128K 都是独立训练的版本，不是简单改个配置。
+    </blockquote>
+
+    <h2 class="section" id="bottleneck-2"><span class="idx">02</span> 瓶颈二：注意力 O(n²)</h2>
+    <p>128K 序列的注意力分数矩阵是 128000 × 128000 ≈ 16B 元素，FP16 就是 32 GB——<strong>光这一个矩阵就比整个 7B 模型还大</strong>。必须解决。</p>
+
+    <p>第 101 章讲的 <strong>Flash Attention</strong> 是核心解法：它让显存从 O(n²) 降到 O(n)，计算虽然仍 O(n²) 但常数小、GPU 利用率高。128K 在 H100 上 prefill 一次大约几十秒，可接受。</p>
+
+    <p>但 Flash Attention 只解决「单卡放得下」。128K 的计算量仍是 4K 的 (128/4)² = 1024 倍，单卡算力吃不消。这时候要靠<strong>分布式注意力</strong>：</p>
+
+    <ul>
+      <li><strong>序列并行（Sequence Parallelism）</strong>：把序列切分到多张卡，每卡算一部分。注意力天然需要全局交互，所以要用 AllReduce 通信。</li>
+      <li><strong>Ring Attention / Strip Attention</strong>：把序列分块，多卡围成环，每卡算自己那块的注意力，然后通过环形通信传递 K/V 块。这样能把<strong>百万级 token</strong> 分布到几十张卡上算。这是 Gemini、GLM-6-Long 处理超长上下文的关键技术。</li>
+      <li><strong>稀疏注意力</strong>：部分层用滑动窗口或局部注意力，减少实际计算的对数。</li>
+    </ul>
+
+    <h2 class="section" id="bottleneck-3"><span class="idx">03</span> 瓶颈三：KV cache 显存</h2>
+    <p>第 100 章算过：Llama-2-70B 在 32K 上下文 KV cache 就 80 GB，128K 直接 320 GB——<strong>放不下任何单卡</strong>。必须压缩。</p>
+
+    <p>压缩手段叠加使用：</p>
+    <ul>
+      <li><strong>GQA</strong>（第 99 章）：KV 头数从 h 减到 g，省 h/g 倍。Llama-3-70B 用 8 个 KV 头（vs 64 个 Q 头），省 8 倍。</li>
+      <li><strong>KV 量化</strong>：FP16 → INT8/INT4，再省 2~4 倍。</li>
+      <li><strong>PagedAttention</strong>（第 100 章）：消除碎片，让显存利用率接近 100%，能塞更多请求。</li>
+      <li><strong>MLA</strong>（第 104 章）：压缩 KV 维度，DeepSeek-V2 用它省 90%+ cache。</li>
+      <li><strong>跨卡 KV 分布</strong>：KV cache 放不下单卡时，分布到多卡，用 Tensor Parallel 切分。</li>
+    </ul>
+
+    <p>把这四招叠加，128K 甚至 1M 上下文的 KV cache 才能在合理硬件配置下放得下。GLM-6-Long 据报告用了 GQA + 量化 + PagedAttention + 跨节点的组合。</p>
+
+    <h2 class="section" id="stack"><span class="idx">04</span> 技术拼图：一个 128K 模型怎么炼成</h2>
+    <p>把三重瓶颈的解法合起来，看一个典型的 128K 大模型（如 Llama-3-128K 或 GLM-4-Long）用了哪些技术：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">📍</span>
+        <h4>位置：YaRN 外推</h4>
+        <p>基于 RoPE，用 YaRN 调整 base 和分段插值，从 8K 外推到 128K，配合长文本继续预训练。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚡</span>
+        <h4>注意力：Flash Attention 2/3</h4>
+        <p>显存 O(n)，配合 Ring Attention 做跨卡序列并行，让 128K 的 prefill 能在 8 卡上完成。</p>
+      </div>
+      <div class="card">
+        <span class="ic">💾</span>
+        <h4>KV：GQA + 量化</h4>
+        <p>8 个 KV 头（省 8 倍）+ INT8 量化（再省 2 倍），把 128K 的 cache 从 80 GB 压到 5 GB。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📦</span>
+        <h4>部署：PagedAttention</h4>
+        <p>vLLM 的分页管理，让多个长上下文请求并发，显存利用率接近 100%。</p>
+      </div>
+    </div>
+
+    <p>这四块拼图缺一不可。少了位置外推，128K 推理时模型乱套；少了 Flash Attention，prefill 显存爆；少了 GQA/量化，KV cache 放不下；少了 PagedAttention，并发上不去。<strong>长上下文是系统工程，不是单点突破</strong>。</p>
+
+    <h2 class="section" id="code-yarn"><span class="idx">05</span> 代码：YaRN 风格的 RoPE 外推配置</h2>
+    <p>看一个典型的长上下文 RoPE 配置怎么设：</p>
+
+    <div class="code-title">long_context_rope.py —— 128K 上下文的 RoPE 配置</div>
+    <pre><code class="language-python">import math
+
+def compute_yarn_rope_config(
+    original_max_seq_len=4096,   # 训练时长度
+    target_max_seq_len=131072,   # 目标 128K
+    d_model=4096,
+    n_heads=32,
+    head_dim=128,
+    base=10000.0,
+):
+    """计算 YaRN 风格的 RoPE 外推配置。
+    返回新的 base 和缩放因子。
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    scale = target_max_seq_len / original_max_seq_len
+    d = head_dim
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"上下文窗口的物理极限与突破"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="105-tfm-attention-bias.html"><div class="lbl">← 上一章</div><div class="ttl">105 · ALiBi 与相对位置偏置：另一种注入位置的方式</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="107-tfm-tokenization.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">107 · Tokenizer：文字如何变成模型能吃的 Token</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 106 章 · 上下文窗口的物理极限与突破</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    # NTK-aware 的 base 调整：让低频波长变长
+    # YaRN 在此基础上对中间频率做插值，这里简化为 NTK
+    new_base = base * (scale ** (d / (d - 2)))
+
+    print(f"原始配置:")
+    print(f"  max_seq_len = {original_max_seq_len}")
+    print(f"  rope_base   = {base}")
+    print(f"\n外推到 {target_max_seq_len} ({target_max_seq_len/1024:.0f}K):")
+    print(f"  scale factor = {scale}")
+    print(f"  new rope_base = {new_base:.0f}")
+    print(f"\n效果:")
+    print(f"  最高频对几乎不变（近距离分辨力保留）")
+    print(f"  最低频对波长 × {scale}（远距离覆盖扩展）")
+
+    # 验证：原始 base 下最低频波长
+    freq_low_orig = 1.0 / (base ** (2 * (d//2 - 1) / d))
+    # 新 base 下最低频波长
+    freq_low_new = 1.0 / (new_base ** (2 * (d//2 - 1) / d))
+    print(f"\n  最低频波长: {1/freq_low_orig:.0f} → {1/freq_low_new:.0f} 位置")
+    return new_base
+
+compute_yarn_rope_config()
+</code></pre>
+
+    <p>实际框架（HuggingFace transformers、vLLM）里通常直接传一个 <code>rope_scaling</code> 配置：</p>
+
+    <div class="code-title">hf_rope_config.json</div>
+    <pre><code class="language-json">// HuggingFace 模型 config 里的 rope_scaling 字段
+{
+  "rope_scaling": {
+    "type": "yarn",
+    "factor": 32.0,           // 128K / 4K = 32 倍外推
+    "original_max_position_embeddings": 4096,
+    "beta_fast": 32,
+    "beta_slow": 1
+  },
+  "max_position_embeddings": 131072,
+  "rope_theta": 500000.0      // 调大的 base（NTK 效果）
+}
+</code></pre>
+
+    <p>加载模型时框架会自动按这个配置算 RoPE 频率，推理时就能处理 128K 输入。</p>
+
+    <h2 class="section" id="ring-attention"><span class="idx">06</span> Ring Attention：跨卡处理超长序列</h2>
+    <p>对于百万级 token（如 Gemini 的 1M、2M 上下文），单卡连 prefill 都做不了。Ring Attention（2023）是核心解法。</p>
+
+    <p>思路：把长序列切成 N 块，分给 N 张卡。每张卡持有<strong>一个 Q 块和对应的 K/V 块</strong>。计算流程：</p>
+    <ul>
+      <li>每张卡先用本地 Q 块和本地 K/V 块算部分注意力；</li>
+      <li>然后<strong>把自己的 K/V 块传给下一张卡</strong>（环形通信），同时接收上一张卡的 K/V 块；</li>
+      <li>用新拿到的 K/V 块继续累加注意力输出；</li>
+      <li>循环 N 次，每张卡都见过了所有 K/V 块，得到完整的注意力输出。</li>
+    </ul>
+
+    <div class="diagram">
+      <div class="flow">
+        <div class="node accent">GPU 0<br>Q_0, KV_0</div>
+        <span class="arrow">→</span>
+        <div class="node accent">GPU 1<br>Q_1, KV_1</div>
+        <span class="arrow">→</span>
+        <div class="node accent">GPU 2<br>Q_2, KV_2</div>
+        <span class="arrow">→</span>
+        <div class="node accent">GPU N<br>Q_N, KV_N</div>
+        <span class="arrow">↺</span>
+      </div>
+      <div class="cap">图 106-2 · Ring Attention：KV 块沿环形传递，每卡累积完整注意力</div>
+    </div>
+
+    <p>关键：通信和计算<strong>重叠</strong>——在算当前 K/V 块的注意力时，同时在传下一个 K/V 块。这样通信开销被计算掩盖，扩展性极好。Ring Attention 让 1M+ 上下文成为可能，是 Gemini、GLM 超长上下文的基础设施。</p>
+
+    <h2 class="section" id="quality"><span class="idx">07</span> 长上下文的另一个难题：质量衰减</h2>
+    <p>即便技术上能处理 128K，<strong>模型在长上下文上的表现也会衰减</strong>。著名的「Lost in the Middle」现象：模型对长文档开头和结尾的信息记得好，<strong>中间部分容易被忽略</strong>。把关键信息放在中间，召回率显著下降。</p>
+
+    <p>原因：①注意力在长序列上更分散，远处信息的权重被稀释；②位置编码在超长时区分度下降；③softmax 有「首尾偏好」（首尾 token 的累积权重天然更高）。</p>
+
+    <p>缓解手段：</p>
+    <ul>
+      <li><strong>训练时用真实长文本</strong>：让模型见过长序列，学会均匀关注。</li>
+      <li><strong>RAG（第 6 章）</strong>：不靠模型自己记，而是先检索相关片段再喂给模型，变「长上下文」为「精准短上下文」。</li>
+      <li><strong>信息放置策略</strong>：把最重要的信息放开头或结尾，避开中间盲区。</li>
+    </ul>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 长上下文不等于好记忆</div>
+      <p>「支持 128K」不等于「能准确回忆 128K 里的所有细节」。这是两回事。很多模型标称 128K 但实测在长文档召回上仍弱。这就是为什么 RAG（精准检索）在很多场景仍优于纯长上下文——<strong>该用 RAG 的地方不要迷信长上下文</strong>。</p>
+    </div>
+
+    <h2 class="section" id="cost"><span class="idx">08</span> 长上下文的成本</h2>
+    <p>上下文越长，成本越高，而且是非线性的：</p>
+
+    <table>
+      <thead><tr><th>上下文</th><th>相对 prefill 成本</th><th>每 token decode 成本</th></tr></thead>
+      <tbody>
+        <tr><td>4K</td><td>1×</td><td>1×</td></tr>
+        <tr><td>32K</td><td>64×</td><td>8×</td></tr>
+        <tr><td>128K</td><td>1024×</td><td>32×</td></tr>
+        <tr><td>1M</td><td>65536×</td><td>256×</td></tr>
+      </tbody>
+    </table>
+
+    <p>prefill 成本是平方级（整个 prompt 的 n×n 注意力），decode 成本是线性级（每个新 token 要读整个 KV cache）。这就是为什么 API 对长上下文收费高昂——<strong>它真的更贵</strong>。Prompt Caching（把不变的前缀 cache 住）是缓解成本的关键技术，GLM、Claude、OpenAI 的 API 都支持。</p>
+
+    <h2 class="section" id="future"><span class="idx">09</span> 未来：上下文还能多长</h2>
+    <p>2026 年的上下文长度还在增长。Gemini 已经做到 2M，GLM 探索百万级，研究原型在试 10M。但物理极限也在逼近：</p>
+    <ul>
+      <li><strong>显存墙</strong>：KV cache 随长度线性增长，硬件显存有限。</li>
+      <li><strong>算力墙</strong>：O(n²) 的 prefill 算力随长度平方增长。</li>
+      <li><strong>质量墙</strong>：超长上下文的质量衰减难以完全消除。</li>
+    </ul>
+
+    <p>突破方向：①更激进的 KV 压缩（MLA 的进化）；②线性注意力或状态空间模型（Mamba）从根上降复杂度；③稀疏注意力 + RAG 的混合，让模型不必「全记住」。长上下文的故事远没结束。</p>
+
+    <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">三重瓶颈</div>
+        <ul style="margin:6px 0;">
+          <li>位置外推 → YaRN/NTK + 微调</li>
+          <li>注意力 O(n²) → Flash Attn + Ring Attn</li>
+          <li>KV cache 显存 → GQA + 量化 + Paged</li>
+          <li>三者必须同时解决</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">工程认知</div>
+        <ul style="margin:6px 0;">
+          <li>128K 是系统工程的合力，非单点</li>
+          <li>所有外推都需要长文本继续训练</li>
+          <li>长上下文 ≠ 好记忆（Lost in Middle）</li>
+          <li>成本非线性，Prompt Caching 关键</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>注意力机制相关的章节到此告一段落。接下来进入 Transformer 的<strong>输入端</strong>——在 token 进入 embedding 之前，文字是怎么变成 token 的？分词（Tokenization）是 LLM 的第一道关卡，BPE、WordPiece、SentencePiece 这些算法怎么工作？中文分词有什么特殊问题？下一章深入<strong>分词</strong>。</p>
+
+    <blockquote>
+      下一章：<a href="107-tfm-tokenization.html">第 107 章 · Tokenizer：文字如何变成模型能吃的 Token</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

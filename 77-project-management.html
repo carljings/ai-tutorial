@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 项目管理与团队协作 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 项目管理与团队协作 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -91,7 +98,7 @@
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
-      <a href="77-project-management.html" class="active" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
+      <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
       <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
@@ -295,29 +302,313 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 项目管理与团队协作</h1><p class="lead">AI 项目比传统软件项目难管在哪</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 项目管理的独特挑战</h2>
-    <p>AI 项目和传统软件项目的管理方式截然不同。传统软件：需求明确→开发→测试→上线，确定性高。AI 项目：需求模糊（"要更智能"）、结果不确定（模型可能达不到预期）、迭代是核心（不是"做完"而是"持续优化"）。用传统瀑布/敏捷方法管 AI 项目，几乎必然失败。</p>
-    <div class="callout"><strong>💡 要点</strong><br>AI 项目管理的核心转变：**从"交付确定的功能"到"交付不确定的能力"**。传统项目做完就完了；AI 项目"做完"只是起点——模型上线后要持续监控、收集 bad case、迭代优化。这意味着项目管理方式必须从"一次交付"转向"持续运营"。</div>
-    <h2><span class="idx"></span>AI 项目失败的四大大原因</h2>
-    <table class="data-table"><thead><tr><th>原因</th><th>表现</th><th>解法</th></tr></thead><tbody><tr><td>数据问题</td><td>数据不够/质量差/有偏见</td><td>先做数据审计再立项</td></tr><tr><td>评估缺失</td><td>不知道模型好不好</td><td>先建评估体系再开发</td></tr><tr><td>期望落差</td><td>管理层期望 100%，实际 70%</td><td>早期设定现实预期+POC</td></tr><tr><td>工程化不足</td><td>demo 能跑，上生产崩</td><td>一开始就考虑 LLMOps</td></tr></tbody></table>
-    <h2><span class="idx"></span>AI 项目的理想流程</h2>
-    <pre class="code"><code class="language-text">AI 项目理想流程（区别于传统软件）
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 77 · 实战案例系列</span>
+      <h1>LLM 项目管理<br>需求拆解、敏捷迭代、风险控制与团队协作</h1>
+      <p class="lead">管理一个 AI 项目和管理传统软件项目很不一样。AI 项目的需求更模糊（「让它更聪明」是什么意思？）、结果更不确定（模型效果上线前难以精确预估）、技术演进更快（三个月前的方案可能已经过时）。这一章把需求拆解、敏捷迭代、风险控制、团队协作四个维度的实战方法给你，帮你在不确定性中把 AI 项目稳稳交付。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-1. 问题定义 → 明确"AI 要解决什么"+ 成功标准（不是"做个AI"）
-2. 数据审计 → 有没有数据？质量如何？偏见？
-3. POC 验证 → 2周快速验证可行性（用最强模型，不计成本）
-4. 评估体系 → 建立 golden set + 评估流水线（先于开发）
-5. 开发迭代 → 开发→评估→改进，每轮可量化
-6. 上线准备 → LLMOps（监控/成本/安全/降级）
-7. 持续运营 → 数据飞轮（上线只是起点）
+    <h2 class="section" id="why-different"><span class="idx">★</span> 一、AI 项目管理的特殊性</h2>
+    <p>AI 项目和传统软件项目的根本差异在于：<strong>传统项目的产出是确定的（写代码实现需求），AI 项目的产出是概率性的（模型效果有不确定性）</strong>。这个差异会影响管理的方方面面。</p>
+    <pre><code class="language-python"># AI 项目 vs 传统项目的差异
+project_differences = {
+    "需求定义": {
+        "传统": "功能点明确，「用户能登录」就是清楚的需求",
+        "AI": "效果目标模糊，「回答质量要高」需要量化为具体指标",
+    },
+    "开发模式": {
+        "传统": "写代码 → 测试 → 上线，逻辑正确就能工作",
+        "AI": "数据准备 → 训练/调优 → 评估 → 迭代，效果要反复调",
+    },
+    "进度预估": {
+        "传统": "经验丰富的团队能较准确预估工期",
+        "AI": "模型效果不确定，可能 1 周就达标，也可能 1 个月不行",
+    },
+    "质量标准": {
+        "传统": "功能正确 + 无 Bug",
+        "AI": "准确率/召回率/延迟/成本 多维平衡，没有完美解",
+    },
+    "技术演进": {
+        "传统": "技术栈相对稳定",
+        "AI": "3 个月一个新范式，要保持技术敏感度",
+    },
+}</code></pre>
 
-关键：评估体系要先于开发——没有评估就没有迭代方向。</code></pre>
-    <h2><span class="idx"></span>团队角色</h2>
-    <table class="data-table"><thead><tr><th>角色</th><th>职责</th><th>AI 特有</th></tr></thead><tbody><tr><td>AI 工程师</td><td>模型选型/prompt/微调</td><td>是</td></tr><tr><td>数据工程师</td><td>数据管线/标注管理</td><td>是（标注是核心）</td></tr><tr><td>评估工程师</td><td>评估体系/回归测试</td><td>是</td></tr><tr><td>产品经理</td><td>需求/体验/优先级</td><td>部分（AI 产品设计不同）</td></tr><tr><td>运维</td><td>部署/监控/成本</td><td>是（LLMOps）</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 项目管理核心挑战：需求模糊/结果不确定/迭代是核心。四大失败原因：数据问题/评估缺失/期望落差/工程化不足。理想流程：问题定义→数据审计→POC→评估体系→开发迭代→上线→持续运营。关键：评估体系先于开发。团队需新增 AI 工程师/数据工程师/评估工程师角色。</p>
-    <div class="chapter-nav">
-      <a href="76-industry-deep.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 77 章 · LLM 项目管理与团队协作</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <h2 class="section" id="requirements"><span class="idx">★</span> 二、需求拆解：把模糊变清晰</h2>
+    <p>AI 项目最大的管理挑战是「需求模糊」。业务方说「做一个智能客服」，但这意味着什么？能回答多少种问题？准确率要到多少？延迟容忍多少？不把这些量化，项目永远交付不了。</p>
+    <pre><code class="language-python"># AI 需求的结构化拆解方法
+class AIRequirementDecomposer:
+    """把模糊的 AI 需求拆解为可执行的技术目标。"""
+
+    def decompose(self, vague_need: str) -> dict:
+        # 第 1 层：业务目标（业务方关心）
+        business_goal = self.clarify_business_goal(vague_need)
+        # 第 2 层：用户场景（产品经理定义）
+        scenarios = self.define_scenarios(business_goal)
+        # 第 3 层：技术指标（工程师可执行）
+        metrics = self.define_metrics(scenarios)
+        # 第 4 层：数据需求（数据团队准备）
+        data_needs = self.assess_data_needs(scenarios)
+        return {
+            "业务目标": business_goal,
+            "用户场景": scenarios,
+            "技术指标": metrics,
+            "数据需求": data_needs,
+        }
+
+# 案例：拆解「做一个智能客服」
+decomposed = {
+    "业务目标": {
+        "核心指标": "人工坐席工作量降低 40%",
+        "次要指标": "用户满意度 CSAT ≥ 4.0",
+        "约束": "月运营成本不超过 5 万元",
+    },
+    "用户场景": [
+        {"场景": "订单查询", "占比": "30%", "要求": "准确率 95%+"},
+        {"场景": "退换货咨询", "占比": "25%", "要求": "能引导用户走流程"},
+        {"场景": "产品咨询", "占比": "20%", "要求": "基于产品文档准确回答"},
+        {"场景": "投诉", "占比": "10%", "要求": "及时转人工"},
+        {"场景": "闲聊/其他", "占比": "15%", "要求": "友好应对，不胡说"},
+    ],
+    "技术指标": {
+        "问题解决率（不转人工）": "≥ 80%",
+        "首 token 延迟": "&lt; 2 秒",
+        "安全过滤准确率": "≥ 99%",
+        "单次对话成本": "&lt; 0.01 元",
+    },
+    "数据需求": {
+        "FAQ 知识库": "覆盖 Top 1000 个高频问题",
+        "历史工单": "最近 6 个月，用于评估和微调",
+        "产品文档": "所有在售产品的最新文档",
+    },
+}</code></pre>
+    <p>这样拆解后，「做一个智能客服」就变成了可执行、可验收的具体目标。每一项都有明确的数字标准，上线时拿数据说话。</p>
+
+    <h2 class="section" id="agile"><span class="idx">★</span> 三、敏捷迭代：两周一个里程碑</h2>
+    <p>AI 项目不适合瀑布式开发（一次性设计再实现），因为很多技术效果要试了才知道。敏捷迭代是更合适的模式：两周一个 sprint，每个 sprint 产出一个可验证的增量。</p>
+    <pre><code class="language-text">AI 项目的敏捷迭代节奏（2 周一个 Sprint）：
+
+Sprint 0（启动周）：
+  - 完成需求拆解
+  - 准备初始数据集
+  - 搭建评估 pipeline
+  - 定义 baseline（用最简单的方法跑通）
+
+Sprint 1（基础版）：
+  - 用 GPT-4 API + 基础 prompt 跑通核心流程
+  - 建立 100 题的评估集
+  - 目标：能工作，效果不限
+  - 产出：可演示的 demo
+
+Sprint 2（RAG 增强）：
+  - 接入知识库
+  - 优化 prompt
+  - 目标：评估集准确率 > 70%
+  - 产出：内部可测试的版本
+
+Sprint 3（优化迭代）：
+  - 多路召回 + 重排序
+  - 错误分析 + 针对性优化
+  - 目标：准确率 > 80%，延迟达标
+  - 产出：灰度发布版本
+
+Sprint 4（生产化）：
+  - 监控告警
+  - 安全过滤
+  - 性能优化
+  - 目标：满足所有上线指标
+  - 产出：正式上线
+
+关键原则：
+- 每个 Sprint 都有可演示的产出（不是PPT）
+- 每次迭代都基于评估集的数据做决策
+- 优先级随时可调（根据评估结果调整方向）</code></pre>
+
+    <h2 class="section" id="risk"><span class="idx">★</span> 四、风险控制：预判与管理</h2>
+    <p>AI 项目的风险比传统项目多一层——技术不确定性。好的 PM 要提前识别风险、准备预案。</p>
+    <pre><code class="language-python"># AI 项目的风险矩阵
+risk_matrix = {
+    "技术风险": {
+        "模型效果不达标": {
+            "概率": "中",
+            "影响": "高（项目可能无法交付）",
+            "缓解": "Sprint 1 就做 baseline 评估，早发现早调整",
+            "预案": "准备 Plan B（换模型/降预期/换场景）",
+        },
+        "延迟/成本超标": {
+            "概率": "中",
+            "影响": "中（影响体验和商业模型）",
+            "缓解": "设计阶段就做成本测算（参考第 53 章）",
+            "预案": "量化降级方案（小模型/缓存/异步处理）",
+        },
+        "模型供应商风险": {
+            "概率": "低",
+            "影响": "高（API 封禁/涨价）",
+            "缓解": "多模型适配层，能快速切换",
+            "预案": "开源模型 fallback（本地部署）",
+        },
+    },
+    "数据风险": {
+        "数据质量差": {
+            "概率": "高",
+            "影响": "高（直接影响效果）",
+            "缓解": "Sprint 0 做数据质量评估",
+            "预案": "补充标注数据/买数据/用合成数据",
+        },
+        "数据合规问题": {
+            "概率": "中",
+            "影响": "高（可能导致下架）",
+            "缓解": "法务前置审查（参考第 62 章）",
+            "预案": "数据脱敏/本地化处理",
+        },
+    },
+    "产品风险": {
+        "用户不接受": {
+            "概率": "中",
+            "影响": "高（产品失败）",
+            "缓解": "尽早做用户测试（MVP 阶段）",
+            "预案": "调整产品定位/降低自动化程度",
+        },
+        "效果随时间衰减": {
+            "概率": "中",
+            "影响": "中（需要持续维护）",
+            "缓解": "建立持续监控和评估机制",
+            "预案": "定期更新模型和知识库",
+        },
+    },
+}</code></pre>
+
+    <h2 class="section" id="team"><span class="idx">★</span> 五、团队协作：角色与职责</h2>
+    <p>AI 项目需要的角色比传统项目多。一个典型的 AI 项目团队结构如下：</p>
+    <pre><code class="language-python"># AI 项目团队的角色与职责
+team_roles = {
+    "产品经理 (PM)": {
+        "职责": "需求定义、优先级排序、效果验收、跨部门协调",
+        "关键能力": "能把模糊需求量化为可执行指标",
+    },
+    "AI 工程师": {
+        "职责": "模型选型、prompt 工程、RAG 构建、效果调优",
+        "关键能力": "能做数据驱动的迭代决策",
+    },
+    "数据工程师": {
+        "职责": "数据 pipeline、知识库构建、数据质量保证",
+        "关键能力": "数据处理和清洗的工程能力",
+    },
+    "后端工程师": {
+        "职责": "API 开发、系统集成、性能优化",
+        "关键能力": "高并发、流式响应处理",
+    },
+    "前端工程师": {
+        "职责": "用户界面、流式展示、交互设计",
+        "关键能力": "SSE 流式渲染、状态管理",
+    },
+    "运维/SRE": {
+        "职责": "部署、监控、告警、成本控制",
+        "关键能力": "GPU 运维、LLM 推理优化（参考第 58 章）",
+    },
+    "测试/质量": {
+        "职责": "评估集设计、自动化测试、安全测试",
+        "关键能力": "AI 输出质量评估、对抗性测试",
+    },
+}
+
+# 小团队（5人以下）可以身兼多职
+# 大团队（10人+）需要明确的分工和接口定义</code></pre>
+
+    <h3 class="section">5.1 跨角色协作的关键</h3>
+    <p>AI 项目最容易出问题的环节是「PM 和工程师的沟通」。PM 用业务语言（「回答质量要好」），工程师用技术语言（「准确率 85%」），中间有巨大的鸿沟。解决方法是建立<strong>共享的评估集</strong>——PM 和工程师一起定义 100 个标准问题和期望答案，每次迭代都基于这个集合评估。这样 PM 能直观看到效果，工程师有明确的优化目标。</p>
+
+    <h2 class="section" id="communication"><span class="idx">★</span> 六、向上沟通：管理预期</h2>
+    <p>AI 项目最容易让老板失望的原因不是「做得不好」，而是「预期没对齐」。AI 的能力边界模糊，老板容易有过高预期（「ChatGPT 都能做到，你怎么不行？」）。向上沟通的核心是提前管理预期。</p>
+    <pre><code class="language-python"># 向上沟通的技巧
+upward_communication = {
+    "原则 1：展示边界": """
+    不要只给老板看好的案例（cherry-picking）。
+    要同时展示失败案例和当前的能力边界。
+    "这个问题能回答准确率 95%，但这类问题只有 60%，
+    因为训练数据里这类内容少。"
+    """,
+
+    "原则 2：量化预期": """
+    用具体的数字对齐预期。
+    "我们能做到：80% 的问题自动解决，20% 转人工，
+    用户满意度 4.0 以上。"
+    而不是说"会尽力做好"。
+    """,
+
+    "原则 3：分阶段承诺": """
+    不要一次性承诺最终效果。
+    "第一阶段（1个月）做到 70% 准确率，
+     第二阶段（2个月）优化到 85%。"
+    每阶段交付可验证的成果。
+    """,
+
+    "原则 4：主动暴露风险": """
+    不要藏着问题。
+    "当前主要风险是数据质量不足，
+    如果 2 周内无法解决，可能影响进度。"
+    早暴露，老板能帮你协调资源。
+    """,
+}</code></pre>
+
+    <h2 class="section" id="metrics-driven"><span class="idx">★</span> 七、数据驱动的决策文化</h2>
+    <p>AI 项目最忌讳「拍脑袋决策」——凭感觉觉得模型变好了/变差了。必须建立数据驱动的决策文化：每次改动都基于评估集的量化结果。</p>
+    <pre><code class="language-python"># 数据驱动的迭代决策流程
+class DataDrivenIteration:
+    def __init__(self, eval_set):
+        self.eval_set = eval_set  # 固定的评估集（不能随便改）
+        self.history = []         # 历史评估结果
+
+    def evaluate(self, model_version) -> dict:
+        """对模型版本做评估，记录历史。"""
+        results = run_evaluation(model_version, self.eval_set)
+        self.history.append({
+            "version": model_version,
+            "timestamp": now(),
+            "metrics": results,
+        })
+        return results
+
+    def compare(self, version_a, version_b) -> dict:
+        """对比两个版本的效果，决定是否上线。"""
+        metrics_a = self.get_metrics(version_a)
+        metrics_b = self.get_metrics(version_b)
+
+        decision = {
+            "准确率变化": metrics_b["accuracy"] - metrics_a["accuracy"],
+            "延迟变化": metrics_b["latency"] - metrics_a["latency"],
+            "建议": "上线" if self.is_better(metrics_b, metrics_a) else "不上线",
+            "原因": self.explain_decision(metrics_a, metrics_b),
+        }
+        return decision
+
+    def is_better(self, new, old):
+        """新版本是否优于旧版本（多维判断）。"""
+        # 准确率提升 > 2%，且延迟不恶化
+        return (new["accuracy"] > old["accuracy"] + 0.02 and
+                new["latency"] <= old["latency"] * 1.1)</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们覆盖了 AI 项目管理的四个核心维度。核心要点：</p>
+    <ul>
+      <li><strong>需求拆解</strong>：把模糊的业务需求量化为业务目标 → 用户场景 → 技术指标 → 数据需求四层结构。没有量化就没有验收标准。</li>
+      <li><strong>敏捷迭代</strong>：2 周一个 Sprint，每次产出可演示的增量，基于评估集数据做决策。Sprint 1 就跑通 baseline。</li>
+      <li><strong>风险控制</strong>：技术风险（效果不达标）、数据风险（质量/合规）、产品风险（用户不接受），每类都要有缓解和预案。</li>
+      <li><strong>团队协作</strong>：PM/AI 工程师/数据/后端/前端/运维/测试七角色，建立共享评估集是跨角色协作的关键。</li>
+      <li><strong>向上沟通</strong>：展示边界、量化预期、分阶段承诺、主动暴露风险。预期管理比技术本身更重要。</li>
+      <li><strong>数据驱动</strong>：每次改动都基于评估集的量化对比，杜绝拍脑袋决策。</li>
+    </ul>
+    <p>AI 项目管理是在不确定性中寻找确定性。方法对了，不确定性是创新的机会；方法错了，就是失控的混乱。下一章是全书的总结，回顾所有核心知识点。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

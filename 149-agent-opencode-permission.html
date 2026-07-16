@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -180,7 +178,7 @@
       <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
-      <a href="149-agent-opencode-permission.html" class="active" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
+      <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
       <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
@@ -305,81 +303,194 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 149 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 权限模型：工具级守卫</h1><p class="lead">权限边界设在工具层而非 prompt 里。每个 agent 配置允许的工具白名单，危险工具（bash/write）需确认。避免 prompt 注入绕过。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>权限边界设在工具层而非 prompt 里。每个 agent 配置允许的工具白名单，危险工具（bash/write）需确认。避免 prompt 注入绕过。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>权限边界设在工具层而非 prompt 里。每个 agent 配置允许的工具白名单，危险工具（bash/write）需确认。避免 prompt 注入绕过。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 34 · Agent 源码深挖系列</span>
+      <h1>OpenCode 权限模型<br>allow / ask / deny 三态下的工具级管控</h1>
+      <p class="lead">给 Agent 一个 execute 工具，它就有能力删掉你整个仓库。OpenCode 深知这种风险，所以构建了一套细粒度的权限系统：不是简单的「允许/禁止」二选一，而是 allow（直接放行）、ask（每次问用户）、deny（一律拒绝）三态，且可以按工具 + 参数粒度配置。本章我们拆解这套权限状态机的实现，看清一个 tool_call 在执行前要过几道关卡。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-permission"><span class="idx">★</span> 一、为什么二态不够：从一个误删事故说起</h2>
+    <p>设想一个朴素的权限模型：每个工具有一个 enabled 开关，true 就允许调用，false 就禁止。这听起来够用，但实际用起来会面临两难。比如 execute 工具——你既想让 Agent 自动跑 <code>npm test</code>（否则每次都要手动确认，体验极差），又绝对不想让它自动执行 <code>rm -rf /</code>。在二态模型下，你要么把 execute 全局打开（危险），要么全局关掉（Agent 就残废了）。</p>
+    <p>OpenCode 的解法是引入第三个状态 <strong>ask</strong>：对于无法预判安全性的工具调用，先暂停，把「要执行什么」展示给用户，由用户现场决定。这样三类工具就有了清晰的归属：</p>
+    <ul>
+      <li><strong>allow</strong>：只读、无害的工具，如 read_file、list_dir。一旦配置为 allow，后续不再打断用户。</li>
+      <li><strong>ask</strong>：有副作用但可控的，如 write_file、execute。每次调用前弹确认。</li>
+      <li><strong>deny</strong>：明确禁止的，如读取 .env、执行 git push --force。直接拒绝，连问都不问。</li>
+    </ul>
+    <p>这三态还可以组合规则细化，比如「execute 工具默认 ask，但如果命令以 npm test 开头则 allow」。这就是 OpenCode 权限模型的精髓：<strong>不是对工具一刀切，而是对「工具 × 参数」的组合做决策</strong>。</p>
+
+    <h2 class="section" id="state-machine"><span class="idx">★</span> 二、权限状态机的数据结构</h2>
+    <p>OpenCode 的权限决策不是一堆 if/else，而是一个可配置的规则列表 + 一个决策函数。每条规则是一个 matcher，描述「在什么条件下应该 allow / ask / deny」。决策时按顺序匹配，第一个命中的规则决定结果。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/permission/types.ts（简化）
+export type PermissionDecision = "allow" | "ask" | "deny";
+
+export interface PermissionRule {
+  tool: string;                       // 工具名，支持通配符 "*" 
+  decision: PermissionDecision;
+  // 可选的参数匹配器（不写则匹配该工具的所有调用）
+  match?: {
+    // 对 read_file/write_file：匹配文件路径（glob）
+    path?: string;                    // 如 "**/*.env" 或 "src/**"
+    // 对 execute：匹配命令（正则或前缀）
+    command?: string;                 // 如 "npm test*" 或 "git *"
+  };
+}
+
+export interface PermissionConfig {
+  rules: PermissionRule[];            // 按顺序匹配
+  defaultDecision: PermissionDecision; // 兜底，默认 "ask"
+}</code></pre>
+    <p>这套数据结构最精妙的地方在于 <strong>match 字段的多态</strong>：对于文件类工具，match.path 用 glob 匹配路径；对于命令类工具，match.command 用模式匹配命令字符串。同一个规则结构适配了不同工具的语义，让配置保持简洁。</p>
+
+    <h2 class="section" id="decision-engine"><span class="idx">★</span> 三、决策引擎：从规则到结论</h2>
+    <p>有了规则列表，决策就是一个遍历匹配的过程。我们看核心的 decide 函数：</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/permission/decide.ts（简化）
+import { minimatch } from "minimatch";
+
+export function decide(
+  config: PermissionConfig,
+  toolCall: { tool: string; params: any }
+): PermissionDecision {
+  for (const rule of config.rules) {
+    // 1. 工具名匹配（支持 "*" 通配）
+    if (rule.tool !== "*" && rule.tool !== toolCall.tool) continue;
+
+    // 2. 参数匹配
+    if (rule.match) {
+      if (rule.match.path) {
+        const target = toolCall.params.filePath ?? toolCall.params.path ?? "";
+        if (!minimatch(target, rule.match.path)) continue;
+      }
+      if (rule.match.command) {
+        const cmd = toolCall.params.command ?? "";
+        // 把 "npm test*" 转成正则
+        const re = new RegExp("^" + rule.match.command.replace(/\*/g, ".*"));
+        if (!re.test(cmd)) continue;
+      }
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 3. 第一个命中的规则决定结果
+    return rule.decision;
+  }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+  // 4. 没有命中任何规则，用兜底策略
+  return config.defaultDecision;
+}</code></pre>
+    <p>这里有三个工程考量。第一，<strong>顺序优先</strong>：规则按声明顺序匹配，所以更具体的规则要写在前面（比如「execute 命令 rm 开头 → deny」要写在「execute → ask」之前）。第二，<strong>不命中走 default</strong>：OpenCode 把 default 设为 ask，遵循「不确定就问」的安全默认。第三，<strong>匹配器可扩展</strong>：除了 path 和 command，未来可以加更多维度，比如匹配工具调用的「目标进程」或「网络端点」。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 权限模型：工具级守卫"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="148-agent-opencode-tools.html"><div class="lbl">← 上一章</div><div class="ttl">148 · OpenCode 工具系统：read/write/bash/grep</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="150-agent-opencode-context.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">150 · OpenCode 上下文收集</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 149 章 · OpenCode 权限模型：工具级守卫</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="ask-flow"><span class="idx">★</span> 四、ask 流程：阻塞 + 用户响应</h2>
+    <p>当决策结果是 ask 时，OpenCode 不能直接执行也不能直接拒绝——它要暂停 Agent 循环，把请求展示给用户，等用户做出选择。这用到了我们在第 146 章提到的 <code>emitAndWait</code> 机制。</p>
+    <pre><code class="language-typescript">// 在工具执行前的拦截器（简化）
+async function withPermission(
+  toolCall: ToolCall,
+  ctx: ToolContext
+): Promise&lt;ToolResult&gt; {
+  const decision = decide(ctx.session.permission, toolCall);
+
+  if (decision === "deny") {
+    return {
+      content: [{ type: "text",
+        text: `权限被拒绝：工具 ${toolCall.tool} 不被允许执行此操作。` }],
+      isError: true,
+    };
+  }
+
+  if (decision === "ask") {
+    // 发出权限请求事件，阻塞等待用户响应
+    const userChoice = await ctx.bus.emitAndWait("permission.request", {
+      tool: toolCall.tool,
+      params: toolCall.params,
+      // 提供给用户的选项
+    });
+    if (userChoice === "deny") {
+      return { content: [{ type: "text", text: "用户拒绝了此次调用。" }], isError: true };
+    }
+    // 用户可能选择 "allow always"，把这条规则固化下来
+    if (userChoice === "allow-always") {
+      ctx.session.permission.rules.unshift({
+        tool: toolCall.tool,
+        decision: "allow",
+        match: extractMatcher(toolCall),
+      });
+    }
+  }
+
+  // allow 或用户同意，真正执行
+  return await toolCall.execute(toolCall.params, ctx);
+}</code></pre>
+    <p>这里最值得品的是 <strong>allow-always 的学习机制</strong>：用户每次手动确认都很烦，所以 OpenCode 允许用户在确认时勾选「以后都允许」——这会动态生成一条精确匹配当前调用的 allow 规则，unshift 到规则列表最前面，下次同样调用就直接放行。这让权限系统从「静态配置」进化成了「交互式学习」——用得越久越顺手，但危险操作仍然每次问。</p>
+
+    <h2 class="section" id="path-whitelist"><span class="idx">★</span> 五、路径白名单：文件访问的纵深防御</h2>
+    <p>除了工具级的 allow/ask/deny，OpenCode 还有一层独立的文件路径白名单。即使 read_file 工具被 allow，如果目标路径不在白名单内，仍然会被拒。这是纵深防御（defense in depth）思想——不依赖单一关卡。</p>
+    <p>默认的白名单规则包括：</p>
+    <ul>
+      <li>当前会话的工作目录（cwd）及其子目录：默认允许。</li>
+      <li>用户主目录下的 .ssh、.gnupg、.env 等敏感文件：默认 deny，即使在 cwd 内也要额外确认。</li>
+      <li>cwd 之外的系统路径（如 /etc、/usr）：默认 ask，需用户确认。</li>
+    </ul>
+    <pre><code class="language-typescript">// 路径安全检查（简化）
+const SENSITIVE_PATTERNS = [
+  "**/.env",
+  "**/.env.*",
+  "**/.ssh/**",
+  "**/.gnupg/**",
+  "**/id_rsa*",
+  "**/*.pem",
+  "**/*.key",
+];
+
+export function checkPathSafety(absPath: string, cwd: string): PermissionDecision {
+  // 敏感文件一律 deny
+  if (SENSITIVE_PATTERNS.some(p =&gt; minimatch(absPath, p))) {
+    return "deny";
+  }
+  // cwd 内允许
+  if (absPath.startsWith(cwd)) {
+    return "allow";
+  }
+  // cwd 外需确认
+  return "ask";
+}</code></pre>
+    <p>这种设计的好处是即使用户不小心把 execute 配成了 allow，Agent 也无法通过 <code>cat ~/.ssh/id_rsa</code> 这种命令泄露密钥——因为路径检查会拦截。两层防护交叉生效，大大降低了误操作的风险。</p>
+
+    <h2 class="section" id="config-file"><span class="idx">★</span> 六、配置文件：把权限规则写下来</h2>
+    <p>权限规则不只是运行时动态学习的，OpenCode 还支持通过配置文件预定义。这让团队可以把一套权限策略提交到仓库，所有成员共享。配置文件一般长这样：</p>
+    <pre><code class="language-json">{
+  "permission": {
+    "default": "ask",
+    "rules": [
+      { "tool": "read_file", "decision": "allow" },
+      { "tool": "list_dir",  "decision": "allow" },
+      { "tool": "execute", "decision": "allow", "match": { "command": "npm test*" } },
+      { "tool": "execute", "decision": "allow", "match": { "command": "git status" } },
+      { "tool": "execute", "decision": "deny",  "match": { "command": "rm -rf *" } },
+      { "tool": "execute", "decision": "deny",  "match": { "command": "git push --force*" } },
+      { "tool": "write_file", "decision": "deny", "match": { "path": "**/.env*" } },
+      { "tool": "write_file", "decision": "ask" }
+    ]
+  }
+}</code></pre>
+    <p>注意规则的排列顺序：deny 类规则放在 allow 类之前，确保危险操作先被拦截。这种「先 deny 后 allow」的排列原则是配置权限系统时的通用最佳实践——你可以类比 iptables 防火墙规则的匹配逻辑。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>OpenCode 的权限模型是它在「能力」和「安全」之间找平衡的核心机制。要点回顾：</p>
+    <ul>
+      <li><strong>三态模型</strong>：allow / ask / deny 比二态更精细，ask 是关键——让无法预判的操作走人工确认。</li>
+      <li><strong>规则即数据</strong>：权限决策不是硬编码 if/else，而是可配置的规则列表按顺序匹配，第一个命中者决定结果。</li>
+      <li><strong>工具 × 参数粒度</strong>：match 字段让规则能精确到「execute 跑 npm test 才 allow」，而非对 execute 一刀切。</li>
+      <li><strong>交互式学习</strong>：allow-always 把用户每次确认固化为新规则，权限系统越用越顺手。</li>
+      <li><strong>路径白名单纵深防御</strong>：工具级权限之外，独立的敏感文件检查作为第二道关卡。</li>
+      <li><strong>配置可版本化</strong>：权限规则写成 JSON，团队共享，deny 规则排在前面是通用最佳实践。</li>
+    </ul>
+    <p>权限解决了「能不能调用」的问题。下一章（150 章）我们转向另一个核心挑战——上下文管理：当对话越来越长、读过的文件越来越多，OpenCode 如何在有限的 context window 里塞下最有价值的信息。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

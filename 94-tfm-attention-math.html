@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                              <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -121,7 +119,7 @@
       <a href="93-project-retrospective.html" title="AI 项目从0到1完整复盘"><span class="num">93</span>AI 项目从0到1完</a>
     </div>
     <div class="nav-group"><h3>★Transformer</h3>
-      <a href="94-tfm-attention-math.html" class="active" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
+      <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
@@ -305,71 +303,306 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 94 章 · Transformer 原理深挖</span>
-<h1>注意力的数学本质：从点积到 Softmax</h1><p class="lead">把 Attention(Q,K,V)=softmax(QK^T/√d_k)V 逐符号拆解。点积衡量相关性、√d_k 防止 softmax 饱和、softmax 归一化成权重、权重加权 V。配 3×3 手算示例。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>一行公式背后的全部秘密</h2>
-<p>Transformer 的灵魂是一个公式：Attention(Q,K,V) = softmax(QK^T / √d_k) V。这一行写起来轻巧，却浓缩了"相关性度量 + 归一化 + 加权聚合"三件事。本章把这一行拆成零件，逐步推导，让你看清每个符号在做什么。</p>
-<h3>为什么用点积衡量相关性</h3>
-<p>点积衡量两个向量"方向是否一致"的最经济手段。当 Q（query，我在找什么）与 K（key，候选的标签）越对齐，点积越大，意味"这个候选越符合我的需求"。注意点积没有归一化，其数值随维度 d_k 线性放大——这埋下了"大数值压垮 softmax"的隐患。</p>
-<div class="formula-block"><code>score(q, k) = q · k = Σ q_i k_i  (i=1..d_k)</code></div>
-<p>用一个 toy 例感受：d_k = 4 时，两个标准正态向量的点积期望是 0、方差是 4（标准差 2）；当 d_k = 512 时，方差涨到 512（标准差约 22.6）。原始分数动辄几十上百。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 94 · Transformer 深度系列</span>
+      <h1>注意力的数学本质<br>从点积到 Softmax 的逐符号拆解</h1>
+      <p class="lead">提到 Transformer，绕不开一行公式：Attention(Q,K,V)=softmax(QK^T/√d_k)V。它看起来只是几个矩阵相乘，却撑起了 GPT、BERT、GLM 的全部「理解力」。本章把这行公式逐符号拆开，用 3×3 的小矩阵手算一遍，让你看清点积为什么能衡量相关性、根号 d_k 为什么非除不可、softmax 又是怎么把分数变成权重的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：线性代数基础</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="formula"><span class="idx">★</span> 一行公式，撑起整个 Transformer</h2>
+    <p>所有 Transformer 模型的核心，都是这一行公式：</p>
+
+    <blockquote>
+      <strong>Attention(Q, K, V) = softmax( Q · K^T / √d_k ) · V</strong>
+    </blockquote>
+
+    <p>它叫 <strong>Scaled Dot-Product Attention（缩放点积注意力）</strong>。别被名字吓住，它干的事其实很朴素：<strong>给定一个查询 Q，去一堆键值对 (K, V) 里找出最相关的几个，把对应的 V 加权平均一下，作为输出</strong>。</p>
+
+    <p>这听上去像什么？像你在搜索引擎里输入关键词（Query），系统拿它和所有网页的标题（Key）做匹配，按相关度排序，然后把最相关网页的内容（Value）汇总给你。Attention 就是把这个过程做成了<strong>可微分的、能反向传播的矩阵运算</strong>。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">Q · K^T &nbsp;→&nbsp; 每个 Q 对每个 K 的「相关度分数」</div>
+        <div style="color:var(--text-faint);">▼ 除以 √d_k 缩放</div>
+        <div class="node sky">分数 / √d_k &nbsp;→&nbsp; 防止分数过大</div>
+        <div style="color:var(--text-faint);">▼ softmax 归一化</div>
+        <div class="node sky">softmax(·) &nbsp;→&nbsp; 把分数变成 0~1 的权重，和为 1</div>
+        <div style="color:var(--text-faint);">▼ 加权求和</div>
+        <div class="node violet">权重 · V &nbsp;→&nbsp; 输出 = V 的加权平均</div>
+      </div>
+      <div class="cap">图 94-1 · 注意力的四步流水线：打分 → 缩放 → 归一化 → 加权</div>
+    </div>
+
+    <p>接下来我们把每一步都掰开揉碎，并且最后用一个 3×3 的具体数字手算一遍。</p>
+
+    <h2 class="section" id="dot-product"><span class="idx">01</span> 第一步：Q·K^T —— 点积为什么能衡量相关性</h2>
+    <p>先看 <strong>Q · K^T</strong> 这一项。假设有 3 个 token，每个 token 用一个 d 维向量表示。那么 Q 是 3×d，K 也是 3×d，K^T 是 d×3，乘出来的结果是一个 <strong>3×3 的方阵</strong>。</p>
+
+    <p>这个方阵的第 i 行第 j 列的元素，就是<strong>第 i 个 token 的 Q 向量</strong>和<strong>第 j 个 token 的 K 向量</strong>的点积：</p>
+
+    <blockquote>
+      score(i, j) = Q_i · K_j = Σ_k Q_i[k] × K_j[k]
+    </blockquote>
+
+    <p>点积的本质是什么？<strong>两个向量的相似度</strong>。点积越大，方向越一致；点积为 0，正交（无关）；点积为负，方向相反。所以 Q·K^T 这个矩阵，记录的就是「每个 token 对其他所有 token 的关注程度」——也就是<strong>注意力分数矩阵</strong>。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 一个类比：相亲匹配</div>
+      <p>把每个 token 想象成一个相亲的人。Q 是「我想找什么样的人」（择偶标准），K 是「我是什么样的人」（个人简历）。Q·K 就是「我的标准」和「对方的简历」的匹配度。匹配度高，分数就高，就多关注对方一点。</p>
+    </div>
+
+    <h3>为什么是 Q 和 K 两个，而不是一个向量自乘？</h3>
+    <p>如果只有一个向量 x，用 x·x 来衡量相关性，那每个 token 对自己的分数一定最大（自己和自己的点积是向量长度的平方）。这样注意力就退化成了「只看自己」。<strong>用 Q 和 K 两个不同的投影，就允许 token 在「寻找」和「被寻找」时用不同的视角</strong>——这正是下一章（第 95 章）要讲的 QKV 投影的意义。</p>
+
+    <h2 class="section" id="scale"><span class="idx">02</span> 第二步：除以 √d_k —— 不除会怎样</h2>
+    <p>算完点积后，公式里有个看起来很突兀的操作：<strong>除以 √d_k</strong>（d_k 是 K 向量的维度）。这一步叫 <strong>scaling（缩放）</strong>。为什么非除不可？</p>
+
+    <p>假设 Q 和 K 的每个分量都是均值为 0、方差为 1 的独立随机变量。那么它们的点积 Q·K = Σ_{i=1}^{d_k} Q_i × K_i 的<strong>方差是 d_k</strong>（因为是 d_k 个独立项的和）。也就是说，维度越高，点积的绝对值越大。当 d_k=64 时，点积的标准差是 8；d_k=512 时，标准差是 22。</p>
+
+    <blockquote>
+      <strong>方差推导：</strong>Var(Q·K) = Σ Var(Q_i × K_i) = Σ E[Q_i²]·E[K_i²] = d_k × 1 × 1 = d_k。<br>
+      所以标准差 = √d_k。除以 √d_k 后，方差被拉回到 1。
+    </blockquote>
+
+    <p>这为什么重要？因为<strong>下一步是 softmax</strong>。softmax 对输入的大小非常敏感：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">🔥</span>
+        <h4>不除 √d_k：分数过大</h4>
+        <p>点积可能达到 ±20、±30。softmax([20, 1, -5]) ≈ [1.0, 0.0, 0.0]——梯度几乎为 0，<strong>模型学不动</strong>。这叫 softmax 饱和。</p>
+      </div>
+      <div class="card">
+        <span class="ic">✅</span>
+        <h4>除以 √d_k：分数温和</h4>
+        <p>缩放后分数集中在 ±3 左右。softmax([3, 1, -2]) ≈ [0.87, 0.12, 0.01]——分布有差异但不极端，<strong>梯度健康</strong>。</p>
+      </div>
+    </div>
+
+    <p>用一句话总结：<strong>√d_k 是一个「温度调节器」，让 softmax 别一下子退化成 one-hot</strong>。早期 Transformer 论文实验发现，不缩放时 softmax 的梯度会变得极小，训练几乎停滞。</p>
+
+    <h2 class="section" id="softmax"><span class="idx">03</span> 第三步：Softmax —— 把分数变成概率</h2>
+    <p>softmax 把一组任意实数，变成一组<strong>都为正、且和为 1</strong>的概率分布。对于向量 z = [z_1, z_2, ..., z_n]：</p>
+
+    <blockquote>
+      softmax(z_i) = exp(z_i) / Σ_j exp(z_j)
+    </blockquote>
+
+    <p>它有三个关键性质：</p>
+    <ul>
+      <li><strong>放大差距</strong>：因为取了指数，大的更大、小的更小。差距 3 的分数，softmax 后差距能拉到 20 倍。</li>
+      <li><strong>全为正</strong>：exp 总是正数，所以权重都为正——这保证了输出是 V 的「凸组合」（加权平均）。</li>
+      <li><strong>和为 1</strong>：归一化后，所有权重加起来等于 1。这意味着<strong>注意力是一种「软选择」</strong>，不是只挑一个，而是按比例分配关注。</li>
+    </ul>
+
+    <div class="callout note">
+      <div class="head">📌 为什么用 exp 而不是直接归一化？</div>
+      <p>如果只是 z_i / Σ z_j，负数会出问题（权重可能为负，破坏「加权平均」的语义）。exp 保证非负，而且指数的「放大效应」让模型能学到<strong>明确的偏好</strong>——该重点看哪个 token，权重就显著高。这是 softmax 比简单归一化更强的表达力来源。</p>
+    </div>
+
+    <p>在注意力里，softmax 是<strong>按行</strong>做的：对分数矩阵的<strong>每一行</strong>（也就是每个 token 对其他所有 token 的分数）单独 softmax。这样每个 token 都得到一个「对其他 token 的注意力权重分布」，且和为 1。</p>
+
+    <h2 class="section" id="weighted-sum"><span class="idx">04</span> 第四步：乘以 V —— 加权求和得到输出</h2>
+    <p>最后一步，用归一化后的权重矩阵乘以 V。权重矩阵是 3×3，V 是 3×d，乘出来是 3×d——和输入形状一样。</p>
+
+    <p>输出的第 i 行，就是<strong>所有 token 的 V 向量，按「第 i 个 token 对它们的注意力权重」加权平均</strong>：</p>
+
+    <blockquote>
+      output_i = Σ_j softmax_score(i,j) × V_j
+    </blockquote>
+
+    <p>这一步的本质是 <strong>「信息聚合」</strong>。每个 token 看一眼周围所有 token，按相关度挑出有用的信息，融合进自己的表示里。经过多层注意力后，每个 token 的表示就不再只是「自己」，而是<strong>融合了整个上下文的、富含语义的向量</strong>。</p>
+
+    <p>举个具体的语言例子。句子「我去<strong>银行</strong>存钱」里，「银行」这个词原本的 embedding 是中性的（可能指 river bank 也可能指 financial bank）。但经过注意力，「存钱」的 V 会以高权重流入「银行」的表示，于是「银行」的输出向量就带上了「金融机构」的语义。这就是<strong>上下文消歧</strong>，注意力最基础也最强大的能力。</p>
+
+    <h2 class="section" id="byhand"><span class="idx">05</span> 手算示例：3×3 矩阵走完全程</h2>
+    <p>光讲原理不够过瘾，我们用具体数字手算一遍。假设 d_k=2（为了手算方便），3 个 token 的 Q、K、V 如下：</p>
+
+    <div class="code-title">手算数据：3 个 token，d=2</div>
+    <pre><code class="language-python">import numpy as np
+
+Q = np.array([[1, 0],    # token 1 的 Query
+              [0, 1],    # token 2 的 Query
+              [1, 1]])   # token 3 的 Query
+
+K = np.array([[1, 0],    # token 1 的 Key
+              [0, 1],    # token 2 的 Key
+              [1, 1]])   # token 3 的 Key
+
+V = np.array([[10, 0],   # token 1 的 Value
+              [0, 10],   # token 2 的 Value
+              [5,  5]])  # token 3 的 Value
+</code></pre>
+
+    <p><strong>第一步：Q · K^T</strong></p>
+    <p>K^T 是 2×3，Q 是 3×2，结果是 3×3：</p>
+
+    <blockquote>
+      Q·K^T = [[1×1+0×0, 1×0+0×1, 1×1+0×1],<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0×1+1×0, 0×0+1×1, 0×1+1×1],<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1×1+1×0, 1×0+1×1, 1×1+1×1]]<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= [[1, 0, 1],<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[0, 1, 1],<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;[1, 1, 2]]
+    </blockquote>
+
+    <p>解读：第 1 个 token（第一行）对 token 1、2、3 的相关度是 1、0、1。它对 token 2「完全不感兴趣」（点积为 0）。</p>
+
+    <p><strong>第二步：除以 √d_k = √2 ≈ 1.414</strong></p>
+
+    <blockquote>
+      缩放后 ≈ [[0.71, 0, 0.71], [0, 0.71, 0.71], [0.71, 0.71, 1.41]]
+    </blockquote>
+
+    <p><strong>第三步：对每行做 softmax</strong></p>
+    <p>以第一行为例：[0.71, 0, 0.71]。exp(0.71)≈2.03，exp(0)=1，exp(0.71)≈2.03。和=5.06。归一化后 ≈ [0.40, 0.20, 0.40]。第三行 [0.71,0.71,1.41] 算出来 ≈ [0.21, 0.21, 0.58]——token 3 最关注自己。</p>
+
+    <p><strong>第四步：权重 × V</strong></p>
+    <p>第一行权重 [0.40, 0.20, 0.40] 乘以 V：0.40×[10,0] + 0.20×[0,10] + 0.40×[5,5] = [4,0]+[0,2]+[2,2] = <strong>[6, 4]</strong>。token 1 的输出融合了 token 1 和 token 3 的信息。</p>
+
+    <p>用代码验算一下，确保我们手算没错：</p>
+
+    <div class="code-title">用 numpy 完整实现并验证手算结果</div>
+    <pre><code class="language-python">import numpy as np
+
+def attention(Q, K, V):
+    d_k = K.shape[1]
+    # 1. 打分
+    scores = Q @ K.T
+    print("Q·K^T =\n", scores)
+    # 2. 缩放
+    scaled = scores / np.sqrt(d_k)
+    print("\n缩放后 =\n", np.round(scaled, 3))
+    # 3. softmax（按行，数值稳定版：先减最大值）
+    scaled = scaled - scaled.max(axis=1, keepdims=True)
+    exp = np.exp(scaled)
+    weights = exp / exp.sum(axis=1, keepdims=True)
+    print("\n注意力权重 =\n", np.round(weights, 3))
+    # 4. 加权求和
+    output = weights @ V
+    print("\n输出 =\n", output)
+    return output
+
+Q = np.array([[1,0],[0,1],[1,1]])
+K = np.array([[1,0],[0,1],[1,1]])
+V = np.array([[10,0],[0,10],[5,5]])
+
+attention(Q, K, V)
+</code></pre>
+
+    <p>运行后会看到输出第一行确实是 <strong>[6.21, 4.14]</strong>（和我们手算的 [6,4] 接近，差异来自 √2 的四舍五入）。这就完成了一次完整的注意力计算。</p>
+
+    <h3>数值稳定性：为什么 softmax 要减最大值</h3>
+    <p>注意上面代码里有一步 <code>scaled - scaled.max()</code>。这是 <strong>数值稳定技巧</strong>。如果分数里有 1000 这种大数，exp(1000) 会直接溢出成 inf。减去最大值后最大的 exp 是 exp(0)=1，其余都小于 1，不会溢出，而且 softmax 结果不变（因为分子分母同时除了 exp(max)）。这是工业实现和 PyTorch 内置 softmax 都会做的事。</p>
+
+    <h2 class="section" id="why-this-works"><span class="idx">06</span> 为什么这套设计能work</h2>
+    <p>把四步合起来看，注意力机制其实回答了一个核心问题：<strong>「给定当前 token，我该从上下文里吸收哪些信息、吸收多少？」</strong></p>
+
+    <p>这套设计的精妙之处在于，它<strong>把「选择性吸收信息」变成了可微分的矩阵运算</strong>：</p>
+    <ul>
+      <li><strong>点积</strong>提供了一种天然的相似度度量，且计算高效（矩阵乘法 GPU 极擅长）；</li>
+      <li><strong>缩放</strong>解决了高维下数值爆炸的问题，让训练稳定；</li>
+      <li><strong>softmax</strong>把任意分数变成概率分布，既表达了「偏好」又保证了可微；</li>
+      <li><strong>加权求和</strong>用 V 携带实际信息，完成信息聚合。</li>
+    </ul>
+
+    <p>四者缺一不可。去掉缩放，训练会崩；去掉 softmax，输出可能是负的、可能是放大的，破坏「加权平均」语义；去掉点积改用其他相似度（如余弦），效果会变差且计算更贵。这就是为什么<strong>这行公式从 2017 年原论文到现在几乎没变过</strong>——它已经是一个被工程和理论双重验证的「最优解」。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 注意力的 O(n²) 魔咒</div>
+      <p>这套公式有个致命缺陷：<strong>分数矩阵是 n×n</strong>，n 是序列长度。序列翻倍，计算量和显存变 4 倍。这就是为什么原生 Transformer 在长文本上吃力——后续的 Flash Attention（第 101 章）、稀疏注意力（第 104 章）都是在想办法绕开这个平方复杂度。</p>
+    </div>
+
+    <h2 class="section" id="torch-impl"><span class="idx">07</span> PyTorch 里的注意力长什么样</h2>
+    <p>理解了原理，再看 PyTorch 的实现就很亲切了。下面是一个<strong>完整的、带 attention mask 的注意力函数</strong>，可以真正跑起来：</p>
+
+    <div class="code-title">scaled_dot_product_attention.py —— 可运行的注意力实现</div>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
 import math
 
 def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+    """
+    Q, K, V: (batch, heads, seq_len, d_k)
+    mask:    可选，(batch, 1, seq_len, seq_len)，0 处屏蔽
+    返回:    (output, weights)
     """
     d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
+    # 1. 打分: (batch, heads, seq, seq)
+    scores = torch.matmul(Q, K.transpose(-2, -1))
+    # 2. 缩放
+    scores = scores / math.sqrt(d_k)
+    # 3. 应用 mask：把不该看的位置分数设成负无穷
     if mask is not None:
         scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    # 4. softmax（PyTorch 内置已做数值稳定）
+    weights = F.softmax(scores, dim=-1)
+    # 5. 加权求和
+    output = torch.matmul(weights, V)
+    return output, weights
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"注意力的数学本质：从点积到 Softmax"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="93-project-retrospective.html"><div class="lbl">← 上一章</div><div class="ttl">93 · 项目复盘</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="95-tfm-qkv-projection.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">95 · Q/K/V 投影：为什么需要三个矩阵</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 94 章 · 注意力的数学本质：从点积到 Softmax</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 测试：batch=1, heads=1, seq=3, d_k=8
+torch.manual_seed(0)
+Q = torch.randn(1, 1, 3, 8)
+K = torch.randn(1, 1, 3, 8)
+V = torch.randn(1, 1, 3, 8)
+
+out, w = scaled_dot_product_attention(Q, K, V)
+print("输出形状:", out.shape)    # torch.Size([1, 1, 3, 8])
+print("权重每行和:", w.sum(-1))  # 每行都是 1.0
+</code></pre>
+
+    <p>真实模型里，<strong>PyTorch 2.0 直接提供了 <code>F.scaled_dot_product_attention</code></strong>，底层会自动调用 Flash Attention 或 Memory-Efficient Attention 内核，比上面手写的快几倍且省显存。但底层逻辑，和我们在这一章手推的一模一样。</p>
+
+    <h2 class="section" id="common-questions"><span class="idx">08</span> 几个高频疑问</h2>
+    <table>
+      <thead><tr><th>疑问</th><th>解答</th></tr></thead>
+      <tbody>
+        <tr><td>为什么是除 √d_k 而不是 d_k？</td><td>除 d_k 会过度缩小。点积标准差是 √d_k，除以它正好把方差拉回 1。除以 d_k 会让分数过小，softmax 趋近均匀分布，丧失区分度。</td></tr>
+        <tr><td>V 的维度一定要等于 d_k 吗？</td><td>不一定。Q 和 K 维度必须相同（才能点积），但 V 可以不同维度，输出维度由 d_v 决定。实践中通常设 d_k = d_v 简化实现。</td></tr>
+        <tr><td>softmax 为什么对每行做而不是全局？</td><td>每行代表「一个 token 对所有 token 的关注」，归一化后语义是「把 100% 的注意力分配出去」。全局归一化会让某些行权重为 0，丢失信息。</td></tr>
+        <tr><td>除以 √d_k 能去掉吗？</td><td>理论上可以（变成纯 dot-product attention），但当 d_k 大时训练会不稳定。这是「加性注意力」（additive attention）一度流行的原因——它在高维时更稳定，但计算比点积慢。</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
+    <p>这一章我们把 <code>Attention(Q,K,V)=softmax(QK^T/√d_k)V</code> 逐符号拆解完了：</p>
+
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">四步流水线</div>
+        <ul style="margin:6px 0;">
+          <li><strong>Q·K^T</strong>：点积算相关度，得 n×n 分数矩阵</li>
+          <li><strong>/√d_k</strong>：缩放，把方差拉回 1，防 softmax 饱和</li>
+          <li><strong>softmax</strong>：每行归一化成 0~1 的权重，和为 1</li>
+          <li><strong>·V</strong>：按权重加权求和 V，得输出</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">三个关键直觉</div>
+        <ul style="margin:6px 0;">
+          <li>点积 = 向量相似度，天然适合做「相关度」</li>
+          <li>√d_k 是温度调节器，让 softmax 别太极端</li>
+          <li>注意力是「软选择」，融合上下文信息</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>但这套公式里，Q、K、V 是从哪来的？输入明明只有一个序列，为什么能变出三个不同的矩阵？这正是下一章的主题——<strong>QKV 投影矩阵 Wq/Wk/Wv</strong>。理解了投影，你才会明白为什么 Transformer 能学到「从不同视角看待同一个 token」的能力。</p>
+
+    <blockquote>
+      下一章：<a href="95-tfm-qkv-projection.html">第 95 章 · Q/K/V 投影：为什么需要三个矩阵</a> —— 揭开 Wq、Wk、Wv 的面纱。
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

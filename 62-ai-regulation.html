@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 法规与合规 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 法规与合规 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -76,7 +83,7 @@
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
-      <a href="62-ai-regulation.html" class="active" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
+      <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
@@ -295,18 +302,239 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 法规与合规</h1><p class="lead">EU AI Act 到中国生成式 AI 管理办法——全球 AI 监管地图</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 法规的全球格局</h2>
-    <p>AI 监管在 2024-2026 年快速成形。三大法域各有侧重：欧盟走"风险分级"路线（EU AI Act），美国走"自愿框架"路线（NIST AI RMF + 行政令），中国走"内容安全"路线（生成式 AI 管理办法）。如果你的 AI 产品面向多国，必须同时满足多套法规。</p>
-    <table class="data-table"><thead><tr><th>法域</th><th>法规</th><th>核心要求</th><th>执行力度</th></tr></thead><tbody><tr><td>欧盟</td><td>EU AI Act (2024)</td><td>风险分级：高风险AI需评估/注册/人工监督</td><td>强（罚款高达营收6%）</td></tr><tr><td>美国</td><td>NIST AI RMF / 行政令</td><td>自愿框架+政府采购要求</td><td>中（靠市场/采购）</td></tr><tr><td>中国</td><td>生成式AI管理办法</td><td>安全评估/内容标识/算法备案</td><td>强（上线前审批）</td></tr><tr><td>英国</td><td>柔性监管</td><td>行业自律+原则指导</td><td>弱</td></tr></tbody></table>
-    <h2><span class="idx"></span>EU AI Act：最严格的风险分级</h2>
-    <p>EU AI Act 把 AI 按风险分四级：不可接受（禁止，如社会评分）、高风险（严格监管，如简历筛选/医疗）、有限风险（透明义务，如聊天机器人）、最小风险（自由）。高风险 AI 要做：合格评定、注册到欧盟数据库、人工监督、持续监控、技术文档。</p>
-    <h2><span class="idx"></span>中国生成式 AI 管理办法</h2>
-    <p>中国的核心要求：① 安全评估（上线前做算法安全评估）；② 内容标识（AI 生成内容要标注）；③ 算法备案（向网信办备案）；④ 训练数据合法（不得侵权/违法）；⑤ 用户实名+内容审核。</p>
-    <div class="callout"><strong>💡 要点</strong><br>合规建议：① 上线前做"法规体检"——你的 AI 属于哪个风险等级？需要哪些合规动作？② 建立审计日志——所有 AI 决策可追溯；③ 按人群/场景拆分评估——证明无歧视；④ 内容标识——AI 生成的要标注。这些在产品早期就考虑，否则后期补成本 10 倍。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>全球 AI 监管三路线：欧盟风险分级（EU AI Act 最严）、美国自愿框架、中国内容安全。核心合规动作：安全评估/内容标识/算法备案/审计日志/公平性评估。建议产品早期就做法规体检，后期补成本极高。</p>
-    <div class="chapter-nav">
-      <a href="61-redteam-handbook.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 62 章 · AI 法规与合规</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 62 · 实战案例系列</span>
+      <h1>AI 法规合规<br>EU AI Act、中国生成式 AI 办法与美国行政令全景</h1>
+      <p class="lead">2024-2026 年是全球 AI 监管密集落地的三年。EU AI Act 正式生效，中国《生成式人工智能服务管理暂行办法》已经让一大批应用下架整改，美国的行政令也在重塑行业格局。对 AI 从业者来说，合规不再是「法务部门的事」，而是直接影响产品设计、技术选型、甚至能不能上线的硬约束。这一章拆解三大法域的核心要点，并给出可执行的合规 checklist。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-compliance"><span class="idx">★</span> 一、为什么技术人必须懂合规</h2>
+    <p>很多工程师对法规有天然的抵触，觉得「这是限制创新」。但在 AI 领域，合规无知是致命的。举几个真实案例：</p>
+    <ul>
+      <li>2024 年，意大利数据保护局率先封禁 ChatGPT，原因是隐私合规问题，OpenAI 不得不紧急整改才解封。</li>
+      <li>中国多款 AI 应用因「未做算法备案」「生成内容违规」被下架，整改周期动辄几个月，错失市场窗口。</li>
+      <li>欧盟 GDPR 罚款上限是全球营收的 4%，对大公司是几十亿欧元。</li>
+    </ul>
+    <p>合规的本质不是「限制」，而是「让你能长期合法地做生意」。把合规前置到产品设计阶段，比事后整改便宜十倍。这一章帮技术人建立合规认知，不是让你成为律师，而是让你知道红线在哪。</p>
+
+    <h2 class="section" id="eu-ai-act"><span class="idx">★</span> 二、EU AI Act：全球第一部综合 AI 法</h2>
+    <p>欧盟的《人工智能法案》（AI Act）2024 年 8 月正式生效，是全球第一部全面规制 AI 的法律。它的核心思想是「基于风险的分层监管」——按 AI 系统的风险等级施加不同程度的义务。</p>
+
+    <h3 class="section">2.1 四级风险分类</h3>
+    <ul>
+      <li><strong>不可接受风险（禁止）</strong>：全面禁止。比如社会评分系统、实时人脸识别（公共场所）、操纵人类行为的 AI。这些直接违法。</li>
+      <li><strong>高风险</strong>：允许但严格监管。涵盖医疗设备、招聘筛选、信用评分、司法辅助、关键基础设施等。必须做合规评估、数据治理、人类监督、日志留存。</li>
+      <li><strong>有限风险</strong>：透明度义务。比如聊天机器人必须告知用户「你在和 AI 对话」，deepfake 必须标注「AI 生成」。</li>
+      <li><strong>最小风险</strong>：基本不管。比如垃圾邮件过滤、游戏 AI。</li>
+    </ul>
+    <pre><code class="language-python"># 判断你的 AI 应用属于哪一级风险（决策树示例）
+def classify_risk_level(application):
+    """根据应用特征判断 EU AI Act 风险等级。"""
+    # 不可接受风险清单
+    forbidden = ["social_scoring", "realtime_biometric_in_public",
+                 "manipulative_behavior", "exploiting_vulnerabilities"]
+    if any(feature in application["features"] for feature in forbidden):
+        return "不可接受风险（禁止）"
+
+    # 高风险清单
+    high_risk_domains = ["medical_device", "recruitment", "credit_scoring",
+                         "judicial_system", "critical_infrastructure",
+                         "education_admission", "law_enforcement"]
+    if application["domain"] in high_risk_domains:
+        return "高风险"
+
+    # 有限风险：需要透明度
+    if application.get("interacts_with_humans") or application.get("generates_content"):
+        return "有限风险（需透明度）"
+
+    return "最小风险"
+
+# 案例：一个 AI 简历筛选系统
+resume_screener = {
+    "domain": "recruitment",           # 招聘属于高风险
+    "features": ["automated_filtering"],
+    "interacts_with_humans": True,
+}
+print(classify_risk_level(resume_screener))  # 高风险</code></pre>
+
+    <h3 class="section">2.2 高风险 AI 的核心义务</h3>
+    <p>如果你的应用被判定为高风险，必须履行以下义务：建立完整的风险管理系统、使用高质量训练数据（避免偏见）、详细的日志和可追溯性、人类监督机制、上市前合规评估、在欧盟数据库注册。这些义务从设计阶段就要考虑，事后补几乎不可能。</p>
+
+    <h2 class="section" id="china-rules"><span class="idx">★</span> 三、中国生成式 AI 管理办法</h2>
+    <p>中国在 2023 年 8 月实施了《生成式人工智能服务管理暂行办法》，是全球最早针对生成式 AI 的专门法规。它的特点是与时俱进、执行力度强，对国内 AI 从业者影响直接。</p>
+
+    <h3 class="section">3.1 核心要求</h3>
+    <ul>
+      <li><strong>算法备案</strong>：提供公众服务的生成式 AI 必须在网信办做算法备案，未备案不得上线。</li>
+      <li><strong>训练数据合规</strong>：训练数据来源必须合法，尊重知识产权，不得含有违法内容。</li>
+      <li><strong>内容安全</strong>：生成内容必须符合社会主义核心价值观，不得生成违法、虚假、有害信息。</li>
+      <li><strong>标识义务</strong>：AI 生成的图片、视频必须显式或隐式标识「AI 生成」。</li>
+      <li><strong>个人信息保护</strong>：涉及个人信息的，必须遵守《个人信息保护法》，取得用户同意。</li>
+    </ul>
+    <pre><code class="language-python"># 中国生成式 AI 上线的合规 checklist
+compliance_checklist_china = {
+    "上线前必须完成": [
+        "算法备案（网信办）",
+        "安全评估（含内容安全、数据安全）",
+        "ICP 备案（如果是网站/App）",
+        "大模型服务备案（如适用）",
+        "用户协议和隐私政策更新",
+    ],
+    "技术层面": [
+        "内容安全过滤（敏感词、违法内容）",
+        "训练数据清洗和合规审查",
+        "用户输入实时审核",
+        "生成内容 AIGC 标识（图片/视频水印）",
+        "日志留存 6 个月以上",
+    ],
+    "运营层面": [
+        "建立用户投诉举报机制",
+        "未成年人保护机制",
+        "模型更新后的重新评估",
+        "应急响应预案",
+    ],
+}
+
+# 每一项都有对应的违规后果：警告、罚款、下架整改
+# 实际操作中，算法备案通常需要 2-6 个月，要提前规划</code></pre>
+
+    <h3 class="section">3.2 实操要点</h3>
+    <p>在国内做生成式 AI，最耗时的是算法备案和安全评估。建议产品立项时就启动备案流程，因为审核周期长。内容安全是技术重点——必须在模型输出前加一层安全过滤，拦截违法有害内容。这块有成熟的开源方案（如敏感词库、内容分类模型），但必须结合业务场景定制。</p>
+
+    <h2 class="section" id="us-orders"><span class="idx">★</span> 四、美国行政令与行业自律</h2>
+    <p>美国的 AI 监管走的是「行政令 + 行业自律」路线，没有像欧盟那样的统一立法。拜登政府 2023 年 10 月签署的《关于安全、可靠、可信 AI 的行政令》是当前最重要的联邦层面文件。</p>
+
+    <h3 class="section">4.1 行政令的核心内容</h3>
+    <ul>
+      <li><strong>红队测试要求</strong>：开发超大规模模型（算力超过阈值）的开发者必须向政府提交安全测试结果。</li>
+      <li><strong>标准制定</strong>：NIST 牵头制定 AI 安全评估标准（AI RMF）。</li>
+      <li><strong>联邦机构使用</strong>：各联邦机构使用 AI 必须做风险评估和透明度报告。</li>
+      <li><strong>内容标识</strong>：要求商务部制定 AI 生成内容的标识标准。</li>
+    </ul>
+
+    <h3 class="section">4.2 各州法律</h3>
+    <p>美国各州在填补联邦立法空白。加州的 SB-53（关注 AI 安全）、科罗拉多州的 AI 反歧视法（要求算法透明）、伊利诺伊州的 BIPA（生物信息保护）都对实际业务有影响。如果面向美国市场，必须做各州法律的差异分析。</p>
+
+    <h2 class="section" id="cross-border"><span class="idx">★</span> 五、跨境业务的合规挑战</h2>
+    <p>如果你的 AI 应用面向多个国家，合规会变得非常复杂。三大法域的要求有重叠也有冲突：</p>
+    <pre><code class="language-python"># 跨境 AI 应用的合规决策矩阵
+scenarios = {
+    "数据出境": {
+        "问题": "用户数据存在哪里？能不能跨境传输？",
+        "欧盟": "GDPR 要求充分性认定或标准合同条款（SCC）",
+        "中国": "数据出境安全评估，重要数据不得出境",
+        "美国": "CFIUS 审查（涉及国家安全的数据）",
+        "工程对策": "数据本地化部署，按地区分库存储",
+    },
+    "AI 生成内容标识": {
+        "问题": "AI 生成的图片/文本要不要标注？",
+        "欧盟": "AI Act 要求 deepfake 和 AI 内容必须标识",
+        "中国": "必须加 AIGC 水印或显著标识",
+        "美国": "行政令推动制定标准（部分州已强制）",
+        "工程对策": "在生成内容里嵌入不可见水印（如 SynthID）",
+    },
+    "用户知情同意": {
+        "问题": "用户是否知道在和 AI 互动？数据怎么用？",
+        "欧盟": "GDPR 明确同意，拒绝权，解释权",
+        "中国": "明确告知 + 用户协议 + 隐私政策",
+        "美国": "各州不同（CCPA/CPRA 在加州最严）",
+        "工程对策": "首屏提示 + 颗粒度授权 + 数据删除接口",
+    },
+}</code></pre>
+
+    <h2 class="section" id="checklist"><span class="idx">★</span> 六、通用合规 Checklist</h2>
+    <p>不管在哪个法域，AI 应用上线前都应该过一遍这份通用 checklist：</p>
+    <pre><code class="language-python"># AI 应用上线合规 Checklist（通用版）
+checklist = {
+    "一、数据合规": [
+        "[ ] 训练数据来源合法，有授权或合规抓取",
+        "[ ] 训练数据不含个人敏感信息（或已脱敏）",
+        "[ ] 训练数据做了偏见审查（性别/种族/年龄等）",
+        "[ ] 用户数据存储和传输加密",
+        "[ ] 数据保留周期明确，有删除机制",
+    ],
+    "二、模型安全": [
+        "[ ] 做了红队测试（对抗性攻击、越狱测试）",
+        "[ ] 输出内容安全过滤（违法/有害/歧视内容）",
+        "[ ] 防御 prompt injection 攻击",
+        "[ ] 模型更新有版本管理和回滚机制",
+        "[ ] 关键决策有人工复核环节",
+    ],
+    "三、透明度义务": [
+        "[ ] 明确告知用户「正在与 AI 互动」",
+        "[ ] AI 生成内容有标识（水印/标签）",
+        "[ ] 用户协议和隐私政策完整、易懂",
+        "[ ] 提供用户数据查询和删除入口",
+        "[ ] 公开模型的能力边界和局限性",
+    ],
+    "四、监管备案": [
+        "[ ] 算法备案（中国）/ 合规评估（欧盟）",
+        "[ ] 安全评估报告",
+        "[ ] 日志留存满足监管要求（通常 6 个月+）",
+        "[ ] 应急响应和事件报告机制",
+        "[ ] 定期合规审计",
+    ],
+}
+
+# 使用建议：产品立项时就把这份 checklist 跑一遍
+# 把合规要求转化为技术任务，进入开发 backlog
+# 上线前再做一次完整审查，签字确认</code></pre>
+
+    <h2 class="section" id="privacy-by-design"><span class="idx">★</span> 七、Privacy by Design：把合规写进代码</h2>
+    <p>最高级的合规不是事后审查，而是从设计阶段就把合规要求嵌入系统。这叫 Privacy by Design（隐私保护设计）。几个工程实践：</p>
+    <pre><code class="language-python"># 隐私保护设计的工程实践示例
+
+class PrivacyAwareLLMService:
+    def __init__(self):
+        self.log_retention_days = 180    # 日志保留 180 天
+        self.pii_filter = PIIDetector()  # 个人信息检测器
+
+    def process_request(self, user_input, user_id):
+        # 1. 输入端：检测并脱敏个人信息
+        sanitized, detected = self.pii_filter.detect_and_mask(user_input)
+        if detected:
+            self.log_pii_attempt(user_id)  # 记录（脱敏后）
+
+        # 2. 处理：调用模型，但不传原始 PII
+        response = self.call_model(sanitized)
+
+        # 3. 输出端：内容安全过滤
+        if not self.content_filter.is_safe(response):
+            response = self.get_safe_fallback()
+
+        # 4. 日志：只记必要信息，自动过期
+        self.log_interaction(user_id, sanitized, response, ttl=self.log_retention_days)
+
+        # 5. 用户权利：提供查询和删除接口
+        return response
+
+    def delete_user_data(self, user_id):
+        """响应用户的数据删除请求（GDPR/PIPL 要求）。"""
+        self.log_db.delete_by_user(user_id)
+        self.cache.invalidate_user(user_id)
+        return {"status": "deleted", "user_id": user_id}</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们梳理了三大法域的 AI 监管框架和实操要点。核心结论：</p>
+    <ul>
+      <li><strong>EU AI Act</strong>：基于风险的四级分类，高风险应用（医疗、招聘、信用等）义务最重，设计阶段就要考虑合规。</li>
+      <li><strong>中国生成式 AI 办法</strong>：算法备案是上线前提，内容安全是技术重点，备案周期长要提前规划。</li>
+      <li><strong>美国行政令</strong>：联邦以行政令 + NIST 标准为主，各州法律差异大，面向美国市场要做州级分析。</li>
+      <li><strong>跨境业务</strong>：数据本地化、内容标识、用户知情同意是三大共性要求，工程上要分区部署。</li>
+      <li><strong>合规 Checklist</strong>：数据、模型、透明度、备案四大类，立项时跑一遍，上线前再审一遍。</li>
+      <li><strong>Privacy by Design</strong>：最高级的合规是写进代码——输入脱敏、输出过滤、日志过期、用户数据删除接口。</li>
+    </ul>
+    <p>合规不是创新的敌人，而是让创新可持续的护栏。下一章我们会看 AI 领域的投资估值逻辑，理解资本如何评估 AI 公司的价值。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

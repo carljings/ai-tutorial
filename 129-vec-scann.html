@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -158,7 +156,7 @@
       <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
       <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
       <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
-      <a href="129-vec-scann.html" class="active" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
+      <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
       <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
@@ -305,66 +303,153 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 129 章 · 向量索引与 RAG 原理深挖</span>
-<h1>ScaNN 与各向异性量化</h1><p class="lead">Google 的 ScaNN 用各向异性量化减少高方差方向的误差，配合残量重排。在 ann-benchmark 上长期领先。原理与适用场景。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>Google 的 ScaNN 用各向异性量化减少高方差方向的误差，配合残量重排。在 ann-benchmark 上长期领先。原理与适用场景。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>Google 的 ScaNN 用各向异性量化减少高方差方向的误差，配合残量重排。在 ann-benchmark 上长期领先。原理与适用场景。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 129 · 向量检索系列</span>
+      <h1>ScaNN 与各向异性量化<br>Google 的 SOTA 召回与 AWQ 思想</h1>
+      <p class="lead">ScaNN（Scalable Nearest Neighbors）是 Google Research 在 2020 年提出的 ANN 算法，长期霸榜 ANN-benchmarks 的多个数据集。它的核心创新"各向异性量化（Anisotropic Quantization）"打破了 PQ"各向同性"的隐含假设，把量化误差压到对查询不敏感的方向上。本文拆解它的原理、和 AWQ（Activation-aware Weight Quantization）思想的共通之处，并给出实战代码。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="motivation"><span class="idx">★</span> PQ 的盲区：各向同性假设</h2>
+    <p>回顾上一篇的 PQ：它把向量切成 m 段，每段独立用 K-means 量化。K-means 的目标是最小化重建误差 Σ||x - x̂||²，这是个<strong>各向同性</strong>的目标——它在所有方向上等同看待误差。但向量检索里，误差的方向其实并不等价。</p>
+    <p>考虑最大内积搜索（MIPS）的场景：查询 q 和数据库向量 x 的内积 q·x = q·x̂ + q·(x - x̂)，其中 x̂ 是量化重建。量化带来的内积误差是 q·(x - x̂) = ||q||·||(x-x̂)||·cos θ。关键洞察是：如果量化误差 (x - x̂) <strong>垂直于</strong> q（cos θ=0），那么内积误差为零；如果误差<strong>平行于</strong> q（|cos θ|=1），误差最大。换句话说，<strong>平行于查询方向的量化误差最致命，垂直方向的误差无所谓</strong>。</p>
+    <p>PQ 不知道这个事，它均匀地把误差分散到所有方向，等于在"无所谓"的垂直方向上浪费了比特预算，而在"最致命"的平行方向上预算不足。ScaNN 的各向异性量化就是为了纠正这个浪费。</p>
+
+    <h2 class="section" id="anisotropic"><span class="idx">★</span> 各向异性量化的核心思想</h2>
+    <p>ScaNN 的做法：放弃 K-means 的各向同性目标，改用一个<strong>方向加权的量化目标</strong>。具体地，它学习一个量化器，让重建误差尽量集中在垂直于"潜在查询方向"的方向上。所谓"潜在查询方向"，ScaNN 用数据库向量本身的分布估计——因为高内积的查询通常和数据库向量方向接近，所以"查询方向"可以近似为数据库向量的主方向。</p>
+    <p>形式化地，ScaNN 优化这样一个目标：对每个向量 x，找量化重建 x̂，使得对某个阈值 τ，满足 (x·x̂) ≥ τ·||x̂||²（保证平行分量重建得好），在此约束下最小化垂直分量的误差。这等价于学习一个<strong>椭圆的量化区域</strong>而不是圆形——在查询方向上拉伸（精细量化），在垂直方向上压扁（允许大误差）。</p>
+    <p>这种"把预算花在刀刃上"的思路，和 LLM 量化里的 AWQ 如出一辙（下一节展开）。两者都属于"<strong>重要性感知量化（importance-aware quantization）</strong>"这一大类：不追求整体重建误差最小，而追求"对下游任务（检索/推理）影响最小"。</p>
+
+    <h2 class="section" id="awq-parallel"><span class="idx">★</span> 类比：和 AWQ 思想的共通之处</h2>
+    <p>AWQ（Activation-aware Weight Quantization）是 LLM 量化领域的知名方法，它的核心洞察是：模型权重不同通道的"重要性"不同——激活值大的通道对输出影响大，激活值小的通道影响小。所以量化时应该<strong>给重要通道更高的精度</strong>，给不重要通道低精度，而不是均匀量化所有通道。</p>
+    <p>ScaNN 和 AWQ 的共通点一目了然：</p>
+    <ul>
+      <li><strong>重要性来源</strong>：ScaNN 看的是"方向重要性"（平行查询方向最重要），AWQ 看的是"通道重要性"（激活大的通道最重要）。</li>
+      <li><strong>量化策略</strong>：都放弃均匀误差最小，改为按重要性分配量化预算，把误差推到不重要的维度/通道/方向。</li>
+      <li><strong>下游感知</strong>：都不是孤立地优化重建，而是优化对下游任务（内积检索 / 模型推理）的影响。</li>
+    </ul>
+    <p>这条"importance-aware"的思路是现代量化方法（GPTQ、SmoothQuant、ScaNN）的共同底色。理解了它，你看任何新量化方法都能一眼抓住要点。</p>
+
+    <pre><code class="language-python"># 用一个 toy 例子直观感受"各向异性"带来的增益
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+# 模拟数据库向量，主要沿 x 轴方向分布（"查询方向"近似为 x 轴）
+np.random.seed(0)
+N = 5000; d = 64
+X = np.random.randn(N, d) * 0.1
+X[:, 0] = np.random.randn(N) * 5.0      # x 轴方向方差大（重要）
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 各向同性量化：均匀 8-bit 量化每一维
+def isotropic_quant(X, bits=8):
+    lo, hi = X.min(0), X.max(0)
+    scale = (2**bits - 1) / (hi - lo + 1e-9)
+    Q = np.round((X - lo) * scale) / scale + lo
+    return Q
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+# 各向异性量化：给第 0 维（重要方向）更高精度，其它维更低
+def anisotropic_quant(X, important_dims, bits_imp=16, bits_other=4):
+    Q = np.zeros_like(X)
+    for j in range(X.shape[1]):
+        b = bits_imp if j in important_dims else bits_other
+        lo, hi = X[:, j].min(), X[:, j].max()
+        scale = (2**b - 1) / (hi - lo + 1e-9)
+        Q[:, j] = np.round((X[:, j] - lo) * scale) / scale + lo
+    return Q
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"ScaNN 与各向异性量化"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="128-vec-lsh.html"><div class="lbl">← 上一章</div><div class="ttl">128 · LSH 局部敏感哈希</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="130-vec-diskann.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">130 · DiskANN：内存装不下的亿级索引</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 129 章 · ScaNN 与各向异性量化</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+Q_iso = isotropic_quant(X)
+Q_aniso = anisotropic_quant(X, important_dims={0})
+
+# 评估内积检索的 recall（查询也近似沿 x 轴）
+queries = np.random.randn(50, d) * 0.1
+queries[:, 0] = np.random.randn(50) * 5.0
+
+def recall_at_k(orig, quant, queries, k=10):
+    hits = 0
+    for q in queries:
+        gt = np.argsort(-(orig @ q))[:k]
+        cand = np.argsort(-(quant @ q))[:k]
+        hits += len(set(gt) & set(cand))
+    return hits / (len(queries) * k)
+
+print(f"各向同性 recall@10: {recall_at_k(X, Q_iso, queries):.3f}")
+print(f"各向异性 recall@10: {recall_at_k(X, Q_aniso, queries):.3f}")
+# 各向异性通常高 5-15 个点，且总比特数可能还更少
+</code></pre>
+
+    <h2 class="section" id="scann-arch"><span class="idx">★</span> ScaNN 的完整架构</h2>
+    <p>各向异性量化只是 ScaNN 的一块拼图。它的完整架构是一个多阶段流水线：</p>
+    <ol>
+      <li><strong>分区</strong>：类似 IVF，用 K-means 把空间分成多个分区，查询时只搜 top-nprobe 个分区。但 ScaNN 用了一种"亚瑟"分配（前两个最近质心都考虑），减少边界点的错分。</li>
+      <li><strong>各向异性量化编码</strong>：在每个分区内，把向量用量化器编码（前述的各向异性方案）。</li>
+      <li><strong>残差编码 + 重排序</strong>：ScaNN 不直接用量化距离排序，而是先用量化距离粗排，再对 top-N 用<strong>原始向量残差</strong>算精确内积重排。这个"残差"指的是向量减去其量化重建的部分，用残差而非全向量是为了在某些优化下省计算。</li>
+    </ol>
+    <p>这套流水线让 ScaNN 在 recall@10=95% 以上的高召回区间，QPS 经常比 IVFPQ 高 2-5 倍。这也是它能霸榜的原因。</p>
+
+    <h2 class="section" id="practice"><span class="idx">★</span> 实战：用 ScaNN 官方库跑一遍</h2>
+
+    <pre><code class="language-python"># pip install scann
+import scann
+import numpy as np
+import time
+
+d = 768
+N = 1_000_000
+xb = np.random.randn(N, d).astype(np.float32)
+faiss = __import__("faiss"); faiss.normalize_L2(xb)   # 复用 faiss 做归一化
+xq = np.random.randn(2000, d).astype(np.float32); faiss.normalize_L2(xq)
+
+# 构建 ScaNN 索引
+searcher = (
+    scann.scann_ops_builder(xb, 10, "dot_product")
+    .tree(num_leaves=2000, num_leaves_to_search=100, training_sample_size=50000)
+    .score_ah(d, anisotropic_quantization_threshold=0.2,
+              anisotropic_quantization_random_dot_dimension=1024)
+    .reorder(100)            # 召回 100 个用精确内积重排
+    .build()
+)
+
+# 查询
+t0 = time.time()
+I, _ = searcher.search_batched(xq)
+qps = len(xq) / (time.time() - t0)
+print(f"ScaNN QPS: {qps:.0f}")
+
+# 调参对比
+for nlts in [50, 100, 200, 400]:
+    s2 = (scann.scann_ops_builder(xb, 10, "dot_product")
+          .tree(num_leaves=2000, num_leaves_to_search=nlts)
+          .score_ah(d, anisotropic_quantization_threshold=0.2)
+          .reorder(100).build())
+    t0 = time.time(); I2, _ = s2.search_batched(xq); dt = time.time()-t0
+    # 用 Flat 算 ground truth
+    flat = faiss.IndexFlatIP(d); flat.add(xb); _, gt = flat.search(xq, 10)
+    recall = sum(len(set(I2[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
+    print(f"leaves_to_search={nlts:4d}  recall={recall:.4f}  QPS={len(xq)/dt:.0f}")
+</code></pre>
+
+    <p>几个调参要点：</p>
+    <ul>
+      <li><code>num_leaves</code>相当于 IVF 的 nlist，<code>num_leaves_to_search</code>相当于 nprobe，是主要的召回旋钮。</li>
+      <li><code>score_ah</code>里的 <code>anisotropic_quantization_threshold</code> 控制各向异性强度，0.2 是论文推荐值；设为 None 退化为各向同性（对照实验用）。</li>
+      <li><code>reorder(N)</code>指定用精确距离重排的候选数，N 越大召回越高但越慢，100 是常见甜区。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>PQ 的盲区是各向同性目标：在所有方向等同看待量化误差，浪费了垂直查询方向的预算。</li>
+      <li>ScaNN 的各向异性量化把误差集中到垂直查询方向、把精度集中到平行方向，本质是"importance-aware quantization"。</li>
+      <li>这条思路和 LLM 量化的 AWQ 同源：都按下游任务的重要性分配量化预算，ScaNN 看方向重要性、AWQ 看通道重要性。</li>
+      <li>ScaNN 完整架构 = 分区 + 各向异性量化 + 残差重排序，高召回区间 QPS 常比 IVFPQ 高 2-5 倍。</li>
+      <li>实战调参：num_leaves/num_leaves_to_search 是主旋钮，anisotropic_quantization_threshold=0.2 是论文推荐值，reorder(100) 是常见重排档位。</li>
+    </ul>
+    <p>下一篇我们离开"纯向量检索"的世界，进入一个更现实的工程问题——向量 + 属性过滤，看看 pre/in/post-filter 三种策略怎么选。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

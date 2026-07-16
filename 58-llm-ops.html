@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLMOps 工程化入门 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLMOps 工程化入门 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -72,7 +79,7 @@
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
       <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
-      <a href="58-llm-ops.html" class="active" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
+      <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
@@ -295,14 +302,291 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLMOps 工程化入门</h1><p class="lead">从 demo 到生产——LLM 运维的核心实践</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>demo 和生产的鸿沟</h2>
-    <p>在 Jupyter 里跑通一个 RAG demo 只需 2 小时。但把它变成一个 7×24 稳定服务、给几百用户用、控制成本、持续迭代——这中间有一整门工程学问，叫 LLMOps。LLMOps 是 DevOps 在 AI 时代的延伸，我们在第 210-215 章深入讲了它的生命周期。本章是一个入门概览。</p>
-    <h2><span class="idx"></span>LLMOps 的五大核心实践</h2>
-    <table class="data-table"><thead><tr><th>实践</th><th>demo 里不用管</th><th>生产里必须做</th></tr></thead><tbody><tr><td>版本管理</td><td>改了就改了</td><td>prompt/模型/数据都要版本化</td></tr><tr><td>监控</td><td>跑通就行</td><td>质量/成本/延迟三维监控</td></tr><tr><td>评估</td><td>人眼看</td><td>golden set 回归 + LLM-as-judge</td></tr><tr><td>成本控制</td><td>不计费</td><td>模型路由/缓存/批处理</td></tr><tr><td>安全</td><td>信任输入</td><td>prompt injection 防护/输出过滤</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLMOps 是从 demo 到生产的工程鸿沟。五大实践：版本管理（prompt/模型/数据）、监控（质量/成本/延迟）、评估（golden set 回归）、成本控制（路由/缓存）、安全（injection 防护）。详见第 210-215 章的 LLMOps 系列。</p>
-    <div class="chapter-nav">
-      <a href="57-paper-readings.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 58 章 · LLMOps 工程化入门</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 58 · 实战案例系列</span>
+      <h1>LLM 运维手册<br>从部署、扩容到灰度回滚的完整 SLO 体系</h1>
+      <p class="lead">把一个 LLM 跑起来不难，难的是让它 7x24 小时稳定服务、扛住流量高峰、出问题能快速回滚。这一章是给 SRE 和 AI 工程师的实战手册：我们覆盖部署架构、自动扩容、灰度发布、故障回滚、SLO 定义，并附上可以直接抄走的 Prometheus 监控代码。跑通这套体系，你的 LLM 服务才算真正「生产可用」。</p>
+      <div class="meta">
+        <span class="chip">阅读约 29 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="ops-challenges"><span class="idx">★</span> 一、LLM 运维和传统 Web 服务有什么不同</h2>
+    <p>如果你做过传统 Web 服务的运维，上手 LLM 运维会遇到几个新挑战：</p>
+    <ul>
+      <li><strong>延迟分布特殊</strong>：LLM 的首 token 延迟（TTFT）和每 token 延迟（TPOT）是两个独立指标，传统服务的「请求延迟」概念不够用。</li>
+      <li><strong>资源消耗极端</strong>：GPU 显存是稀缺资源，一个请求的 KV Cache 可能占用几个 GB，并发控制比 CPU 服务复杂得多。</li>
+      <li><strong>流式响应</strong>：LLM 普遍用 SSE（Server-Sent Events）流式输出，这给负载均衡、超时设置、监控采集都带来新挑战。</li>
+      <li><strong>长尾请求</strong>：一个超长 prompt 的请求可能耗时几十秒，会拖垮整体 P99 延迟，必须做请求分级。</li>
+    </ul>
+    <p>理解这些差异，是做好 LLM 运维的第一步。</p>
+
+    <h2 class="section" id="deployment"><span class="idx">★</span> 二、部署架构：从单机到分布式</h2>
+    <p>生产环境的 LLM 部署通常分三个阶段演进。单机部署（一个 GPU 跑一个 vLLM 实例）适合 PoC；多副本部署（前面挂负载均衡，后面多个推理实例）适合中等流量；分布式 + 调度器（Kubernetes + 推理框架 + 模型仓库）适合大规模生产。</p>
+    <pre><code class="language-yaml"># Kubernetes 部署 vLLM 推理服务的示例
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-llama-service
+spec:
+  replicas: 3                    # 3 个副本，分担流量
+  selector:
+    matchLabels:
+      app: vllm-llama
+  template:
+    metadata:
+      labels:
+        app: vllm-llama
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        args:
+          - --model=/models/llama-3-8b
+          - --tensor-parallel-size=1
+          - --max-model-len=8192
+          - --gpu-memory-utilization=0.9   # 显存利用率上限
+        ports:
+          - containerPort: 8000
+        resources:
+          limits:
+            nvidia.com/gpu: 1              # 每个副本独占一张 GPU
+          requests:
+            nvidia.com/gpu: 1
+        readinessProbe:                    # 就绪探针：服务能响应才接流量
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60          # 模型加载需要时间
+          periodSeconds: 10
+        livenessProbe:                     # 存活探针：卡死就重启
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 120
+          periodSeconds: 30</code></pre>
+    <p>这个配置里有几个关键点：<code>readinessProbe</code> 保证模型没加载完不接流量；<code>gpu-memory-utilization=0.9</code> 给系统留 10% 显存余量防 OOM；<code>replicas=3</code> 提供基本的高可用。生产环境至少 3 副本，跨可用区部署。</p>
+
+    <h2 class="section" id="scaling"><span class="idx">★</span> 三、自动扩容：基于什么指标扩</h2>
+    <p>传统服务按 CPU 利用率扩容，LLM 服务不能这么做——GPU 利用率和请求队列长度才是更准确的指标。vLLM 暴露了一批 Prometheus 指标，我们基于这些指标做 HPA（Horizontal Pod Autoscaler）。</p>
+    <pre><code class="language-yaml"># 基于 GPU 利用率和请求队列长度的 HPA 策略
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vllm-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-llama-service
+  minReplicas: 3
+  maxReplicas: 20                    # 扩容上限，受 GPU 配额限制
+  metrics:
+  - type: Pods
+    pods:
+      metric:
+        name: vllm_num_requests_waiting   # 等待中的请求数
+      target:
+        type: AverageValue
+        averageValue: "5"             # 平均每个副本等待队列超 5 就扩容
+  - type: Resource
+    resource:
+      name: nvidia_com_gpu_utilization  # GPU 利用率
+      target:
+        type: Utilization
+        averageUtilization: 80           # 平均 GPU 利用率超 80% 扩容</code></pre>
+    <p>这个 HPA 同时关注两个指标：请求等待队列和 GPU 利用率。队列长说明吞吐跟不上，GPU 高说明算力吃紧。两个指标任一触发就扩容。但要注意：GPU 实例启动慢（拉镜像 + 加载模型可能要 3-5 分钟），所以扩容阈值要设得保守一点，别等雪崩了才扩。</p>
+
+    <h2 class="section" id="monitoring"><span class="idx">★</span> 四、Prometheus 监控体系</h2>
+    <p>监控是运维的眼睛。LLM 服务需要关注四类指标：基础设施层（GPU 利用率、显存、网络）、推理引擎层（吞吐、队列、KV Cache 命中率）、业务层（QPS、延迟分布、错误率）、成本层（token 消耗、单请求成本）。我们用 Prometheus + Grafana 搭建。</p>
+    <pre><code class="language-yaml"># Prometheus 抓取 vLLM 指标的配置
+scrape_configs:
+  - job_name: 'vllm'
+    metrics_path: /metrics
+    static_configs:
+      - targets: ['vllm-llama-service:8000']
+        labels:
+          model: 'llama-3-8b'
+          version: 'v1.2.0'
+
+# 关键的 vLLm 暴露指标：
+# vllm:num_requests_running     正在运行的请求数
+# vllm:num_requests_waiting     等待中的请求数
+# vllm:gpu_cache_usage_perc     KV Cache 使用率
+# vllm:time_to_first_token_seconds  首 token 延迟分布
+# vllm:time_per_output_token_seconds 每 token 生成延迟
+# vllm:request_success_total    成功完成的请求数</code></pre>
+
+    <pre><code class="language-promql"># 常用的 PromQL 查询语句（可以直接配到 Grafana 面板）
+
+# 1. 实时 QPS（每秒请求数）
+rate(vllm:request_success_total[1m])
+
+# 2. 首 token 延迟 P99（用户体验关键指标）
+histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m]))
+
+# 3. 每 token 生成延迟平均值
+rate(vllm:time_per_output_token_seconds_sum[5m]) 
+  / rate(vllm:time_per_output_token_seconds_count[5m])
+
+# 4. KV Cache 使用率（接近 1 说明要 OOM 了）
+vllm:gpu_cache_usage_perc
+
+# 5. 等待队列长度（持续大于 0 说明吞吐不足）
+vllm:num_requests_waiting
+
+# 6. GPU 利用率（配合 nvidia-smi exporter）
+DCGM_FI_DEV_GPU_UTIL
+
+# 7. 错误率（5xx 响应占比）
+rate(http_requests_total{status=~"5.."}[5m]) 
+  / rate(http_requests_total[5m])</code></pre>
+    <p>这几个 PromQL 查询覆盖了 LLM 运维最核心的监控维度。建议把它们都配成 Grafana 面板，并设置告警：TTFT P99 超 2 秒告警，错误率超 1% 告警，KV Cache 超过 90% 告警。提前发现，好过事后救火。</p>
+
+    <h2 class="section" id="alerting"><span class="idx">★</span> 五、告警规则设计</h2>
+    <p>有了指标，还要有合理的告警规则。告警设计的核心原则是：宁可少报，不要漏报；每个告警都要有明确的处理动作。</p>
+    <pre><code class="language-yaml"># Prometheus 告警规则
+groups:
+- name: vllm-alerts
+  rules:
+  # 告警 1：首 token 延迟 P99 过高（用户体验差）
+  - alert: HighTTFT
+    expr: histogram_quantile(0.99, rate(vllm:time_to_first_token_seconds_bucket[5m])) > 3
+    for: 5m                    # 持续 5 分钟才告警，避免抖动
+    labels:
+      severity: warning
+    annotations:
+      summary: "首 token 延迟 P99 超过 3 秒"
+      description: "当前 P99 = {{ $value }}s，用户体验下降"
+
+  # 告警 2：错误率飙升（服务异常）
+  - alert: HighErrorRate
+    expr: |
+      rate(http_requests_total{status=~"5.."}[5m]) 
+        / rate(http_requests_total[5m]) > 0.05
+    for: 2m
+    labels:
+      severity: critical        # 严重级别，立即处理
+    annotations:
+      summary: "5xx 错误率超过 5%"
+
+  # 告警 3：KV Cache 即将耗尽（OOM 风险）
+  - alert: KVCacheNearFull
+    expr: vllm:gpu_cache_usage_perc > 0.9
+    for: 1m
+    labels:
+      severity: critical
+    annotations:
+      summary: "KV Cache 使用率超 90%，即将 OOM"
+
+  # 告警 4：副本数不足（高可用风险）
+  - alert: InsufficientReplicas
+    expr: kube_deployment_status_replicas_available < 2
+    for: 5m
+    labels:
+      severity: critical
+    annotations:
+      summary: "可用副本数不足 2 个"</code></pre>
+
+    <h2 class="section" id="canary"><span class="idx">★</span> 六、灰度发布：怎么安全上线新模型</h2>
+    <p>LLM 服务的更新比传统服务风险更高——换个模型版本，输出质量可能完全变化，用户感知极其明显。所以灰度发布（canary release）是标配。核心思路是：先用一小部分流量试新版本，观察指标没问题再逐步放量。</p>
+    <pre><code class="language-yaml"># Istio 的灰度发布配置：5% 流量到新版本
+apiVersion: networking.istio.io/v1beta1
+kind: VirtualService
+metadata:
+  name: vllm-canary
+spec:
+  http:
+  - route:
+    - destination:
+        host: vllm-llama-service
+        subset: stable         # 稳定版本
+      weight: 95               # 95% 流量
+    - destination:
+        host: vllm-llama-service
+        subset: canary         # 灰度版本
+      weight: 5                # 5% 流量试水
+    # 灰度期间重点观察：
+    # 1. 错误率是否升高
+    # 2. TTFT 和 TPOT 是否恶化
+    # 3. 业务侧的输出质量（最好有人工评分）</code></pre>
+    <p>灰度的节奏通常是 5% → 25% → 50% → 100%，每一步观察至少 2-4 小时。对 LLM 来说，除了技术指标，还要做<strong>质量评估</strong>——用一批标准测试 prompt 对比新旧版本的输出质量，确保没有退化。这叫「offline eval + online canary」的双重保障。</p>
+
+    <h2 class="section" id="rollback"><span class="idx">★</span> 七、故障回滚：多快能回</h2>
+    <p>灰度发现问题要能秒级回滚。LLM 服务的回滚有个特殊难点：模型文件动辄几十 GB，重新拉取很慢。解决方案是<strong>模型版本预下载</strong>——把常用版本预先缓存到节点上，回滚时直接切换，不用重新下载。</p>
+    <pre><code class="language-bash"># 一键回滚脚本（Kubernetes 原生方式）
+#!/bin/bash
+# 用法：./rollback.sh <deployment-name> <revision-number>
+
+DEPLOYMENT=$1
+REVISION=$2
+
+echo "开始回滚 $DEPLOYMENT 到版本 $REVISION"
+kubectl rollout undo deployment/$DEPLOYMENT --to-revision=$REVISION
+
+# 等待回滚完成
+kubectl rollout status deployment/$DEPLOYMENT --timeout=300s
+
+if [ $? -eq 0 ]; then
+    echo "回滚成功"
+    # 发送告警通知
+    curl -X POST $WEBHOOK_URL -d "回滚完成: $DEPLOYMENT -> v$REVISION"
+else
+    echo "回滚失败，触发紧急告警！"
+    curl -X POST $ALERT_WEBHOOK -d "紧急：$DEPLOYMENT 回滚失败"
+fi</code></pre>
+    <p>回滚的目标时间是 5 分钟内完成。要做到这点，平时就要演练——很多团队第一次回滚时才发现镜像仓库拉取太慢、模型没缓存、HPA 配置冲突。把这些坑在平时踩平，真出事才不慌。</p>
+
+    <h2 class="section" id="slo"><span class="idx">★</span> 八、SLO 定义与服务质量保障</h2>
+    <p>SLO（Service Level Objective）是运维的契约——你向用户承诺的服务质量水平。LLM 服务的 SLO 通常包含这几个维度：</p>
+    <pre><code class="language-python"># LLM 服务的 SLO 定义示例
+slo_definitions = {
+    "可用性": {
+        "指标": "成功率（非 5xx 响应占比）",
+        "目标": "99.5%",              # 每月允许宕机约 3.6 小时
+        "测量窗口": "30天滚动",
+    },
+    "首 token 延迟": {
+        "指标": "TTFT P95",
+        "目标": "< 1.5 秒",            # 95% 的请求首 token 在 1.5 秒内
+        "测量窗口": "5分钟",
+    },
+    "生成速度": {
+        "指标": "每秒生成 token 数",
+        "目标": "> 30 tokens/秒",      # 用户感知的流畅度
+        "测量窗口": "5分钟",
+    },
+    "请求完成率": {
+        "指标": "非超时/非截断的请求占比",
+        "目标": "99%",                 # 输出完整不被打断
+        "测量窗口": "每日",
+    },
+}
+
+# 错误预算（Error Budget）计算
+# 可用性目标 99.5% → 每月允许 0.5% 的失败
+# 一个月 43200 分钟 × 0.5% = 216 分钟的错误预算
+# 如果半个月就用完预算，说明稳定性不达标，要停止上新功能优先修问题</code></pre>
+    <p>SLO 的价值不只是监控，更是团队优先级的协调机制。如果错误预算没用完，可以放心上新功能；如果快用完了，整个团队要优先修稳定性问题，暂停新功能发布。这就是「error budget」哲学——用数据决定「稳定性 vs 速度」的平衡点。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们搭建了 LLM 运维的完整体系。核心要点：</p>
+    <ul>
+      <li><strong>部署架构</strong>：从单机到 Kubernetes 多副本，配合 readiness/liveness 探针保证高可用，至少 3 副本跨可用区。</li>
+      <li><strong>自动扩容</strong>：基于请求队列长度和 GPU 利用率做 HPA，扩容阈值要保守（GPU 启动慢）。</li>
+      <li><strong>监控体系</strong>：四层指标（基础设施/引擎/业务/成本），Prometheus + Grafana，配好 PromQL 查询和告警规则。</li>
+      <li><strong>灰度发布</strong>：5% → 25% → 50% → 100% 逐步放量，除了技术指标还要做输出质量评估。</li>
+      <li><strong>故障回滚</strong>：模型版本预下载，目标 5 分钟内回滚，平时必须演练。</li>
+      <li><strong>SLO 定义</strong>：可用性、TTFT、生成速度、完成率四个维度，用错误预算协调稳定性和速度。</li>
+    </ul>
+    <p>跑通这套体系，你的 LLM 服务就具备了生产可用的稳定性。下一章我们会转向硬件——GPU 选型指南，帮你选对算力底座。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

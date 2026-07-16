@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -184,7 +182,7 @@
       <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
-      <a href="153-agent-codex-arch.html" class="active" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
+      <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
@@ -305,81 +303,206 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 153 章 · 开源 Agent 源码深挖</span>
-<h1>Codex CLI 架构：Rust 内核 + TS 前端</h1><p class="lead">openai/codex 用 codex-rs 做高性能内核（协议/沙箱/循环），TS 做 CLI/UI。queue-pair（Op-Event）协议解耦。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>openai/codex 用 codex-rs 做高性能内核（协议/沙箱/循环），TS 做 CLI/UI。queue-pair（Op-Event）协议解耦。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>openai/codex 用 codex-rs 做高性能内核（协议/沙箱/循环），TS 做 CLI/UI。queue-pair（Op-Event）协议解耦。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 38 · Agent 源码深挖系列</span>
+      <h1>Codex 整体架构<br>Rust 内核 + TypeScript 前端的 queue-pair 协议</h1>
+      <p class="lead">OpenAI 的 Codex CLI 是一个有意思的工程样本：它的核心引擎 codex-rs 用 Rust 编写，负责所有「重活」——LLM 调用、沙箱执行、工具编排；而前端（终端 UI 或 IDE 集成）可以用 TypeScript 或其他语言编写，通过一个基于 queue-pair 的 Op/Event 协议和内核通信。这种「Rust 内核 + 语言无关前端」的架构，和 OpenCode 的「全 TypeScript」形成了鲜明对比。本章我们拆解 Codex 的进程边界和协议设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-rust"><span class="idx">★</span> 一、为什么内核要写 Rust</h2>
+    <p>Codex 的核心是 codex-rs，一个 Rust crate。选择 Rust 而不是 Node/Python，背后是几项硬需求。</p>
+    <p>第一，<strong>沙箱执行需要系统调用</strong>。Codex 在 macOS 上用 seatbelt（sandbox-exec）、在 Linux 上用 Landlock 来隔离命令执行，这些都涉及底层 syscall 和进程管理。Rust 对 FFI 和系统调用有原生支持，而 Node.js 调用底层 syscall 要走 native addon，体验割裂。</p>
+    <p>第二，<strong>并发安全</strong>。Agent 内核要同时处理 LLM 流式响应、多个工具执行、用户输入、UI 更新。Rust 的所有权和 Send/Sync 机制在编译期就排除了数据竞争，这对一个高并发的内核是巨大保障。用 Go 也能做并发，但 GC 停顿在实时流式场景下可能造成卡顿。</p>
+    <p>第三，<strong>单文件分发</strong>。Rust 编译出的是单个原生二进制，没有运行时依赖。用户安装 Codex 不需要先装 Node 或 Python，下载一个可执行文件就能跑。这对 CLI 工具的传播极其重要。</p>
+    <p>第四，<strong>性能确定性</strong>。无 GC 意味着延迟可预测，token 计数、消息序列化这些高频操作的耗时稳定，不会出现偶尔的百毫秒级停顿。</p>
+
+    <h2 class="section" id="process-boundary"><span class="idx">★</span> 二、内核与前端：一条进程边界</h2>
+    <p>Codex 的运行模型是 <strong>一个 codex-rs 内核进程 + 一个或多个前端</strong>。前端通过子进程的 stdin/stdout（或一个本地 socket）和内核通信。前端的实现语言不重要，只要它会说 Op/Event 协议。</p>
+    <p>官方默认的前端是终端 TUI（用 Rust 的 ratatui 库写，和内核编译在一起或作为子命令）。但也支持外部前端模式：VS Code 扩展、Web 界面都可以作为前端连上来。这种架构让 Codex 内核成了一个「无头 Agent 引擎」，可以被任何界面驱动。</p>
+    <pre><code class="language-text">┌─────────────────────────────────────────┐
+│            codex-rs 内核进程              │
+│  ┌───────────┐   ┌──────────────────┐    │
+│  │ Agent Loop│──&gt;│ Tool Executor     │    │
+│  │ (LLM调用) │   │ (sandbox:seatbelt)│    │
+│  └─────┬─────┘   └────────┬──────────┘    │
+│        │                   │               │
+│        └─────────┬─────────┘               │
+│                  │                         │
+│           ┌──────▼──────┐                  │
+│           │ Op/Event    │                  │
+│           │ Queue Pair  │                  │
+│           └──────┬──────┘                  │
+│                  │ stdin/stdout            │
+└──────────────────┼─────────────────────────┘
+                   │
+         ┌─────────▼──────────┐
+         │   前端（TUI/IDE）    │
+         │  发 Op，收 Event     │
+         └────────────────────┘</code></pre>
+
+    <h2 class="section" id="op-event"><span class="idx">★</span> 三、Op/Event 协议：queue-pair 的精髓</h2>
+    <p>内核和前端的通信是一对队列：前端往内核发 <strong>Op</strong>（操作请求），内核往前端发 <strong>Event</strong>（事件通知）。两者都是 JSON 序列化的消息，通过 stdin/stdout 传输。关键设计是：<strong>Op 和 Event 的收发是完全异步的</strong>——前端可以连续发多个 Op，内核也可以连续吐多个 Event，彼此不阻塞。</p>
+    <pre><code class="language-rust">// codex-rs/src/protocol.rs（概念示意）
+use serde::{Serialize, Deserialize};
+
+/// 前端 -&gt; 内核 的操作请求
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum Op {
+    /// 用户输入了一条消息
+    UserInput { text: String },
+    /// 中断当前执行
+    Interrupt,
+    /// 审批一个待确认的工具调用
+    Approve { call_id: String, decision: ApprovalDecision },
+    /// 请求当前会话状态
+    GetSession,
+}
+
+/// 内核 -&gt; 前端 的事件通知
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum Event {
+    /// Agent 开始思考
+    AgentStarted,
+    /// LLM 流式输出的一个 token 片段
+    OutputDelta { text: String },
+    /// Agent 要执行一个命令，需要审批
+    ExecApprovalRequest { call_id: String, command: String, cwd: String },
+    /// 命令执行完成
+    ExecComplete { call_id: String, exit_code: i32, output: String },
+    /// 一轮 Agent 循环结束
+    TurnComplete,
+    /// 发生错误
+    Error { message: String },
+}</code></pre>
+    <p>这种基于 enum（tagged union）的消息定义是 Rust serde 的典型用法。每条消息用一个 <code>type</code> 字段区分种类，前端反序列化时根据 type 走不同分支。这比定义一堆独立的 message 类型更紧凑，也更容易演进——加一种新 Event 只需在 enum 里加一个 variant，旧前端忽略不认识的 type 即可向后兼容。</p>
+
+    <h2 class="section" id="async-loops"><span class="idx">★</span> 四、内核里的两条异步循环</h2>
+    <p>codex-rs 内部用 tokio（Rust 的 async 运行时）驱动两条核心循环：<strong>Op 接收循环</strong> 和 <strong>Agent 主循环</strong>。它们通过 channel（mpsc）解耦。</p>
+    <pre><code class="language-rust">// codex-rs/src/main.rs（概念示意）
+use tokio::sync::mpsc;
+
+#[tokio::main]
+async fn main() {
+    let (op_tx, op_rx) = mpsc::channel::&lt;Op&gt;(64);
+    let (event_tx, event_rx) = mpsc::channel::&lt;Event&gt;(64);
+
+    // 任务 1：从 stdin 读 Op，塞进 channel
+    let op_reader = tokio::spawn(async move {
+        let stdin = tokio::io::stdin();
+        let mut reader = BufReader::new(stdin);
+        loop {
+            let line = read_line(&amp;mut reader).await;
+            match line {
+                Some(json) =&gt; {
+                    if let Ok(op) = serde_json::from_str::&lt;Op&gt;(&amp;json) {
+                        op_tx.send(op).await.unwrap();
+                    }
                 }
-            },
-            "required": ["path"]
+                None =&gt; break,  // stdin 关闭
+            }
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
+    });
+
+    // 任务 2：从 event channel 读 Event，写到 stdout
+    let event_writer = tokio::spawn(async move {
+        let stdout = tokio::io::stdout();
+        let mut writer = BufWriter::new(stdout);
+        while let Some(event) = event_rx.recv().await {
+            let json = serde_json::to_string(&amp;event).unwrap();
+            writeln!(writer, "{}", json).await.unwrap();
+            writer.flush().await.unwrap();
+        }
+    });
+
+    // 主任务：跑 Agent 循环，消费 Op，产生 Event
+    run_agent_loop(op_rx, event_tx).await;
+}</code></pre>
+    <p>这段代码展示了 Codex 内核的骨架：stdin 和 stdout 是和前端通信的边界，内部用 mpsc channel 把「IO」和「业务」彻底解耦。Agent 主循环只需要从 op_rx 拿 Op、往 event_tx 发 Event，完全不关心消息是怎么从网络或管道来的。这种解耦让内核可以同时对接多个前端（每个前端一组 channel），也为后面的并行 Agent 执行打下了基础。</p>
+
+    <h2 class="section" id="agent-loop-sketch"><span class="idx">★</span> 五、Agent 主循环：Op 驱动 Event 产生</h2>
+    <p>Agent 主循环是 codex-rs 的心脏。它不是简单的「收一条 Op 跑一次 LLM」，而是一个状态机：等待用户输入 → 调 LLM → 处理 tool_call（可能要审批）→ 把结果喂回 LLM → 直到 LLM 不再请求工具，一轮结束。</p>
+    <pre><code class="language-rust">// codex-rs/src/agent_loop.rs（概念示意）
+async fn run_agent_loop(mut op_rx: Receiver&lt;Op&gt;, event_tx: Sender&lt;Event&gt;) {
+    let mut session = Session::new();
+
+    while let Some(op) = op_rx.recv().await {
+        match op {
+            Op::UserInput { text } =&gt; {
+                session.add_message(Message::user(text));
+                // 进入一轮 Agent 循环
+                run_turn(&amp;mut session, &amp;event_tx).await;
+            }
+            Op::Interrupt =&gt; {
+                session.abort_current();
+                event_tx.send(Event::Error { message: "已中断".into() }).await.ok();
+            }
+            Op::Approve { call_id, decision } =&gt; {
+                session.resolve_approval(&amp;call_id, decision).await;
+            }
+            _ =&gt; {}
         }
     }
-]
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+async fn run_turn(session: &amp;mut Session, event_tx: &amp;Sender&lt;Event&gt;) {
+    event_tx.send(Event::AgentStarted).await.ok();
+    loop {
+        // 1. 调 LLM，流式接收
+        let response = session.call_model_streaming(|delta| {
+            event_tx.blocking_send(Event::OutputDelta { text: delta }).ok();
+        }).await;
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+        // 2. 如果 LLM 请求了工具调用
+        if let Some(tool_calls) = response.tool_calls {
+            for call in tool_calls {
+                // 3. 需要审批的先请求
+                let approved = request_approval(&amp;event_tx, &amp;call).await;
+                if !approved { continue; }
+                // 4. 在沙箱里执行
+                let result = session.execute_sandboxed(&amp;call).await;
+                event_tx.send(Event::ExecComplete { .. }).await.ok();
+                session.add_message(Message::tool_result(call.id, result));
+            }
+            // 继续循环，把工具结果喂回 LLM
+        } else {
+            // 5. LLM 没请求工具，本轮结束
+            event_tx.send(Event::TurnComplete).await.ok();
+            break;
+        }
+    }
+}</code></pre>
+    <p>这段伪代码揭示了几个关键点。第一，<strong>审批是异步的</strong>：request_approval 会发一个 ExecApprovalRequest 事件，然后等待前端通过 Op::Approve 回复——这期间 Agent 循环是挂起的，但不阻塞 op_rx（因为审批是通过 session 内部的 oneshot channel 回调的）。第二，<strong>沙箱执行是内核的职责</strong>，前端完全不参与命令执行，只看到结果事件。第三，<strong>中断是协作式的</strong>：Op::Interrupt 设置一个标志位，LLM 调用和工具执行会检查它，不是硬 kill。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex CLI 架构：Rust 内核 + TS 前端"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="152-agent-opencode-session.html"><div class="lbl">← 上一章</div><div class="ttl">152 · OpenCode 会话持久化</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="154-agent-codex-loop.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">154 · Codex 的 Turn 模型与推理持久化</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 153 章 · Codex CLI 架构：Rust 内核 + TS 前端</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="config-layer"><span class="idx">★</span> 六、配置层：profiles 与分层覆盖</h2>
+    <p>Codex 的配置用 TOML 写，支持 profiles（命名配置集）和分层覆盖（全局 → 项目 → 命令行参数）。这让一套二进制能适配多种使用场景——比如「工作」profile 用强模型 + 严格沙箱，「实验」profile 用便宜模型 + 宽松沙箱。我们会在第 161 章专门讲配置系统，这里只点出它的存在。</p>
+
+    <h2 class="section" id="compare-opencode"><span class="idx">★</span> 七、与 OpenCode 架构的对比</h2>
+    <p>把 Codex 和 OpenCode 放在一起看，能看出两种截然不同的工程哲学。</p>
+    <p>OpenCode 选择「全栈 TypeScript + Bun」，优势是开发速度快、contributor 门槛低（前端开发者也能改内核）、代码可读性高。代价是性能受限于 V8/JSCore 的 GC，且沙箱等底层能力要依赖外部工具或 native addon。</p>
+    <p>Codex 选择「Rust 内核 + 协议化前端」，优势是性能强、沙箱原生、单二进制分发、内核可被任意语言的前端复用。代价是 contributor 门槛高（要会 Rust）、开发迭代慢（编译时间长）、调试 Rust 的异步代码比调试 TypeScript 难。</p>
+    <p>两种选择没有绝对优劣，取决于项目目标。OpenCode 像一个「快速演进的开源产品」，Codex 像一个「工业级的引擎」。理解这种差异，有助于你在选型或自研 Agent 时做出合适的架构决策。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Codex 的架构是「内核-前端分离」的典范。要点回顾：</p>
+    <ul>
+      <li><strong>Rust 内核</strong>：codex-rs 用 Rust 写，为了沙箱 syscall、并发安全、单二进制分发、无 GC 的延迟确定性。</li>
+      <li><strong>进程边界</strong>：内核是一个进程，前端通过 stdin/stdout 或 socket 连接，语言无关。</li>
+      <li><strong>Op/Event queue-pair</strong>：前端发 Op（请求），内核发 Event（通知），用 serde tagged enum 定义，异步收发不阻塞。</li>
+      <li><strong>两条 tokio 任务</strong>：Op 接收循环和 Event 发送循环通过 mpsc channel 和 Agent 主循环解耦。</li>
+      <li><strong>Agent 主循环</strong>：状态机式驱动，审批异步等待、沙箱内核执行、中断协作式。</li>
+      <li><strong>与 OpenCode 对比</strong>：全 TypeScript vs Rust 内核，快速迭代 vs 工业级，是两种合理的工程选择。</li>
+    </ul>
+    <p>接下来几章我们深入 Codex 的各个子系统：Agent 循环细节（154）、Responses API 集成（155）、两种沙箱（156、157）、命令执行（159）、Guardian 守护（160）、配置系统（161）。Codex 的工程深度，会在这些细节里逐一展开。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

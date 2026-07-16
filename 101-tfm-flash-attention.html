@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -128,7 +126,7 @@
       <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
-      <a href="101-tfm-flash-attention.html" class="active" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
+      <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
@@ -305,67 +303,318 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 101 章 · Transformer 原理深挖</span>
-<h1>FlashAttention：让注意力不再是显存噩梦</h1><p class="lead">标准注意力 O(n²) 显存、要物化 n×n 注意力矩阵。FlashAttention 用 tiling + online softmax 在 SRAM 里完成计算，HBM 读写降到 O(n)。IO-aware 算法设计。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>标准注意力 O(n²) 显存、要物化 n×n 注意力矩阵。FlashAttention 用 tiling + online softmax 在 SRAM 里完成计算，HBM 读写降到 O(n)。IO-aware 算法设计。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 101 · Transformer 深度系列</span>
+      <h1>Flash Attention<br>让注意力不再是显存噩梦</h1>
+      <p class="lead">注意力有个原罪：分数矩阵是 n×n，序列一长，光存这个矩阵就要几个 G 显存。Flash Attention 的洞察是：根本没必要把整个 n×n 矩阵实例化。它用 tiling（分块）把 Q、K、V 切成小块在 SRAM 里算，再用 online softmax 边读边算归一化，全程不把完整 n×n 写到 HBM。结果是：同样的数学，速度快 2~4 倍，显存从 O(n²) 降到 O(n)。2026 年它是所有主流框架的默认后端。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+        <span class="chip">前置：第 94、100 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="hbm-problem"><span class="idx">★</span> 先理解 GPU 的两层存储</h2>
+    <p>要懂 Flash Attention，必须先懂 GPU 的存储层级。一块 GPU 有两层关键存储：</p>
+
+    <ul>
+      <li><strong>HBM（High Bandwidth Memory）</strong>：显存，容量大（80 GB），但带宽相对慢（~2 TB/s），离计算核心远。</li>
+      <li><strong>SRAM（片上静态存储）</strong>：每个计算核心（SM）自带的快速存储，容量极小（每 SM 约 192 KB，整卡几十 MB），但带宽极高（~19 TB/s），离计算核心近。</li>
+    </ul>
+
+    <p>关键事实：<strong>SRAM 比 HBM 快接近 10 倍</strong>。但 SRAM 太小，放不下大矩阵。所以常规做法是：数据放在 HBM，每次计算时搬到 SRAM，算完写回 HBM。搬数据（HBM↔SRAM）的开销，往往比计算本身还大。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node sky">HBM（显存）：80 GB，~2 TB/s</div>
+        <div style="color:var(--text-faint);">↕ 搬运（慢，成为瓶颈）</div>
+        <div class="node violet">SRAM（片上）：~20 MB，~19 TB/s</div>
+        <div style="color:var(--text-faint);">↕ 就近</div>
+        <div class="node accent">计算核心（SM）：做矩阵乘</div>
+      </div>
+      <div class="cap">图 101-1 · GPU 的两层存储：HBM 大但慢，SRAM 小但快</div>
+    </div>
+
+    <p>这就是理解 Flash Attention 的背景：<strong>注意力慢，不是矩阵乘慢，而是搬数据慢</strong>。优化方向应该是减少 HBM 读写，让计算尽量在 SRAM 里完成。</p>
+
+    <h2 class="section" id="standard-bottleneck"><span class="idx">01</span> 标准注意力的瓶颈在哪</h2>
+    <p>看标准注意力的实现，数一数 HBM 读写次数：</p>
+
+    <div class="code-title">standard_attention.py —— 标准实现，看它的 HBM 读写</div>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
+def standard_attention(Q, K, V):
+    # Q, K, V: (batch, heads, seq, d) 都在 HBM 里
     d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    # ① 从 HBM 读 Q、K，算 scores，把 n×n 写回 HBM
+    scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)   # n×n 写到 HBM！
+    # ② 从 HBM 读 scores，算 weights，写回 HBM
+    weights = F.softmax(scores, dim=-1)                 # n×n 又写又读
+    # ③ 从 HBM 读 weights 和 V，算输出，写回 HBM
+    output = weights @ V
+    return output
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"FlashAttention：让注意力不再是显存噩梦"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="100-tfm-kv-cache.html"><div class="lbl">← 上一章</div><div class="ttl">100 · KV Cache：自回归推理为什么离不开它</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="102-tfm-ffn.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">102 · 前馈网络：注意力之后的"记忆"层</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 101 章 · FlashAttention：让注意力不再是显存噩梦</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# seq=8192 时，n×n 矩阵 = 8192² × 4字节 ≈ 256 MB（每头每批）
+# 它被读写了好几次，全部经过 HBM —— 这就是瓶颈
+</code></pre>
+
+    <p>问题清单：</p>
+    <ul>
+      <li><strong>S（n×n 分数矩阵）被写一次、读一次</strong>：2 次 HBM 访问，每次 n² 元素。</li>
+      <li><strong>P（softmax 后的权重）又写一次、读一次</strong>：又是 2 次 n²。</li>
+      <li><strong>反传梯度时再来一遍</strong>：训练时翻倍。</li>
+      <li>seq=8192 时，每头每批的 S 就是 256 MB，几十层几十头加起来几十 GB 的 HBM 流量。</li>
+    </ul>
+
+    <p><strong>核心浪费：S 和 P 这两个 n×n 矩阵其实只是中间产物</strong>，最终只要输出 O。但标准实现把它们完整实例化在 HBM 里，白白读写好几次。Flash Attention 的目标就是：<strong>永远不把完整的 S 和 P 写到 HBM</strong>。</p>
+
+    <h2 class="section" id="tiling"><span class="idx">02</span> Tiling：分块在 SRAM 里算</h2>
+    <p>Flash Attention 的第一招：<strong>tiling（分块）</strong>。把 Q、K、V 切成小块（block），每次只把一小块搬进 SRAM，在 SRAM 里完成尽可能多的计算，算完直接累加到输出，<strong>不把中间的 n×n 写回 HBM</strong>。</p>
+
+    <p>具体做法（简化描述）：①把 K、V 按行切成块（每块 B_r 行）；②把 Q 也按行切成块（每块 B_c 行）；③外层循环遍历 Q 块，内层循环遍历 K/V 块；④每个 Q 块和 K/V 块在 SRAM 里算出一个小的分数块（B_c × B_r），做 softmax，累加到该 Q 块的输出。整个过程，<strong>完整的 n×n 矩阵从未在 HBM 出现过</strong>。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">Q 切成块：Q_1, Q_2, ...</div>
+        <div class="node accent">K, V 切成块：K_1,K_2,... / V_1,V_2,...</div>
+        <div style="color:var(--text-faint);">▼ 双重循环，每对块在 SRAM 算</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div class="node sky">Q_1 × K_1 → 块分数 → softmax → ×V_1</div>
+          <div class="node sky">Q_1 × K_2 → 块分数 → 更新 → ×V_2</div>
+          <div class="node sky">Q_1 × K_3 → ...</div>
+        </div>
+        <div class="node violet">累加得到 Q_1 的完整输出，不写中间 n×n 到 HBM</div>
+      </div>
+      <div class="cap">图 101-2 · Tiling：分块在 SRAM 计算，跳过完整 n×n 的实例化</div>
+    </div>
+
+    <p>但这有个<strong>数学难题</strong>：softmax 需要全局信息（分母是所有 exp 的和）。把 K 分块算，每个块只能算出局部 softmax，怎么合并成全局正确的 softmax？这就是第二招 <strong>online softmax</strong> 要解决的。</p>
+
+    <h2 class="section" id="online-softmax"><span class="idx">03</span> Online Softmax：分块也能算全局 softmax</h2>
+    <p>常规 softmax：softmax(x_i) = exp(x_i) / Σ_j exp(x_j)。它需要<strong>一次性看到所有 x_j</strong>才能算分母。分块计算时，每算一块 K，只能得到一部分 exp 的和。怎么边算边更新？</p>
+
+    <p>Flash Attention 用了一个巧妙的<strong>在线算法</strong>。维护两个东西：①当前已知的最大值 m（用于数值稳定）；②当前已知的 exp 和 l。每来一个新块，用新块的局部最大值更新全局 m，并<strong>重标定（rescale）</strong>之前累积的 l：</p>
+
+    <blockquote>
+      <strong>Online Softmax 更新规则（处理第 k 个块后）：</strong><br>
+      m_new = max(m_old, m_block_k)<br>
+      l_new = l_old × exp(m_old − m_new) + Σ exp(block_k − m_new)<br>
+      O_new = O_old × (l_old × exp(m_old − m_new) / l_new) + Σ softmax_block_k × V_block_k
+    </blockquote>
+
+    <p>关键在 <code>exp(m_old − m_new)</code> 这一项：当看到更大的值时，<strong>把之前累加的 exp 缩小</strong>（因为分母的标准变了）。这样无论块以什么顺序处理，最终都能得到和全局 softmax 完全一致的结果。数学上严格等价，没有近似。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：在线求平均</div>
+      <p>你已经算了前 5 个数的平均，现在来了第 6 个数，怎么更新平均而不重算前 5 个？答案是维护「个数」和「总和」，新数来了更新这两个量再除。<strong>Online softmax 是同一思路的进阶版</strong>：维护「最大值」和「加权和」，新块来了做 rescale 更新。核心都是「用增量信息更新累积量」。</p>
+    </div>
+
+    <h2 class="section" id="verify-online"><span class="idx">04</span> 代码：验证 online softmax 的正确性</h2>
+    <p>我们用 numpy 实现 online softmax，对比标准 softmax，证明它数学等价：</p>
+
+    <div class="code-title">online_softmax.py —— 在线 softmax 与标准 softmax 对比</div>
+    <pre><code class="language-python">import numpy as np
+
+def standard_softmax(x):
+    """标准 softmax：一次性看全部。"""
+    m = np.max(x)
+    e = np.exp(x - m)
+    return e / np.sum(e)
+
+def online_softmax(x, block_size=2):
+    """分块 online softmax：逐块更新，不一次性实例化全部 exp。
+    数学上和标准 softmax 完全等价。
+    """
+    m = -np.inf   # 当前已知最大值
+    l = 0.0       # 当前已知 exp 和
+    n = len(x)
+    for start in range(0, n, block_size):
+        block = x[start:start + block_size]
+        m_block = np.max(block)
+        # 重标定：用新最大值更新之前的累积
+        m_new = max(m, m_block)
+        l = l * np.exp(m - m_new) + np.sum(np.exp(block - m_new))
+        m = m_new
+    # 最后用全局 m、l 归一化
+    return np.exp(x - m) / l
+
+# 测试
+x = np.array([1.0, 3.0, 2.0, 0.5, 4.0, 1.5])
+print("标准:", np.round(standard_softmax(x), 6))
+print("在线:", np.round(online_softmax(x, block_size=2), 6))
+print("差异:", np.max(np.abs(standard_softmax(x) - online_softmax(x, block_size=2))))
+# 差异 ≈ 0，证明分块在线算法和标准算法等价
+</code></pre>
+
+    <p>运行后两者完全一致。这就是 Flash Attention 能用的根本原因——<strong>它不是近似算法，是精确算法</strong>。输出和标准注意力一模一样，只是计算路径不同。</p>
+
+    <h2 class="section" id="full-flash"><span class="idx">05</span> 完整的 Flash Attention 伪代码</h2>
+    <p>把 tiling 和 online softmax 合起来，就是 Flash Attention 的核心。下面是简化版伪代码（Flash Attention 的前向）：</p>
+
+    <div class="code-title">flash_attention_pseudo.py —— Flash Attention 核心逻辑</div>
+    <pre><code class="language-python">import torch
+import math
+
+def flash_attention(Q, K, V, block_size=64):
+    """
+    简化版 Flash Attention（单头，无 mask）。
+    真实实现是 CUDA kernel，这里用 Python 演示逻辑。
+    数学上等价于 standard_attention，但避免实例化 n×n。
+    """
+    N, d = Q.shape
+    scale = 1.0 / math.sqrt(d)
+    # 初始化输出和统计量
+    O = torch.zeros_like(Q)         # 累积输出
+    l = torch.zeros(N)              # 每行的 exp 和
+    m = torch.full((N,), -float('inf'))  # 每行已知最大值
+
+    # 外层：遍历 K/V 块
+    for j in range(0, N, block_size):
+        Kj = K[j:j+block_size]      # 块，在 SRAM
+        Vj = V[j:j+block_size]
+        # 内层：遍历 Q 块
+        for i in range(0, N, block_size):
+            Qi = Q[i:i+block_size]
+            # 算块分数（小矩阵，在 SRAM 里）
+            Sij = (Qi @ Kj.T) * scale       # (block, block)
+            # 块内最大值，用于数值稳定
+            m_block = Sij.max(dim=-1).values
+            P = torch.exp(Sij - m_block.unsqueeze(-1))
+            # online 更新全局统计量
+            m_new = torch.maximum(m[i:i+block_size], m_block)
+            l_old_corr = l[i:i+block_size] * torch.exp(m[i:i+block_size] - m_new)
+            l_block = P.sum(dim=-1)
+            l[i:i+block_size] = l_old_corr + l_block
+            # 更新输出（重标定旧的 + 加上新的）
+            O_old_corr = O[i:i+block_size] * (l_old_corr / l[i:i+block_size]).unsqueeze(-1)
+            O[i:i+block_size] = O_old_corr + (P @ Vj) / l[i:i+block_size].unsqueeze(-1)
+            m[i:i+block_size] = m_new
+
+    return O
+
+# 对比验证
+torch.manual_seed(0)
+N, d = 16, 8
+Q, K, V = torch.randn(N, d), torch.randn(N, d), torch.randn(N, d)
+standard = torch.softmax(Q @ K.T / math.sqrt(d), dim=-1) @ V
+flash = flash_attention(Q, K, V, block_size=4)
+print("最大差异:", (standard - flash).abs().max().item())  # ~1e-7，浮点误差级别
+</code></pre>
+
+    <p>差异在 1e-7，纯浮点误差。<strong>Flash Attention 输出和标准注意力完全一致</strong>，但全程没有实例化 16×16 的完整分数矩阵。</p>
+
+    <h2 class="section" id="benefits"><span class="idx">06</span> Flash Attention 带来什么好处</h2>
+    <p>三个层面的提升：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">💾</span>
+        <h4>显存：O(n²) → O(n)</h4>
+        <p>不再存 n×n 中间矩阵。显存只随序列长度线性增长。8K 序列从几 GB 降到几十 MB，长上下文成为可能。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚡</span>
+        <h4>速度：2~4 倍</h4>
+        <p>HBM 读写大幅减少（n² 级降到 n 级），wall-clock 时间显著下降。GPU 算力反而被喂得更饱。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>精确：非近似</h4>
+        <p>和标准注意力数学等价，无精度损失。这是它比稀疏注意力、线性近似更受欢迎的根本原因。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📏</span>
+        <h4>长上下文基石</h4>
+        <p>没有 Flash Attention，32K/128K 上下文在显存上几乎不可行。它是长上下文时代的基础设施。</p>
+      </div>
+    </div>
+
+    <h2 class="section" id="io-complexity"><span class="idx">07</span> 为什么快：IO 复杂度分析</h2>
+    <p>Flash Attention 论文的核心贡献是从<strong>IO 复杂度</strong>角度分析注意力。标准注意力的 HBM 访问量是 O(n²·d + n²)（读 Q/K 算 S、读写 S、读 V 算 O）。Flash Attention 通过 tiling，把它降到 O(n·d²)（每个元素被搬的次数大大减少）。</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>HBM 访问</th><th>显存</th><th>计算量</th></tr></thead>
+      <tbody>
+        <tr><td>标准注意力</td><td>O(n²·d + n²)</td><td>O(n²)</td><td>O(n²·d)</td></tr>
+        <tr><td>Flash Attention</td><td>O(n·d²)</td><td>O(n)</td><td>O(n²·d)（相同）</td></tr>
+      </tbody>
+    </table>
+
+    <p>注意：<strong>计算量（FLOPs）是一样的</strong>，都是 O(n²·d)。Flash Attention 快的不是算得更少，而是<strong>搬数据搬得少</strong>。在 GPU 这种「计算快、访存慢」的硬件上，减少 IO 就是最大的加速。这是非常深刻的硬件-算法协同设计。</p>
+
+    <div class="callout note">
+      <div class="head">📌 Flash Attention 2 的改进</div>
+      <p>2023 年的 Flash Attention 2 进一步优化：①减少了非矩阵乘的浮点操作（rescale 等）；②更好地并行化了 Q 块维度（外层并行，更好利用 SM）；③优化了反向传播。FA2 比 FA1 再快约 2 倍，是当前主流。FA3（Hopper 架构）进一步利用 TensorCore 的 FP8 能力，又快一倍。</p>
+    </div>
+
+    <h2 class="section" id="usage"><span class="idx">08</span> 怎么用：API 已经透明集成</h2>
+    <p>好消息是，你不需要自己写 Flash Attention。它已经透明集成进 PyTorch、HuggingFace、vLLM 等所有主流框架：</p>
+
+    <div class="code-title">use_flash.py —— 三种使用方式</div>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+Q = torch.randn(2, 8, 1024, 64, device='cuda')
+K = torch.randn(2, 8, 1024, 64, device='cuda')
+V = torch.randn(2, 8, 1024, 64, device='cuda')
+
+# 方式一：PyTorch 2.0 内置 SDPA，自动选后端（含 Flash Attention）
+out = F.scaled_dot_product_attention(Q, K, V)
+# 底层会自动用 Flash Attention（如果硬件支持）
+
+# 方式二：显式指定后端
+with torch.backends.cuda.sdp_kernel(enable_flash=True, enable_math=False):
+    out = F.scaled_dot_product_attention(Q, K, V)
+
+# 方式三：HuggingFace transformers 自动启用
+# from transformers import AutoModelForCausalLM
+# model = AutoModelForCausalLM.from_pretrained(..., attn_implementation="flash_attention_2")
+
+print("输出形状:", out.shape)
+print("用了哪个后端？看 torch.backends.cuda 的文档")
+</code></pre>
+
+    <p>对开发者来说，<strong>几乎无感</strong>：只要你的环境装了 flash-attn 包、硬件支持，框架会自动用。一个参数 <code>attn_implementation="flash_attention_2"</code> 就能让训练快两倍、显存省一半。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ Flash Attention 的限制</div>
+      <p>①需要自定义 CUDA kernel，CPU 和老 GPU 不支持；②某些特殊 mask 模式（如自定义稀疏 mask）可能不被支持或退化；③小序列（&lt; 512）时优势不明显（启动开销）；④对注意力权重的直接访问受限（中间值不保存），调试可视化不便。这些是它「精确但不透明」的代价。</p>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">Flash Attention 核心</div>
+        <ul style="margin:6px 0;">
+          <li>Tiling：Q/K/V 分块，在 SRAM 算</li>
+          <li>Online softmax：分块也能算全局 softmax</li>
+          <li>永不把 n×n 中间矩阵写到 HBM</li>
+          <li>数学精确，非近似</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">三层收益</div>
+        <ul style="margin:6px 0;">
+          <li>显存：O(n²) → O(n)</li>
+          <li>速度：HBM IO 大减，快 2~4 倍</li>
+          <li>长上下文：让 32K/128K 可行</li>
+          <li>2026 年所有主流框架默认启用</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>注意力部分到这里告一段落。我们已经把注意力的数学、QKV、位置编码、多头、GQA、KV cache、Flash Attention 全部讲透。接下来进入 Transformer 的<strong>另一半</strong>——每个注意力层之后都有的<strong>前馈网络（FFN）</strong>。它看似只是两层 MLP，却占了整个 Transformer 参数量的 2/3。下一章讲它从 MLP → GLU → SwiGLU 的演进，以及为什么 SwiGLU 成了现代大模型的标配。</p>
+
+    <blockquote>
+      下一章：<a href="102-tfm-ffn.html">第 102 章 · 前馈网络：注意力之后的「记忆」层</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

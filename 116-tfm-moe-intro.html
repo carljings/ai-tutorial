@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -143,7 +141,7 @@
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
-      <a href="116-tfm-moe-intro.html" class="active" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
+      <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
       <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
       <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
       <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
@@ -305,67 +303,198 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 116 章 · Transformer 原理深挖</span>
-<h1>MoE 混合专家：用稀疏激活做大模型</h1><p class="lead">专家路由、top-k 门控、负载均衡 loss。GLM-5.2 等用 MoE 把参数做大而计算量保持小。专家冗余、路由塌缩问题。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>专家路由、top-k 门控、负载均衡 loss。GLM-5.2 等用 MoE 把参数做大而计算量保持小。专家冗余、路由塌缩问题。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 16 · Transformer 深度系列</span>
+      <h1>MoE 混合专家入门<br>用稀疏激活实现「大而不贵」</h1>
+      <p class="lead">一个 671B 参数的 DeepSeek-V3，推理时每个 token 只激活 37B——这就是 MoE 的魔法。它把一个巨大的 FFN 拆成几十个小 FFN（专家），每个 token 只调用其中两个。结果是：模型容量像 671B 一样大，计算成本却像 37B 一样便宜。本章从直觉到机制，把稀疏激活、容量因子、负载均衡这三大核心概念彻底讲透。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-dilemma"><span class="idx">★</span> 一、稠密模型的困境</h2>
+    <p>在讲 MoE 之前，先看清传统「稠密」模型面临什么瓶颈。Transformer 的每一层有两个主要计算：attention 和 FFN。其中 FFN 通常占整个模型参数的 60% 到 70%，是计算和显存的大头。稠密模型的特点是：<strong>每个 token 都要经过 FFN 的全部参数</strong>。</p>
+    <p>这意味着模型参数量和计算量是绑定的——参数翻倍，计算也翻倍。所以训练一个 700B 的稠密模型，每个 token 的计算量是 70B 模型的 10 倍，训练成本和推理延迟都爆炸。scaling law 告诉我们参数越多越好，但计算预算是有限的，怎么破这个「参数越多计算越贵」的死结？</p>
+
+    <h3 class="section">1.1 MoE 的核心洞察</h3>
+    <p>MoE（Mixture of Experts，混合专家）的答案是：<strong>解耦参数量和计算量</strong>。把一个巨大的 FFN 拆成 N 个小 FFN（叫专家，expert），再用一个路由器（router/gate）决定每个 token 该去哪个专家。每个 token 只激活 top-k 个专家（比如 N=8 里选 2 个），所以虽然总参数是 N 倍，但计算量只有 k/N。</p>
+    <p>用一个生活类比：稠密模型像是一个全能选手，每个问题都要动用全部脑力，累且慢；MoE 像是一个专家团队，有 8 个不同领域的专家，每次根据问题派给最合适的 2 个去处理。团队整体能力远超单个全能选手（因为可以容纳更多专长），但每次处理的成本却更低（只用 2 个人而非 8 个）。</p>
+    <p>这正是 DeepSeek-V3、Mixtral、GPT-4 采用 MoE 的根本原因：在不增加单 token 计算量的前提下，大幅增加模型的总参数容量。</p>
+
+    <h2 class="section" id="sparse-activation"><span class="idx">★</span> 二、稀疏激活：MoE 的核心机制</h2>
+    <p>稀疏激活（sparse activation）是 MoE 区别于稠密模型的根本特征。理解它，就理解了 MoE 为什么能「大而不贵」。</p>
+
+    <h3 class="section">2.1 从稠密 FFN 到稀疏 MoE 层</h3>
+    <p>回顾一下稠密 FFN 的结构：输入 x 经过两个线性层和一个激活函数，输出 y = W2 * activation(W1 * x)。这里所有参数都被用上。</p>
+    <p>MoE 层把这个 FFN 替换成 N 个并行的 FFN（专家 E1...EN），外加一个路由器 G。对每个 token，路由器根据 token 表示算出 N 个分数，选分数最高的 k 个专家，把 token 分别送进去，再把这 k 个专家的输出按路由分数加权求和。数学上：y = sum_{i in top-k} G(x)_i * E_i(x)。其中 G(x) 是路由器对 token x 输出的 softmax 分布。</p>
+
+    <h3 class="section">2.2 稀疏在哪里</h3>
+    <p>关键在于「top-k 选择」。如果 N=8、k=2，那么每个 token 只会进入 2 个专家，另外 6 个专家的参数完全不参与计算。这就是稀疏——大部分参数在每个 token 上是「睡着」的。从计算图看，等效计算量只有稠密版的 2/8 = 25%。但模型的总参数量是 8 倍，所以「参数容量」是稠密版的 8 倍。</p>
+    <p>这种「容量大、计算省」的特性，让 MoE 在固定计算预算下能用更多参数，从而获得更好的 scaling law。研究显示，在同等训练 FLOPs 下，MoE 模型的效果显著优于稠密模型。</p>
+
+    <h2 class="section" id="capacity-factor"><span class="idx">★</span> 三、容量因子：吞吐与丢弃的平衡</h3>
+    <p>稀疏激活带来了一个新问题：负载不均。如果所有 token 都想挤进同一个专家（比如代码 token 都想进「代码专家」），那个专家就会过载。为了在 GPU 上高效并行，MoE 引入了「容量因子」（capacity factor）来限制每个专家能处理的 token 数。</p>
+
+    <h3 class="section">3.1 什么是容量因子</h3>
+    <p>容量因子 C 定义了每个专家在一个 batch 内最多处理的 token 数：容量 = (batch_size * seq_len / N) * C。也就是说，每个专家的「容量桶」大小是「平均分配数 × C」。如果 C=1，每个专家只能处理平均份额；C=1.25 允许 25% 的超额。超过容量的 token 会被丢弃（drop），直接透传到下一层。</p>
+
+    <h3 class="section">3.2 容量因子的取舍</h3>
+    <p>C 越大，丢弃越少，模型质量越好，但显存和计算开销越大（桶要开得更大）；C 越小，效率越高但丢弃越多，质量下降。训练时常用 C=1.25 到 1.5，推理时如果用动态 batching 可以把 C 设得很大甚至不限（因为推理一个序列内 token 不会挤同一专家到过载）。</p>
+    <p>token 被丢弃是个损失——它相当于在这一层「跳过」了 FFN 处理。所以负载均衡（让 token 均匀分布到各专家）是 MoE 训练的头等大事，我们下一节专门讲。</p>
+
+    <h2 class="section" id="load-balance"><span class="idx">★</span> 四、负载均衡：MoE 训练的头号难题</h2>
+    <p>MoE 训练最容易出问题的就是负载不均：路由器学会了把所有 token 都送到少数几个专家，导致大部分专家闲置（参数浪费），少数专家过载（token 被丢弃）。这会让模型效果大幅下降。</p>
+
+    <h3 class="section">4.1 为什么会负载不均</h3>
+    <p>路由器是端到端训练的，一开始随机初始化时如果某几个专家偶然表现好一点，路由器就会更多地往它们派 token，它们得到更多训练数据变得更好，路由器更偏好它们——这是个正反馈循环，最终坍缩到「赢者通吃」的局面。这和上一章讲的重复问题类似，都是缺乏负反馈导致的。</p>
+    <p>解决思路也是引入负反馈：通过一个额外的损失函数（auxiliary loss，辅助损失）惩罚负载不均，强制路由器把 token 均匀分配。</p>
+
+    <h3 class="section">4.2 Switch Transformer 的辅助损失</h3>
+    <p>Switch Transformer 论文提出了最经典的辅助损失。设 batch 内 token 总数为 T，专家数为 N，路由器对 token t 选中的专家为 e(t)（只选 1 个的情况）。定义两个量：每个专家 i 收到的 token 比例 f_i = (1/T) * sum_t [e(t)==i]（实际负载），以及每个专家 i 的平均路由概率 P_i = (1/T) * sum_t G(x_t)_i（路由器分配的概率）。</p>
+    <p>辅助损失定义为：L_aux = alpha * N * sum_i (f_i * P_i)。这是一个 N 个专家的加权和，当所有专家负载和概率都均匀（都是 1/N）时取最小值 alpha。alpha 是一个很小的系数（如 0.01），确保辅助损失只是「轻微」地推动均衡，不喧宾夺主。训练时把它加到主语言建模损失上。</p>
+    <p>直觉上，f_i 衡量「实际有多少 token 进了专家 i」，P_i 衡量「路由器有多想往专家 i 派」。两者乘积越大说明专家 i 越过载。最小化这个乘积之和，就逼迫路由器往冷门专家派 token，实现均衡。</p>
+
+    <h3 class="section">4.3 用代码理解辅助损失</h3>
+    <p>把上面的公式直接翻译成代码，你会看到这个损失是如何惩罚不均衡的。下面这段代码构造一个极端不均衡的路由分布，观察 auxiliary loss 的大小变化。</p>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
-import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+def switch_aux_loss(router_probs, expert_assignment, num_experts, alpha=0.01):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    Switch Transformer 的辅助损失。
+    router_probs: (num_tokens, num_experts) 路由器输出的概率（带梯度）
+    expert_assignment: (num_tokens,) 每个 token 实际选中的专家 id
+    """
+    num_tokens = router_probs.shape[0]
+    # P_i：每个专家收到的平均路由概率（可导，带梯度）
+    P = router_probs.mean(dim=0)                              # (num_experts,)
+    # f_i：每个专家实际收到的 token 比例（硬分配，停梯度）
+    one_hot = F.one_hot(expert_assignment, num_experts).float()  # (num_tokens, num_experts)
+    f = one_hot.mean(dim=0).detach()                          # (num_experts,)
+    # 辅助损失：N * sum_i (f_i * P_i)
+    loss = num_experts * (f * P).sum()
+    return alpha * loss
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"MoE 混合专家：用稀疏激活做大模型"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="115-tfm-quantization.html"><div class="lbl">← 上一章</div><div class="ttl">115 · 量化：让大模型跑在消费级显卡上</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="117-tfm-moe-routing.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">117 · MoE 路由的工程细节</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 116 章 · MoE 混合专家：用稀疏激活做大模型</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 模拟两种路由情况
+num_experts = 4
+num_tokens = 100
+torch.manual_seed(0)
+
+# 情况 1：严重不均衡——几乎所有 token 都去专家 0
+probs_unbalanced = torch.tensor([[0.9, 0.04, 0.03, 0.03]] * num_tokens)
+assign_unbalanced = torch.zeros(num_tokens, dtype=torch.long)  # 全选专家 0
+loss_unbal = switch_aux_loss(probs_unbalanced, assign_unbalanced, num_experts, alpha=1.0)
+
+# 情况 2：完全均衡——各专家平均分配
+probs_balanced = torch.tensor([[0.25, 0.25, 0.25, 0.25]] * num_tokens)
+assign_balanced = torch.tensor([i % num_experts for i in range(num_tokens)])
+loss_bal = switch_aux_loss(probs_balanced, assign_balanced, num_experts, alpha=1.0)
+
+print(f"不均衡情况的辅助损失: {loss_unbal.item():.4f}")
+print(f"均衡情况的辅助损失:   {loss_bal.item():.4f}")
+print(f"理想最小值（完全均匀时）: {1.0:.4f}")
+# 不均衡时 loss 远大于 1，均衡时接近 1，这就是辅助损失的惩罚机制</code></pre>
+    <p>运行后你会清楚地看到：不均衡情况的损失远大于均衡情况。这就是 auxiliary loss 逼迫路由器均衡分配的数学力量。实际训练时把主损失（语言建模的交叉熵）和这个小系数的 aux_loss 加起来一起优化即可。</p>
+
+    <h2 class="section" id="simple-moe"><span class="idx">★</span> 五、从零实现一个简单 MoE 层</h2>
+    <p>把概念落到代码。下面我们用 PyTorch 实现一个最小可运行的 MoE 层，包含路由、top-k 选择、专家计算、加权输出。这是理解 Mixtral、DeepSeek 架构的基础。</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class Expert(nn.Module):
+    """一个专家就是一个普通的 FFN。"""
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        self.w1 = nn.Linear(d_model, d_ff)
+        self.w2 = nn.Linear(d_ff, d_model)
+
+    def forward(self, x):
+        return self.w2(F.gelu(self.w1(x)))
+
+class MoELayer(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2):
+        super().__init__()
+        self.num_experts = num_experts
+        self.top_k = top_k
+        self.router = nn.Linear(d_model, num_experts)
+        self.experts = nn.ModuleList(
+            [Expert(d_model, d_ff) for _ in range(num_experts)]
+        )
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        返回: (batch, seq_len, d_model)
+        """
+        B, S, D = x.shape
+        x_flat = x.view(-1, D)                       # (B*S, D)
+        gate_logits = self.router(x_flat)            # (B*S, num_experts)
+        gate_probs = F.softmax(gate_logits, dim=-1)
+
+        # 每个 token 选 top_k 个专家
+        topk_probs, topk_idx = gate_probs.topk(self.top_k, dim=-1)
+        # 归一化 top-k 概率（让它们加起来等于 1）
+        topk_probs = topk_probs / topk_probs.sum(dim=-1, keepdim=True)
+
+        out = torch.zeros_like(x_flat)
+        for i in range(self.top_k):
+            expert_idx = topk_idx[:, i]              # 每个 token 的第 i 个选择
+            weight = topk_probs[:, i].unsqueeze(-1)  # 该选择的权重
+            # 把每个 token 送进它选中的专家
+            for e in range(self.num_experts):
+                mask = (expert_idx == e)
+                if mask.any():
+                    expert_out = self.experts[e](x_flat[mask])
+                    out[mask] += weight[mask] * expert_out
+        return out.view(B, S, D)
+
+# 测试
+torch.manual_seed(0)
+moe = MoELayer(d_model=64, d_ff=256, num_experts=8, top_k=2)
+x = torch.randn(2, 10, 64)
+y = moe(x)
+print(f"输入形状: {x.shape}, 输出形状: {y.shape}")
+print(f"参数量: {sum(p.numel() for p in moe.parameters())}")
+# 注意：实际计算只激活了 top_k=2 个专家，等效计算量是稠密 FFN 的 2/8</code></pre>
+    <p>这段代码用了一个简单粗暴的双重 for 循环把 token 分发到专家，便于理解但效率低（实际框架如 Megatron、vLLM 用 grouped GEMM 或 scatter/gather 优化）。但它完整展示了 MoE 的核心机制：路由、top-k 选择、归一化、加权聚合。Mixtral、DeepSeek 的 MoE 层在数学上和这个完全一致。</p>
+
+    <h2 class="section" id="moe-vs-dense"><span class="idx">★</span> 六、MoE 与稠密模型的对比</h2>
+    <p>把两者摆在一起对比，能更清楚地看到 MoE 的优势和代价。</p>
+    <ul>
+      <li><strong>参数效率</strong>：MoE 用更少的计算达到更好的效果。Mixtral 8x7B 总参数 47B，但激活参数只有 13B，效果对标 70B 级稠密模型。</li>
+      <li><strong>训练成本</strong>：同样效果，MoE 训练 FLOPs 约为稠密模型的三分之一到一半。这是为什么开源社区能负担起 Mixtral、DeepSeek 的训练。</li>
+      <li><strong>推理显存</strong>：MoE 的劣势——所有专家都要常驻显存，即使每次只用 2 个。47B 的 Mixtral 推理时要加载 47B 参数，比 13B 稠密模型吃显存。</li>
+      <li><strong>推理速度</strong>：单 token 的计算量小（只 2 个专家），但访存大（要读 2 个专家的权重）。在 memory-bound 场景，MoE 的速度优势会被访存抵消，需要 PagedAttention、专家并行等优化。</li>
+      <li><strong>训练稳定性</strong>：MoE 训练更难调，路由坍缩、负载不均、专家利用率低都是常见坑，需要辅助损失和精细的超参调整。</li>
+    </ul>
+
+    <h2 class="section" id="variants"><span class="idx">★</span> 七、MoE 的工程变体</h2>
+    <p>MoE 在大模型里已经演化出多种变体，了解它们的差异有助于读论文和选型。</p>
+    <ul>
+      <li><strong>Switch Transformer</strong>：Google 2021 的工作，把 top-k 简化到 top-1（每 token 只去 1 个专家），极致简化路由，适合超大规模训练。</li>
+      <li><strong>GShard</strong>：最早把 MoE 用到千亿级规模的方案，提出了 expert parallelism（专家并行）和辅助损失的工程实现。</li>
+      <li><strong>Mixtral</strong>：Mistral 的开源 MoE，top-2 路由，8 个专家，证明了稀疏 MoE 在开源社区也能达到顶级效果。</li>
+      <li><strong>DeepSeekMoE</strong>：采用「细粒度专家」（更多但更小的专家）+「共享专家」（永远激活的专家处理通用知识），进一步降低冗余，是当前效率最高的 MoE 设计之一。</li>
+      <li><strong>专家并行</strong>：跨 GPU 分布专家（每个 GPU 放几个专家），通过 all-to-all 通信交换 token，是训练超大 MoE 的关键工程。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 MoE 的基本概念和核心机制讲透了。要点回顾：</p>
+    <ul>
+      <li><strong>核心动机</strong>：稠密模型参数和计算绑定，MoE 通过稀疏激活解耦两者，实现「参数多、计算少」。</li>
+      <li><strong>稀疏激活</strong>：把大 FFN 拆成 N 个专家，路由器给每个 token 选 top-k 个，只激活 k/N 的参数，但享受 N 倍的参数容量。</li>
+      <li><strong>容量因子</strong>：限制每个专家的 token 桶大小，超容量 token 被丢弃，是吞吐和质量的平衡旋钮，训练常用 1.25 到 1.5。</li>
+      <li><strong>负载均衡</strong>：MoE 训练的头号难题，路由容易坍缩到少数专家。用辅助损失（L_aux = alpha * N * sum(f_i * P_i)）惩罚不均。</li>
+      <li><strong>实现要点</strong>：路由、top-k 选择、概率归一化、加权聚合是核心，工程上用 grouped GEMM 或 scatter/gather 加速。</li>
+      <li><strong>权衡</strong>：训练和单 token 计算更省，但推理显存更大（所有专家常驻），训练稳定性更难调。</li>
+    </ul>
+    <p>理解了 MoE 的宏观架构，下一章我们会钻进路由器这个最关键的部件——top-k gating 怎么实现、noisy top-k 解决什么问题、auxiliary loss 具体怎么写代码。这是让 MoE 真正跑起来、训得稳的关键。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

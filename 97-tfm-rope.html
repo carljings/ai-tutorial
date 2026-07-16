@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                              <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -124,7 +122,7 @@
       <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
-      <a href="97-tfm-rope.html" class="active" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
+      <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
       <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
@@ -305,67 +303,330 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 97 章 · Transformer 原理深挖</span>
-<h1>RoPE 旋转位置编码：现代大模型的标配</h1><p class="lead">通过旋转向量把绝对位置编码进相对关系，q_m·k_n 只依赖 m-n。块对角旋转矩阵、θ 频率设计、外推能力、PI/NTK/YaRN 长上下文插值。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>通过旋转向量把绝对位置编码进相对关系，q_m·k_n 只依赖 m-n。块对角旋转矩阵、θ 频率设计、外推能力、PI/NTK/YaRN 长上下文插值。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 97 · Transformer 深度系列</span>
+      <h1>RoPE 旋转位置编码<br>现代大模型的事实标准</h1>
+      <p class="lead">Llama、GLM、Qwen、DeepSeek、Mistral——2026 年你能叫出名字的现代大模型，几乎清一色用 RoPE（Rotary Position Embedding）。它不像正弦余弦编码那样把位置「加」到 embedding 上，而是用「旋转」把位置编码进 Q 和 K 向量，让注意力分数自然只依赖相对位置。本章从复数和旋转矩阵讲起，推导 RoPE 的核心公式，解释 θ 频率的设计，并延伸到长度外推的 NTK-aware 和 YaRN 方案。</p>
+      <div class="meta">
+        <span class="chip">阅读约 32 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+        <span class="chip">前置：第 94、95、96 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="goal"><span class="idx">★</span> RoPE 要解决的核心问题</h2>
+    <p>在动手推导前，先明确 RoPE 想干什么。它要找一个位置编码方式，满足一个<strong>关键性质</strong>：</p>
+
+    <blockquote>
+      <strong>目标：</strong>对于任意两个位置 m 和 n，注意力分数 ⟨q_m, k_n⟩ 应该<strong>只依赖于相对位置 m−n</strong>，而不单独依赖于 m 或 n。
+    </blockquote>
+
+    <p>这就是「相对位置编码」的诉求。前面讲过，相对位置比绝对位置更符合语言本质（「修饰语离中心词几步」比「修饰语在第几个位置」重要）。但传统相对位置编码（比如 T5 的偏置）做法是<strong>在注意力分数上加一个偏置项</strong>，每层每头都要，又贵又啰嗦。</p>
+
+    <p>RoPE 的精妙之处在于：<strong>它通过旋转 Q 和 K 向量，让它们的点积自动只依赖相对位置</strong>。不需要额外的偏置项，不改注意力公式，只改 Q、K 的生成方式。而且旋转操作可以无缝插进现有的注意力实现，工程友好。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node sky">位置 m 的 Q 向量 → 旋转角度 mθ</div>
+        <div class="node sky">位置 n 的 K 向量 → 旋转角度 nθ</div>
+        <div style="color:var(--text-faint);">▼ 做点积</div>
+        <div class="node accent">⟨q_m, k_n⟩ 只依赖 (m−n)θ —— 相对位置！</div>
+      </div>
+      <div class="cap">图 97-1 · RoPE 的核心思想：把位置变成旋转角度，点积自动出现相对位置</div>
+    </div>
+
+    <h2 class="section" id="complex"><span class="idx">01</span> 从复数和二维旋转开始</h2>
+    <p>RoPE 的推导从最简单的二维情况入手。把 Q 向量的前两个分量 q = (q_0, q_1) 看作一个<strong>复数</strong> q_0 + i·q_1。在复数世界里，「旋转一个角度 φ」就是乘以 e^(iφ) = cosφ + i·sinφ。</p>
+
+    <p>如果我们让位置 m 的 Q 旋转角度 mθ（θ 是固定的基础频率），即：</p>
+
+    <blockquote>
+      q_m = q · e^(imθ) = (q_0 + i·q_1) · (cos(mθ) + i·sin(mθ))
+    </blockquote>
+
+    <p>那么位置 m 的 Q 和位置 n 的 K 做点积（复数乘法取实部）：</p>
+
+    <blockquote>
+      ⟨q_m, k_n⟩ = Re( q · e^(imθ) · conj(k · e^(inθ)) )<br>
+      &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;= Re( q · conj(k) · e^(i(m−n)θ) )
+    </blockquote>
+
+    <p>关键来了：<strong>结果里出现了 e^(i(m−n)θ)</strong>，也就是结果只依赖 <strong>m−n</strong> 这个相对位置，完美达成目标！旋转角度 mθ 和 nθ 相减，绝对位置被消掉了，只剩下相对差。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 为什么旋转能消掉绝对位置</div>
+      <p>因为旋转是<strong>群操作</strong>：先转 mθ 再转 −nθ 等于转 (m−n)θ。Q 乘 e^(imθ)、K 乘 e^(inθ)，做点积时 K 取共轭（相当于反向旋转），两个旋转就合并成了相对旋转。这是 RoPE 数学之美的根源。</p>
+    </div>
+
+    <h2 class="section" id="matrix-form"><span class="idx">02</span> 写成矩阵形式：分块旋转矩阵</h2>
+    <p>复数乘法 e^(iφ) 等价于一个 2×2 旋转矩阵。把上面的复数操作翻译成矩阵语言，对于一对分量 (q_0, q_1)：</p>
+
+    <blockquote>
+      [ q_0' ] &nbsp;&nbsp;= [ cos(mθ)&nbsp; −sin(mθ)] [ q_0 ]<br>
+      [ q_1' ] &nbsp;&nbsp;&nbsp;[ sin(mθ)&nbsp;&nbsp;cos(mθ)] [ q_1 ]
+    </blockquote>
+
+    <p>这就是把 (q_0, q_1) 这一对分量旋转角度 mθ。推广到 d 维向量，RoPE 把它<strong>两两配对</strong>，每对用一个不同频率 θ_i 的旋转：</p>
+
+    <blockquote>
+      q' = R_m · q，其中 R_m 是分块对角矩阵：<br><br>
+      R_m = diag( R(mθ_0), R(mθ_1), ..., R(mθ_{d/2−1}) )<br><br>
+      每个 R(mθ_i) = [ cos(mθ_i) −sin(mθ_i) ; sin(mθ_i) cos(mθ_i) ]
+    </blockquote>
+
+    <p>也就是说，d 维向量被拆成 d/2 个二维平面，<strong>每个平面独立旋转</strong>，旋转角度是 m × θ_i，θ_i 是该平面的基础频率。这和正弦余弦编码的多频率思想一脉相承——不同维度对用不同频率，近处靠高频、远处靠低频。</p>
+
+    <h2 class="section" id="theta"><span class="idx">03</span> θ 频率怎么设计</h2>
+    <p>θ_i 的取值沿用正弦余弦编码的思路：</p>
+
+    <blockquote>
+      θ_i = 10000^(−2i/d) &nbsp;&nbsp;（i = 0, 1, ..., d/2−1）
+    </blockquote>
+
+    <p>也就是第 0 对维度频率最高（θ_0 = 1，转得最快），最后一对频率最低（θ ≈ 1/10000，转得最慢）。为什么这么设计：</p>
+
+    <ul>
+      <li><strong>高频对</strong>（θ 大）：旋转快，相邻位置角度差异大，能分辨<strong>近距离</strong>（差 1、2 步）。</li>
+      <li><strong>低频对</strong>（θ 小）：旋转慢，几十几百步才转一圈，能分辨<strong>远距离</strong>。</li>
+      <li><strong>多尺度组合</strong>：和正弦余弦编码一样，覆盖从 1 到 10000 的尺度范围。</li>
+    </ul>
+
+    <p>举个具体数字。假设 d=8（4 对维度），θ = [1, 1/100, 1/10000, ...]。位置 0 时所有角度都是 0（不旋转）；位置 1 时第 0 对转 1 弧度（约 57°）、第 1 对转 0.01 弧度（几乎没动）。这样每个位置的「旋转指纹」是唯一的，且近邻位置在高频对上差异明显。</p>
+
+    <h2 class="section" id="impl"><span class="idx">04</span> 代码：实现 RoPE</h2>
+    <p>工业实现里有个<strong>高效技巧</strong>：不需要真的做矩阵乘法。RoPE 的旋转可以等价地用「逐元素乘以预计算的 cos、sin」实现，速度和内存都更优。</p>
+
+    <div class="code-title">rope.py —— 旋转位置编码的高效实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+def precompute_freqs_cis(dim, max_seq_len, base=10000.0):
+    """预计算每个位置、每个频率对的 cos 和 sin。
+    返回: (max_seq_len, dim//2) 的复数张量 e^(i*m*theta)
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    # 频率 theta_i = 1 / base^(2i/dim)
+    freqs = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))  # (dim//2,)
+    t = torch.arange(max_seq_len).float()                            # (max_seq_len,)
+    angles = torch.outer(t, freqs)                                   # (max_seq_len, dim//2)
+    # 用复数表示，方便后面用 torch.view_as_complex
+    freqs_cis = torch.polar(torch.ones_like(angles), angles)         # e^(i*m*theta)
+    return freqs_cis
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"RoPE 旋转位置编码：现代大模型的标配"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="96-tfm-positional-encoding.html"><div class="lbl">← 上一章</div><div class="ttl">96 · 位置编码：没有它 Transformer 是个瞎子</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="98-tfm-multihead.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">98 · 多头注意力：为什么"多看几个角度"更有效</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 97 章 · RoPE 旋转位置编码：现代大模型的标配</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+def apply_rotary_emb(x, freqs_cis):
+    """对 x (batch, seq, n_head, dim) 应用 RoPE。
+    把最后 dim 维当作 dim//2 个复数，逐个旋转。
+    """
+    d = x.shape[-1]
+    # 把实数向量两两配对成复数: (..., d) -> (..., d/2) complex
+    x_complex = torch.view_as_complex(x.float().reshape(*x.shape[:-1], d // 2, 2))
+    # freqs_cis 广播到 head 维
+    freqs_cis = freqs_cis.unsqueeze(0).unsqueeze(2)  # (1, seq, 1, d/2)
+    # 复数乘法 = 旋转
+    x_rotated = x_complex * freqs_cis
+    # 转回实数: (..., d/2, 2) -> (..., d)
+    x_out = torch.view_as_real(x_rotated).flatten(-2)
+    return x_out.type_as(x)
+
+# 测试
+d = 8
+seq_len = 5
+freqs_cis = precompute_freqs_cis(d, seq_len)
+q = torch.randn(1, seq_len, 4, d)  # batch=1, seq=5, n_head=4, dim=8
+q_rot = apply_rotary_emb(q, freqs_cis)
+print("旋转前后形状一致:", q.shape == q_rot.shape)  # True
+print("位置 0 处未旋转:", torch.allclose(q[:, 0], q_rot[:, 0], atol=1e-6))  # True，m=0 角度为 0
+</code></pre>
+
+    <p>这是 Meta Llama 官方实现的核心逻辑。关键技巧是用 <code>torch.view_as_complex</code> 把实数向量变复数，然后复数乘法天然就是旋转——比写循环做矩阵乘法快得多。</p>
+
+    <h2 class="section" id="relative-proof"><span class="idx">05</span> 验证：注意力分数真的只依赖相对位置</h2>
+    <p>口说无凭，我们做个实验。固定两个 query/key 向量，改变它们的绝对位置但保持相对距离，看注意力分数是否不变。</p>
+
+    <div class="code-title">verify_relative.py —— 验证 RoPE 的相对位置性质</div>
+    <pre><code class="language-python">import torch
+import math
+
+def rope_rotate(vec, pos, dim):
+    """对单个向量在位置 pos 做 RoPE 旋转（矩阵形式，便于理解）。"""
+    result = vec.clone()
+    for i in range(0, dim, 2):
+        theta = pos / (10000 ** (i / dim))
+        c, s = math.cos(theta), math.sin(theta)
+        a, b = vec[i], vec[i+1]
+        result[i]   = c * a - s * b
+        result[i+1] = s * a + c * b
+    return result
+
+dim = 8
+torch.manual_seed(0)
+q = torch.randn(dim)
+k = torch.randn(dim)
+
+# 情况 A: q 在位置 10，k 在位置 13，相对距离 = 3
+qA = rope_rotate(q, 10, dim); kA = rope_rotate(k, 13, dim)
+scoreA = torch.dot(qA, kA).item()
+
+# 情况 B: q 在位置 100，k 在位置 103，相对距离 = 3（绝对位置变了）
+qB = rope_rotate(q, 100, dim); kB = rope_rotate(k, 103, dim)
+scoreB = torch.dot(qB, kB).item()
+
+print(f"相对距离 3，绝对位置 (10,13): 分数 = {scoreA:.6f}")
+print(f"相对距离 3，绝对位置 (100,103): 分数 = {scoreB:.6f}")
+print(f"两者差异: {abs(scoreA - scoreB):.2e}  (≈0 说明只依赖相对位置)")
+</code></pre>
+
+    <p>运行后你会发现两个分数的差异在 1e-6 量级（浮点误差），几乎相等。<strong>这就证明了 RoPE 的相对位置性质</strong>——只要相对距离一样，绝对位置怎么变分数都不变。这是正弦余弦编码做不到的。</p>
+
+    <h2 class="section" id="why-rotate-not-add"><span class="idx">06</span> 为什么旋转比相加好</h2>
+    <p>对比 RoPE（旋转）和正弦余弦编码（相加），有几个本质区别：</p>
+
+    <table>
+      <thead><tr><th>对比维度</th><th>正弦余弦（相加）</th><th>RoPE（旋转）</th></tr></thead>
+      <tbody>
+        <tr><td>作用对象</td><td>embedding（输入层）</td><td>Q、K（每层注意力）</td></tr>
+        <tr><td>位置信息形式</td><td>绝对位置加性偏移</td><td>旋转角度</td></tr>
+        <tr><td>注意力分数</td><td>依赖绝对位置</td><td>只依赖相对位置</td></tr>
+        <tr><td>外推性</td><td>差</td><td>较好（配合 NTK/YaRN 更好）</td></tr>
+        <tr><td>额外参数</td><td>0</td><td>0（都是公式算的）</td></tr>
+        <tr><td>对 V 的影响</td><td>有（V 也被加了 PE）</td><td>无（只旋转 Q、K，不动 V）</td></tr>
+      </tbody>
+    </table>
+
+    <p>最后一点很关键：<strong>RoPE 只旋转 Q 和 K，不旋转 V</strong>。因为注意力分数由 Q·K 决定，旋转 Q/K 就够让分数带上相对位置信息。V 是被加权求和的内容，旋转它没意义反而破坏语义。这是 RoPE 设计的精打细算。</p>
+
+    <h2 class="section" id="extrapolation"><span class="idx">07</span> 外推难题：训练 4K，推理 32K 怎么办</h2>
+    <p>RoPE 的相对位置性质让外推性好于绝对编码，但<strong>也不是无限外推</strong>。训练时见过位置 0~4096，推理时位置 10000 的旋转角度是训练时没见过的值，模型表现仍会下降。</p>
+
+    <p>于是出现了一系列「<strong>缩放 RoPE 频率</strong>」的外推技巧，核心思想是<strong>让旋转角度的增长变慢</strong>，让训练范围内见过的角度模式能覆盖更长的推理范围。</p>
+
+    <h3>方法一：位置线性插值（PI）</h3>
+    <p>最直接的做法：把推理时的位置 m 缩放成 m × (L_train / L_infer)。比如训练 4K、推理 32K，就把所有位置除以 8。这样 32K 的位置被压缩回 4K 范围，落进训练见过的角度区间。</p>
+
+    <blockquote>
+      位置插值：m' = m × (L_train / L_infer)，然后用 m' 算旋转角度。
+    </blockquote>
+
+    <p>缺点：<strong>相邻位置的旋转角度也被压缩了</strong>，导致近距离的分辨能力下降——模型对「相邻 token」的位置感知变钝。</p>
+
+    <h3>方法二：NTK-aware 缩放</h3>
+    <p>NTK（Neural Tangent Kernel）理论的启发：不要均匀缩放所有频率，而是<strong>主要压低频、保留高频</strong>。具体做法是调整 base：</p>
+
+    <blockquote>
+      base' = base × (scale)^(d/(d−2))，其中 scale = L_infer / L_train
+    </blockquote>
+
+    <p>这样高频对（θ 大）几乎不变，近距离分辨力保留；低频对（θ 小）波长变长，覆盖更远距离。NTK-aware 是目前最常用的外推方法之一，效果比纯位置插值好。</p>
+
+    <h3>方法三：YaRN</h3>
+    <p>YaRN 是 NTK 的进阶版。它发现不同频率维度对插值的敏感度不同，于是<strong>按频率分段</strong>：高频段不插值（保留近距离）、低频段做位置插值（扩展远距离）、中间段做平滑过渡。YaRN 是目前外推效果最好的方法之一，Llama 3、Qwen2 的长上下文版本都用它。</p>
+
+    <div class="callout note">
+      <div class="head">📌 这些方法都需要少量微调</div>
+      <p>纯外推（不做任何训练）效果都有限。实践中，改了 RoPE 的 base 或插值方式后，通常要在长文本上做<strong>少量继续预训练（几十亿 token）</strong>，让模型适应新的角度分布。这就是为什么 GLM-4-Long、Llama-3-128K 都标明「在长文本上微调过」。</p>
+    </div>
+
+    <h2 class="section" id="code-extrap"><span class="idx">08</span> 代码：实现 NTK-aware 频率缩放</h2>
+    <div class="code-title">ntk_rope.py —— NTK-aware 的频率计算</div>
+    <pre><code class="language-python">import torch
+import math
+
+def compute_rope_freqs(dim, max_seq_len, base=10000.0, scale=1.0, method="ntk"):
+    """计算 RoPE 频率，支持原始 / 位置插值 / NTK-aware 三种模式。
+    scale = L_infer / L_train，比如训练 4K 推理 16K 则 scale=4。
+    """
+    if method == "base":
+        # 原始 RoPE
+        freqs = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+    elif method == "pi":
+        # 位置插值：均匀缩放所有频率
+        freqs = 1.0 / (base ** (torch.arange(0, dim, 2).float() / dim))
+        freqs = freqs / scale
+    elif method == "ntk":
+        # NTK-aware：主要压低频，通过调 base 实现
+        base_scaled = base * (scale ** (dim / (dim - 2)))
+        freqs = 1.0 / (base_scaled ** (torch.arange(0, dim, 2).float() / dim))
+
+    t = torch.arange(max_seq_len).float()
+    angles = torch.outer(t, freqs)
+    return torch.polar(torch.ones_like(angles), angles), freqs
+
+# 对比三种方法在 dim=8 时的最低频（决定远距离分辨力）
+for method in ["base", "pi", "ntk"]:
+    _, freqs = compute_rope_freqs(8, 100, scale=4, method=method)
+    print(f"{method:5s}: 最高频={freqs[0]:.4f}, 最低频={freqs[-1]:.6f}")
+# ntk 的最高频几乎不变（近距离保留），最低频明显变小（远距离扩展）
+</code></pre>
+
+    <p>运行后你会看到：原始 RoPE 最高频 1.0、最低频 0.0001；位置插值把两者都除以 4；NTK 则最高频几乎不变、最低频变得更小。这正是「保留近距离、扩展远距离」的体现。</p>
+
+    <h2 class="section" id="why-standard"><span class="idx">09</span> 为什么 RoPE 成了事实标准</h2>
+    <p>回顾 RoPE 的优势，就明白它为什么能统一江湖：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>相对位置，天然贴合语言</h4>
+        <p>注意力分数只依赖 m−n，符合「修饰语离中心词几步」这种语言本质需求。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚙️</span>
+        <h4>工程友好，零额外参数</h4>
+        <p>只改 Q、K 的生成，不动注意力公式，不加参数，实现就几十行。可无缝插入任何注意力。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📈</span>
+        <h4>外推可调，支持长上下文</h4>
+        <p>配合 NTK/YaRN，可以从 4K 扩展到 32K、128K 甚至百万 token，是长上下文时代的基石。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔌</span>
+        <h4>和 KV Cache 完美兼容</h4>
+        <p>每个位置的旋转角度只依赖自己，推理时算一次就固定，存进 KV cache 不用重算。</p>
+      </div>
+    </div>
+
+    <p>这四点合起来，让 RoPE 在 2023 年后迅速取代了正弦余弦编码、可学习 PE、T5 相对偏置等所有前辈。Llama 2 开始全面采用，之后几乎所有开源模型跟进。<strong>2026 年，RoPE 就是位置编码的默认答案</strong>。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ RoPE 不是万能的</div>
+      <p>RoPE 也有局限：①超长外推仍需微调，纯外推性能衰减；②旋转操作在高维时数值精度敏感，低精度量化（如 INT4）可能丢失位置信息；③θ 频率和 base 的选择需要随模型规模调整，没有「一刀切」的最优值。这些是当前长上下文研究的活跃方向。</p>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
+    <p>RoPE 这一章信息量大，核心要点梳理：</p>
+
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">RoPE 的数学核心</div>
+        <ul style="margin:6px 0;">
+          <li>把位置 m 编码成旋转角度 mθ</li>
+          <li>对 Q、K 的每对维度做旋转 R(mθ_i)</li>
+          <li>θ_i = 10000^(−2i/d)，多频率设计</li>
+          <li>点积结果只依赖 m−n（相对位置）</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">外推方案演进</div>
+        <ul style="margin:6px 0;">
+          <li>位置插值 PI：均匀压缩，损近距离</li>
+          <li>NTK-aware：主要压低频，保近距离</li>
+          <li>YaRN：分段插值，效果最佳</li>
+          <li>都需要少量长文本微调</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>位置编码到此告一段落。接下来回到注意力本身——到目前为止我们讲的都是<strong>单头注意力</strong>。但真实模型里，注意力是「多头」的：同一个序列被并行地从好几个不同视角去看。为什么多头比单头强？头数怎么选？多头是怎么高效并行计算的？下一章我们深入<strong>多头注意力（Multi-Head Attention）</strong>。</p>
+
+    <blockquote>
+      下一章：<a href="98-tfm-multihead.html">第 98 章 · 多头注意力：为什么「多看几个角度」更有效</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

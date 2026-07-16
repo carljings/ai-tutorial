@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -177,7 +175,7 @@
       <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
     </div>
     <div class="nav-group"><h3>★Agent源码</h3>
-      <a href="146-agent-opencode-arch.html" class="active" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
+      <a href="146-agent-opencode-arch.html" title="OpenCode 架构：客户端/服务器分离"><span class="num">146</span>OpenCode 架</a>
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
@@ -305,81 +303,134 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 146 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 架构：客户端/服务器分离</h1><p class="lead">sst/opencode 的 client-server 架构。服务端管会话/工具/LLM，客户端是 TUI/GUI。通过协议解耦让一个后端多前端复用。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>sst/opencode 的 client-server 架构。服务端管会话/工具/LLM，客户端是 TUI/GUI。通过协议解耦让一个后端多前端复用。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>sst/opencode 的 client-server 架构。服务端管会话/工具/LLM，客户端是 TUI/GUI。通过协议解耦让一个后端多前端复用。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 31 · Agent 源码深挖系列</span>
+      <h1>OpenCode 整体架构<br>TypeScript + Bun 运行时下的事件驱动 Agent</h1>
+      <p class="lead">OpenCode 是一个用 TypeScript 编写、运行在 Bun 之上的终端 AI 编程助手。它没有选择 Node.js + Express 那套「Web 服务」式架构，而是采用了一种更接近 TUI（终端用户界面）应用的 plugin + event-driven 模型：所有动作（工具调用、消息渲染、权限请求）都被抽象为事件，通过一个中央 bus 派发。本章我们从顶层目录结构出发，把 OpenCode 的进程模型、事件总线和插件扩展点拆解清楚。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-bun"><span class="idx">★</span> 一、为什么选 Bun：一个运行时决定了一个项目的气质</h2>
+    <p>OpenCode 的 package.json 里第一行就是 <code>"type": "module"</code>，运行时不是 node 而是 bun。这不是赶时髦——Bun 为终端 Agent 这类场景提供了几个决定性优势。</p>
+    <p>第一，Bun 原生支持 TypeScript。OpenCode 的整个 codebase 是 .ts 文件，不需要 tsc 预编译、不需要 ts-node、不需要 tsconfig 的各种 hack。开发者改完代码直接 <code>bun run src/index.ts</code> 就能跑，这对快速迭代的 Agent 项目来说，省掉了构建链这个巨大的心智负担。</p>
+    <p>第二，Bun 的启动速度极快。一个冷启动的 Node.js 进程加载完 CommonJS 解析器和内置模块大约要 40-80ms，而 Bun 在 10ms 量级。对于 CLI 工具，用户每次敲命令都要等启动，这几十毫秒的差距积少成多就是体感差异。</p>
+    <p>第三，Bun 内置了 <code>Bun.spawn</code>，对子进程的 stdout/stderr 做了流式优化。Agent 需要频繁调用 shell 命令（执行测试、运行 lint），高效的进程管理是刚需。</p>
+    <pre><code class="language-typescript">// OpenCode 的入口非常简洁，直接用 Bun 的顶层 await
+import { createServer } from "./server";
+import { runTUI } from "./tui";
+
+const server = await createServer(config);
+await runTUI(server);  // 阻塞，进入终端渲染循环</code></pre>
+
+    <h2 class="section" id="directory"><span class="idx">★</span> 二、顶层目录：一个 monorepo 的骨架</h2>
+    <p>OpenCode 采用 monorepo 结构，核心目录划分清晰反映了它的分层哲学：</p>
+    <ul>
+      <li><strong>packages/opencode-core</strong>：核心引擎。定义 Session、Tool、Provider、Message 等核心类型，以及事件总线。不依赖任何 UI 框架，可以被任何前端复用。</li>
+      <li><strong>packages/opencode-tui</strong>：终端 UI。用 Ink（React 的终端渲染器）把 core 暴露的事件渲染成交互界面。这一层只管「显示」，不做业务决策。</li>
+      <li><strong>packages/opencode-server</strong>：HTTP/WebSocket 服务层。允许以 server 模式运行，供外部客户端（如 VS Code 扩展）连接。</li>
+      <li><strong>packages/opencode-cli</strong>：命令行入口，解析参数、初始化 core、启动 tui 或 server。</li>
+    </ul>
+    <p>这种分层的妙处在于：<strong>core 是纯逻辑、纯 async</strong>，它可以被 TUI 调用，也可以被 server 调用，甚至可以被另一个 Agent 调用。OpenCode 的可扩展性就是从这种分层里长出来的。</p>
+
+    <h2 class="section" id="event-bus"><span class="idx">★</span> 三、事件总线：OpenCode 的中枢神经</h2>
+    <p>OpenCode 内部的一切通信都走一个中央 event bus。Tool 被调用了？发一个 <code>tool.call</code> 事件。LLM 返回了一段流式文本？逐 token 发 <code>message.delta</code> 事件。用户需要授权某个操作？发 <code>permission.request</code> 事件，然后等待一个 resolve。</p>
+    <p>这种设计让 TUI 层变得极其轻量——它只需要订阅感兴趣的事件，然后把数据渲染到终端。业务逻辑完全下沉到 core。我们来看一个简化版的事件总线实现：</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/bus.ts（简化）
+type EventHandler<T = any> = (payload: T) => void | Promise<void>;
+
+class EventBus {
+  private handlers = new Map<string, Set<EventHandler>>();
+
+  on<T>(event: string, handler: EventHandler<T>): () => void {
+    if (!this.handlers.has(event)) {
+      this.handlers.set(event, new Set());
     }
-]
+    this.handlers.get(event)!.add(handler);
+    // 返回取消订阅函数
+    return () => this.handlers.get(event)?.delete(handler);
+  }
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+  emit<T>(event: string, payload: T): void {
+    const set = this.handlers.get(event);
+    if (!set) return;
+    for (const handler of set) {
+      handler(payload);  // 异步 handler 不 await，fire-and-forget
+    }
+  }
+}
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+export const bus = new EventBus();</code></pre>
+    <p>注意一个细节：真实代码里，OpenCode 还实现了 <code>emitAndWait</code> 变体，用于权限请求这种需要同步等待结果的场景。它本质上把 emit 改成返回 Promise，handler 通过调用一个传进来的 <code>resolve</code> 回调来回复。这就是 OpenCode 如何在「事件驱动」和「同步交互」之间找到平衡的。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 架构：客户端/服务器分离"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="145-vec-prod-ops.html"><div class="lbl">← 上一章</div><div class="ttl">145 · 向量库运维：重建、调优、成本</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="147-agent-opencode-loop.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">147 · OpenCode 的 Agent Loop 实现</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 146 章 · OpenCode 架构：客户端/服务器分离</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="session-lifecycle"><span class="idx">★</span> 四、Session：Agent 运行的基本单元</h2>
+    <p>OpenCode 里，一次完整的「对话 + 工具调用」被封装为一个 Session 对象。Session 持有：消息历史、当前上下文窗口、已加载的 MCP server、工具权限状态、以及关联的工作目录。理解 Session 的生命周期，就理解了 OpenCode 的运行主循环。</p>
+    <pre><code class="language-typescript">// Session 的核心字段（简化）
+interface Session {
+  id: string;                    // UUID，用于持久化和恢复
+  messages: Message[];           // 完整对话历史
+  cwd: string;                   // 工作目录，工具调用的根
+  mcpServers: MCPServer[];       // 已加载的 MCP server
+  permission: PermissionState;   // 工具权限状态机
+  abortController?: AbortController;  // 用于中断当前 LLM 调用
+  model: ModelConfig;            // 当前使用的模型配置
+}</code></pre>
+    <p>Session 的创建是幂等的——如果你传一个已存在的 session id，它会从 JSONL 日志里恢复历史消息（这一点我们在第 152 章会详细讲）。这种设计让 OpenCode 天然支持「断点续聊」。</p>
+
+    <h2 class="section" id="plugin-system"><span class="idx">★</span> 五、插件系统：用钩子而非继承来扩展</h2>
+    <p>OpenCode 没有用传统的 OOP 继承来组织功能扩展（没有 <code>class MyTool extends BaseTool</code> 这套）。它用的是 <strong>hook + 注册</strong> 模式：插件是一个普通函数，接收 core 的 API，然后往里面塞自己的工具、订阅事件、或者修改 system prompt。</p>
+    <pre><code class="language-typescript">// 一个插件的最简形态
+import { definePlugin } from "opencode-core";
+
+export default definePlugin({
+  name: "my-plugin",
+  setup(api) {
+    // 注册一个自定义工具
+    api.tool.register({
+      name: "get_weather",
+      description: "查询天气",
+      schema: { city: { type: "string" } },
+      execute: async (args) => {
+        const r = await fetch(`https://wttr.in/${args.city}?format=3`);
+        return { content: [{ type: "text", text: await r.text() }] };
+      },
+    });
+
+    // 订阅事件：每次工具调用前打印日志
+    api.bus.on("tool.call", (evt) => {
+      console.error(`[my-plugin] 工具被调用: ${evt.tool}`);
+    });
+  },
+});</code></pre>
+    <p>这种模式的好处是 <strong>松耦合</strong>：插件不需要知道 core 内部怎么实现 session 循环、怎么发请求给 LLM，它只需要声明自己能做什么、关心什么事件。OpenCode 自己的 built-in 工具（read_file、write_file 等）本质上也是用同一套 API 注册的，只不过是注册在 core 内部而非外部插件文件里。</p>
+
+    <h2 class="section" id="render-loop"><span class="idx">★</span> 六、TUI 渲染循环：Ink + 流式更新</h2>
+    <p>OpenCode 的终端界面用 Ink 构建。Ink 是一个让你用 React 组件写终端 UI 的库——你写 JSX，它把虚拟 DOM diff 应用到终端字符上。这意味着 OpenCode 的 UI 状态更新方式和 Web 应用一模一样：改 state，界面自动重渲染。</p>
+    <p>当 LLM 流式返回 token 时，core 发出 <code>message.delta</code> 事件，TUI 层的消息组件收到后更新自己的 state，Ink 自动把新增的字符渲染到终端。用户看到的「打字机效果」就是这么来的，不需要手动控制光标和清屏。</p>
+    <p>这里有一个工程难点：终端不像浏览器，它的刷新有闪烁问题。Ink 通过只重绘变化的行来最小化重绘范围。但在高速流式输出下（比如 LLM 每秒吐 50 个 token），仍然要小心节流——OpenCode 在消息组件里用了 requestAnimationFrame 式的批量更新策略，避免每个 token 都触发一次完整 diff。</p>
+
+    <h2 class="section" id="process-model"><span class="idx">★</span> 七、进程模型：主进程 + MCP 子进程</h2>
+    <p>OpenCode 运行时至少有两类进程：<strong>主进程</strong>（跑 TUI + core + LLM 调用）和 <strong>MCP server 子进程</strong>（每个 stdio 传输的 MCP server 是一个独立的子进程，通过 stdin/stdout 通信）。</p>
+    <p>这种分离有两个好处：一是 MCP server 崩溃不会拖垮主进程；二是不同语言实现的 MCP server（Python 的、Go 的）可以共存。主进程通过 <code>Bun.spawn</code> 拉起子进程，用 JSON-RPC over stdio 跟它通信。</p>
+    <p>如果以 server 模式运行，还会多一个 WebSocket 监听进程。外部客户端连上之后，通过 WS 收发事件——本质上就是把 bus 的 emit/on 代理到了网络通道上。这就是为什么 OpenCode 能被 IDE 扩展复用：它的事件协议天然支持远程化。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们从全局视角理解了 OpenCode 的架构骨架。核心要点回顾：</p>
+    <ul>
+      <li><strong>Bun 运行时</strong>：原生 TypeScript、极快冷启动、内置子进程管理，是 OpenCode 选择它的三大理由。</li>
+      <li><strong>monorepo 分层</strong>：core（纯逻辑）/ tui（Ink 渲染）/ server（远程化）/ cli（入口）四层分离，让核心引擎可以被多端复用。</li>
+      <li><strong>事件总线</strong>：所有模块通过 bus 通信，emit 是 fire-and-forget，emitAndWait 用于权限等同步场景。TUI 层只订阅事件不做决策。</li>
+      <li><strong>Session 抽象</strong>：一次对话 = 一个 Session，持有消息、权限、工作目录、MCP server，支持从 JSONL 恢复。</li>
+      <li><strong>插件 = hook + 注册</strong>：不用继承，用 <code>definePlugin</code> 声明工具和事件订阅，松耦合扩展。</li>
+      <li><strong>进程隔离</strong>：主进程 + MCP 子进程分离，崩溃隔离、语言无关。</li>
+    </ul>
+    <p>理解了这套架构，接下来几章我们就可以深入每个子系统：工具系统怎么定义（148 章）、权限怎么管控（149 章）、上下文怎么压缩（150 章）、MCP 怎么集成（151 章）、会话怎么持久化（152 章）。OpenCode 的优雅，就藏在这些细节里。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

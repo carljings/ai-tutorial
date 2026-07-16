@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 编程实战第三辑 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 编程实战第三辑 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -89,7 +96,7 @@
       <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
-      <a href="75-coding-cases-3.html" class="active" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
+      <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
       <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
@@ -295,13 +302,407 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 编程实战第三辑</h1><p class="lead">前沿场景——AI for Science/量子/WebAssembly</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI编程的前沿场景</h2>
-    <p>AI编程不只用于传统Web/App开发——它在科学计算、量子计算、WebAssembly、智能合约、GPU内核等前沿领域也展现了威力。本章讲这些"非常规"场景。</p>
-    <table class="data-table"><thead><tr><th>前沿场景</th><th>AI做什么</th><th>挑战</th></tr></thead><tbody><tr><td>AI for Science</td><td>辅助科学计算/数据分析</td><td>领域知识深</td></tr><tr><td>量子计算</td><td>生成量子电路/优化算法</td><td>完全不同的编程范式</td></tr><tr><td>WebAssembly</td><td>生成高性能WASM模块</td><td>内存管理/性能调优</td></tr><tr><td>智能合约</td><td>Solidity/Rust合约生成</td><td>安全要求极高</td></tr><tr><td>GPU内核</td><td>生成CUDA/Triton内核</td><td>并行编程复杂</td></tr><tr><td>形式化验证</td><td>生成Coq/Lean证明</td><td>数学逻辑要求高</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI编程前沿场景：AI4Science（科学计算）、量子计算、WebAssembly、智能合约、GPU内核、形式化验证。这些领域共同特点：专业门槛高、AI能辅助但需专家审查。AI在这些领域的价值是"降低门槛+加速迭代"，而非"替代专家"。</p>
-    <div class="chapter-nav">
-      <a href="74-design-patterns.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 75 章 · AI 编程实战第三辑</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 75 · 实战案例系列</span>
+      <h1>编程实战第三辑<br>Docker 容器化、CI/CD 流水线与测试自动化</h1>
+      <p class="lead">AI 应用要走向生产，光有模型远远不够——你还得会容器化部署、搭 CI/CD 流水线、做测试自动化。这三项是现代软件工程的基建。这一章通过三个完整的端到端案例，把一个 AI 应用从「本地能跑」带到「自动测试、自动构建、自动部署」的生产级状态。每个案例都有完整代码，可以直接抄走改造。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="case-overview"><span class="idx">★</span> 一、三个案例的整体脉络</h2>
+    <p>我们把一个 AI 问答服务作为贯穿全章的示例项目，逐步给它加上 Docker 容器化、CI/CD 自动化、测试自动化三层基建。这三个案例是递进的：容器化是部署的基础，CI/CD 是交付的基础，测试自动化是质量的基础。三者结合，就是现代 AI 应用的工程标配。</p>
+
+    <h2 class="section" id="docker"><span class="idx">★</span> 二、案例一：用 Docker 容器化 AI 应用</h2>
+    <p>为什么必须容器化？因为「在我机器上能跑」是工程最大的谎言。AI 应用依赖复杂（PyTorch、CUDA 版本、各种库），不同环境极易出问题。Docker 把应用和所有依赖打包成一个镜像，保证「一次构建，处处运行」。</p>
+
+    <h3 class="section">2.1 编写 Dockerfile</h3>
+    <pre><code class="language-dockerfile"># AI 应用的 Dockerfile（生产级）
+# 用多阶段构建减小镜像体积
+
+# 阶段 1：依赖安装
+FROM python:3.11-slim as builder
+
+WORKDIR /app
+
+# 先只复制依赖文件（利用 Docker 缓存层）
+COPY requirements.txt .
+# 安装依赖到虚拟环境
+RUN python -m venv /opt/venv && \
+    /opt/venv/bin/pip install --no-cache-dir -r requirements.txt
+
+# 阶段 2：运行时镜像（更小）
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# 从 builder 复制虚拟环境
+COPY --from=builder /opt/venv /opt/venv
+ENV PATH="/opt/venv/bin:$PATH"
+
+# 复制应用代码
+COPY . .
+
+# 安装系统依赖（如果需要）
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    curl && \
+    rm -rf /var/lib/apt/lists/*
+
+# 健康检查
+HEALTHCHECK --interval=30s --timeout=3s --retries=3 \
+    CMD curl -f http://localhost:8000/health || exit 1
+
+# 暴露端口
+EXPOSE 8000
+
+# 用非 root 用户运行（安全最佳实践）
+RUN useradd -m appuser
+USER appuser
+
+# 启动命令
+CMD ["gunicorn", "--bind", "0.0.0.0:8000", "--workers", "4", "app:app"]</code></pre>
+
+    <h3 class="section">2.2 requirements.txt 的管理</h3>
+    <pre><code class="language-text"># requirements.txt（AI 应用示例）
+# 核心框架
+fastapi==0.111.0
+uvicorn[standard]==0.30.0
+gunicorn==22.0.0
+
+# AI 相关
+torch==2.3.0
+transformers==4.41.0
+vllm==0.5.0
+sentence-transformers==3.0.0
+
+# 向量数据库
+qdrant-client==1.9.0
+
+# 工具库
+pydantic==2.7.0
+python-dotenv==1.0.0
+structlog==24.1.0
+tenacity==8.3.0   # 重试机制</code></pre>
+
+    <h3 class="section">2.3 docker-compose 编排多服务</h2>
+    <pre><code class="language-yaml"># docker-compose.yml：编排 AI 应用 + 向量库 + 监控
+version: "3.9"
+
+services:
+  # AI 应用服务
+  ai-app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - MODEL_PATH=/models/llama-3-8b
+      - QDRANT_URL=http://qdrant:6333
+      - LOG_LEVEL=info
+    volumes:
+      - ./models:/models:ro    # 挂载模型文件（只读）
+    depends_on:
+      qdrant:
+        condition: service_healthy
+    restart: unless-stopped
+    deploy:
+      resources:
+        limits:
+          memory: 16G
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  # 向量数据库
+  qdrant:
+    image: qdrant/qdrant:latest
+    ports:
+      - "6333:6333"
+    volumes:
+      - qdrant_data:/qdrant/storage
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:6333/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Prometheus 监控
+  prometheus:
+    image: prom/prometheus:latest
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus.yml:/etc/prometheus/prometheus.yml:ro
+
+volumes:
+  qdrant_data:</code></pre>
+    <p>这个 compose 文件把 AI 应用、向量库、监控三个服务编排在一起。关键细节：<code>depends_on + condition</code> 保证向量库健康后才启动应用；<code>volumes</code> 挂载模型文件避免每次构建都下载；GPU 配置让容器能用上显卡。一条 <code>docker-compose up</code> 就把整个系统跑起来。</p>
+
+    <h2 class="section" id="cicd"><span class="idx">★</span> 三、案例二：CI/CD 流水线</h2>
+    <p>CI/CD（持续集成/持续部署）让代码从提交到上线全自动：每次 push 自动跑测试、构建镜像、部署到生产。这是工程效率的核心。</p>
+
+    <h3 class="section">3.1 GitHub Actions 配置</h3>
+    <pre><code class="language-yaml"># .github/workflows/ci-cd.yml
+name: CI/CD Pipeline
+
+on:
+  push:
+    branches: [main, develop]
+  pull_request:
+    branches: [main]
+
+jobs:
+  # Job 1：测试（每次 PR 和 push 都跑）
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: "pip"
+
+      - name: Install dependencies
+        run: |
+          pip install -r requirements.txt
+          pip install pytest pytest-cov ruff mypy
+
+      - name: Lint（代码风格检查）
+        run: ruff check .
+
+      - name: Type check（类型检查）
+        run: mypy app/ --ignore-missing-imports
+
+      - name: Run tests（单元测试）
+        run: pytest tests/ --cov=app --cov-report=xml --cov-fail-under=80
+
+      - name: Upload coverage
+        uses: codecov/codecov-action@v4
+        if: github.ref == 'refs/heads/main'
+
+  # Job 2：构建并推送镜像（只在 main 分支）
+  build:
+    needs: test     # 测试通过才构建
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Login to registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build and push
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          push: true
+          tags: |
+            ghcr.io/${{ github.repository }}:${{ github.sha }}
+            ghcr.io/${{ github.repository }}:latest
+          cache-from: type=registry,ref=ghcr.io/${{ github.repository }}:latest
+          cache-to: type=inline
+
+  # Job 3：部署（构建成功后自动部署）
+  deploy:
+    needs: build
+    if: github.ref == 'refs/heads/main'
+    runs-on: ubuntu-latest
+    environment: production    # 需要人工审批（可选）
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.0.0
+        with:
+          host: ${{ secrets.DEPLOY_HOST }}
+          username: ${{ secrets.DEPLOY_USER }}
+          key: ${{ secrets.DEPLOY_KEY }}
+          script: |
+            cd /opt/ai-app
+            docker compose pull
+            docker compose up -d --remove-orphans
+            # 等待健康检查通过
+            sleep 30
+            curl -f http://localhost:8000/health || exit 1</code></pre>
+
+    <p>这条流水线实现了：PR 时自动跑 lint + 类型检查 + 单元测试；合并到 main 后自动构建镜像并推送到镜像仓库；部署到生产服务器并做健康检查。整个过程从代码提交到上线，无需人工干预。</p>
+
+    <h3 class="section">3.2 CI/CD 的关键原则</h3>
+    <pre><code class="language-python"># CI/CD 设计的关键原则
+principles = {
+    "快速反馈": "CI 应该在 5-10 分钟内完成，开发者才会频繁提交",
+    "失败即停": "任一步骤失败就停止，不要带着错误继续部署",
+    "缓存优化": "依赖缓存、Docker 层缓存，避免重复构建",
+    "环境隔离": "测试/预发布/生产环境严格隔离",
+    "可回滚": "每次部署都保留前一个版本，出问题能秒回滚",
+    "人工门禁": "生产部署前可以加人工审批环节（environment: production）",
+}</code></pre>
+
+    <h2 class="section" id="testing"><span class="idx">★</span> 四、案例三：测试自动化体系</h2>
+    <p>测试是质量的保障。AI 应用的测试比传统应用更复杂——除了常规的单元测试，还要测 prompt 质量、模型输出、边界情况。</p>
+
+    <h3 class="section">4.1 分层测试策略</h3>
+    <pre><code class="language-python"># AI 应用的分层测试体系
+test_layers = {
+    "第 1 层：单元测试": {
+        "目标": "测试单个函数/类的正确性",
+        "工具": "pytest",
+        "覆盖率": "应 > 80%",
+        "示例": "测试文本切分函数、embedding 缓存逻辑",
+    },
+    "第 2 层：集成测试": {
+        "目标": "测试模块间的交互",
+        "工具": "pytest + testcontainers",
+        "示例": "测试 RAG 检索 + LLM 生成的完整链路",
+    },
+    "第 3 层：Prompt 测试": {
+        "目标": "测试 prompt 模板的稳定性和质量",
+        "工具": "自定义评估框架",
+        "示例": "100 个标准问题，检测输出格式正确率",
+    },
+    "第 4 层：端到端测试": {
+        "目标": "测试用户视角的完整功能",
+        "工具": "Playwright / 自定义",
+        "示例": "模拟用户对话，验证端到端体验",
+    },
+    "第 5 层：安全测试": {
+        "目标": "对抗性测试（参考第 69 章）",
+        "示例": "prompt injection、越狱、数据泄露",
+    },
+}</code></pre>
+
+    <h3 class="section">4.2 AI 特有的 Prompt 测试</h3>
+    <pre><code class="language-python"># Prompt 质量测试框架
+import pytest
+
+class TestPromptQuality:
+    """测试 prompt 模板的输出质量和稳定性。"""
+
+    @pytest.fixture
+    def test_cases(self):
+        # 100 个标准测试问题 + 期望的输出特征
+        return load_test_dataset("data/eval_questions.json")
+
+    def test_output_format(self, test_cases):
+        """测试输出是否符合预期格式。"""
+        for case in test_cases:
+            response = llm_app.generate(case["question"])
+            # 检查输出是否是合法 JSON（如果期望 JSON）
+            if case["expected_format"] == "json":
+                assert is_valid_json(response), \
+                    f"输出不是合法 JSON：{response}"
+
+    def test_response_relevance(self, test_cases):
+        """测试回答是否切题（用余弦相似度评估）。"""
+        for case in test_cases:
+            response = llm_app.generate(case["question"])
+            relevance = compute_similarity(
+                response, case["reference_answer"]
+            )
+            assert relevance > 0.7, \
+                f"回答切题度过低：{relevance:.2f}"
+
+    def test_no_hallucination(self, test_cases):
+        """测试是否产生幻觉（编造事实）。"""
+        for case in test_cases:
+            response = llm_app.generate(case["question"])
+            # 检查关键事实是否在知识库里
+            facts = extract_facts(response)
+            for fact in facts:
+                assert fact_in_knowledge_base(fact), \
+                    f"可能的幻觉：{fact} 不在知识库中"
+
+    @pytest.mark.parametrize("harmful_input", load_harmful_inputs())
+    def test_safety_filter(self, harmful_input):
+        """测试安全过滤是否生效。"""
+        response = llm_app.generate(harmful_input)
+        assert is_safe(response), \
+            f"安全过滤失效，输出了有害内容"</code></pre>
+
+    <h3 class="section">4.3 用 GitHub Actions 跑测试</h3>
+    <pre><code class="language-yaml"># 测试自动化的 CI 配置
+name: Tests
+on: [push, pull_request]
+
+jobs:
+  unit-test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with: {python-version: "3.11"}
+      - run: pip install -e ".[test]"
+      - run: pytest tests/unit/ -v --cov
+
+  integration-test:
+    runs-on: ubuntu-latest
+    services:
+      # 启动测试用的向量库
+      qdrant:
+        image: qdrant/qdrant:latest
+        ports: ["6333:6333"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+      - run: pip install -e ".[test]"
+      - run: pytest tests/integration/ -v
+        env:
+          QDRANT_URL: http://localhost:6333
+
+  prompt-eval:
+    # Prompt 质量评估（只跑重要变更）
+    if: contains(github.event.head_commit.message, '[eval]')
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - run: python -m tests.prompt_eval --dataset eval_set.json</code></pre>
+
+    <h2 class="section" id="integration"><span class="idx">★</span> 五、三者的协同效应</h2>
+    <p>Docker、CI/CD、测试自动化三者结合，形成了现代 AI 应用的工程闭环：</p>
+    <pre><code class="language-text">完整工作流：
+
+1. 开发者写代码 + 写测试
+2. git push 提交
+3. CI 自动触发：
+   a. 跑单元测试 + 集成测试 + prompt 评估
+   b. 代码风格和类型检查
+   c. 测试通过 → 构建 Docker 镜像
+   d. 推送镜像到仓库
+4. CD 自动触发：
+   a. 拉取新镜像
+   b. 滚动更新（零停机）
+   c. 健康检查
+   d. 失败自动回滚
+5. 监控告警持续运行
+
+这个闭环的价值：
+- 代码从提交到上线：30 分钟内
+- 人为操作错误：趋近于零
+- 出问题：5 分钟内发现 + 回滚
+- 开发者精力：聚焦在写代码，不是部署</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们用三个案例搭建了 AI 应用的工程基建。核心要点：</p>
+    <ul>
+      <li><strong>Docker 容器化</strong>：多阶段构建减小镜像体积，docker-compose 编排多服务，非 root 用户运行保安全。</li>
+      <li><strong>CI/CD 流水线</strong>：PR 跑测试 → main 构建镜像 → 自动部署 + 健康检查。快速反馈、失败即停、可回滚是核心原则。</li>
+      <li><strong>测试自动化</strong>：五层测试体系（单元/集成/prompt/端到端/安全），AI 特有的 prompt 质量测试是关键。</li>
+      <li><strong>三者协同</strong>：测试保障质量、Docker 保障一致、CI/CD 保障效率，形成从代码到上线的全自动闭环。</li>
+    </ul>
+    <p>这三项技能是把 AI 应用做到「生产级」的门槛。下一章我们深入行业，看智能客服、文档审阅、代码助手的端到端方案。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

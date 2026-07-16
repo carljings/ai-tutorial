@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -182,7 +180,7 @@
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
       <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
-      <a href="151-agent-opencode-mcp.html" class="active" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
+      <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
@@ -305,81 +303,204 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 151 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 与 MCP 协议</h1><p class="lead">接入 MCP server 扩展工具能力。stdio/SSE 传输、工具发现、能力协商。一个 MCP server 可被多个 agent 复用。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>接入 MCP server 扩展工具能力。stdio/SSE 传输、工具发现、能力协商。一个 MCP server 可被多个 agent 复用。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>接入 MCP server 扩展工具能力。stdio/SSE 传输、工具发现、能力协商。一个 MCP server 可被多个 agent 复用。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 36 · Agent 源码深挖系列</span>
+      <h1>OpenCode 的 MCP 集成<br>stdio / SSE 传输与三类能力接入</h1>
+      <p class="lead">MCP（Model Context Protocol）是 Anthropic 在 2024 年底提出的开放协议，目标是让 Agent 以统一方式接入外部能力——数据库、浏览器、Slack、GitHub……OpenCode 是最早一批深度集成 MCP 的开源 Agent。本章我们拆解 OpenCode 是如何管理 MCP server 配置、如何处理 stdio 与 SSE 两种传输、又是如何把 MCP 的 tool / resource / prompt 三类能力映射进自己的 Agent 循环的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 21 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="what-is-mcp"><span class="idx">★</span> 一、MCP 到底解决了什么问题</h2>
+    <p>在 MCP 出现之前，每个 Agent 想接入一个外部能力（比如查 GitHub issue），都得自己写一个专用工具——硬编码 API 调用、自己处理鉴权、自己定义参数 schema。这导致 Agent 的工具系统是封闭的：换一个 Agent，所有集成都要重写。</p>
+    <p>MCP 把这件事标准化了。它定义了一套基于 JSON-RPC 的协议，规定了三件事：<strong>如何发现能力</strong>（tools/list、resources/list）、<strong>如何描述能力</strong>（JSON Schema）、<strong>如何调用能力</strong>（tools/call）。任何一个符合 MCP 协议的 server，都能被任何支持 MCP 的 client（Agent）直接使用。OpenCode 就是这样一个 client。</p>
+    <p>用一个比喻：MCP 之于 Agent，就像 USB 之于电脑。你不需要为每个外设定制接口，只要它是 USB 设备，插上就能用。OpenCode 通过集成 MCP，一夜之间获得了上百个现成的能力接入。</p>
+
+    <h2 class="section" id="config"><span class="idx">★</span> 二、MCP server 配置：声明即接入</h2>
+    <p>OpenCode 接入一个 MCP server 非常简单——在配置文件里声明它，剩下的（拉起进程、握手、发现能力）由框架自动完成。配置长这样：</p>
+    <pre><code class="language-json">{
+  "mcp": {
+    "filesystem": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-filesystem", "/Users/me/project"],
+      "env": {}
     },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+    "github": {
+      "type": "stdio",
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": { "GITHUB_TOKEN": "ghp_xxx" }
+    },
+    "internal-wiki": {
+      "type": "sse",
+      "url": "https://wiki.internal.corp/mcp/sse",
+      "headers": { "Authorization": "Bearer xxx" }
     }
-]
+  }
+}</code></pre>
+    <p>每个 MCP server 用一个 key（如 "filesystem"）作为标识，OpenCode 内部用它给工具加前缀（<code>mcp__filesystem__read_file</code>），避免和内置工具或其他 MCP server 的同名工具冲突。配置项里 <code>type</code> 决定传输方式，<code>env</code> 用于把环境变量传给子进程（比如 GitHub token），<code>headers</code> 用于 SSE 的鉴权。</p>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="transports"><span class="idx">★</span> 三、stdio vs SSE：两种传输的本质差异</h2>
+    <p>MCP 目前定义了两种传输：stdio 和 SSE（实际上 2025 年后的规范也引入了 streamable HTTP，但核心思想类似）。OpenCode 两者都支持，但它们的运行模型截然不同。</p>
+    <p><strong>stdio 传输</strong>：MCP server 是一个由 OpenCode 拉起的本地子进程，通过 stdin/stdout 用换行分隔的 JSON-RPC 消息通信。优点是本地速度快、可以用任何语言实现、不需要网络配置；缺点是每个 server 是一个独立进程，占用系统资源，且只能在本地使用。</p>
+    <p><strong>SSE 传输</strong>：MCP server 是一个远程 HTTP 服务，OpenCode 通过 Server-Sent Events 长连接接收消息，通过 HTTP POST 发送请求。优点是 server 可以集中部署、多客户端共享、支持远程能力；缺点是网络延迟、需要处理鉴权和断线重连。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/mcp/transport.ts（简化）
+export interface MCPTransport {
+  start(): Promise&lt;void&gt;;
+  send(message: JSONRPCMessage): Promise&lt;void&gt;;
+  onMessage(handler: (msg: JSONRPCMessage) =&gt; void): void;
+  close(): Promise&lt;void&gt;;
+}
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+// stdio 传输实现
+export class StdioTransport implements MCPTransport {
+  private proc: Bun.Subprocess;
+  constructor(private config: StdioConfig) {}
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 与 MCP 协议"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="150-agent-opencode-context.html"><div class="lbl">← 上一章</div><div class="ttl">150 · OpenCode 上下文收集</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="152-agent-opencode-session.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">152 · OpenCode 会话持久化</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 151 章 · OpenCode 与 MCP 协议</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+  async start() {
+    this.proc = Bun.spawn({
+      cmd: [this.config.command, ...this.config.args],
+      env: { ...process.env, ...this.config.env },
+      stdout: "pipe",
+      stderr: "pipe",
+      stdin: "pipe",
+    });
+    // 逐行读取 stdout，每行是一条 JSON-RPC 消息
+    const reader = this.proc.stdout.getReader();
+    this.pumpLines(reader);
+  }
+
+  async send(message: JSONRPCMessage) {
+    // 写一行 JSON 到 stdin
+    const writer = this.proc.stdin.getWriter();
+    await writer.write(new TextEncoder().encode(JSON.stringify(message) + "\n"));
+  }
+  // ...
+}
+
+// SSE 传输实现（简化）
+export class SSETransport implements MCPTransport {
+  private es: EventSource;
+  async start() {
+    this.es = new EventSource(this.config.url, { headers: this.config.headers });
+    this.es.addEventListener("message", (e) =&gt; {
+      this.handler?.(JSON.parse(e.data));
+    });
+    // 注意：EventSource 不支持自定义 header，生产实现会用 fetch + ReadableStream
+  }
+  async send(message: JSONRPCMessage) {
+    await fetch(this.config.url, {
+      method: "POST",
+      headers: { "Content-Type": "application/json", ...this.config.headers },
+      body: JSON.stringify(message),
+    });
+  }
+}</code></pre>
+    <p>这里有个工程细节值得注意：<strong>stdio 的消息边界靠换行符，而不是靠长度头</strong>。这意味着 MCP server 实现必须保证每条 JSON-RPC 消息是单行的（不能有内嵌裸换行），否则 client 会解析失败。OpenCode 在读取时按 <code>\n</code> 切分，对每段做 JSON.parse，失败了就把这段当错误日志处理。</p>
+
+    <h2 class="section" id="handshake"><span class="idx">★</span> 四、握手与能力发现</h2>
+    <p>MCP server 启动后，OpenCode 要先做一次握手——双方交换协议版本和支持的能力集合，然后才能开始调用。握手用的是 JSON-RPC 的 <code>initialize</code> 方法。</p>
+    <pre><code class="language-typescript">// 握手流程（简化）
+async function handshake(transport: MCPTransport, serverName: string): Promise&lt;MCPCapabilities&gt; {
+  // 1. 发送 initialize 请求
+  const initResp = await transport.request("initialize", {
+    protocolVersion: "2024-11-05",
+    capabilities: {
+      roots: { listChanged: true },      // client 支持提供 roots（工作目录）
+      sampling: {},                       // client 支持 LLM sampling 代理
+    },
+    clientInfo: { name: "opencode", version: "1.0.0" },
+  });
+
+  // 2. 检查协议版本兼容性
+  if (!isVersionCompatible(initResp.protocolVersion)) {
+    throw new Error(`MCP server ${serverName} 协议版本不兼容`);
+  }
+
+  // 3. 发送 initialized 通知（无响应）
+  transport.notify("notifications/initialized", {});
+
+  // 4. 发现能力
+  const [tools, resources, prompts] = await Promise.all([
+    transport.request("tools/list", {}).catch(() =&gt; { tools: [] }),
+    transport.request("resources/list", {}).catch(() =&gt; { resources: [] }),
+    transport.request("prompts/list", {}).catch(() =&gt; { prompts: [] }),
+  ]);
+
+  return { tools: tools.tools, resources: resources.resources, prompts: prompts.prompts };
+}</code></pre>
+    <p>注意第 4 步用 <code>Promise.all</code> 并发请求三种能力列表——这比串行快得多。同时每个请求都 <code>catch</code> 成空数组，因为不是所有 server 都支持全部三类能力（有的 server 只提供 tools，没有 resources）。这种防御式编程让 OpenCode 能兼容各种各样的 MCP server 实现。</p>
+
+    <h2 class="section" id="three-capabilities"><span class="idx">★</span> 五、tool / resource / prompt：三类能力的差异</h2>
+    <p>MCP 定义了三类能力，OpenCode 对它们的处理方式不同：</p>
+    <ul>
+      <li><strong>tools</strong>：可执行的函数，LLM 主动调用。这是最常用的一类，比如 <code>github_create_issue</code>、<code>slack_post_message</code>。OpenCode 把它们和内置工具一起拼进 tools 列表发给 LLM。</li>
+      <li><strong>resources</strong>：可读取的数据源，类似于「文件」。比如一个 MCP server 可能暴露 <code>db://users</code> 这样的 resource，表示用户表数据。OpenCode 把 resources 暴露为 <code>@resource</code> 引用，用户可以在对话里用 <code>@db://users</code> 来手动注入某条 resource 的内容。</li>
+      <li><strong>prompts</strong>：预定义的提示词模板。比如一个「代码审查」prompt 模板，接受一个 PR URL 参数，展开成一段完整的审查指令。OpenCode 把 prompts 作为斜杠命令暴露给用户。</li>
+    </ul>
+    <p>这三类的本质区别在于 <strong>触发主体</strong>：tools 是 LLM 触发（它自己决定调用），resources 和 prompts 是用户触发（用户主动引用或选择）。这种区分让协议既支持 Agent 的自主性，又保留了用户对流程的控制。</p>
+
+    <h2 class="section" id="tool-call-flow"><span class="idx">★</span> 六、一次 MCP 工具调用的完整流程</h2>
+    <p>当 LLM 决定调用一个 MCP 工具（比如 <code>mcp__github__create_issue</code>）时，OpenCode 内部要经过几步路由才能到达真正的 server。我们梳理这条链路：</p>
+    <pre><code class="language-typescript">// 工具调用路由（简化）
+async function dispatchToolCall(
+  toolName: string,
+  params: any,
+  session: Session
+): Promise&lt;ToolResult&gt; {
+  // 1. 判断是内置工具还是 MCP 工具
+  if (toolName.startsWith("mcp__")) {
+    // 解析前缀：mcp__github__create_issue -&gt; server="github", method="create_issue"
+    const [, serverName, toolMethod] = toolName.split("__");
+    const server = session.mcpServers.find(s =&gt; s.name === serverName);
+    if (!server) {
+      return { content: [{ type: "text", text: `MCP server ${serverName} 未加载` }], isError: true };
+    }
+
+    // 2. 通过 transport 发起 tools/call 请求
+    try {
+      const resp = await server.transport.request("tools/call", {
+        name: toolMethod,
+        arguments: params,
+      });
+      // 3. MCP 返回的 content 格式和 OpenCode 内部的 ToolResult 兼容
+      return { content: resp.content, isError: resp.isError };
+    } catch (err) {
+      // 4. server 崩溃或超时
+      return { content: [{ type: "text", text: `MCP 调用失败: ${err.message}` }], isError: true };
+    }
+  }
+
+  // 内置工具走另一条路径
+  const builtinTool = builtinTools[toolName];
+  return builtinTool.execute(params, makeContext(session));
+}</code></pre>
+    <p>这段代码的精妙之处在于 <strong>MCP 返回的 content 格式和 OpenCode 内部的 ToolResult 几乎一致</strong>——都是 <code>{ type: "text"|"image", ... }</code> 的数组。这不是巧合，而是因为 OpenCode 在设计 ToolResult 时就参考了 MCP 规范。这种「格式对齐」让 MCP 工具能无缝接入 Agent 循环，不需要任何格式转换层。</p>
+
+    <h2 class="section" id="lifecycle"><span class="idx">★</span> 七、MCP server 的生命周期与崩溃恢复</h2>
+    <p>stdio 类型的 MCP server 是子进程，会崩溃；SSE 类型的网络连接，会断开。OpenCode 必须处理这些故障。它的策略是：<strong>懒加载 + 自动重启 + 失败降级</strong>。</p>
+    <p>懒加载是指 MCP server 不是 OpenCode 启动时就全部拉起，而是在第一次被需要时才 spawn——这减少了启动开销。自动重启是指当一次 tools/call 失败且检测到 transport 断开时，OpenCode 会重新 spawn 进程、重新握手，然后重试一次调用。失败降级是指如果重启后仍然失败，就把这个 server 标记为 unavailable，后续调用直接返回错误，不再无限重试。</p>
+    <p>这种「重启 + 重试 + 降级」的三段式策略，是处理外部依赖故障的通用模式。我们在第 175 章讲错误恢复时会再次看到这个模式。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>MCP 让 OpenCode 从一个「自带几个工具的 Agent」变成了「能接入无限外部能力的平台」。要点回顾：</p>
+    <ul>
+      <li><strong>MCP = 能力的 USB</strong>：基于 JSON-RPC 的开放协议，标准化了能力发现、描述、调用，任何 server 可被任何 client 复用。</li>
+      <li><strong>声明式配置</strong>：在配置文件里写一行，OpenCode 自动拉起进程、握手、发现能力。</li>
+      <li><strong>两种传输</strong>：stdio 适合本地子进程（快、语言无关），SSE 适合远程服务（共享、可远程），消息边界 stdio 靠换行、SSE 靠事件流。</li>
+      <li><strong>握手流程</strong>：initialize 交换版本和能力，initialized 通知，然后并发拉取 tools/resources/prompts 三类列表。</li>
+      <li><strong>三类能力</strong>：tools（LLM 触发）、resources（用户引用）、prompts（用户选择），触发主体不同决定处理方式不同。</li>
+      <li><strong>调用路由</strong>：mcp__ 前缀解析出 server 名和方法名，通过 transport 发起 tools/call，返回格式天然兼容。</li>
+      <li><strong>崩溃恢复</strong>：懒加载 + 自动重启 + 失败降级，三段式策略应对外部依赖故障。</li>
+    </ul>
+    <p>下一章（152 章）是 OpenCode 系列的最后一篇——会话管理。我们会看到 OpenCode 如何用 JSONL 日志把整个会话持久化下来，让你关掉终端、第二天回来还能从断点继续。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

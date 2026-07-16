@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -166,7 +164,7 @@
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
-      <a href="137-vec-rag-architecture.html" class="active" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
+      <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
@@ -305,66 +303,199 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 137 章 · 向量索引与 RAG 原理深挖</span>
-<h1>RAG 系统架构：从查询到引用</h1><p class="lead">完整管线：查询改写 → 混合检索 → 重排 → 上下文组装 → LLM 生成 → 引用标注。每环节的设计选择与失败模式。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>完整管线：查询改写 → 混合检索 → 重排 → 上下文组装 → LLM 生成 → 引用标注。每环节的设计选择与失败模式。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>完整管线：查询改写 → 混合检索 → 重排 → 上下文组装 → LLM 生成 → 引用标注。每环节的设计选择与失败模式。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 137 · 向量检索系列</span>
+      <h1>RAG 架构设计<br>Naive → Advanced → Modular 演进</h1>
+      <p class="lead">RAG（Retrieval-Augmented Generation）从 2023 年爆火到现在，已经从"一个 embedding + 一个 LLM"的玩具，演化成有检索前、检索中、检索后、生成后多个可插拔模块的复杂系统。理解 Naive RAG → Advanced RAG → Modular RAG 这条演进路线，能帮你判断自己的系统处于哪个阶段、下一步该往哪里优化。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="naive"><span class="idx">★</span> Naive RAG：最简版的三段式</h2>
+    <p>Naive RAG 就是 RAG 教程里第一个 demo：用户问 query → embedding → 向量库召回 top-k → 拼到 prompt 里 → LLM 生成答案。它结构清晰，50 行代码能跑通，是 RAG 的"hello world"。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <pre><code class="language-text">Naive RAG 流程
+用户 query ──▶ embed ──▶ 向量库 top-k ──▶ prompt 拼接 ──▶ LLM ──▶ 答案</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <p>它的问题在真实场景里迅速暴露：</p>
+    <ul>
+      <li><strong>召回质量差</strong>：用户 query 经常口语化、有错别字、指代不清（"那个怎么用"），直接 embed 召回质量低。</li>
+      <li><strong>只走语义</strong>：精确关键词（产品名、错误码）召回不到。</li>
+      <li><strong>无重排</strong>：召回的 top-k 顺序粗糙，最相关的可能排在第 5 位。</li>
+      <li><strong>上下文利用率低</strong>：把 top-k 一股脑塞进 prompt，LLM 容易"Lost in the Middle"，中间的文档被忽略。</li>
+      <li><strong>无答案质量保障</strong>：LLM 可能幻觉、可能不基于上下文乱编，没有校验。</li>
+    </ul>
+    <p>Naive RAG 适合 demo 和小规模玩具。一旦上生产、用户多了、问题复杂了，它就扛不住。这就是 Advanced RAG 出场的原因。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"RAG 系统架构：从查询到引用"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="136-vec-chunking-deep.html"><div class="lbl">← 上一章</div><div class="ttl">136 · 分块进阶：表格、代码、长文档</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="138-vec-query-rewrite.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">138 · 查询改写：让检索更准</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 137 章 · RAG 系统架构：从查询到引用</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="advanced"><span class="idx">★</span> Advanced RAG：检索前/中/后全优化</h2>
+    <p>Advanced RAG 的核心思想是"<strong>把检索流程拆成三段，每段都加优化模块</strong>"。检索前（pre-retrieval）优化查询，检索中（retrieval）提升召回，检索后（post-retrieval）精炼结果。</p>
+
+    <pre><code class="language-text">Advanced RAG 流程
+                                                              ┌─ rerank 重排
+用户 query ─┐                                ┌─ 混合检索 BM25+向量 ─┤
+            ├─ 查询改写 ─┐                  │                     └─ 压缩/过滤
+多轮上下文 ─┘   HyDE 等  ├─ 多路召回 ──────┤
+                          └─ 元数据过滤 ───┘
+                                                              └─ 上下文打包
+                                                                       │
+                                                                  LLM 生成</code></pre>
+
+    <h3>检索前（Pre-retrieval）</h3>
+    <ul>
+      <li><strong>查询改写</strong>（见 138 篇）：HyDE 生成假设答案再 embed、Query Decomposition 把复杂问题拆成子问题、Step-back 把具体问题抽象成原理问题。</li>
+      <li><strong>多轮上下文压缩</strong>：把多轮对话历史压缩成独立 query（"那个怎么用" → "Acme Corp API 怎么调用"）。</li>
+      <li><strong>查询路由</strong>：根据 query 类型路由到不同索引（FAQ 库 vs 文档库 vs SQL）。</li>
+    </ul>
+
+    <h3>检索中（Retrieval）</h3>
+    <ul>
+      <li><strong>混合检索</strong>（见 132 篇）：BM25 + 向量 + RRF 融合。</li>
+      <li><strong>元数据过滤</strong>（见 131 篇）：用属性过滤缩小搜索范围。</li>
+      <li><strong>parent-child 分块</strong>（见 136 篇）：小块检索大块返回。</li>
+    </ul>
+
+    <h3>检索后（Post-retrieval）</h3>
+    <ul>
+      <li><strong>重排序</strong>（见 133 篇）：cross-encoder 精排 top-k。</li>
+      <li><strong>上下文压缩</strong>：用小模型或 LLM 把冗长文档压缩成关键句。</li>
+      <li><strong>上下文打包</strong>（见 139 篇）：重排顺序解决 Lost in the Middle。</li>
+      <li><strong>去重</strong>：相似文档去重，避免重复信息。</li>
+    </ul>
+
+    <pre><code class="language-python"># Advanced RAG 的骨架代码（伪代码 + 关键调用）
+def advanced_rag(query, chat_history):
+    # === 检索前 ===
+    standalone = rewrite_query(query, chat_history)   # 多轮压缩成独立 query
+    sub_queries = decompose(standalone)               # 拆子问题（可选）
+    if not sub_queries: sub_queries = [standalone]
+
+    all_candidates = []
+    for sq in sub_queries:
+        hyde_answer = hyde(sq)                        # 生成假设答案用于 embed
+        vec = embed(hyde_answer)
+
+        # === 检索中：混合检索 + 过滤 ===
+        bm25_hits = bm25_search(sq, top_k=50)
+        vec_hits  = vector_store.search(vec, top_k=50, filter={"year": 2024})
+        fused = rrf_fusion([bm25_hits, vec_hits], top_n=50)   # RRF 融合
+
+        # === 检索后：重排 + 压缩 ===
+        ranked = reranker.rerank(sq, fused, top_k=10)
+        compressed = [compress_context(sq, c) for c in ranked]
+        all_candidates.extend(compressed)
+
+    # 去重 + 最终打包
+    final = dedup_and_pack(all_candidates, max_tokens=3000)
+
+    # === 生成 ===
+    answer = llm.generate(prompt=RAG_PROMPT.format(context=final, question=query))
+    return answer
+</code></pre>
+
+    <p>Advanced RAG 把每个环节都优化，效果比 Naive RAG 提升显著（典型 RAGAS 综合分从 0.5 涨到 0.75）。但它仍然是"一条固定的流水线"，所有 query 走同样的路径。下一步是让架构<strong>模块化、可路由</strong>。</p>
+
+    <h2 class="section" id="modular"><span class="idx">★</span> Modular RAG：可插拔、可路由、可迭代</h2>
+    <p>Modular RAG 把 Advanced RAG 的每个优化都抽象成<strong>独立模块</strong>，然后用一个<strong>编排层（orchestrator）</strong>根据 query 类型动态组合模块。不同 query 走不同路径——简单事实查询走轻量路径（向量+rerank），复杂推理查询走重量路径（多跳检索+自反思），闲聊直接走 LLM 不检索。</p>
+
+    <h3>核心模块</h3>
+    <ul>
+      <li><strong>Router</strong>：判断 query 类型，决定走哪条路径（FAQ / 文档 / SQL / 计算器 / 不检索）。</li>
+      <li><strong>Retriever</strong>：可插拔的检索器（向量/BM25/SPLADE/Graph），按需调用。</li>
+      <li><strong>Reranker</strong>：可切换的 rerank 模型。</li>
+      <li><strong>Memory</strong>：对话历史 + 长期记忆（用户偏好、过往查询）。</li>
+      <li><strong>Generator</strong>：可切换的 LLM（小问题用 Haiku，难问题用 Sonnet/Opus）。</li>
+      <li><strong>Critic / Self-RAG</strong>：生成后自评，质量不够就重新检索或重写答案。</li>
+      <li><strong>Tool use</strong>：可调用外部工具（SQL、计算器、API）补足检索盲区。</li>
+    </ul>
+
+    <pre><code class="language-text">Modular RAG：模块化 + 路由 + 自反思
+                      ┌─ Router 判断 query 类型
+                      │
+   query ──▶ Router ──┼─▶ 简单事实 ──▶ 向量+rerank ─────────────┐
+                      │                                          │
+                      ├─▶ 复杂推理 ──▶ 多跳检索 ──▶ 自反思循环 ─┤
+                      │                                          ├─▶ Generator ──▶ Critic
+                      ├─▶ 结构化数据 ──▶ Text2SQL ──▶ DB ────────┤     (质量不够 → 回流)
+                      │                                          │
+                      └─▶ 闲聊 ──▶ 直接 LLM ─────────────────────┘</code></pre>
+
+    <pre><code class="language-python"># Modular RAG 的编排层（LangGraph 风格）
+from langgraph.graph import StateGraph, END
+
+class RAGState(dict):
+    query: str
+    query_type: str
+    context: list
+    answer: str
+    quality_ok: bool
+
+def route(state):
+    if state["query_type"] == "factual":
+        return "factual_path"
+    elif state["query_type"] == "reasoning":
+        return "reasoning_path"
+    elif state["query_type"] == "structured":
+        return "sql_path"
+    return "chitchat"
+
+def factual_retrieve(state):
+    vec = embed(state["query"])
+    hits = vector_store.search(vec, top_k=20)
+    state["context"] = reranker.rerank(state["query"], hits, top_k=5)
+    return state
+
+def reasoning_retrieve(state):
+    # 多跳：第一跳检索 + LLM 生成追问 + 第二跳检索
+    state["context"] = multi_hop_retrieve(state["query"], hops=3)
+    return state
+
+def critic(state):
+    # 自评：答案是否基于 context、是否完整
+    state["quality_ok"] = ragas_quick_check(state["answer"], state["context"])
+    return state
+
+def should_retry(state):
+    return "regenerate" if not state["quality_ok"] else END
+
+# 用 LangGraph 编排
+g = StateGraph(RAGState)
+g.add_node("classify", classify_query)
+g.add_node("factual_path", factual_retrieve)
+g.add_node("reasoning_path", reasoning_retrieve)
+g.add_node("sql_path", text2sql_path)
+g.add_node("generate", generate_answer)
+g.add_node("critic", critic)
+g.add_node("regenerate", regenerate)
+g.add_conditional_edges("classify", route)
+g.add_edge("factual_path", "generate")
+g.add_edge("reasoning_path", "generate")
+g.add_edge("generate", "critic")
+g.add_conditional_edges("critic", should_retry)
+app = g.compile()
+</code></pre>
+
+    <h2 class="section" id="choosing-stage"><span class="idx">★</span> 我的系统处于哪个阶段</h2>
+    <ul>
+      <li><strong>还在 Naive</strong>：单一向量检索 + 直接 LLM 生成；RAGAS 综合分通常 &lt;0.6。优化点：先加 rerank（最便宜的提升）、再上混合检索。</li>
+      <li><strong>进入 Advanced</strong>：有查询改写、混合检索、rerank、上下文压缩中的至少两三个；RAGAS 综合分 0.65-0.8。优化点：按失败 case 分析缺哪个模块，逐个补。</li>
+      <li><strong>走向 Modular</strong>：有 Router 按类型分流、有 Self-RAG 自反思、有 Tool use 补足盲区；RAGAS &gt;0.8。优化点：模块的精细调优、A/B 测试、成本控制。</li>
+    </ul>
+    <p>不要一上来就堆 Modular——多数业务系统在 Advanced 阶段就能达到不错的效果，Modular 的复杂度只有在 query 类型高度多样、精度要求极高的场景才划算。先 Naive 跑通，按失败 case 增量演进，是更务实的路径。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>Naive RAG 是三段式（embed→检索→生成），简单但召回差、无重排、上下文利用率低，只适合 demo。</li>
+      <li>Advanced RAG 拆成检索前（查询改写/路由）、检索中（混合检索/过滤）、检索后（重排/压缩/打包）三段全优化，RAGAS 通常从 0.5 涨到 0.75。</li>
+      <li>Modular RAG 把每个优化抽象成可插拔模块，用 Router 按 query 类型动态编排，加 Self-RAG 自反思和 Tool use 补足盲区。</li>
+      <li>选型：先 Naive 跑通，按失败 case 增量演进；多数业务在 Advanced 阶段够用；只有 query 高度多样、精度要求极高才上 Modular。</li>
+    </ul>
+    <p>接下来三篇分别拆解 Advanced RAG 的关键模块：查询改写（138）、上下文打包（139）、RAG 评估（140）。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

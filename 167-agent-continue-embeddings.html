@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -198,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" class="active" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -305,81 +303,161 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 167 章 · 开源 Agent 源码深挖</span>
-<h1>Continue 的嵌入管线</h1><p class="lead">本地 Transformers.js vs API 嵌入模型。分块大小、批处理、去重。索引构建的性能与质量。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>本地 Transformers.js vs API 嵌入模型。分块大小、批处理、去重。索引构建的性能与质量。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>本地 Transformers.js vs API 嵌入模型。分块大小、批处理、去重。索引构建的性能与质量。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 50 · Agent 源码深挖系列</span>
+      <h1>Continue 的 Embeddings<br>本地 vs 云端，以及 Jina / BGE / OpenAI 的选择</h1>
+      <p class="lead">embedding 模型是 @codebase 检索的基础——它把代码块变成向量，向量间的距离代表语义相似度。选哪个 embedding 模型，直接影响检索质量。Continue 支持本地（transformers.js 跑 all-MiniLM、BGE、Jina）和云端（OpenAI text-embedding-3）两大类。本章我们对比这些模型在代码场景下的表现，并讨论「本地还是云端」这个对很多团队敏感的决策。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="embedding-basics"><span class="idx">★</span> 一、embedding 在代码检索里扮演什么角色</h2>
+    <p>回顾上一章，Continue 的检索是向量 + tf-idf 的混合方案。embedding 模型负责把代码块和查询都映射到同一个向量空间，让「语义相似」的代码在这个空间里距离更近。比如「用户登录验证」这个查询，理想情况下应该和包含 <code>def authenticate(user, password)</code> 的代码块向量接近——虽然字面只有「用户」二字相关，但语义上都是「登录验证」。</p>
+    <p>embedding 模型的质量，直接决定了向量检索这一半的召回质量。一个差的 embedding 模型可能把「登录」和「注销」映射得很近（因为都是认证相关），但你要找的是 login 代码不是 logout 代码——这就会产生噪声。好的 embedding 模型能在「相关」和「精确」之间找到平衡。</p>
+    <p>对代码场景，embedding 模型有两个特殊挑战：第一，代码是「结构化+自然语言」的混合（标识符是结构化、注释是自然语言）；第二，代码的语义强依赖上下文（同一段代码在不同上下文里语义不同）。通用文本 embedding 模型不一定能处理好这些。</p>
+
+    <h2 class="section" id="local-vs-cloud"><span class="idx">★</span> 二、本地 vs 云端：不只是速度问题</h2>
+    <p>Continue 默认用本地的 transformers.js 跑 all-MiniLM-L6-v2，但允许切换到 OpenAI 等云端服务。这个选择涉及多个维度：</p>
+    <table>
+      <tr><th>维度</th><th>本地（transformers.js）</th><th>云端（OpenAI 等）</th></tr>
+      <tr><td>代码隐私</td><td>代码不出本机</td><td>代码上传到服务器</td></tr>
+      <tr><td>成本</td><td>免费</td><td>按 token 计费</td></tr>
+      <tr><td>延迟</td><td>~10-50ms/块（首次加载慢）</td><td>~100-300ms/块（含网络）</td></tr>
+      <tr><td>索引速度</td><td>中等（受 CPU 限制）</td><td>快（GPU 集群）</td></tr>
+      <tr><td>模型质量</td><td>中等（小模型）</td><td>高（大模型）</td></tr>
+      <tr><td>离线可用</td><td>是</td><td>否</td></tr>
+    </table>
+    <p>对很多企业团队，<strong>代码隐私是决定性因素</strong>。把整个代码库上传到第三方 embedding 服务，可能违反公司的数据安全政策。本地 embedding 让代码不出本机，这是 Continue 默认本地的核心原因。</p>
+    <p>但本地有它的代价——transformers.js 在浏览器/Node 里跑 ONNX 模型，速度不如原生 GPU。一个大仓库首次索引可能要几分钟（CPU 模式）。Continue 用 Web Worker 并行化，缓解了这个问题但没根除。</p>
+
+    <h2 class="section" id="miniLM"><span class="idx">★</span> 三、all-MiniLM-L6-v2：Continue 的默认选择</h2>
+    <p>all-MiniLM-L6-v2 是 sentence-transformers 系列的一个小模型——只有 22M 参数、384 维输出。它之所以是 Continue 的默认，是因为三个优点：体积小（80MB，下载快）、推理快（CPU 上几十毫秒）、质量在通用文本任务上够用。</p>
+    <pre><code class="language-typescript">// 本地 embedding provider（简化）
+import { pipeline } from "@xenova/transformers";
+
+export class TransformersEmbedder implements EmbeddingsProvider {
+  private extractor: any;
+
+  async init() {
+    // 加载模型（首次会从 hub 下载）
+    this.extractor = await pipeline(
+      "feature-extraction",
+      "Xenova/all-MiniLM-L6-v2",
+      { device: "cpu" }   // 浏览器/Node 默认 CPU
+    );
+  }
+
+  async embed(texts: string[]): Promise&lt;Float32Array[]&gt; {
+    const results: Float32Array[] = [];
+    for (const text of texts) {
+      const output = await this.extractor(text, {
+        pooling: "mean",      // 对 token 向量做平均池化
+        normalize: true,      // L2 归一化，方便直接算点积
+      });
+      results.push(output.data as Float32Array);
     }
-]
+    return results;
+  }
+}</code></pre>
+    <p>注意 <code>pooling: "mean"</code> 和 <code>normalize: true</code> 两个选项。Transformer 模型输出的是每个 token 的向量序列，要把它变成「整段文本的向量」，最简单的是平均池化（mean pooling）。归一化让向量长度为 1，这样两个向量的点积就等于 cosine 相似度，省一次开方。这些是 embedding 工程的标准操作。</p>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="code-specific"><span class="idx">★</span> 四、代码专用模型：Jina 与 BGE</h2>
+    <p>all-MiniLM 是通用文本模型，对代码不一定最优。Continue 也支持代码场景更擅长的模型，主要有两家：Jina 和 BGE。</p>
+    <p><strong>Jina embeddings</strong>（如 jina-embeddings-v2-base-code）是 Jina AI 专门为代码训练的 embedding 模型。它的训练语料包含大量 GitHub 代码，对代码标识符、函数语义有更好的理解。在 CodeSearchNet 等代码检索 benchmark 上，它的表现通常优于通用模型。</p>
+    <p><strong>BGE</strong>（BAAI General Embedding，如 bge-large-en-v1.5）是智源研究院开源的 embedding 模型，在 MTEB（Massive Text Embedding Benchmark）排行榜上长期名列前茅。BGE 不是代码专用，但因为模型大（335M 参数）、训练数据广，在代码任务上也表现不错。</p>
+    <pre><code class="language-typescript">// 配置 Jina 代码 embedding（本地）
+{
+  "embeddingsProvider": {
+    "provider": "transformers.js",
+    "model": "Xenova/jina-embeddings-v2-base-code"  // 代码专用
+  }
+}
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+// 或配置 BGE
+{
+  "embeddingsProvider": {
+    "provider": "transformers.js",
+    "model": "Xenova/bge-large-en-v1.5"
+  }
+}</code></pre>
+    <p>这两个模型的代价是体积更大（BGE-large 约 1.3GB）、推理更慢（CPU 上几百毫秒一次）。对于大型代码库，首次索引可能从几分钟变成几十分钟。这是「质量 vs 速度」的典型权衡——团队需要根据自己的场景选择。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Continue 的嵌入管线"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="166-agent-continue-codebase.html"><div class="lbl">← 上一章</div><div class="ttl">166 · Continue 的代码库索引</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="168-agent-cline-loop.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">168 · Cline 的工具循环与审批</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 167 章 · Continue 的嵌入管线</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="openai"><span class="idx">★</span> 五、OpenAI text-embedding-3：云端的高质量选项</h2>
+    <p>如果不在乎成本和隐私，OpenAI 的 text-embedding-3-large 是目前公开可用的最强 embedding 之一。它在 MTEB 上的分数高于大多数开源模型，且支持自定义维度（可以通过 Matryoshkin 降维到 256/512/1024 等）。</p>
+    <pre><code class="language-typescript">// 云端 embedding provider（简化）
+export class OpenAIEmbedder implements EmbeddingsProvider {
+  constructor(private apiKey: string, private model: string = "text-embedding-3-small") {}
+
+  async embed(texts: string[]): Promise&lt;Float32Array[]&gt; {
+    // 批量调用（OpenAI 支持 2048 个输入/请求）
+    const batches = chunk(texts, 2048);
+    const allEmbeddings: Float32Array[] = [];
+    for (const batch of batches) {
+      const resp = await fetch("https://api.openai.com/v1/embeddings", {
+        method: "POST",
+        headers: {
+          "Authorization": `Bearer ${this.apiKey}`,
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          model: this.model,
+          input: batch,
+        }),
+      });
+      const data = await resp.json();
+      for (const item of data.data) {
+        allEmbeddings.push(new Float32Array(item.embedding));
+      }
+    }
+    return allEmbeddings;
+  }
+}
+
+// 配置
+{
+  "embeddingsProvider": {
+    "provider": "openai",
+    "model": "text-embedding-3-large",
+    "apiKey": "{OPENAI_API_KEY}",
+    "dimensions": 1536  // 可选，降维节省存储
+  }
+}</code></pre>
+    <p>注意 <code>dimensions</code> 参数——text-embedding-3 支持输出降维后的向量（如把原生的 3072 维降到 1536 维），存储空间减半但质量损失很小（这是 Matryoshkin representation learning 的功劳）。对大型代码库，这个优化能显著节省向量数据库的空间。</p>
+
+    <h2 class="section" id="benchmark"><span class="idx">★</span> 六、如何选择：一个决策框架</h2>
+    <p>面对这么多选项，团队该怎么选？Continue 没有强制推荐，但我们可以梳理一个决策框架：</p>
+    <ol>
+      <li><strong>代码能否上传第三方？</strong> 不能 → 只能本地（MiniLM / Jina / BGE）。</li>
+      <li><strong>仓库多大？</strong> 几百文件 → MiniLM 够用；几万文件 → 考虑 BGE 或云端提升召回质量。</li>
+      <li><strong>对检索质量多敏感？</strong> 代码检索是核心场景 → 投资更高质量模型；偶尔用 → MiniLM 够了。</li>
+      <li><strong>能否接受云端成本？</strong> 接受且代码可上传 → OpenAI text-embedding-3 是最省心的选择。</li>
+      <li><strong>首次索引延迟容忍度？</strong> 低 → 云端（GPU 快）；高 → 本地大模型可接受。</li>
+    </ol>
+    <p>一个常见的实战组合是：<strong>开发阶段用本地 MiniLM 快速迭代，正式部署换 OpenAI 或 BGE 提升质量</strong>。Continue 的配置让这种切换只需要改 config.json 一行，这是它设计上对「可插拔」的重视。</p>
+
+    <h2 class="section" id="migration"><span class="idx">★</span> 七、切换 embedding 模型的代价</h2>
+    <p>一个容易被忽视的点：<strong>切换 embedding 模型意味着所有已索引的向量都要重新计算</strong>。不同模型的向量空间不兼容——MiniLM 的 384 维向量和 BGE 的 1024 维向量无法比较，即使都叫「向量」。</p>
+    <p>Continue 在检测到 embeddingsProvider 配置变更时，会自动触发全量重建索引。对大仓库这可能意味着几分钟到几十分钟的等待。所以选择 embedding 模型最好在项目初期就定下来，避免频繁切换。如果必须换，建议在低峰时段进行，或后台重建不影响当前使用。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>embedding 模型是检索质量的根基。要点回顾：</p>
+    <ul>
+      <li><strong>角色</strong>：把代码和查询映射到向量空间，让语义相似的代码距离近，质量直接决定向量检索的召回。</li>
+      <li><strong>本地 vs 云端</strong>：隐私、成本、延迟、质量、离线可用是五大维度，代码隐私常是决定性因素。</li>
+      <li><strong>all-MiniLM-L6-v2</strong>：22M 参数、384 维，体积小速度快，通用文本质量够用，是 Continue 默认。</li>
+      <li><strong>Jina 代码专用</strong>：在代码语料上训练，对标识符和函数语义理解更好，CodeSearchNet 表现优。</li>
+      <li><strong>BGE</strong>：335M 参数，MTEB 排行榜领先，模型大质量高但 CPU 推理慢。</li>
+      <li><strong>OpenAI text-embedding-3</strong>：云端最强，支持 Matryoshkin 降维节省存储，但代码上传和成本是门槛。</li>
+      <li><strong>决策框架</strong>：隐私 → 本地；大仓库 → 投资质量；可上传 → OpenAI 省心。</li>
+      <li><strong>切换代价</strong>：模型变更需全量重建索引，最好初期定下来。</li>
+    </ul>
+    <p>下一章（168 章）我们转向 Cline（原 Claude Dev）——看它的 Agent 循环和独特的 XML 格式工具调用、plan/act 双模式设计。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

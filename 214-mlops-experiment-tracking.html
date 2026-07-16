@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>实验追踪：让每次实验可复现 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>实验追踪：让每次实验可复现 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -246,7 +253,7 @@
       <a href="211-mlops-cicd.html" title="LLM 应用的 CI/CD：prompt 也要测试"><span class="num">211</span>LLM 应用的 CI</a>
       <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
       <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
-      <a href="214-mlops-experiment-tracking.html" class="active" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
+      <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
       <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
@@ -295,15 +302,148 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>实验追踪：让每次实验可复现</h1><p class="lead">从"我记得上次跑了个好的"到"我能精确复现"——实验追踪</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>没有实验追踪 = 炼丹</h2>
-    <p>做 LLM 实验时，你会尝试几十种组合（模型/prompt/超参/数据）。如果没有实验追踪系统，一个月后你根本记不住"那个效果最好的配置是什么"——这就是"炼丹"。实验追踪系统记录每次实验的全部参数和结果，让任何实验都可复现、可对比、可回溯。</p>
-    <h2><span class="idx"></span>实验追踪记什么</h2>
-    <table class="data-table"><thead><tr><th>类别</th><th>记录内容</th><th>为什么</th></tr></thead><tbody><tr><td>参数</td><td>模型/prompt/超参/数据版本</td><td>可复现</td></tr><tr><td>指标</td><td>loss/accuracy/MMLU/RAGAS</td><td>可对比</td></tr><tr><td>产物</td><td>模型权重/日志/图表</td><td>可回溯</td></tr><tr><td>环境</td><td>GPU/依赖/随机种子</td><td>精确复现</td></tr></tbody></table>
-    <p>主流工具：MLflow（开源）、Weights &amp; Biases（付费 UI 好）、LangSmith（LangChain 生态）。它们都提供实验对比看板——把多次实验的指标画在一起，一眼看出哪个配置最好。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>实验追踪记录每次实验的参数/指标/产物/环境，让实验可复现/可对比/可回溯。没有它就是炼丹。主流工具：MLflow/W&amp;B/LangSmith。核心是"自动记录"——不要靠人记忆，要靠系统。</p>
-    <div class="chapter-nav">
-    <a href="213-mlops-model-registry.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 214 章 · 实验追踪：让每次实验可复现</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 214 · MLOps系列</span>
+      <h1>实验追踪<br>让你的每一次尝试都留下可追溯的脚印</h1>
+      <p class="lead">数据科学的工作本质上是一连串实验:换一个超参数、加一个特征、改一个损失函数,然后看效果变好还是变坏。问题在于,如果没有系统记录,两周后你会忘记那个 AUC 0.89 的模型到底用了什么配置。实验追踪(Experiment Tracking)就是把这些"试错"过程结构化地记录下来,让实验可复现、可对比、可积累。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="what-is-tracking"><span class="idx">★</span> 实验追踪到底在追踪什么</h2>
+    <p>很多人对实验追踪的理解停留在"记一下 loss 和 accuracy",其实远远不止。一次完整的实验追踪,应该能把一个模型"再生产"出来所需的所有信息都记录在案。具体来说,它追踪五类信息。</p>
+    <p><strong>代码版本</strong>:这次实验用的是哪个 Git commit,有没有未提交的本地改动。这是可复现的第一道防线——代码变了,实验结果就失去意义。</p>
+    <p><strong>运行环境</strong>:Python 版本、依赖库版本、CUDA/cuDNN 版本、硬件配置。深度学习里同样代码在不同环境跑出不同结果,十有八九是环境差异,所以环境必须记录。</p>
+    <p><strong>数据版本</strong>:训练集、验证集、测试集的指纹(哈希或 DVC 版本)。数据是模型行为最大的变量,不记录数据版本,可复现就是空谈。</p>
+    <p><strong>超参数</strong>:学习率、batch size、模型架构、正则化系数等所有"人设定的"参数。这是实验对比的主要维度。</p>
+    <p><strong>指标与产物</strong>:训练过程中的 loss 曲线、验证集指标、最终的模型权重、可视化图、甚至训练日志。指标用来对比实验好坏,产物用来复用和部署。</p>
+    <p>把这五类信息合在一起,任何一个 run 都变成一个"自描述的胶囊":打开它就知道这次实验做了什么、结果如何、能否复现。这就是实验追踪的价值。</p>
+    <h2 class="section" id="why-matters"><span class="idx">★</span> 没有追踪会怎样:三个真实痛点</h2>
+    <p>没有实验追踪的团队,几乎都会撞上三个痛点,体会过的人都会立刻理解追踪的价值。</p>
+    <p>第一个痛点:<strong>复现失败</strong>。论文复现、同事交接、线上问题排查,都需要"再跑一次同样的实验"。没有记录代码、环境、数据版本,几乎不可能精确复现。你只能凭记忆猜测"大概是这个配置",然后得到一个不一样的结果,陷入玄学调试。</p>
+    <p>第二个痛点:<strong>实验对比困难</strong>。想找出"学习率 0.01 和 0.001 哪个更好",如果每次实验只存在你脑子里,对比就只能靠翻笔记本或回忆。当实验数量上百,这种对比几乎不可能。结果就是团队反复做相同的实验,浪费算力和时间。</p>
+    <p>第三个痛点:<strong>知识无法沉淀</strong>。一个资深工程师离职,带走的不仅是代码,还有他对"什么配置有效、为什么有效"的经验。如果这些经验以结构化的方式记录在追踪系统里,它们就成了团队的资产,而不是个人的私有知识。</p>
+    <h2 class="section" id="mlflow-basics"><span class="idx">★</span> MLflow 核心概念:Experiment、Run、Artifact</h2>
+    <p>MLflow Tracking 是最流行的开源实验追踪工具,它的数据模型很简单,理解三个概念就能上手。</p>
+    <p><strong>Experiment(实验)</strong>是一个逻辑容器,把相关的 run 组织在一起。通常一个研究课题或一个模型任务对应一个 Experiment,比如 ctr-prediction、fraud-detection。一个 Experiment 下可以有任意多个 Run。</p>
+    <p><strong>Run(运行)</strong>是一次训练执行的记录,是 MLflow 的核心实体。每个 Run 有唯一的 ID,记录了前面提到的五类信息。Run 有状态(running、succeeded、failed、killed),支持嵌套(在父 run 下跑子 run,常用于超参数搜索)。</p>
+    <p><strong>Artifact(产物)</strong>是 Run 关联的文件,可以是模型权重、特征重要性图、混淆矩阵、训练日志等任何文件。Artifact 存在 backend 指定的位置(本地、S3、HDFS),通过 Run ID 可以随时下载。</p>
+    <p>这三者的关系是:一个 Experiment 包含多个 Run,一个 Run 记录若干 params、metrics、tags 和 artifacts。掌握了这个心智模型,使用 MLflow 就很自然了。</p>
+    <h2 class="section" id="mlflow-code"><span class="idx">★</span> MLflow 实操:从记录到对比</h2>
+    <p>下面通过一个完整的例子演示 MLflow 的典型用法。我们会跑一个简单的超参数搜索,记录所有结果,然后查询对比。这是日常工作中最常见的模式。</p>
+    <pre><code class="language-python">import mlflow
+import mlflow.sklearn
+import numpy as np
+import pandas as pd
+from sklearn.ensemble import RandomForestClassifier
+from sklearn.metrics import roc_auc_score, f1_score
+from sklearn.model_selection import train_test_split
+
+# 自动记录 sklearn 的超参数和指标,减少手动 log
+mlflow.sklearn.autolog(log_models=True)
+
+# 一个 Experiment 组织一类研究任务
+mlflow.set_experiment("fraud-detection-rf")
+
+data = pd.read_parquet("data/fraud_train_v2.parquet")
+X_tr, X_val, y_tr, y_val = train_test_split(
+    data.drop("is_fraud", axis=1), data["is_fraud"],
+    test_size=0.2, random_state=42, stratify=data["is_fraud"]
+)
+
+# 超参数网格搜索,每次组合开一个 run
+grid = [
+    {"n_estimators": 100, "max_depth": 8},
+    {"n_estimators": 300, "max_depth": 12},
+    {"n_estimators": 500, "max_depth": 16},
+]
+
+results = []
+for params in grid:
+    # 每个 with 块对应一个 Run,退出时自动关闭
+    with mlflow.start_run(run_name=f"rf_{params['n_estimators']}_{params['max_depth']}"):
+        mlflow.log_param("data_version", "fraud_train_v2")
+        mlflow.set_tag("author", "alice")
+
+        model = RandomForestClassifier(**params, n_jobs=-1, random_state=42)
+        model.fit(X_tr, y_tr)
+
+        proba = model.predict_proba(X_val)[:, 1]
+        auc = roc_auc_score(y_val, proba)
+        f1 = f1_score(y_val, (proba > 0.3).astype(int))  # 欺诈场景用更低阈值
+        mlflow.log_metrics({"val_auc": auc, "val_f1": f1})
+        results.append((params, auc, f1))
+
+best = max(results, key=lambda x: x[1])
+print(f"Best params: {best[0]}, AUC: {best[1]:.4f}, F1: {best[2]:.4f}")
+</code></pre>
+    <p>跑完之后,打开 MLflow UI(通常是 mlflow ui 启动),你能在实验视图里看到所有 run 的参数、指标对比,以及指标随时间的变化曲线。autolog 让 sklearn 自动记录了超参数和默认指标,我们额外记录了 data_version 和 author 标签。查询某个实验里最好的 run 也可以用 API 完成:</p>
+    <pre><code class="language-python">from mlflow.tracking import MlflowClient
+
+client = MlflowClient()
+experiment = client.get_experiment_by_name("fraud-detection-rf")
+
+# 按 val_auc 降序,取 top 3
+runs = client.search_runs(
+    experiment_ids=[experiment.experiment_id],
+    order_by=["metrics.val_auc DESC"],
+    max_results=3,
+)
+for r in runs:
+    print(f"run={r.info.run_id[:8]}  auc={r.data.metrics['val_auc']:.4f}  "
+          f"params={r.data.params.get('n_estimators')}/{r.data.params.get('max_depth')}")
+</code></pre>
+    <p>这种"训练即记录"的习惯一旦养成,会彻底改变你的工作方式。任何一次实验都能在 UI 里找到,对比分析只需点几下鼠标,复现只需按 run ID 拉取代码和数据版本。</p>
+    <h2 class="section" id="reproducibility"><span class="idx">★</span> 让实验真正可复现的三个细节</h2>
+    <p>很多人装了 MLflow 就以为实现了可复现,其实还差几个关键细节。这三个细节做不到,记录再全也复现不出来。</p>
+    <p><strong>第一,固定随机种子</strong>。Python、NumPy、PyTorch、TensorFlow 都有各自的随机数源,必须全部固定。很多人只固定了 torch.manual_seed,却忘了 numpy.random.seed 和 Python 的 random.seed,结果在数据处理阶段就引入了不确定性。CUDA 的非确定性操作(cuDNN)也要通过 torch.backends.cudnn.deterministic = True 关闭。</p>
+    <p><strong>第二,数据指纹而不是路径</strong>。记录 data/train.csv 这种路径是没用的,因为文件内容可能变了。应该记录数据的哈希(如 md5 或 sha256),或者用 DVC 锁定数据版本。复现时验证当前数据哈希与记录一致,才算严格可复现。</p>
+    <p><strong>第三,环境锁定</strong>。requirements.txt 不够精确(版本号是范围),应该用 pip freeze 的精确版本,或更现代的 conda env export、poetry.lock、Docker 镜像。深度学习尤其要锁 CUDA 版本,不同 CUDA 跑出的结果可能微妙不同。把环境快照作为 artifact 一起记录,是最稳妥的做法。</p>
+    <h2 class="section" id="hyperopt"><span class="idx">★</span> 进阶:把追踪和超参数搜索结合</h2>
+    <p>实验追踪的真正威力,在系统化的超参数搜索中才完全释放。手动网格搜索很快就会因为组合爆炸而不可行,这时需要用更智能的搜索算法,如贝叶斯优化、Hyperband、ASHA。这些算法会产生大量 run,没有追踪系统根本无法管理。</p>
+    <p>MLflow 与 Optuna、Ray Tune 都有良好集成。下面是用 Optuna 做贝叶斯优化的例子,每次 trial 自动在 MLflow 里开一个嵌套 run,搜索结束后所有结果都在追踪系统里可查:</p>
+    <pre><code class="language-python">import optuna
+import mlflow
+
+def objective(trial):
+    # Optuna 采样超参数,MLflow 自动记录
+    with mlflow.start_run(nested=True):
+        params = {
+            "n_estimators": trial.suggest_int("n_estimators", 100, 800, step=100),
+            "max_depth": trial.suggest_int("max_depth", 4, 20),
+            "min_samples_split": trial.suggest_int("min_samples_split", 2, 20),
+            "learning_rate": trial.suggest_float("learning_rate", 1e-3, 0.3, log=True),
+        }
+        model = GradientBoostingClassifier(**params, random_state=42)
+        model.fit(X_tr, y_tr)
+        auc = roc_auc_score(y_val, model.predict_proba(X_val)[:, 1])
+        mlflow.log_params(params)
+        mlflow.log_metric("val_auc", auc)
+        return auc   # Optuna 会据此决定下一个 trial
+
+study = optuna.create_study(direction="maximize")
+study.optimize(objective, n_trials=50)
+print(f"Best trial AUC: {study.best_value:.4f}")
+print(f"Best params: {study.best_params}")
+</code></pre>
+    <p>这样跑完,你不仅有最优配置,还有整个搜索过程的全景记录:哪些区域被探索过、AUC 随 trial 的变化趋势、不同超参数对结果的影响。这些"副产品"往往比最优结果本身更有价值,它们是下次迭代的设计依据。</p>
+    <h2 class="section" id="tools-compare"><span class="idx">★</span> 工具选型:不只是 MLflow</h2>
+    <p>除了 MLflow,实验追踪领域还有几个有代表性的工具,各有侧重。</p>
+    <p><strong>Weights & Biases</strong>以可视化见长,仪表盘和协作体验是商业产品里最好的。它对深度学习的 run 可视化(梯度分布、参数直方图)开箱即用,适合重视可解释性的研究团队。代价是商业付费和数据上云。</p>
+    <p><strong>TensorBoard</strong>是 TensorFlow/PyTorch 生态的原生工具,轻量、免费,适合单机实验记录。但它的多实验对比、团队协作、模型注册能力都很弱,只适合个人探索阶段。</p>
+    <p><strong>Neptune.ai、Comet、ClearML</strong>等也都是商业或开源的替代品,功能大同小异。选型时主要考虑:是否需要团队协作(选 W&B)、是否要自部署(选 MLflow 或 ClearML)、是否深度绑定某个框架(选 TensorBoard 临时用)。</p>
+    <p>对大多数团队的建议是:个人或小项目用 TensorBoard,团队工程化用 MLflow,有预算且重视协作体验再考虑 W&B。重点不是工具,而是养成"每次实验都记录"的习惯。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>实验追踪记录的是让模型可复现的全部信息:代码版本、运行环境、数据版本、超参数、指标与产物。没有追踪,团队会陷入复现失败、对比困难、知识无法沉淀的三大痛点。</p>
+    <p>MLflow 是最主流的开源方案,核心概念是 Experiment、Run、Artifact。我们演示了从基础记录到结合 Optuna 做超参数搜索的完整流程。让实验真正可复现,还要注意固定随机种子、用数据指纹而非路径、锁定精确环境这三个细节。</p>
+    <p>最后要强调:实验追踪是一种工作习惯,而不是一个工具。再好的系统,如果你不坚持每次实验都记录,也形同虚设。从下一个实验开始,养成 start_run() 的习惯,未来的你会感谢现在的你。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

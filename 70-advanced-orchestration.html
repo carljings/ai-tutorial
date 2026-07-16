@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Agent 高级编排 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 高级编排 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -84,7 +91,7 @@
       <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
-      <a href="70-advanced-orchestration.html" class="active" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
+      <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
       <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
@@ -295,34 +302,339 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI Agent 高级编排</h1><p class="lead">多 Agent 协作的工作流引擎设计</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>从单 Agent 到多 Agent 编排</h2>
-    <p>单个 Agent 能力有限——一个 Agent 既要理解需求、又要搜索、又要写代码、又要测试，context 爆炸、角色混乱。多 Agent 编排的思路：把复杂任务拆成子任务，每个 Agent 专精一个环节（研究/编码/审查/测试），由编排器协调。这就像人类团队分工——比一个人全包效率高得多。</p>
-    <h2><span class="idx"></span>三种编排模式</h2>
-    <table class="data-table"><thead><tr><th>模式</th><th>结构</th><th>适用</th><th>代表</th></tr></thead><tbody><tr><td>流水线</td><td>A→B→C 串行</td><td>明确步骤的任务</td><td>研究→写作→审核</td></tr><tr><td>主管-工人</td><td>主管分配任务给工人</td><td>可并行的子任务</td><td>GPT Researcher</td></tr><tr><td>辩论</td><td>多 Agent 各持立场辩论</td><td>需要多视角的任务</td><td>多角色讨论</td></tr></tbody></table>
-    <h3>主管模式详解</h3>
-    <p>主管（Supervisor/Router）模式是最实用的编排：一个"主管 Agent"接收任务，决定分给哪些"工人 Agent"，收集结果，综合输出。主管负责规划和协调，工人负责执行。这和人类组织的管理结构同构。</p>
-    <pre class="code"><code class="language-text">主管模式工作流
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 70 · 实战案例系列</span>
+      <h1>Agent 编排<br>用 LangGraph 构建状态图、条件分支与人在回路</h1>
+      <p class="lead">单个 LLM 调用能做的事有限，真正的生产力来自 Agent——能自主规划、调用工具、根据条件分支、在关键节点请人确认的复合系统。这一章用 LangGraph 这个当前最成熟的 Agent 编排框架，手把手构建一个带状态管理、条件路由、人在回路（Human-in-the-Loop）的完整 Agent。看完你就能设计出能处理真实业务流程的 AI Agent。</p>
+      <div class="meta">
+        <span class="chip">阅读约 31 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-用户: "帮我调研向量数据库并写报告"
+    <h2 class="section" id="what-is-agent"><span class="idx">★</span> 一、什么是 Agent 编排</h2>
+    <p>Agent 和普通 LLM 调用的区别在于「自主性」。普通调用是你给 prompt、模型给回答，一次结束。Agent 是你给一个目标，模型自己决定：调用哪些工具、按什么顺序、什么时候需要更多信息、什么时候任务完成。这需要一个「编排系统」来管理状态、路由、工具调用。</p>
+    <p>Agent 编排要解决四个核心问题：<strong>状态管理</strong>（记住中间结果）、<strong>流程控制</strong>（条件分支和循环）、<strong>工具调用</strong>（与外部系统交互）、<strong>人工介入</strong>（关键决策需要人确认）。LangGraph 用「状态图」（StateGraph）优雅地解决了这四个问题。</p>
 
-[主管 Agent] 分析任务 → 拆成子任务
-    │
-    ├──→ [研究 Agent] 调研主流向量库
-    │       └→ 返回: Milvus/Qdrant/pgvector 对比数据
-    │
-    ├──→ [数据 Agent] 查 benchmark
-    │       └→ 返回: 性能/成本对比表
-    │
-    └──→ [写作 Agent] 综合成报告
-            └→ 返回: 结构化报告
+    <h2 class="section" id="langgraph-basics"><span class="idx">★</span> 二、LangGraph 的核心概念</h2>
+    <p>LangGraph 把 Agent 建模为一张「状态图」。图里有节点（Node，执行具体动作）和边（Edge，定义流转方向）。每个节点接收当前状态、返回状态更新。这种设计让 Agent 的行为变得可视、可调试、可回放。</p>
+    <pre><code class="language-python"># LangGraph 的核心概念演示
+from langgraph.graph import StateGraph, END
+from typing import TypedDict, Annotated, List
+import operator
 
-[主管] 收集所有结果 → 综合交付</code></pre>
-    <h2><span class="idx"></span>编排的工程挑战</h2>
-    <table class="data-table"><thead><tr><th>挑战</th><th>问题</th><th>解法</th></tr></thead><tbody><tr><td>Context 管理</td><td>多 Agent 之间传什么？传太多爆 context</td><td>只传结构化摘要</td></tr><tr><td>错误传播</td><td>一个 Agent 错了，后面全错</td><td>每步校验+可回退</td></tr><tr><td>成本控制</td><td>多 Agent = 多倍 LLM 调用</td><td>简单任务用小模型</td></tr><tr><td>并发控制</td><td>多 Agent 并行需协调</td><td>异步队列/状态机</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>多 Agent 编排把复杂任务拆给专精 Agent。三种模式：流水线（串行）、主管-工人（分配协调）、辩论（多视角）。主管模式最实用——主管拆任务+收集结果，工人执行。工程挑战：context 管理（传摘要）、错误传播（逐步校验）、成本（小模型）、并发（状态机）。代表框架：LangGraph/CrewAI/AutoGen。</p>
-    <div class="chapter-nav">
-      <a href="69-adversarial-testing.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 70 章 · AI Agent 高级编排</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+# 第 1 步：定义状态（State）——整个 Agent 共享的数据结构
+class AgentState(TypedDict):
+    messages: Annotated[List[str], operator.add]  # 对话历史，自动累加
+    current_task: str                              # 当前任务
+    retrieved_docs: List[str]                      # 检索到的文档
+    needs_human_review: bool                       # 是否需要人工审核
+    final_answer: str                              # 最终答案
+
+# 第 2 步：定义节点（Node）——每个节点是一个函数
+def retrieve_node(state: AgentState) -> dict:
+    """检索相关文档。"""
+    query = state["current_task"]
+    docs = vector_db.search(query, top_k=3)
+    return {"retrieved_docs": docs, "messages": ["检索完成"]}
+
+def generate_node(state: AgentState) -> dict:
+    """基于检索结果生成回答。"""
+    context = "\n".join(state["retrieved_docs"])
+    answer = llm.generate(f"基于以下内容回答：{context}\n问题：{state['current_task']}")
+    return {"final_answer": answer, "messages": ["生成完成"]}
+
+# 第 3 步：定义条件路由
+def should_review(state: AgentState) -> str:
+    """判断是否需要人工审核。"""
+    answer = state["final_answer"]
+    # 如果回答涉及高风险主题（如医疗、法律），需要人工审核
+    if any(kw in answer for kw in ["医疗建议", "法律意见", "投资建议"]):
+        return "human_review"
+    return "done"
+
+# 第 4 步：组装状态图
+workflow = StateGraph(AgentState)
+workflow.add_node("retrieve", retrieve_node)
+workflow.add_node("generate", generate_node)
+workflow.add_node("human_review", human_review_node)
+
+workflow.set_entry_point("retrieve")
+workflow.add_edge("retrieve", "generate")
+workflow.add_conditional_edges("generate", should_review)
+workflow.add_edge("human_review", END)
+workflow.add_edge("done", END)
+
+app = workflow.compile()</code></pre>
+
+    <h2 class="section" id="conditional-routing"><span class="idx">★</span> 三、条件分支：让 Agent 会做选择</h2>
+    <p>真实业务流程不是线性的，需要根据中间结果走不同路径。LangGraph 的 conditional_edges 让你能动态决定下一步去哪个节点。</p>
+    <pre><code class="language-python"># 完整案例：智能客服 Agent 的条件路由
+from langgraph.graph import StateGraph, END
+from typing import TypedDict
+
+class CustomerServiceState(TypedDict):
+    user_query: str
+    intent: str             # 意图：refund/technical/faq/complaint
+    confidence: float       # 意图识别置信度
+    response: str
+    escalated: bool         # 是否升级到人工
+
+def classify_intent(state: CustomerServiceState) -> dict:
+    """识别用户意图。"""
+    query = state["user_query"]
+    # 用 LLM 做意图分类
+    result = llm.classify(query, categories=["refund", "technical", "faq", "complaint"])
+    return {"intent": result.category, "confidence": result.confidence}
+
+def route_by_intent(state: CustomerServiceState) -> str:
+    """根据意图和置信度路由到不同处理节点。"""
+    # 置信度低 → 升级人工
+    if state["confidence"] < 0.7:
+        return "escalate"
+    # 高风险意图（投诉）→ 升级人工
+    if state["intent"] == "complaint":
+        return "escalate"
+    # 其他 → 对应处理节点
+    return state["intent"]
+
+def handle_refund(state: CustomerServiceState) -> dict:
+    """处理退款请求。"""
+    response = llm.generate(f"处理退款请求：{state['user_query']}")
+    return {"response": response}
+
+def handle_technical(state: CustomerServiceState) -> dict:
+    """处理技术问题。"""
+    docs = kb.search(state["user_query"])
+    response = llm.generate(f"基于文档回答技术问题：{docs}")
+    return {"response": response}
+
+def escalate_to_human(state: CustomerServiceState) -> dict:
+    """升级到人工客服。"""
+    return {"escalated": True, "response": "已为您转接人工客服..."}
+
+# 构建工作流
+workflow = StateGraph(CustomerServiceState)
+workflow.add_node("classify", classify_intent)
+workflow.add_node("refund", handle_refund)
+workflow.add_node("technical", handle_technical)
+workflow.add_node("escalate", escalate_to_human)
+
+workflow.set_entry_point("classify")
+workflow.add_conditional_edges("classify", route_by_intent, {
+    "refund": "refund",
+    "technical": "technical",
+    "escalate": "escalate",
+})
+for node in ["refund", "technical", "escalate"]:
+    workflow.add_edge(node, END)
+
+app = workflow.compile()
+
+# 这个 Agent 的行为：
+# 1. 先识别用户意图
+# 2. 如果意图明确 → 走对应自动处理
+# 3. 如果意图模糊或涉及投诉 → 升级人工
+# 这就是「条件分支」的价值——Agent 会做判断</code></pre>
+
+    <h2 class="section" id="human-in-loop"><span class="idx">★</span> 四、人在回路（Human-in-the-Loop）</h2>
+    <p>AI 不应该在所有事情上都自主决策——涉及金钱、安全、不可逆操作时，必须有人工确认环节。这就是 Human-in-the-Loop（HITL）。LangGraph 原生支持这种模式。</p>
+    <pre><code class="language-python"># 人在回路的实现：Agent 在关键节点暂停，等待人工确认
+from langgraph.graph import StateGraph, END
+
+class OrderAgentState(TypedDict):
+    order_details: dict
+    needs_approval: bool
+    approved: bool
+    result: str
+
+def process_order(state: OrderAgentState) -> dict:
+    """处理订单，涉及大额时需要人工确认。"""
+    order = state["order_details"]
+    # 金额超过 10000 的订单需要人工确认
+    if order["amount"] > 10000:
+        return {"needs_approval": True}
+    # 小额订单直接处理
+    return {"needs_approval": False, "result": execute_order(order)}
+
+def check_approval(state: OrderAgentState) -> str:
+    """路由：需要确认就走审批，否则直接完成。"""
+    if state["needs_approval"]:
+        return "await_approval"
+    return "complete"
+
+def await_human_approval(state: OrderAgentState) -> dict:
+    """暂停，等待人工审批结果。"""
+    # LangGraph 的 interrupt 机制：
+    # Agent 在这里暂停，把控制权交给人类
+    # 人类审批后，恢复执行
+    approval = interrupt(
+        prompt=f"订单 {state['order_details']} 需要审批，是否批准？",
+        choices=["approve", "reject"]
+    )
+    if approval == "approve":
+        return {"approved": True, "result": execute_order(state["order_details"])}
+    else:
+        return {"approved": False, "result": "订单已取消"}
+
+# 构建带 HITL 的工作流
+workflow = StateGraph(OrderAgentState)
+workflow.add_node("process", process_order)
+workflow.add_node("await_approval", await_human_approval)
+
+workflow.set_entry_point("process")
+workflow.add_conditional_edges("process", check_approval, {
+    "await_approval": "await_approval",
+    "complete": END,
+})
+workflow.add_edge("await_approval", END)
+
+# 关键：compile 时启用 interrupt，让 Agent 能在指定节点暂停
+app = workflow.compile(checkpointer=MemorySaver(), interrupt_before=["await_approval"])
+
+# HITL 的典型场景：
+# 1. 大额交易（金额超过阈值）
+# 2. 不可逆操作（删除数据、发送邮件）
+# 3. 高风险决策（医疗建议、法律文书）
+# 4. 模型不确定时（置信度低）</code></pre>
+
+    <h2 class="section" id="tool-use"><span class="idx">★</span> 五、工具调用：让 Agent 连接真实世界</h2>
+    <p>Agent 的强大在于它能调用外部工具——查数据库、调 API、执行代码。LangGraph 让工具调用成为图中的一个节点，可以和条件分支组合。</p>
+    <pre><code class="language-python"># Agent 工具调用的完整实现
+from langgraph.prebuilt import ToolNode
+from langchain.tools import tool
+
+# 定义 Agent 可用的工具
+@tool
+def search_database(query: str) -> str:
+    """搜索公司数据库。"""
+    return db.execute(query)
+
+@tool
+def send_email(to: str, subject: str, body: str) -> str:
+    """发送邮件（高风险操作，需配合 HITL）。"""
+    email_service.send(to, subject, body)
+    return "邮件已发送"
+
+@tool
+def calculate(expression: str) -> str:
+    """执行数学计算。"""
+    return str(eval(expression))  # 生产环境用安全的 eval
+
+tools = [search_database, send_email, calculate]
+
+def agent_node(state: AgentState) -> dict:
+    """Agent 决策节点：决定调用哪个工具。"""
+    messages = state["messages"]
+    # 让 LLM 决定下一步用什么工具
+    response = llm_with_tools.invoke(messages)
+    return {"messages": [response]}
+
+def should_use_tool(state: AgentState) -> str:
+    """判断 Agent 是否需要调用工具，还是直接回答。"""
+    last_message = state["messages"][-1]
+    if last_message.tool_calls:  # LLM 决定调用工具
+        return "tools"
+    return END  # 没有工具调用，任务完成
+
+# 构建带工具的 Agent
+workflow = StateGraph(AgentState)
+workflow.add_node("agent", agent_node)
+workflow.add_node("tools", ToolNode(tools))  # 工具执行节点
+
+workflow.set_entry_point("agent")
+# 条件路由：需要工具 → tools，不需要 → 结束
+workflow.add_conditional_edges("agent", should_use_tool)
+# 工具执行完，回到 agent 做下一步决策（循环）
+workflow.add_edge("tools", "agent")
+
+app = workflow.compile()
+
+# 这个 Agent 的循环逻辑：
+# 1. agent 节点：LLM 看消息，决定调工具还是回答
+# 2. 如果调工具 → tools 节点执行 → 回到 agent（循环）
+# 3. 如果直接回答 → 结束
+# 这就是 ReAct（Reason + Act）模式的图实现</code></pre>
+
+    <h2 class="section" id="error-handling"><span class="idx">★</span> 六、错误处理与回退</h2>
+    <p>真实世界的 Agent 必须能处理工具调用失败、超时、异常输入。LangGraph 支持在图里加入错误处理节点。</p>
+    <pre><code class="language-python"># Agent 的错误处理机制
+def safe_tool_call(tool_func, *args, max_retries=3):
+    """带重试和降级的工具调用。"""
+    for attempt in range(max_retries):
+        try:
+            return tool_func(*args)
+        except TimeoutError:
+            if attempt < max_retries - 1:
+                time.sleep(2 ** attempt)  # 指数退避
+                continue
+            return {"error": "工具调用超时，请稍后重试"}
+        except Exception as e:
+            return {"error": f"工具调用失败：{str(e)}"}
+
+def fallback_node(state: AgentState) -> dict:
+    """错误降级节点：工具失败时的备选方案。"""
+    return {
+        "response": "抱歉，处理过程中遇到问题。"
+                    "我已为您转接人工客服，请稍候。"
+    }
+
+# 在工作流里加入错误处理路径
+workflow.add_node("fallback", fallback_node)
+# 工具节点失败时路由到 fallback
+workflow.add_conditional_edges("tools", check_tool_success, {
+    "success": "agent",
+    "failure": "fallback",
+})</code></pre>
+
+    <h2 class="section" id="observability"><span class="idx">★</span> 七、Agent 的可观测性</h2>
+    <p>Agent 的调试比普通应用难得多——因为它会自主决策，行为不可预测。必须做好可观测性：记录每一步的状态、工具调用、LLM 输出。LangGraph 的 checkpointer 能持久化每个节点的状态，支持回放和调试。</p>
+    <pre><code class="language-python"># Agent 的可观测性配置
+from langgraph.checkpoint.memory import MemorySaver
+
+# 启用状态持久化（生产环境用 PostgresSaver）
+checkpointer = MemorySaver()
+app = workflow.compile(checkpointer=checkpointer)
+
+# 每次执行都能回溯完整的状态轨迹
+config = {"configurable": {"thread_id": "session-123"}}
+result = app.invoke(initial_state, config=config)
+
+# 获取完整的状态历史
+states = list(app.get_state_history(config))
+for state in states:
+    print(f"节点: {state.next}, 状态: {state.values}")
+# 这让你能：
+# 1. 调试：看每一步的状态变化，定位哪里出了问题
+# 2. 回放：从任意节点重新执行
+# 3. 分析：统计 Agent 的行为模式，优化流程
+# 4. 审计：记录关键决策，满足合规要求</code></pre>
+
+    <h2 class="section" id="patterns"><span class="idx">★</span> 八、常见 Agent 设计模式</h2>
+    <ul>
+      <li><strong>ReAct 模式</strong>：推理 → 行动 → 观察的循环，最经典的 Agent 模式，适合工具调用密集的场景。</li>
+      <li><strong>Plan-and-Execute</strong>：先规划完整步骤，再逐步执行，适合复杂任务，减少中途偏差。</li>
+      <li><strong>多 Agent 协作</strong>：多个专职 Agent 分工（如一个负责搜索、一个负责写作、一个负责审查），适合大型任务。</li>
+      <li><strong>人在回路</strong>：关键节点暂停等人确认，适合高风险场景。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们用 LangGraph 构建了完整的 Agent 系统。核心要点：</p>
+    <ul>
+      <li><strong>状态图</strong>：LangGraph 用 StateGraph 管理 Agent 状态，节点是动作，边是流转，让 Agent 行为可视、可调试。</li>
+      <li><strong>条件分支</strong>：conditional_edges 让 Agent 根据中间结果动态路由，处理非线性业务流程。</li>
+      <li><strong>人在回路</strong>：高风险操作用 interrupt 暂停等人确认，Agent 不在所有事上都自主决策。</li>
+      <li><strong>工具调用</strong>：ToolNode + 条件路由实现 ReAct 循环（推理→行动→观察），让 Agent 连接真实世界。</li>
+      <li><strong>错误处理</strong>：重试、退避、降级，Agent 必须能优雅处理工具失败。</li>
+      <li><strong>可观测性</strong>：checkpointer 持久化状态历史，支持调试、回放、分析、审计。</li>
+    </ul>
+    <p>Agent 是 LLM 从「回答问题」走向「完成任务」的关键跃迁。下一章我们为你规划一条完整的学习路径，把前面所有知识串成体系。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

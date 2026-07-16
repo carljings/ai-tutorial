@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -129,7 +127,7 @@
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
-      <a href="102-tfm-ffn.html" class="active" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
+      <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
@@ -305,67 +303,290 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 102 章 · Transformer 原理深挖</span>
-<h1>前馈网络：注意力之后的"记忆"层</h1><p class="lead">FFN 占 Transformer 参数量 2/3，是事实上的知识存储。两层 MLP + 激活，中间维扩 4×。SwiGLU 激活的改进（Llama/GLM）。为什么 FFN 是 key-value 记忆假说。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>FFN 占 Transformer 参数量 2/3，是事实上的知识存储。两层 MLP + 激活，中间维扩 4×。SwiGLU 激活的改进（Llama/GLM）。为什么 FFN 是 key-value 记忆假说。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 102 · Transformer 深度系列</span>
+      <h1>前馈网络 FFN<br>从 MLP 到 GLU 再到 SwiGLU 的演进</h1>
+      <p class="lead">注意力层负责「在 token 之间传递信息」，但每个 token 自己也需要「思考」——把聚合来的信息加工、变换、提炼。这活儿由前馈网络（FFN）干。它看似只是两层全连接夹一个激活函数，却占了整个 Transformer 参数量的 2/3。本章讲清 FFN 为什么是「逐位置的记忆」、MLP 的局限、GLU 的门控思想、以及为什么 SwiGLU 成了 Llama/GLM/Mistral 的标配激活。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 94-98 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="role"><span class="idx">★</span> FFN 在 Transformer 里的角色</h2>
+    <p>一个标准的 Transformer block 由两部分组成：<strong>注意力层 + 前馈网络（FFN）</strong>。注意力让 token 之间交换信息，FFN 则让每个 token 独立地加工自己的表示。</p>
+
+    <blockquote>
+      Transformer Block: x → Attention(x) → FFN(x) → 输出<br>
+      其中 FFN 对每个位置<strong>独立</strong>施加同一个两层 MLP。
+    </blockquote>
+
+    <p>注意「独立」二字。注意力是 token 之间的操作（不同位置交互），而 <strong>FFN 是逐位置（position-wise）的</strong>——每个 token 的向量被同一个 MLP 独立处理，token 之间不交互。这就像注意力是「开会交流」，FFN 是「会后各自消化」。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">输入：n 个 token 向量</div>
+        <div class="node sky">注意力层：token 之间交换信息（全局）</div>
+        <div class="node violet">FFN：每个 token 独立过两层 MLP（局部）</div>
+        <div class="node accent">输出：信息既交流过，又加工过</div>
+      </div>
+      <div class="cap">图 102-1 · 一个 Transformer block = 注意力（交流）+ FFN（消化）</div>
+    </div>
+
+    <h3>FFN 是「记忆」层</h3>
+    <p>有个很深的洞察：FFN 在功能上类似一种<strong>键值记忆（key-value memory）</strong>。第一层线性变换的权重矩阵，可以看作一组「模式探测器」——每个隐藏神经元是一个探测器，当输入匹配某种模式时激活。第二层把激活的探测器对应的「值」加起来输出。研究表明，训练好的 FFN 确实在存储<strong>事实知识</strong>（「巴黎是法国首都」这类），这就是为什么「知识-editing」大多改 FFN 的权重。</p>
+
+    <h2 class="section" id="params-share"><span class="idx">01</span> FFN 占了多少参数</h2>
+    <p>这是个常被忽视的事实：<strong>FFN 是 Transformer 参数的大头</strong>。原始 FFN 的结构：</p>
+
+    <blockquote>
+      FFN(x) = W2 · activation( W1 · x + b1 ) + b2<br>
+      W1: d_model × d_ff（升维）<br>
+      W2: d_ff × d_model（降维）
+    </blockquote>
+
+    <p>关键在 <strong>d_ff 通常 = 4 × d_model</strong>（原论文设置）。所以一个 FFN 的参数量是 2 × d_model × (4 × d_model) = <strong>8 × d_model²</strong>。而一个注意力层的参数（上一章算过）是 4 × d_model²。<strong>FFN 的参数是注意力的两倍</strong>！</p>
+
+    <p>整个 Transformer block 参数 = 注意力(4d²) + FFN(8d²) = 12d²。FFN 占 2/3。这就是为什么<strong>压缩模型时 FFN 是重点</strong>——后来的 MoE（第 116 章）就是把那个巨大的 FFN 拆成多个专家，按需激活来省计算。</p>
+
+    <h2 class="section" id="relu-mlp"><span class="idx">02</span> 第一代：ReLU MLP（原始 Transformer）</h2>
+    <p>2017 年原论文用的 FFN 极其朴素：</p>
+
+    <blockquote>
+      FFN(x) = W2 · ReLU( W1 · x )<br>
+      d_ff = 4 × d_model，激活函数 ReLU
+    </blockquote>
+
+    <div class="code-title">relu_ffn.py —— 原始 ReLU FFN</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+class ReLUFFN(nn.Module):
+    def __init__(self, d_model, d_ff=None):
+        super().__init__()
+        d_ff = d_ff or 4 * d_model  # 默认 4 倍升维
+        self.w1 = nn.Linear(d_model, d_ff)
+        self.w2 = nn.Linear(d_ff, d_model)
+        self.act = nn.ReLU()
+
+    def forward(self, x):
+        return self.w2(self.act(self.w1(x)))
+
+# 参数对比
+ffn = ReLUFFN(d_model=512)
+attn_params = 4 * 512 * 512      # 注意力近似参数
+ffn_params = sum(p.numel() for p in ffn.parameters())
+print(f"注意力层参数: {attn_params}")   # 1048576
+print(f"FFN 参数: {ffn_params}")       # 2099200 ≈ 2 倍
+</code></pre>
+
+    <p>ReLU 的问题：①有「死区」（负数全变成 0，梯度为 0，神经元可能永久死亡）；②在深层网络里梯度不够平滑；③表达能力有限。随着模型变大，ReLU 的不足逐渐显现，于是出现了改进。</p>
+
+    <h2 class="section" id="gelu"><span class="idx">03</span> 第二代：GELU（BERT、GPT-2 的选择）</h2>
+    <p>2016 年提出的 <strong>GELU（Gaussian Error Linear Unit）</strong>成了 BERT、GPT-2、GPT-3 的标配。它的思路：<strong>用输入的概率来决定激活强度，而不是硬性截断</strong>。</p>
+
+    <blockquote>
+      GELU(x) = x · Φ(x)，其中 Φ 是标准正态分布的累积分布函数<br>
+      近似公式：GELU(x) ≈ 0.5x · (1 + tanh(√(2/π)·(x + 0.044715·x³)))
+    </blockquote>
+
+    <p>直观理解：ReLU 是「x&gt;0 全保留，x≤0 全杀」。GELU 是「<strong>x 越大保留越多，x 越小抑制越多，但过渡是平滑的</strong>」。它在 0 附近有平滑的过渡，而不是 ReLU 那种硬折角。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 GELU = ReLU 的平滑版</div>
+      <p>数学上 GELU 和 ReLU 长得很像（都是单调递增、保留正值、抑制负值），但 GELU 在 0 处可导、平滑。这种平滑让深层网络的训练更稳定，梯度更友好。可以理解为「带 dropout 味道的 ReLU」——它隐含地按概率保留或抑制输入。</p>
+    </div>
+
+    <h2 class="section" id="glu"><span class="idx">04</span> 第三代：GLU 引入门控</h2>
+    <p>2017 年论文《Language Modeling with Gated Convolutional Networks》提出了 <strong>GLU（Gated Linear Unit）</strong>，引入了「门控」思想。核心改动：<strong>用两路线性变换，一路过激活当「门」，另一路不过激活当「值」，两者相乘</strong>。</p>
+
+    <blockquote>
+      GLU(x) = ( W1·x + b1 ) ⊗ activation( W2·x + b2 )<br>
+      ⊗ 是逐元素相乘
+    </blockquote>
+
+    <p>这里的创新是：<strong>「门」控制信息通过的比例</strong>。门为 1 时全通过，门为 0 时全挡住。这比单纯的激活函数多了<strong>动态调节</strong>的能力——模型可以学到「对某些特征开门、对某些特征关门」。</p>
+
+    <p>但这带来一个代价：GLU 用了<strong>两个升维矩阵 W1、W2</strong>，参数量翻倍。如果都升到 4d_model，参数就是原来的 2 倍。为了控制参数，现代实现通常把 d_ff 从 4d 降到 8d/3 ≈ 2.67d，这样 GLU 的总参数和原始 ReLU FFN 接近（2 × 2.67d × d_model ≈ 5.33d² vs 原来的 8d²，实际还更省）。</p>
+
+    <h2 class="section" id="swiglu"><span class="idx">05</span> 第四代：SwiGLU（现代大模型标配）</h2>
+    <p>2020 年 Google 论文《GLU Variants Improve Transformer》测试了各种 GLU 变体，发现 <strong>SwiGLU</strong> 效果最好：<strong>把 GLU 里的激活函数换成 Swish</strong>。</p>
+
+    <blockquote>
+      SwiGLU(x) = Swish( W1·x ) ⊗ ( W2·x )<br>
+      其中 Swish(z) = z · sigmoid(βz)，通常 β=1
+    </blockquote>
+
+    <p>Swish（也叫 SiLU）是 z·sigmoid(z)，它结合了 ReLU 的单调和 sigmoid 的平滑。SwiGLU = Swish 当门 × 线性值，效果显著好于 ReLU、GELU 的 GLU 变体。</p>
+
+    <p><strong>Llama 全系列、GLM、Mistral、Qwen、DeepSeek 都用 SwiGLU</strong>。它已经是 2024+ 大模型的默认 FFN。配置上，d_ff 通常设为 8/3 × d_model（保持总参数和原始 4d 的 ReLU FFN 相当），并向上取整到 256 或 8 的倍数（硬件友好）。</p>
+
+    <div class="code-title">swiglu_ffn.py —— SwiGLU 实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class SwiGLUFFN(nn.Module):
+    def __init__(self, d_model, d_ff=None):
+        super().__init__()
+        # d_ff 默认 8/3 * d_model，让总参数和原 4d ReLU FFN 接近
+        if d_ff is None:
+            d_ff = int((8 / 3) * d_model)
+            d_ff = math.ceil(d_ff / 256) * 256  # 向上取整到 256 倍数（硬件友好）
+        # 注意：SwiGLU 有两个「升维」矩阵（门 + 值）+ 一个「降维」矩阵
+        self.w_gate = nn.Linear(d_model, d_ff, bias=False)  # 门
+        self.w_up   = nn.Linear(d_model, d_ff, bias=False)  # 值
+        self.w_down = nn.Linear(d_ff, d_model, bias=False)  # 降维
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"前馈网络：注意力之后的"记忆"层"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="101-tfm-flash-attention.html"><div class="lbl">← 上一章</div><div class="ttl">101 · FlashAttention：让注意力不再是显存噩梦</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="103-tfm-layernorm.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">103 · LayerNorm 与残差：让深层 Transformer 可训练</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 102 章 · 前馈网络：注意力之后的"记忆"层</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x):
+        # Swish(门) ⊙ 值，再降维
+        return self.w_down(F.silu(self.w_gate(x)) * self.w_up(x))
+
+# 对比四种 FFN 的参数量
+d_model = 512
+print("ReLU FFN:", sum(p.numel() for p in ReLUFFN(d_model).parameters()))
+# 用 GELU 版本类似
+gelu_ffn = nn.Sequential(nn.Linear(d_model, 4*d_model), nn.GELU(), nn.Linear(4*d_model, d_model))
+print("GELU FFN:", sum(p.numel() for p in gelu_ffn.parameters()))
+print("SwiGLU FFN:", sum(p.numel() for p in SwiGLUFFN(d_model).parameters()))
+# SwiGLU 的 d_ff 是 8/3*d≈1365，两个升维矩阵，总参数和 4d ReLU FFN 接近
+</code></pre>
+
+    <p>注意 SwiGLU 的结构：它是<strong>三个矩阵</strong>（gate、up、down），而不是普通 FFN 的两个（up、down）。但通过把 d_ff 从 4d 降到 8d/3，总参数保持和原来差不多。</p>
+
+    <h2 class="section" id="evolution-table"><span class="idx">06</span> 四代 FFN 横向对比</h2>
+    <table>
+      <thead><tr><th>方案</th><th>公式</th><th>d_ff</th><th>参数</th><th>代表模型</th></tr></thead>
+      <tbody>
+        <tr><td>ReLU FFN</td><td>W2·ReLU(W1·x)</td><td>4d</td><td>8d²</td><td>原始 Transformer</td></tr>
+        <tr><td>GELU FFN</td><td>W2·GELU(W1·x)</td><td>4d</td><td>8d²</td><td>BERT, GPT-2/3</td></tr>
+        <tr><td>GLU</td><td>(W1·x)⊗σ(W2·x)</td><td>~2.67d</td><td>~5.3d²</td><td>早期实验</td></tr>
+        <tr><td>SwiGLU</td><td>Swish(W1·x)⊗(W2·x)</td><td>~2.67d</td><td>~5.3d²</td><td>Llama, GLM, Mistral</td></tr>
+      </tbody>
+    </table>
+
+    <p>演进逻辑很清晰：<strong>从「硬激活」到「门控软激活」</strong>。门控让模型能动态决定信息通过的比例，比固定激活函数灵活得多。这也是为什么 SwiGLU 在大模型上普遍优于 GELU——模型越大，门控带来的额外表达力越值。</p>
+
+    <h2 class="section" id="why-swiglu-wins"><span class="idx">07</span> 为什么 SwiGLU 效果最好</h2>
+    <p>Google 的论文做了大量对照实验。结论：①所有 GLU 变体都比非门控的（ReLU、GELU）好；②SwiGLU（Swish 当门）比 GEGLU（GELU 当门）、ReGLU（ReLU 当门）略好。</p>
+
+    <p>直觉解释：</p>
+    <ul>
+      <li><strong>门控 &gt; 非门控</strong>：门控让 FFN 能「选择性地放大或抑制」不同特征，而非门控只能放大（ReLU）或平滑放大（GELU）。</li>
+      <li><strong>Swish 门 &gt; ReLU 门</strong>：Swish 在 0 处平滑可导，梯度更健康；ReLU 门有死区，可能让某些门永久关闭。</li>
+      <li><strong>Swish 门 &gt; GELU 门</strong>：差异较小，但 Swish 计算更简单（z·sigmoid(z) 比 GELU 的 erf 形式便宜），工程上更友好。</li>
+    </ul>
+
+    <div class="callout note">
+      <div class="head">📌 SwiGLU 的代价：多一个矩阵</div>
+      <p>SwiGLU 有三个矩阵（gate/up/down），比普通 FFN 多一个。但通过 d_ff 降到 8d/3，总参数不变。代价是<strong>多一次矩阵乘</strong>（前向多算 W_gate·x），计算量略增。实测这个开销 &lt; 5%，而质量提升明显，值得。</p>
+    </div>
+
+    <h2 class="section" id="residual"><span class="idx">08</span> FFN 与残差、归一化的位置</h2>
+    <p>FFN 不会单独用，它嵌在 Transformer block 里，和残差连接、归一化一起。完整流程：</p>
+
+    <blockquote>
+      h = LayerNorm(x + Attention(x))<br>
+      out = LayerNorm(h + FFN(h))
+    </blockquote>
+
+    <p>这是「Post-Norm」（归一化在残差之后）。现代大模型常用「Pre-Norm」（归一化在残差之前）：</p>
+
+    <blockquote>
+      h = x + Attention(LayerNorm(x))<br>
+      out = h + FFN(LayerNorm(h))
+    </blockquote>
+
+    <p>Pre-Norm 训练更稳定（梯度更直接），是 Llama、GLM 等的选择。有些模型用 RMSNorm 替代 LayerNorm 省计算（第 103 章专题）。这些细节共同决定了 FFN 在 block 里怎么发挥作用。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ FFN 的「逐位置」性质被 MoE 打破</div>
+      <p>标准 FFN 对所有 token 用同一组权重。但 MoE（Mixture of Experts）打破了这一点：它准备了多个 FFN（「专家」），每个 token 由 router 选一个或几个 FFN 处理。这样总参数很大但每次激活的少，是稀疏激活。Llama 3-MoE、Mixtral、DeepSeek 都用 MoE。FFN 从「稠密」走向「稀疏」是当前大模型的重要趋势。</p>
+    </div>
+
+    <h2 class="section" id="exp"><span class="idx">09</span> 实验：四种 FFN 效果对比</h2>
+    <p>用一个简单的语言建模任务，对比四种 FFN 的损失下降：</p>
+
+    <div class="code-title">compare_ffn.py —— 四种 FFN 的效果对比</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+class ReLUFFN(nn.Module):
+    def __init__(self, d):
+        super().__init__()
+        self.w1 = nn.Linear(d, 4*d); self.w2 = nn.Linear(4*d, d)
+    def forward(self, x): return self.w2(F.relu(self.w1(x)))
+
+class GELUFFN(nn.Module):
+    def __init__(self, d):
+        super().__init__()
+        self.w1 = nn.Linear(d, 4*d); self.w2 = nn.Linear(4*d, d)
+    def forward(self, x): return self.w2(F.gelu(self.w1(x)))
+
+class SwiGLUFFN(nn.Module):
+    def __init__(self, d):
+        super().__init__()
+        ff = math.ceil(8*d/3/64)*64
+        self.g = nn.Linear(d, ff, bias=False)
+        self.u = nn.Linear(d, ff, bias=False)
+        self.d = nn.Linear(ff, d, bias=False)
+    def forward(self, x): return self.d(F.silu(self.g(x)) * self.u(x))
+
+# 简单任务：随机数据上的序列重建
+torch.manual_seed(0)
+d_model = 128
+seq_len = 32
+x = torch.randn(8, seq_len, d_model)
+target = torch.randn(8, seq_len, d_model)
+
+for name, ffn_cls in [("ReLU", ReLUFFN), ("GELU", GELUFFN), ("SwiGLU", SwiGLUFFN)]:
+    torch.manual_seed(0)
+    ffn = ffn_cls(d_model)
+    opt = torch.optim.Adam(ffn.parameters(), lr=1e-2)
+    for step in range(200):
+        loss = F.mse_loss(ffn(x), target)
+        opt.zero_grad(); loss.backward(); opt.step()
+    print(f"{name:8s} 最终 loss: {loss.item():.4f}")
+</code></pre>
+
+    <p>在真实语言建模任务上，SwiGLU 通常比 ReLU、GELU 低 0.1~0.3 的 perplexity，差异虽小但对最终质量影响显著。这也是为什么所有主流大模型都迁移到了 SwiGLU。</p>
+
+    <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">FFN 的角色</div>
+        <ul style="margin:6px 0;">
+          <li>逐位置的两层 MLP，独立加工每个 token</li>
+          <li>类键值记忆，存储事实知识</li>
+          <li>占 Transformer 参数的 2/3</li>
+          <li>d_ff 通常 4d（ReLU/GELU）或 8d/3（SwiGLU）</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">演进路线</div>
+        <ul style="margin:6px 0;">
+          <li>ReLU（硬激活）→ GELU（平滑）</li>
+          <li>→ GLU（引入门控）→ SwiGLU（Swish 门）</li>
+          <li>门控带来动态选择性，效果更好</li>
+          <li>SwiGLU 是 2024+ 大模型的事实标准</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>FFN 讲完了。回到 Transformer block 的另一半——注意力和 FFN 都需要<strong>归一化</strong>来稳定训练。原始 Transformer 用 LayerNorm，现代大模型改用更轻的 RMSNorm。为什么不用 BatchNorm？Pre-Norm 和 Post-Norm 谁更好？下一章深入<strong>层归一化</strong>的方方面面。</p>
+
+    <blockquote>
+      下一章：<a href="103-tfm-layernorm.html">第 103 章 · LayerNorm 与 RMSNorm：让深层 Transformer 可训练</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

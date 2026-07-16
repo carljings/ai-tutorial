@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>高级编程实战案例（第二辑） · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>高级编程实战案例（第二辑） · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -78,7 +85,7 @@
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
-      <a href="64-advanced-coding.html" class="active" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
+      <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
       <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
@@ -295,16 +302,333 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>高级编程实战案例（第二辑）</h1><p class="lead">10 个进阶 AI 编程场景——从 prompt 到生产</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 编程不止是"写代码"</h2>
-    <p>AI 编程的能力远超"生成一段代码"——它能做代码审查、重构、调试、测试生成、文档编写、架构建议。本章用 10 个进阶场景展示 AI 编程的全谱系能力。</p>
-    <h2><span class="idx"></span>10 个进阶场景</h2>
-    <table class="data-table"><thead><tr><th>场景</th><th>AI 做什么</th><th>关键技巧</th></tr></thead><tbody><tr><td>代码审查</td><td>找 bug/安全漏洞/性能问题</td><td>给明确审查标准+少样本</td></tr><tr><td>自动重构</td><td>改善代码结构不改变行为</td><td>要求保持测试通过</td></tr><tr><td>测试生成</td><td>生成单元测试/边界用例</td><td>指定覆盖率目标</td></tr><tr><td>文档生成</td><td>从代码生成文档/注释</td><td>指定文档格式</td></tr><tr><td>调试辅助</td><td>分析报错+定位根因</td><td>给完整错误栈</td></tr><tr><td>SQL 生成</td><td>自然语言→SQL</td><td>给 schema+少样本</td></tr><tr><td>API 设计</td><td>从需求生成 API 设计</td><td>给 RESTful/GraphQL 规范</td></tr><tr><td>代码迁移</td><td>一种语言迁移到另一种</td><td>给目标语言惯用法</td></tr><tr><td>性能优化</td><td>分析瓶颈+建议优化</td><td>给 profiling 数据</td></tr><tr><td>安全审计</td><td>发现安全漏洞</td><td>给 OWASP 检查清单</td></tr></tbody></table>
-    <h3>场景详解：AI 代码审查</h3>
-    <p>AI 代码审查（如 GitHub Copilot Review/Cursor）能 7×24 不知疲倦地审查每一行代码。关键是给 AI 明确的审查标准——不是笼统的"审查这个 PR"，而是"检查 SQL 注入/XSS/权限/并发问题，按 Critical/Warning/Style 分类"。这比人工审查更一致、更全面（人工审查容易遗漏非自己专长的安全问题）。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 编程 10 个进阶场景：代码审查/重构/测试/文档/调试/SQL/API设计/迁移/优化/安全审计。核心技巧是给 AI 明确标准+少样本+完整上下文。AI 审查比人工更一致全面（尤其安全审查）。关键：把 AI 当"不知疲倦的初级工程师"，给清晰任务+标准+反馈。</p>
-    <div class="chapter-nav">
-      <a href="63-ai-investment.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 64 章 · 高级编程实战案例（第二辑）</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 64 · 实战案例系列</span>
+      <h1>高级编程实战<br>用 AI 做代码审查、Bug 定位、重构与测试生成</h1>
+      <p class="lead">AI 辅助编程早就不是「自动补全」那么简单了。今天的 LLM 能做代码审查、定位隐蔽 Bug、重构遗留代码、生成测试用例——这些都是高级工程师的核心工作。但工具再强，关键在于你会不会用。这一章把四个场景的实战 prompt 模板和完整工作流给你，让你把 AI 用成 10x 工程师的杠杆，而不是复制粘贴的拐杖。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="beyond-autocomplete"><span class="idx">★</span> 一、AI 编程的正确姿势</h2>
+    <p>很多人用 AI 编程还停留在「帮我写个函数」的阶段，这是对 AI 能力的巨大浪费。真正高效的工作流是让 AI 参与到编程的每一个环节：理解需求、设计方案、写代码、审查、测试、重构。但要做到这点，你必须学会写高质量的 prompt。</p>
+    <p>一个好的编程 prompt 有四个要素：<strong>明确角色</strong>（让 AI 扮演资深工程师）、<strong>充足上下文</strong>（相关代码、约束、目标）、<strong>具体任务</strong>（不要含糊）、<strong>输出格式</strong>（结构化输出便于使用）。接下来四个场景，我们逐一实战。</p>
+
+    <h2 class="section" id="code-review"><span class="idx">★</span> 二、代码审查：比人工更细致</h2>
+    <p>代码审查（Code Review）是保证代码质量的关键环节，但人工审查容易疲劳、遗漏、流于形式。AI 审查的优势是稳定、全面、可以覆盖大量边界情况。下面是一个经过实战验证的审查 prompt 模板。</p>
+    <pre><code class="language-python"># AI 代码审查的 prompt 模板（生产级）
+CODE_REVIEW_PROMPT = """你是资深 {language} 工程师，请审查以下代码。
+
+## 审查维度（逐项检查）
+1. **正确性**：逻辑是否正确？有无边界条件遗漏？空值/异常处理是否完整？
+2. **安全性**：有无 SQL 注入、XSS、敏感信息泄露、权限绕过风险？
+3. **性能**：有无 N+1 查询、不必要的循环、内存泄漏、O(n²) 可优化处？
+4. **可读性**：命名是否清晰？复杂度是否过高？是否需要拆分？
+5. **最佳实践**：是否符合 {language} 的惯用法和框架规范？
+
+## 待审查代码
+```{language}
+{code}
+```
+
+## 上下文（可选）
+业务背景：{context}
+已知约束：{constraints}
+
+## 输出格式
+按严重程度分级：
+- 🔴 严重（必须修复）：...
+- 🟡 建议（应该修复）：...
+- 🟢 优化（可以改进）：...
+
+每个问题给出：位置、问题描述、修复建议（含代码示例）。"""
+
+# 使用示例
+def review_code(code, language="python", context="", constraints=""):
+    prompt = CODE_REVIEW_PROMPT.format(
+        language=language, code=code,
+        context=context, constraints=constraints
+    )
+    response = call_llm(prompt, model="gpt-4o")
+    return response
+
+# 待审查的代码（故意埋了几个问题）
+buggy_code = '''
+def get_user_orders(user_id, db):
+    conn = db.connect()
+    cursor = conn.cursor()
+    # 获取用户所有订单
+    cursor.execute(f"SELECT * FROM orders WHERE user_id = {user_id}")
+    orders = cursor.fetchall()
+    result = []
+    for order in orders:
+        # 获取每个订单的商品
+        cursor.execute(f"SELECT * FROM items WHERE order_id = {order[0]}")
+        items = cursor.fetchall()
+        result.append({"order": order, "items": items})
+    return result
+'''
+
+review = review_code(buggy_code, language="python",
+                     context="电商系统，db 是 MySQL 连接",
+                     constraints="需要支持高并发")
+# AI 会指出：SQL 注入风险、N+1 查询、连接未关闭、无异常处理</code></pre>
+    <p>这段代码里埋了四个问题：SQL 注入（f-string 拼接）、N+1 查询（循环里查数据库）、连接泄漏（没 close）、无异常处理。一个好的 AI 审查能一次性全部指出，并给出修复代码。人工审查很可能只发现一两个。</p>
+
+    <h2 class="section" id="bug-hunting"><span class="idx">★</span> 三、Bug 定位：像侦探一样推理</h2>
+    <p>定位 Bug 是最耗时的开发活动。AI 的优势在于它能快速分析大量代码，找出人类容易忽略的因果链。关键是给 AI 提供足够的线索，让它做结构化推理。</p>
+    <pre><code class="language-python"># Bug 定位的 prompt 模板（侦探式推理）
+BUG_HUNT_PROMPT = """你是调试专家。请帮我定位以下 Bug。
+
+## Bug 现象
+{symptom}
+
+## 复现步骤
+{reproduction_steps}
+
+## 相关代码
+{relevant_code}
+
+## 已知的错误日志/堆栈
+{error_log}
+
+## 我的猜测（可选）
+{hypothesis}
+
+## 分析方法
+请用「假设-验证」的方法逐步推理：
+1. 列出所有可能的原因（按可能性排序）
+2. 对每个原因，指出如何在代码中验证
+3. 给出最可能的根因和修复方案
+
+## 输出格式
+**根因分析**：
+**证据链**：
+**修复方案**（含代码）：
+**预防建议**（如何避免同类 Bug）："""
+
+# 实战案例：一个诡异的内存泄漏
+bug_case = {
+    "symptom": "服务运行 6-8 小时后 OOM（内存溢出），重启后恢复",
+    "reproduction_steps": "压测环境跑 6 小时必现，但短时间测试无法复现",
+    "relevant_code": '''
+class ResponseCache:
+    def __init__(self):
+        self.cache = {}  # 简单的内存缓存
+
+    def get(self, key):
+        return self.cache.get(key)
+
+    def set(self, key, value):
+        self.cache[key] = value  # 存入缓存
+
+# 在请求处理中
+def handle_request(request):
+    cache_key = request.url + str(time.time())  # 每次时间不同
+    cache.set(cache_key, process(request))
+''',
+    "error_log": "MemoryError after 6h, RSS grows linearly",
+    "hypothesis": "我觉得是数据库连接没释放",
+}
+
+# AI 的分析会指出：
+# 根因：cache_key 包含 time.time()，每次请求都不同，缓存无限增长
+# 这是一个「无界缓存」的经典 Bug，不是数据库连接问题
+# 修复：改用 LRU 缓存或限制大小</code></pre>
+    <p>这个案例展示了 AI 定位 Bug 的价值：<strong>它能跳出开发者的思维定势</strong>。开发者怀疑是数据库连接，但 AI 通过分析代码发现真正的根因是缓存 key 设计导致内存无限增长。这种「跳出假设」的能力，是 AI 调试的核心价值。</p>
+
+    <h2 class="section" id="refactoring"><span class="idx">★</span> 四、重构：让遗留代码重获新生</h2>
+    <p>重构是工程师最不想做但又必须做的事。AI 重构的优势是耐心和全面——它能处理那些人类看一眼就想跑的超长函数。关键是 prompt 要明确重构的目标和约束。</p>
+    <pre><code class="language-python"># 重构的 prompt 模板（保守且安全）
+REFACTOR_PROMPT = """你是资深工程师，请重构以下代码。
+
+## 重构目标（按优先级）
+{goals}
+
+## 硬约束（不可违反）
+1. **不改变外部行为**：函数签名、输入输出、副作用必须保持一致
+2. **小步前进**：每次只做一个改进，便于 review
+3. **保留原有注释和业务逻辑**
+
+## 待重构代码
+```
+{code}
+```
+
+## 输出格式
+对每个改动：
+- **改动描述**：做了什么、为什么
+- **改动前**：（代码片段）
+- **改动后**：（代码片段）
+- **测试验证**：怎么确认行为没变
+
+最后给出完整的重构后代码。"""
+
+# 实战案例：重构一个 300 行的「上帝函数」
+god_function = '''
+def process_order(order, user, db, cache, email_service, inventory):
+    # 200 行混合了：验证、计价、库存、支付、邮件、日志
+    # 这里省略具体实现...
+    pass
+'''
+
+goals = """
+1. 拆分为单一职责的小函数
+2. 提取重复的验证逻辑
+3. 用策略模式替换复杂的 if-else
+4. 添加类型注解
+5. 补充关键路径的日志
+"""
+
+# AI 会把 process_order 拆成：
+# - validate_order()
+# - calculate_price()
+# - check_inventory()
+# - process_payment()
+# - send_confirmation()
+# 每个函数职责单一，便于测试和维护</code></pre>
+
+    <h3 class="section">4.1 重构的安全保障</h3>
+    <p>AI 重构最大的风险是「改对了结构但改错了行为」。所以一定要配合测试：重构前先跑一遍测试记录基准，重构后再跑一遍，结果必须一致。没有测试的代码不要让 AI 大规模重构——先让它生成测试，再重构。</p>
+
+    <h2 class="section" id="test-generation"><span class="idx">★</span> 五、测试生成：覆盖你想不到的边界</h2>
+    <p>写测试是开发者最常偷懒的事。AI 生成测试的价值不只是省时间，更在于它能想到人类想不到的边界情况——空值、并发、超大输入、非法格式。</p>
+    <pre><code class="language-python"># 测试生成的 prompt 模板（追求高覆盖率）
+TEST_GEN_PROMPT = """你是测试工程师，请为以下函数生成完整的单元测试。
+
+## 待测函数
+```
+{code}
+```
+
+## 函数说明
+- 功能：{description}
+- 输入约束：{input_constraints}
+- 已知的边界情况：{known_edge_cases}
+
+## 测试要求
+1. **正常路径**：覆盖主要使用场景
+2. **边界值**：空值、零值、最大值、最小值
+3. **异常输入**：非法类型、格式错误、超长字符串
+4. **并发安全**（如适用）：多线程调用
+5. **性能边界**：超大输入下的行为
+
+## 输出格式
+使用 {test_framework} 框架，每个测试用例包含：
+- 描述性的测试名（说明测试意图）
+- Arrange-Act-Assert 结构
+- 必要的 mock 和 fixture
+
+## 覆盖率目标
+行覆盖率 > 90%，分支覆盖率 > 80%"""
+
+# 实战案例：为一个支付函数生成测试
+def process_payment(amount, currency, user_id, payment_method):
+    """处理支付，返回交易结果。"""
+    if amount <= 0:
+        raise ValueError("金额必须大于 0")
+    if currency not in ["CNY", "USD", "EUR"]:
+        raise ValueError("不支持的货币")
+    if not user_id or not isinstance(user_id, str):
+        raise ValueError("无效的用户 ID")
+    # ... 实际支付逻辑
+    return {"status": "success", "transaction_id": "txn_123"}
+
+# AI 生成的测试会覆盖这些情况（人类常漏的）：
+test_cases_ai_would_generate = [
+    # 正常路径
+    "test_valid_cny_payment",
+    "test_valid_usd_payment",
+    # 边界值
+    "test_minimum_amount_001",         # 最小金额
+    "test_very_large_amount",          # 超大金额（溢出风险）
+    # 异常输入
+    "test_negative_amount_raises",
+    "test_zero_amount_raises",
+    "test_unsupported_currency_raises",
+    "test_none_user_id_raises",
+    "test_numeric_user_id_raises",      # 类型错误
+    # 边界情况
+    "test_amount_with_many_decimals",   # 浮点精度
+    "test_currency_case_insensitive",   # 大小写
+    "test_concurrent_payments",         # 并发
+    # 安全相关
+    "test_sql_injection_in_user_id",
+    "test_oversized_input",
+]</code></pre>
+    <p>看这个测试列表，人类写测试大概率只覆盖前几个正常路径和明显的异常。AI 会主动想到「浮点精度」「并发」「注入攻击」这些隐蔽的边界——这正是测试的价值所在。</p>
+
+    <h2 class="section" id="workflow"><span class="idx">★</span> 六、完整的 AI 编程工作流</h2>
+    <p>把前面四个场景串起来，就是一个完整的 AI 辅助开发工作流：</p>
+    <pre><code class="language-python"># 完整的 AI 辅助开发工作流
+class AIDevelopmentWorkflow:
+    """把 AI 融入开发的每一个环节。"""
+
+    def step1_understand(self, requirement):
+        """让 AI 帮你理解需求，列出实现要点和风险。"""
+        prompt = f"分析这个需求，列出实现步骤、技术选型、潜在风险：\n{requirement}"
+        return call_llm(prompt)
+
+    def step2_design(self, requirement, codebase_context):
+        """让 AI 设计方案，对比多个选项。"""
+        prompt = f"""基于现有代码：{codebase_context}
+        为这个需求设计 2-3 个实现方案，对比优缺点：{requirement}"""
+        return call_llm(prompt)
+
+    def step3_implement(self, design, context):
+        """让 AI 写代码，但你要 review 每一行。"""
+        prompt = f"按这个设计实现代码，遵循现有代码风格：\n{design}\n上下文：{context}"
+        return call_llm(prompt)
+
+    def step4_review(self, code):
+        """让 AI 审查代码（前面讲过）。"""
+        return review_code(code)
+
+    def step5_test(self, code):
+        """让 AI 生成测试（前面讲过）。"""
+        return generate_tests(code)
+
+    def step6_refactor(self, code):
+        """让 AI 重构（前面讲过）。"""
+        return refactor_code(code)
+
+    def step7_document(self, code):
+        """让 AI 写文档。"""
+        prompt = f"为这段代码生成清晰的 docstring 和使用说明：\n{code}"
+        return call_llm(prompt)
+
+# 关键认知：AI 是你的「配对编程伙伴」，不是替代品
+# 每一步你都要参与决策、验证结果、承担责任</code></pre>
+
+    <h2 class="section" id="anti-patterns"><span class="idx">★</span> 七、AI 编程的反模式：别这么用</h2>
+    <p>AI 编程用不好会适得其反。几个常见的反模式：</p>
+    <ul>
+      <li><strong>无脑复制粘贴</strong>：不看 AI 生成的代码就直接提交。后果：引入 Bug、安全漏洞、不符合团队规范。</li>
+      <li><strong>过度依赖</strong>：简单的问题也问 AI，丧失独立思考能力。</li>
+      <li><strong>上下文不足</strong>：给 AI 零散的代码片段，让它猜全貌。结果一定不好。</li>
+      <li><strong>用 AI 写、不测就上</strong>：AI 生成的代码必须有测试覆盖，否则就是定时炸弹。</li>
+      <li><strong>让 AI 做架构决策</strong>：架构决策要考虑业务、团队、历史，AI 的全局视野有限。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 AI 辅助编程的四个高级场景实战了一遍。核心要点：</p>
+    <ul>
+      <li><strong>代码审查</strong>：用结构化 prompt 让 AI 按正确性、安全性、性能、可读性、最佳实践五个维度审查，比人工更稳定全面。</li>
+      <li><strong>Bug 定位</strong>：用「假设-验证」式推理 prompt，让 AI 跳出你的思维定势找根因，特别适合疑难 Bug。</li>
+      <li><strong>重构</strong>：明确目标和约束（不改外部行为），小步前进，配合测试验证。</li>
+      <li><strong>测试生成</strong>：让 AI 覆盖正常路径 + 边界值 + 异常输入 + 并发 + 安全，它能想到人类想不到的角落。</li>
+      <li><strong>完整工作流</strong>：理解需求 → 设计 → 实现 → 审查 → 测试 → 重构 → 文档，每一步都用 AI 做 leverage。</li>
+      <li><strong>反模式</strong>：不 review 就提交、过度依赖、上下文不足、不测试就上线、让 AI 做架构决策。</li>
+    </ul>
+    <p>AI 编程的真正价值不是替代你写代码，而是放大你的能力——让你能处理更大的代码库、更复杂的问题、更高的质量标准。下一章我们会看开源社区的运营，理解如何用 AI 工具管理一个活跃的开源项目。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -153,7 +151,7 @@
       <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
       <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
       <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
-      <a href="124-vec-hnsw-insert.html" class="active" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
+      <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
       <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
       <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
       <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
@@ -305,66 +303,172 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 124 章 · 向量索引与 RAG 原理深挖</span>
-<h1>HNSW 插入算法详解</h1><p class="lead">从顶层 ep 出发、每层贪心找最近、用启发式选 M 个邻居（去冗余）、连接。为什么启发式选邻比简单选最近更鲁棒。构建时间复杂度。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>从顶层 ep 出发、每层贪心找最近、用启发式选 M 个邻居（去冗余）、连接。为什么启发式选邻比简单选最近更鲁棒。构建时间复杂度。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>从顶层 ep 出发、每层贪心找最近、用启发式选 M 个邻居（去冗余）、连接。为什么启发式选邻比简单选最近更鲁棒。构建时间复杂度。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 124 · 向量检索系列</span>
+      <h1>HNSW 插入算法详解<br>多层跳表、efConstruction 与邻居选择</h1>
+      <p class="lead">HNSW 是当今向量检索的事实标准，几乎所有主流向量库的默认索引都是它。但"会用"和"调好"之间隔着一整篇论文的距离。本文从插入算法这一最容易讲清楚也最关键的环节切入，拆解多层跳表结构、efConstruction 参数的作用，以及那个决定图质量的"启发式邻居选择"到底在做什么。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="skip-list-intuition"><span class="idx">★</span> 一切的起点：跳表思想</h2>
+    <p>HNSW 名字里的 "SW" 是 Small World（小世界图），前面的 "H" 是 Hierarchical（分层的）。要理解它，先回到一个更简单的数据结构：跳表（Skip List）。</p>
+    <p>跳表解决的问题是：在一个有序链表里查找，朴素做法要 O(n)。跳表的巧思是额外维护几层"稀疏的链表"，上层链表的节点是下层的一个子集，越往上越稀疏。查找时从最顶层开始，因为节点稀疏可以大步跳跃，逐层下沉做精细定位，整体复杂度降到 O(log n)。这就是"<strong>分层加速</strong>"的核心思想。</p>
+    <p>HNSW 把这个思想搬到图上。它构建的不是一棵链表，而是一组近邻图，叠加成多层。最底层（layer 0）包含<strong>所有</strong>节点，边最密集，负责精细检索；上层节点逐层按指数衰减抽稀，边稀疏，负责跨大距离快速接近目标。查询时从最高层的入口点出发，每层做一次贪心搜索，逐层下沉到 layer 0 取最终结果。</p>
+    <p>插入算法要解决的核心问题就是：<strong>新向量来了，该放进哪一层？和谁连边？</strong>这两个问题的答案决定了整个图的质量和检索性能。</p>
+
+    <h2 class="section" id="layer-assignment"><span class="idx">★</span> 第一件事：新节点放进哪一层</h2>
+    <p>HNSW 给每个节点分配一个"最大层级" l，它决定了节点出现在第 0 到第 l 层。l 的取值服从一个<strong>指数衰减分布</strong>，由参数 mL（level multiplier）控制：</p>
+    <p style="font-family:monospace;background:#f4f4f4;padding:12px;border-radius:6px;">l = floor( -ln(uniform(0,1)) × mL )</p>
+    <p>论文推荐的 mL = 1/ln(M)，其中 M 是每个节点的邻居数。这样分配的结果是：layer 0 有 100% 的节点，layer 1 约有 1/ln(M)，layer 2 约有 1/ln(M)²，依此类推。M=16 时，每升一层节点数大约缩减到 1/2.77，所以一个千万级图可能只有 4-6 层。</p>
+    <p>这个设计的精妙之处在于<strong>它的随机性是结构性的</strong>。你不需要预先知道数据分布，随机抛硬币式的层级分配自然产生"上层稀疏、下层密集"的层次，保证了从顶层入口点出发的贪心搜索能在 O(log N) 跳内接近目标。类比来说，这就像城市道路网：高速公路（上层）连接大区域，主干道（中层）连接街区，小路（底层）连通每栋楼——天然分层，导航时从高速下来逐级细化。</p>
+
+    <pre><code class="language-python"># 层级分配的概率模拟 —— 直观感受"指数衰减"
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+def assign_level(mL: float) -> int:
+    return int(-np.log(np.random.uniform()) * mL)
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+M = 16
+mL = 1.0 / np.log(M)
+N = 1_000_000
+levels = [assign_level(mL) for _ in range(N)]
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+for l in range(7):
+    cnt = sum(1 for x in levels if x >= l)
+    print(f"layer {l}: {cnt:7d} 节点  ({cnt/N*100:5.2f}%)")
+# 输出会显示 layer 0 全部、layer 1 ~36%、layer 2 ~13%... 指数衰减
+</code></pre>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"HNSW 插入算法详解"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="123-vec-hnsw.html"><div class="lbl">← 上一章</div><div class="ttl">123 · HNSW 分层小世界图：低延迟之王</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="125-vec-hnsw-query.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">125 · HNSW 查询算法与 ef 调优</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 124 章 · HNSW 插入算法详解</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="insert-walkthrough"><span class="idx">★</span> 第二件事：从顶层下沉找到候选邻居</h2>
+    <p>确定了新节点 q 的层级 l 后，插入过程分两段走：</p>
+    <ol>
+      <li><strong>从最高层到 l+1 层</strong>：在这几层做贪心搜索，但<strong>不连边</strong>，只是用 ef=1 的窄候选集快速下沉，目的是找到一个好的入口点传给下层。可以理解为"先开车到目标城市附近"。</li>
+      <li><strong>从 l 层到 layer 0</strong>：在每一层都用 efConstruction 宽度的搜索找到 efConstruction 个最近候选，从中选出 M 个（或 2M 个，在 layer 0）作为邻居，双向连边。</li>
+    </ol>
+    <p>这里的 efConstruction 是 HNSW 最关键的构建参数。它是<strong>搜索候选集的宽度</strong>：efConstruction 越大，每次连边时能挑选的候选越多，选出的邻居质量越高，最终图的导航性越好、召回越高；代价是构建慢、内存略增。论文推荐 efConstruction ∈ [100, 200]，实测 200 几乎是甜区上限，再大收益递减。</p>
+
+    <h3>贪心搜索的具体动作</h3>
+    <p>在第 i 层搜索时，维护两个集合：候选集 C（待探索的节点，按距离排序）和已访问集 W（结果集）。从入口点 ep 开始：</p>
+    <ol>
+      <li>从 C 中取出距离 q 最近的节点 c。</li>
+      <li>如果 c 比 W 中最远的还远，说明已经没有更近的了，停止。</li>
+      <li>否则遍历 c 的所有邻居，把没访问过的加入 C 和 W，W 超过 ef 就裁掉最远的。</li>
+      <li>重复直到 C 空。</li>
+    </ol>
+    <p>这个循环就是 HNSW 的搜索核心，插入和查询用的是同一套逻辑，只是 ef 宽度不同（插入用 efConstruction，查询用 efSearch）。</p>
+
+    <pre><code class="language-python"># HNSW 插入的伪代码精简实现 —— 揭开黑盒
+def insert(hnsw, q, M, efConstruction, mL):
+    # 1. 决定层级
+    l = assign_level(mL)
+    ep = hnsw.entry_point          # 当前入口点
+    L = hnsw.max_level             # 当前最高层
+
+    # 2. 从最高层到 l+1：窄搜索（ef=1）找入口
+    for i in range(L, l, -1):
+        W = greedy_search(hnsw, q, ep, ef=1, layer=i)
+        ep = nearest(W, q)         # 把最近的作为下层入口
+
+    # 3. 从 min(L, l) 到 0：宽搜索选邻居并连边
+    for i in range(min(L, l), -1, -1):
+        W = greedy_search(hnsw, q, ep, ef=efConstruction, layer=i)
+        neighbors = select_neighbors_heuristic(q, W, M, layer=i)
+        for n in neighbors:
+            add_bidirectional_edge(q, n, layer=i)
+            prune_neighbors(n, M, layer=i)   # 防止邻居数膨胀
+        ep = nearest(W, q)
+
+    # 4. 如果新节点比现有最高层还高，更新入口点
+    if l > L:
+        hnsw.entry_point = q
+        hnsw.max_level = l
+</code></pre>
+
+    <h2 class="section" id="heuristic-select"><span class="idx">★</span> 启发式邻居选择：图质量的真正秘密</h2>
+    <p>上面伪代码里那个 <code>select_neighbors_heuristic</code> 是 HNSW 区别于早期 NSW 算法的核心创新。最朴素的邻居选择是"从 efConstruction 个候选里挑最近的 M 个"，但这个朴素策略会导致图退化。</p>
+    <p>问题出在"<strong>聚类簇内的过度连接</strong>"。假设 q 在一个密集簇里，它最近的 M 个邻居大概率都在同一个簇内，全连上之后，q 就被"困"在簇里，无法导航到别的簇——检索时一旦落到这个簇就出不去，召回塌方。</p>
+    <p>启发式选择的做法是：把候选按距离从近到远排序，逐个考虑加入。对每个候选 e，检查"e 到已选邻居集合里任意一个的距离，是否小于 e 到 q 的距离"。如果是，说明 e 和已选邻居太近（在同一个方向），跳过；否则加入。这样选出的 M 个邻居会<strong>分布在不同方向</strong>，保证图的全局连通性。形象地说，朴素策略选了 M 个"都站在你正北方的朋友"，启发式选了"M 个分布在东南西北的朋友"，后者显然更能帮你导航。</p>
+
+    <pre><code class="language-python"># 启发式邻居选择 vs 朴素选择 —— 直观对比
+import numpy as np
+
+def select_naive(q, candidates, M):
+    """朴素：直接取最近的 M 个"""
+    dists = [dist(q, c) for c in candidates]
+    return [c for _, c in sorted(zip(dists, candidates))[:M]]
+
+def select_heuristic(q, candidates, M):
+    """启发式：保证多样性，避免同向聚集"""
+    sorted_c = sorted(candidates, key=lambda c: dist(q, c))
+    selected = []
+    for e in sorted_c:
+        if len(selected) >= M:
+            break
+        # 检查 e 是否离已选邻居太近（同向）
+        good = True
+        for r in selected:
+            if dist(e, r) < dist(e, q):
+                good = False
+                break
+        if good:
+            selected.append(e)
+    return selected
+
+# 模拟：q 在原点，候选分散在不同方向
+q = np.array([0.0, 0.0])
+candidates = [np.array(c) for c in [(0.1,0.1),(0.11,0.12),(0.1,0.2),(-0.9,0.1),(0.1,-0.95),(-0.8,-0.8)]]
+print("朴素:", select_naive(q, candidates, 3))     # 大概率全在第一象限
+print("启发式:", select_heuristic(q, candidates, 3)) # 会选不同象限的点
+</code></pre>
+
+    <h2 class="section" id="efconstruction"><span class="idx">★</span> efConstruction 实测：构建质量 vs 速度</h2>
+    <p>理论说了一堆，实测最有说服力。我们用 FAISS 构建不同 efConstruction 的 HNSW，对比构建时间、内存、最终召回。结论通常是：efConstruction 从 40 涨到 200，召回显著提升（可能从 0.88 到 0.97）；从 200 涨到 500，召回提升不到 1%，但构建时间翻倍——这是典型的边际递减。</p>
+
+    <pre><code class="language-python"># efConstruction 网格搜索
+import faiss, numpy as np, time
+
+d = 128; N = 500_000
+xb = np.random.randn(N, d).astype(np.float32)
+faiss.normalize_L2(xb)
+xq = np.random.randn(1000, d).astype(np.float32); faiss.normalize_L2(xq)
+
+# ground truth
+flat = faiss.IndexFlatIP(d); flat.add(xb)
+_, gt = flat.search(xq, 10)
+
+for efc in [40, 80, 120, 200, 400]:
+    idx = faiss.IndexHNSWFlat(d, 16)
+    idx.hnsw.efConstruction = efc
+    t0 = time.time()
+    idx.add(xb)
+    build_t = time.time() - t0
+    idx.hnsw.efSearch = 64
+    D, I = idx.search(xq, 10)
+    recall = sum(len(set(I[i]) & set(gt[i])) for i in range(len(xq))) / (len(xq)*10)
+    print(f"efC={efc:4d}  build={build_t:5.1f}s  recall@10={recall:.4f}")
+# 典型结果：efC=200 是甜区，再大不划算
+</code></pre>
+
+    <h2 class="section" id="m-param"><span class="idx">★</span> M 参数：邻居度数的权衡</h2>
+    <p>M 是每个节点（layer 0 之外）的最大邻居数，layer 0 的上限通常是 2M。M 越大，图越密集，连通性越好、召回越高，但内存和构建时间线性增长，查询时每跳要遍历更多邻居也会拖慢 QPS。经验值：M=16 是通用默认，对召回要求高或维度高时用 M=32 或 48；M 超过 64 几乎没收益，反而伤 QPS。</p>
+    <p>M 的选择还要和 efSearch 配合。一个粗略的关系是 efSearch ≥ 2·M，否则候选集太窄，M 个邻居的优势发挥不出来。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>HNSW 借鉴跳表思想，构建多层近邻图：上层稀疏快速接近，下层密集精细定位，层级由指数衰减随机分配（mL=1/ln M）。</li>
+      <li>插入分两段：高层 ef=1 窄搜索下沉找入口，目标层及以下用 efConstruction 宽搜索选邻居并双向连边。</li>
+      <li>efConstruction 是构建质量的核心旋钮，推荐 100-200，再大边际递减；M=16 通用，高维/高召回需求可上 32-48。</li>
+      <li>启发式邻居选择（select_neighbors_heuristic）是 HNSW 相对 NSW 的关键创新，保证邻居方向多样、图全局连通，避免簇内困死。</li>
+      <li>插入与查询共用同一套贪心搜索逻辑，只是 ef 宽度不同——理解了插入就理解了查询的 80%。</li>
+    </ul>
+    <p>下一篇我们专门拆解 HNSW 的查询算法：入口点怎么选、efSearch 候选集怎么收敛、为什么它能在毫秒内跑完亿级图。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

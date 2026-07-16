@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 编译器与推理引擎 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 编译器与推理引擎 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -48,7 +55,7 @@
       <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
     </div>
     <div class="nav-group"><h3>专题</h3>
-      <a href="34-llm-compiler.html" class="active" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
+      <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
       <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
       <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
       <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
@@ -295,16 +302,129 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 编译器与推理引擎</h1><p class="lead">从 PyTorch 到 GPU——推理引擎的编译优化</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么需要"编译"模型</h2>
-    <p>你用 PyTorch 写的模型代码，不能直接高效地跑在 GPU 上——它需要被"编译"成 GPU 能理解的算子。这个过程就像把 Python 编译成机器码：源码→中间表示→优化→目标代码。推理引擎（vLLM/TensorRT-LLM/llama.cpp）做的就是这件事——把模型"编译"成在特定硬件上最优的执行计划。</p>
-    <h2><span class="idx"></span>编译优化的四个层次</h2>
-    <table class="data-table"><thead><tr><th>层次</th><th>优化什么</th><th>效果</th><th>工具</th></tr></thead><tbody><tr><td>算子融合</td><td>把多个小算子合成一个大算子</td><td>减少访存，1.5-2×</td><td>TensorRT/XLA</td></tr><tr><td>内存优化</td><td>重用中间结果显存</td><td>减少OOM</td><td>PagedAttention</td></tr><tr><td>内核调优</td><td>针对GPU架构选最优kernel</td><td>10-50%加速</td><td>TVM/ Triton</td></tr><tr><td>量化感知</td><td>INT8/FP8专用内核</td><td>2-4×</td><td>GPTQ/AWQ kernel</td></tr></tbody></table>
-    <h2><span class="idx"></span>主流推理引擎对比</h2>
-    <table class="data-table"><thead><tr><th>引擎</th><th>核心优势</th><th>适用</th><th>部署难度</th></tr></thead><tbody><tr><td>vLLM</td><td>PagedAttention+连续批处理</td><td>通用LLM服务</td><td>低（pip install）</td></tr><tr><td>TensorRT-LLM</td><td>NVIDIA极致优化</td><td>NVIDIA GPU生产</td><td>中（需编译）</td></tr><tr><td>llama.cpp</td><td>CPU/GPU通用+量化</td><td>端侧/本地</td><td>低</td></tr><tr><td>ONNX Runtime</td><td>跨平台</td><td>通用ML模型</td><td>中</td></tr><tr><td>SGLang</td><td>结构化生成+RadixAttention</td><td>需要结构化输出</td><td>中</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>推理引擎把模型"编译"成硬件最优执行计划。四层优化：算子融合（减少访存）、内存优化（PagedAttention）、内核调优（Triton）、量化感知（INT8 kernel）。vLLM 是通用首选（PagedAttention+连续批处理），TensorRT-LLM 是 NVIDIA 极致，llama.cpp 是端侧。</p>
-    <div class="chapter-nav">
-      <a href="33-ai-chips.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 34 章 · LLM 编译器与推理引擎</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 34 · 核心知识系列</span>
+      <h1>LLM 编译器与推理引擎<br>让大模型跑得更快更省的幕后工程</h1>
+      <p class="lead">同一个 7B 模型，用朴素的 HuggingFace transformers 库推理，每秒可能只有 20 token；换上 vLLM，瞬间飙到 5000 token/秒。差距在哪？在 KV cache 管理、连续批处理、算子融合、量化压缩这一系列"编译优化"里。本章横向对比 vLLM、TensorRT-LLM、llama.cpp、MLC-LLM 四大推理引擎，揭开大模型加速的工程黑魔法。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> 推理优化：被低估的战场</h2>
+    <p>大众的目光集中在"训练新模型"，但工业界真正花钱的地方是"推理"——ChatGPT 每天处理上亿次查询，每次查询都要跑前向推理，成本是训练的数十倍。把推理延迟从 2 秒降到 0.5 秒，把吞吐量从 100 提升到 5000，直接关系到产品能不能用、公司能不能盈利。这就是推理引擎存在的意义：它像一个"编译器"，把模型权重转化为高效的 GPU/CPU 执行计划。</p>
+    <p>推理优化的核心矛盾是：GPU 的算力极强，但大模型推理是"内存带宽受限"的——每生成一个 token，都要把整个模型权重从 HBM 搬到计算核心一次。如果搬运是瓶颈，那优化方向就是"减少搬运"（KV cache 复用、连续批处理）和"减少搬运量"（量化、算子融合）。四大引擎各有侧重：vLLM 专攻高吞吐服务，TensorRT-LLM 追求极致延迟，llama.cpp 让消费级 CPU 也能跑，MLC-LLM 跨平台部署到手机。</p>
+
+    <h2 class="section" id="vllm"><span class="idx">★</span> vLLM：PagedAttention 的吞吐量革命</h2>
+    <p>vLLM 由 UC Berkeley 团队开发，是目前最流行的高吞吐推理引擎。它的核心创新是 <strong>PagedAttention</strong>——借鉴操作系统的虚拟内存分页机制来管理 KV cache。传统的 KV cache 管理方式是：为每个请求预分配一大块连续显存（按最大序列长度），这导致大量碎片和浪费——一个请求实际只用了 500 token，却占着 2048 token 的空间。</p>
+    <p>PagedAttention 把 KV cache 切分成固定大小的"页"（block），按需分配。一个请求的 KV cache 可以散布在不连续的页中，通过页表映射。这让显存利用率从 20-40% 跃升到 90% 以上，直接支持更大的批处理量。vLLM 还实现了<strong>连续批处理</strong>（Continuous Batching）——新请求可以在任何时刻加入批次，已完成的请求随时退出，无需等待整批完成。这两项技术叠加，让 vLLM 的吞吐量达到 HuggingFace 原生推理的 14-24 倍。</p>
+    <pre><code class="language-python"># vLLM 的极简使用（和 HF 接口几乎一样简单）
+from vllm import LLM, SamplingParams
+
+# 加载模型（vLLM 会自动做 KV cache 优化）
+llm = LLM(
+    model="meta-llama/Llama-3-8B-Instruct",
+    tensor_parallel_size=1,     # GPU 数量
+    max_model_len=8192,         # 最大序列长度
+    gpu_memory_utilization=0.9, # 显存占用比例
+    quantization="awq",         # 可选量化：awq/gptq/fp8
+)
+
+# 批量推理（vLLM 的强项：连续批处理）
+prompts = ["写一首关于秋天的诗。"] * 1000  # 1000 个并发请求
+sampling = SamplingParams(temperature=0.7, max_tokens=512)
+
+outputs = llm.generate(prompts, sampling)
+# vLLM 内部：自动调度、PagedAttention、连续批处理
+# 单卡 A100 吞吐量可达 3000-5000 token/秒
+</code></pre>
+
+    <h2 class="section" id="trtllm"><span class="idx">★</span> TensorRT-LLM：NVIDIA 的极致延迟优化</h2>
+    <p>TensorRT-LLM 是 NVIDIA 官方的推理引擎，基于其通用的 TensorRT 编译器框架。它的设计目标是"单次推理延迟最低"，特别适合对延迟敏感的在线服务（如实时聊天）。TensorRT-LLM 的优化手段包括：算子融合（把 LayerNorm + GELU + Linear 融合成一个 kernel）、精度校准（FP8/INT8 量化）、kernel auto-tuning（针对具体 GPU 型号选最优 kernel）。</p>
+    <p>TensorRT-LLM 的工作流程是"先编译后推理"——模型权重先经过一个离线编译步骤（build engine），生成针对特定 GPU 高度优化的执行计划。编译过程可能耗时几十分钟，但运行时每次推理都快到极致。它的 In-flight batching 类似 vLLM 的连续批处理，配合 NVIDIA 的 Triton Inference Server，可以做到生产级的高可用部署。代价是：编译后的引擎绑定特定 GPU 型号，换卡要重新编译；灵活性不如 vLLM。</p>
+    <pre><code class="language-bash"># TensorRT-LLM 的典型工作流：编译 → 部署
+# 步骤1：转换模型为 TensorRT-LLM 格式
+python convert_checkpoint.py --model_dir ./llama-3-8b \
+    --output_dir ./llama-3-8b-trt --dtype float16
+
+# 步骤2：编译优化引擎（离线，针对特定GPU）
+trtllm-build --checkpoint_dir ./llama-3-8b-trt \
+    --output_dir ./engine --use_paged_context_fmha enable \
+    --gemm_plugin float16 --max_batch_size 32 \
+    --max_input_len 4096 --max_output_len 512
+
+# 步骤3：部署到 Triton Server 提供服务
+docker run --gpus all -v ./engine:/models nvcr.io/nvidia/tritonserver:...
+# 优势：延迟最低（FP8 可达 5ms 首token），NVIDIA 官方支持
+# 劣势：编译耗时长、绑定GPU型号、闭源
+</code></pre>
+
+    <h2 class="section" id="llamacpp"><span class="idx">★</span> llama.cpp：让大模型跑在任何 CPU 上</h2>
+    <p>llama.cpp 由 Georgi Gerganov 开发，是一个纯 C/C++ 实现的 LLM 推理库。它的设计哲学截然不同——不追求 GPU 极致性能，而是追求"在任何设备上都能跑"。llama.cpp 用 C/C++ 重写了整个推理流程，不依赖 PyTorch、CUDA 等重型框架，编译后只有一个可执行文件。它首创的 <strong>GGUF 量化格式</strong>可以把模型压缩到 2-4 bit，让 8B 模型在 8GB 内存的笔记本上流畅运行。</p>
+    <p>llama.cpp 的核心是 CPU 优化的矩阵乘法——用 AVX2/AVX-512/NEON 指令集手写优化的量化 GEMM kernel。它的量化方案（Q4_K_M、Q5_K_M 等）在精度损失和速度之间做了精巧的平衡。对于边缘部署、个人开发者、离线场景，llama.cpp 是首选。衍生项目 Ollama 把 llama.cpp 包装成 Docker 风格的一键安装工具，极大降低了本地运行大模型的门槛。</p>
+    <pre><code class="language-bash"># llama.cpp：从源码编译到运行（Mac/Linux 通用）
+git clone https://github.com/ggerganov/llama.cpp
+cd llama.cpp && make            # CPU 版本，一行搞定
+
+# 下载 GGUF 量化模型（Q4_K_M = 4bit 混合量化，性价比最高）
+wget https://huggingface.co/.../llama-3-8b-instruct.Q4_K_M.gguf
+
+# 运行对话（8GB 内存的 MacBook Air 也能跑）
+./llama-cli -m llama-3-8b-instruct.Q4_K_M.gguf \
+    -p "解释量子纠缠" -n 512 --temp 0.7
+
+# 性能参考（M2 MacBook Air, Q4_K_M）：
+# Llama-3-8B:    ~30 token/s（可流畅对话）
+# Qwen2-7B:      ~35 token/s
+# 量化后模型大小仅 4.5GB（原 FP16 是 16GB）
+</code></pre>
+
+    <h2 class="section" id="mlc"><span class="idx">★</span> MLC-LLM：跨平台部署到手机浏览器</h2>
+    <p>MLC-LLM 基于 TVM（Apache 的机器学习编译框架），目标是把大模型部署到任何平台——iOS、Android、浏览器、甚至树莓派。它的核心思想是"通用编译"：把模型编译成各平台原生的机器码（用 Vulkan/Metal/WebGPU 作为后端），不依赖任何框架运行时。这意味着一个 3B 模型可以直接打包进手机 App，离线运行，零延迟、零隐私泄露。</p>
+    <p>MLC-LLM 最酷的能力是在浏览器中跑大模型——通过 WebGPU API，直接调用 GPU 算力，无需任何后端服务器。用户打开网页就能和本地模型对话，模型权重缓存在浏览器中。这对于隐私敏感场景（医疗、法律咨询）意义巨大。代价是编译流程比 llama.cpp 复杂，性能调优需要理解 TVM 的调度机制。</p>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 四大引擎横向对比与选型指南</h2>
+    <pre><code class="language-text">┌──────────────┬────────────┬────────────┬────────────┬────────────┐
+│    维度      │   vLLM     │  TRT-LLM   │  llama.cpp │  MLC-LLM   │
+├──────────────┼────────────┼────────────┼────────────┼────────────┤
+│ 核心优势     │ 高吞吐     │ 低延迟     │ 通用CPU    │ 跨平台     │
+│ 最佳场景     │ 在线服务   │ 延迟敏感   │ 本地/边缘  │ 手机/浏览器│
+│ GPU 支持     │ 优(NVIDIA) │ 极优(仅NV) │ 良(CUDA)   │ 良(Vulkan) │
+│ CPU 支持     │ 差         │ 不支持     │ 极优       │ 优         │
+│ 量化方案     │ AWQ/GPTQ   │ FP8/INT8   │ GGUF 2-8bit│ 多种       │
+│ 连续批处理   │ 支持       │ 支持       │ 不支持     │ 不支持     │
+│ 易用性       │ 高(Python) │ 中(编译)   │ 极高(一键) │ 中         │
+│ 开源协议     │ Apache 2.0 │ 闭源/免费  │ MIT        │ Apache 2.0 │
+└──────────────┴────────────┴────────────┴────────────┴────────────┘
+
+选型决策树：
+- 云端高并发 API 服务 → vLLM（吞吐量之王）
+- 实时对话、首字延迟敏感 → TensorRT-LLM（延迟最低）
+- 个人电脑、离线、隐私 → llama.cpp / Ollama（最简单）
+- 移动 App、网页端 → MLC-LLM（跨平台唯一选择）
+</code></pre>
+    <pre><code class="language-python"># 实战：vLLM 的量化对比（同一模型的推理性能差异）
+# 测试环境：单卡 A100 80GB, Llama-3-8B-Instruct
+
+benchmarks = {
+    "FP16 (原始)":     {"显存": "16 GB",  "吞吐": "2000 tok/s", "精度": "100%"},
+    "AWQ INT4":       {"显存": "5 GB",   "吞吐": "3500 tok/s", "精度": "98.5%"},
+    "GPTQ INT4":      {"显存": "5 GB",   "吞吐": "3200 tok/s", "精度": "98.2%"},
+    "FP8 (H100专属)":  {"显存": "8 GB",   "吞吐": "5000 tok/s", "精度": "99.5%"},
+}
+# 关键结论：INT4 量化几乎不损失质量度（<2%），但吞吐翻倍、显存降 3 倍
+# 这就是为什么几乎所有生产部署都用量化模型
+</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>推理优化是大模型落地的幕后工程，四大引擎各有定位。vLLM 的 PagedAttention 和连续批处理让云端吞吐量提升 10-20 倍，是 API 服务的首选；TensorRT-LLM 通过算子融合和 FP8 量化把延迟压到最低，适合实时交互；llama.cpp 的 GGUF 量化让大模型在任何 CPU 上流畅运行，是本地部署之王；MLC-LLM 基于 TVM 编译到 WebGPU/Metal，实现手机和浏览器内的原生大模型。核心优化原理贯穿四个引擎：KV cache 管理（减少重复计算）、连续批处理（提高 GPU 利用率）、量化（减少搬运量）、算子融合（减少 kernel 开销）。选型时，先想清楚你的约束是吞吐、延迟、显存还是平台，再对号入座。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

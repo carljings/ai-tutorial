@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -186,7 +184,7 @@
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
-      <a href="155-agent-codex-responses-api.html" class="active" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
+      <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
       <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
@@ -305,81 +303,181 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 155 章 · 开源 Agent 源码深挖</span>
-<h1>Codex 用 Responses API</h1><p class="lead">服务器端根据工具 schema + 客户端输入构建真正 prompt。Responses API 原生支持工具/推理/多模态。客户端只发意图。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>服务器端根据工具 schema + 客户端输入构建真正 prompt。Responses API 原生支持工具/推理/多模态。客户端只发意图。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>服务器端根据工具 schema + 客户端输入构建真正 prompt。Responses API 原生支持工具/推理/多模态。客户端只发意图。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 40 · Agent 源码深挖系列</span>
+      <h1>Codex 与 Responses API<br>从 stateless 到 stateful 的演进</h1>
+      <p class="lead">2025 年 OpenAI 推出了 Responses API，它是 Chat Completions 的继任者，最关键的特性是「服务端会话状态」——你可以用 previous_response_id 让服务端记住上一轮的完整上下文，而不必每次重发整个消息历史。Codex 是首批深度集成 Responses API 的 Agent 之一。本章我们拆解这次演进对 Agent 架构的影响，看清 previous_response_id 到底改变了什么。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="chat-completions"><span class="idx">★</span> 一、Chat Completions 时代的负担</h2>
+    <p>在 Responses API 出现之前，Agent 用的是 Chat Completions API。这个 API 是 <strong>stateless（无状态）</strong> 的——每次请求都要把完整的对话历史发上去。第一轮发 [用户消息1]，第二轮发 [用户消息1, assistant回复1, 用户消息2]，第三轮发 [前5条 + 用户消息3]……历史越来越长，请求体越来越大。</p>
+    <p>这带来三个问题。第一，<strong>token 成本线性增长</strong>：到第 20 轮，你可能每次请求都要发几万 token 的历史，哪怕这轮只说了一句话。第二，<strong>延迟增加</strong>：服务端要重新处理整个历史才能生成回复，长历史意味着高首 token 延迟。第三，<strong>客户端要管理状态</strong>：Agent 必须自己维护消息列表、自己做压缩、自己处理工具调用的多轮关联，逻辑复杂。</p>
+    <pre><code class="language-typescript">// Chat Completions 时代的请求（每轮重发全部历史）
+const response = await openai.chat.completions.create({
+  model: "gpt-4",
+  messages: [
+    { role: "system", content: systemPrompt },
+    { role: "user", content: "第1轮的问题" },
+    { role: "assistant", content: "第1轮的回复（可能含 tool_calls）" },
+    { role: "tool", tool_call_id: "xxx", content: "工具返回结果" },
+    { role: "assistant", content: "基于工具结果的回复" },
+    { role: "user", content: "第2轮的问题" },
+    // ... 第3、4、5轮的历史全部要重发
+    { role: "user", content: "第20轮的问题" },
+  ],
+});</code></pre>
+    <p>注意工具调用的历史尤其麻烦——tool_call 和 tool_result 必须成对出现，顺序不能乱，ID 要对应。Agent 自己维护这个结构很容易出 bug。</p>
+
+    <h2 class="section" id="responses-api"><span class="idx">★</span> 二、Responses API 的核心变化：服务端状态</h2>
+    <p>Responses API 引入了一个关键概念：<strong>response 对象有 ID，且服务端会持久化它</strong>。你在下一轮请求里带上 <code>previous_response_id</code>，服务端就会自动把上一轮的完整状态（包括消息、工具调用、推理过程）加载回来。你只需要发「这一轮新增的内容」。</p>
+    <pre><code class="language-typescript">// Responses API 的请求（只发增量）
+const response = await openai.responses.create({
+  model: "gpt-4.1",
+  previous_response_id: "resp_abc123",   // 上一轮返回的 ID
+  input: "第20轮的问题",                  // 只发新内容
+});
+
+// 第一轮没有 previous_response_id
+const first = await openai.responses.create({
+  model: "gpt-4.1",
+  input: "第1轮的问题",
+  instructions: systemPrompt,            // system prompt 也简化了
+});
+// 保存 first.id 供下一轮用</code></pre>
+    <p>对比之下差异惊人：第 20 轮请求的 body 从「几万 token 的历史」变成了「一个 ID + 一句话」。这同时解决了成本、延迟、客户端复杂度三个问题。状态管理的主权从客户端移交给了服务端。</p>
+
+    <h2 class="section" id="codex-integration"><span class="idx">★</span> 三、Codex 如何集成 Responses API</h2>
+    <p>Codex 在 codex-rs 里封装了对 Responses API 的调用。核心改动是 Session 不再持有完整的 messages 数组，而是持有 <strong>当前 response 的 ID</strong> 和「待发送的增量输入」。</p>
+    <pre><code class="language-rust">// codex-rs/src/responses_api.rs（概念示意）
+use serde::{Serialize, Deserialize};
+
+pub struct ResponsesSession {
+    model: String,
+    /// 上一轮 response 的 ID，第一轮为 None
+    previous_response_id: Option&lt;String&gt;,
+    /// 系统指令（只在第一轮发，或变更时重发）
+    instructions: String,
+    /// 工具定义
+    tools: Vec&lt;ToolDefinition&gt;,
+    /// 当前轮待发送的输入（用户消息或工具结果）
+    pending_input: Vec&lt;InputItem&gt;,
+}
+
+#[derive(Serialize, Deserialize)]
+#[serde(tag = "type")]
+pub enum InputItem {
+    Message { role: String, content: String },
+    // 工具结果也是 input 的一种
+    FunctionCallOutput { call_id: String, output: String },
+}
+
+impl ResponsesSession {
+    pub async fn send(&amp;mut self) -&gt; Result&lt;Response, Error&gt; {
+        let body = RequestBody {
+            model: &amp;self.model,
+            previous_response_id: self.previous_response_id.as_deref(),
+            input: &amp;self.pending_input,
+            instructions: if self.previous_response_id.is_none() {
+                Some(&amp;self.instructions)
+            } else {
+                None  // 后续轮次服务端已记住，不必重发
             },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+            tools: &amp;self.tools,
+        };
+
+        let resp: Response = http_client.post("/v1/responses", &amp;body).await?;
+
+        // 关键：保存这一轮的 response ID
+        self.previous_response_id = Some(resp.id.clone());
+        // 清空待发送
+        self.pending_input.clear();
+
+        Ok(resp)
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    pub fn add_user_message(&amp;mut self, text: String) {
+        self.pending_input.push(InputItem::Message {
+            role: "user".into(),
+            content: text,
+        });
+    }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    pub fn add_tool_result(&amp;mut self, call_id: String, output: String) {
+        self.pending_input.push(InputItem::FunctionCallOutput {
+            call_id,
+            output,
+        });
+    }
+}</code></pre>
+    <p>这段代码最值得注意的细节是 <strong>instructions 只在第一轮发</strong>。在 Chat Completions 时代，system prompt 每轮都要重发（因为它是 messages 数组的一部分）；在 Responses API 里，它被纳入了服务端的 response 状态，后续轮次自动继承。这进一步减少了请求体大小。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex 用 Responses API"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="154-agent-codex-loop.html"><div class="lbl">← 上一章</div><div class="ttl">154 · Codex 的 Turn 模型与推理持久化</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="156-agent-codex-sandbox-seatbelt.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">156 · Codex 沙箱：macOS Seatbelt</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 155 章 · Codex 用 Responses API</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="tool-loop"><span class="idx">★</span> 四、工具调用循环的简化</h2>
+    <p>在 Chat Completions 里，工具调用循环要手动维护 tool_call 和 tool_result 的配对。而在 Responses API 里，这个循环被内建进了协议——你发请求，模型返回 tool_calls，你把结果作为 input 再发一次（带 previous_response_id），模型自动把上下文接上。</p>
+    <pre><code class="language-rust">// 工具调用循环（Responses API 版）
+async fn run_turn_with_tools(session: &amp;mut ResponsesSession) -&gt; Result&lt;()&gt; {
+    loop {
+        let resp = session.send().await?;
+
+        // 检查模型是否请求了工具调用
+        let tool_calls: Vec&lt;_&gt; = resp.output.iter()
+            .filter(|item| matches!(item, ResponseItem::FunctionCall { .. }))
+            .collect();
+
+        if tool_calls.is_empty() {
+            break;  // 模型没要工具，本轮结束
+        }
+
+        // 执行每个工具调用，把结果加到 pending_input
+        for item in &amp;resp.output {
+            if let ResponseItem::FunctionCall { call_id, name, arguments } = item {
+                let result = execute_tool(name, arguments).await;
+                session.add_tool_result(call_id.clone(), result);
+            }
+        }
+        // 循环回去再 send，此时 previous_response_id 指向包含 tool_calls 的那轮
+        // 服务端会自动把 tool_calls 和 tool_results 关联起来
+    }
+    Ok(())
+}</code></pre>
+    <p>对比 Chat Completions 的版本，这段代码少了一半的状态管理代码——不需要手动把 assistant 的 tool_call 消息塞进历史、不需要保证 tool_result 紧跟在 tool_call 后面、不需要记 call_id 的对应关系。所有这些都由服务端的 response 状态自动维护。这是 Responses API 带来的最大架构红利。</p>
+
+    <h2 class="section" id="tradeoffs"><span class="idx">★</span> 五、stateful 不是免费的午餐</h2>
+    <p>听起来 Responses API 全是优点，但它也有代价和限制，Codex 在集成时要权衡。</p>
+    <p>第一，<strong>状态有保留期</strong>。服务端不会永久保存 response 状态，通常有 30 天的保留期（具体策略可能变化）。超期后 previous_response_id 会失效，Agent 必须能降级到「重新发完整历史」的模式。Codex 在源码里实现了这种降级——捕获到「response not found」错误时，自动回退到 Chat Completions 风格的请求。</p>
+    <p>第二，<strong>跨模型迁移困难</strong>。如果你想中途换模型（比如从 gpt-4.1 换到 o3），previous_response_id 是绑定模型的，不能直接复用。Codex 在切换模型时会主动清空 previous_response_id，重新发完整上下文建立新链。</p>
+    <p>第三，<strong>上下文压缩的服务端化</strong>。当 response 链很长时，服务端自己会做压缩（stored completions），但这个压缩策略客户端不可见、不可控。如果你的 Agent 对上下文精度要求高，这种不透明可能是个问题。</p>
+    <p>第四，<strong>调试更难</strong>。stateless 时代你可以把完整的 messages 数组打印出来排查问题；stateful 时代你只能看到一个 response ID，要看完整上下文得调服务端的 API 去 fetch。Codex 提供了一个 <code>--dump-responses</code> 的调试选项，把每轮的完整 response 对象存到本地文件，方便排障。</p>
+
+    <h2 class="section" id="hybrid"><span class="idx">★</span> 六、混合策略：Codex 的实际选择</h2>
+    <p>面对上述权衡，Codex 采取的是 <strong>混合策略</strong>：</p>
+    <ul>
+      <li>正常对话用 Responses API + previous_response_id，享受成本和延迟优势。</li>
+      <li>本地仍维护一份精简的消息摘要（用于 UI 显示和快速恢复），但不用于 API 请求。</li>
+      <li>检测到 response 失效时，自动降级到完整重发。</li>
+      <li>切换模型时主动重置 response 链。</li>
+      <li>提供调试选项导出完整 response 对象。</li>
+    </ul>
+    <p>这种「乐观使用 + 降级兜底」的策略，是集成任何有状态外部依赖时的通用智慧。你在自己的 Agent 里接入有状态的服务（比如向量数据库的会话缓存）时，也可以借鉴这种模式。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Responses API 的出现，是 Agent 后端集成的一次小革命。要点回顾：</p>
+    <ul>
+      <li><strong>Chat Completions 是 stateless</strong>：每轮重发全部历史，成本高、延迟大、客户端状态管理复杂。</li>
+      <li><strong>Responses API 是 stateful</strong>：previous_response_id 让服务端记住上下文，客户端只发增量，同时降低成本、延迟、复杂度。</li>
+      <li><strong>Codex 的集成</strong>：Session 持有 previous_response_id 而非完整 messages，instructions 只第一轮发，工具调用循环大幅简化。</li>
+      <li><strong>工具调用内建</strong>：tool_call 和 tool_result 的配对由服务端自动维护，客户端不再需要手动管理 call_id 对应。</li>
+      <li><strong>stateful 的代价</strong>：状态有保留期、跨模型不通用、压缩不可控、调试更难。</li>
+      <li><strong>混合策略</strong>：乐观使用 + 失效降级 + 切换重置 + 调试导出，是集成有状态依赖的通用模式。</li>
+    </ul>
+    <p>下一章（156 章）我们转向 Codex 的另一个核心能力——沙箱。先看 macOS 上的 seatbelt，看看 Codex 如何用 sandbox-exec 的 profile 文件把 Agent 的命令执行关进笼子。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

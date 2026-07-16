@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -199,7 +197,7 @@
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
-      <a href="168-agent-cline-loop.html" class="active" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
+      <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
       <a href="171-agent-roo-modes.html" title="Roo Code 的多模式"><span class="num">171</span>Roo Code 的</a>
@@ -305,81 +303,270 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 168 章 · 开源 Agent 源码深挖</span>
-<h1>Cline 的工具循环与审批</h1><p class="lead">VSCode 扩展，每步工具调用都要用户确认（默认）。read/write/edit/execute/browser 工具。auto-approve 规则。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>VSCode 扩展，每步工具调用都要用户确认（默认）。read/write/edit/execute/browser 工具。auto-approve 规则。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>VSCode 扩展，每步工具调用都要用户确认（默认）。read/write/edit/execute/browser 工具。auto-approve 规则。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 51 · Agent 源码深挖系列</span>
+      <h1>Cline 的 Agent 循环<br>XML 格式工具调用与 plan/act 双模式</h1>
+      <p class="lead">Cline（原名 Claude Dev）是一个 VSCode 扩展形态的 Agent，它在 Agent 循环的设计上有两个鲜明特色：一是用 <strong>XML 标签</strong> 来结构化工具调用（而非 function calling 的 JSON），二是显式区分 <strong>plan 模式和 act 模式</strong>——先规划再执行。这两个设计都源于 Cline 对「让用户理解和掌控 Agent 行为」的重视。本章我们拆解它的循环实现。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-xml"><span class="idx">★</span> 一、为什么用 XML 而非 function calling</h2>
+    <p>大多数现代 Agent（OpenCode、Codex）用 LLM 的 function calling API——模型返回结构化的 JSON，包含工具名和参数。但 Cline 选择让模型在文本输出里用 XML 标签描述工具调用。这是一个有争议但有趣的选择。</p>
+    <p>选择 XML 的第一个理由是 <strong>模型兼容性</strong>。和 Aider 的 SEARCH/REPLACE 一样（参见 164 章），纯文本协议不依赖 function calling API，任何模型都能用。Cline 早期专注 Claude，但后来要支持 GPT、DeepSeek、本地模型，XML 让这种扩展零成本。</p>
+    <p>第二个理由是 <strong>可读性</strong>。XML 标签在文本流里是可见的，用户在 chat 界面能看到 Agent「正在调用什么工具」——这是透明的。而 function calling 的 JSON 通常被 UI 隐藏，用户不知道 Agent 在干什么。Cline 把工具调用作为文本流的一部分展示，增强了用户对 Agent 行为的感知。</p>
+    <p>第三个理由和 Claude 模型本身有关。<strong>Claude 在训练时被大量「教会」了用 XML 标签结构化输出</strong>（Anthropic 的 prompt engineering 指南里大量用 XML）。所以让 Claude 用 XML 调工具，是顺着它的强项走，正确率高。</p>
+    <pre><code class="language-text">Cline 的工具调用格式（在 assistant 文本输出里）：
+
+我现在需要读取 auth.py 文件来了解现有的登录逻辑。
+
+&lt;read_file&gt;
+&lt;path&gt;src/auth.py&lt;/path&gt;
+&lt;/read_file&gt;
+
+读取后我会分析其中的 authenticate 函数。</code></pre>
+    <p>注意 XML 工具调用是 <strong>嵌在自然语言里的</strong>——Agent 先说「我需要读取 auth.py」，然后给出 read_file 的 XML 块，再说「读取后我会分析」。这种「边想边说边调工具」的输出方式，让用户能跟随 Agent 的推理过程，而不是只看到一堆工具调用。</p>
+
+    <h2 class="section" id="parser"><span class="idx">★</span> 二、XML 解析与流式提取</h2>
+    <p>Cline 要从模型的流式文本输出里，实时提取出 XML 工具调用块。这比解析一次性返回的 JSON 难——你要边收 token 边判断「是不是开始了一个工具调用」「工具调用块结束了没有」。</p>
+    <pre><code class="language-typescript">// Cline 的流式 XML 解析（简化）
+export class ToolCallParser {
+  private buffer = "";
+  private currentTool: { name: string; xml: string } | null = null;
+
+  /** 每收到一段 delta 文本调用 */
+  feed(chunk: string): { text?: string; toolCall?: ParsedToolCall } {
+    this.buffer += chunk;
+    const events: any = {};
+
+    // 如果正在解析工具调用，继续累积直到闭合标签
+    if (this.currentTool) {
+      const closeTag = `&lt;/${this.currentTool.name}&gt;`;
+      const closeIdx = this.buffer.indexOf(closeTag);
+      if (closeIdx &gt;= 0) {
+        // 工具调用块结束
+        this.currentTool.xml += this.buffer.slice(0, closeIdx + closeTag.length);
+        this.buffer = this.buffer.slice(closeIdx + closeTag.length);
+        const parsed = parseToolXML(this.currentTool.xml);
+        events.toolCall = parsed;
+        this.currentTool = null;
+      } else {
+        // 还没收完，继续累积
+        this.currentTool.xml += this.buffer;
+        this.buffer = "";
+      }
+      return events;
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 检查是否开始了一个工具调用（即遇到了已知的工具标签）
+    for (const toolName of KNOWN_TOOLS) {
+      const openTag = `&lt;${toolName}&gt;`;
+      const idx = this.buffer.indexOf(openTag);
+      if (idx &gt;= 0) {
+        // 把标签前的文本作为普通输出
+        if (idx &gt; 0) {
+          events.text = this.buffer.slice(0, idx);
+        }
+        // 开始累积工具调用
+        this.currentTool = {
+          name: toolName,
+          xml: this.buffer.slice(idx),
+        };
+        this.buffer = "";
+        return events;
+      }
+    }
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    // 没有工具调用，全部是普通文本
+    events.text = this.buffer;
+    this.buffer = "";
+    return events;
+  }
+}
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Cline 的工具循环与审批"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="167-agent-continue-embeddings.html"><div class="lbl">← 上一章</div><div class="ttl">167 · Continue 的嵌入管线</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="169-agent-cline-diff.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">169 · Cline 的差异编辑</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 168 章 · Cline 的工具循环与审批</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+// 解析完整的工具 XML 块
+function parseToolXML(xml: string): ParsedToolCall {
+  // &lt;read_file&gt;&lt;path&gt;src/auth.py&lt;/path&gt;&lt;/read_file&gt;
+  const match = xml.match(/^&lt;(\w+)&gt;([\s\S]*)&lt;\/\1&gt;$/);
+  if (!match) throw new Error("无效的工具 XML");
+  const [, name, body] = match;
+  // 解析 body 里的子标签作为参数
+  const params: Record&lt;string, string&gt; = {};
+  const paramRe = /&lt;(\w+)&gt;([\s\S]*?)&lt;\/\1&gt;/g;
+  let pm;
+  while ((pm = paramRe.exec(body))) {
+    params[pm[1]] = pm[2];
+  }
+  return { name, params };
+}</code></pre>
+    <p>这段解析器的关键挑战是 <strong>流式边界的处理</strong>。XML 标签可能被 token 流切断——比如 <code>&lt;read_fi</code> 后面接 <code>le&gt;</code>。解析器必须缓冲未完成的片段，直到能判断「这是一个工具标签的开始」或「这是普通文本」。上面的实现通过 <code>currentTool</code> 状态机和 <code>buffer</code> 缓冲实现了这一点。</p>
+    <p>另一个细节：<strong>只有匹配到已知工具名（KNOWN_TOOLS）的标签才被当工具调用</strong>。如果模型输出了 <code>&lt;some_random_tag&gt;</code>，它会被当普通文本处理，不会触发解析。这防止了模型无意中输出的 XML 干扰工具系统。</p>
+
+    <h2 class="section" id="plan-act"><span class="idx">★</span> 三、plan / act 双模式：先规划后执行</h2>
+    <p>Cline 最有特色的设计是显式区分两种模式。在 <strong>plan 模式</strong>，Agent 只做规划和信息收集（读文件、搜索），不修改任何东西；在 <strong>act 模式</strong>，Agent 才真正执行修改（写文件、跑命令）。用户可以在这两种模式间切换。</p>
+    <p>这个设计的动机是 <strong>分离「想」和「做」</strong>。很多 Agent 的问题是边想边做——模型一开始就动手改代码，改到一半发现方向错了，已经产生了混乱的中间状态。plan 模式强制 Agent 先完整理解问题、列出步骤，用户确认计划合理后，再进入 act 模式执行。这大大降低了「方向性错误」的代价。</p>
+    <pre><code class="language-typescript">// Cline 的模式管理（简化）
+export type Mode = "plan" | "act";
+
+export class ClineProvider {
+  private mode: Mode = "plan";
+
+  async handleUserMessage(text: string) {
+    if (this.mode === "plan") {
+      await this.runPlanLoop(text);
+    } else {
+      await this.runActLoop(text);
+    }
+  }
+
+  // plan 模式：只允许只读工具
+  private async runPlanLoop(task: string) {
+    const allowedTools = ["read_file", "list_dir", "search_codebase"];
+    const systemPrompt = `你当前处于 PLAN 模式。
+任务：${task}
+
+在 plan 模式下，你只能使用只读工具（read_file、list_dir、search_codebase）来理解代码库。
+你的目标是：
+1. 充分理解用户的任务和现有代码结构
+2. 制定一个清晰的实施计划，列出要修改的文件和步骤
+3. 不要修改任何文件
+
+完成后，用 &lt;plan&gt; 标签输出你的计划，用户会决定是否切换到 ACT 模式执行。`;
+
+    await this.runAgentLoop(task, systemPrompt, allowedTools);
+  }
+
+  // act 模式：允许所有工具
+  private async runActLoop(task: string) {
+    const allowedTools = ALL_TOOLS;  // 包括 write_file, execute 等
+    const systemPrompt = `你当前处于 ACT 模式。
+任务：${task}
+
+在 act 模式下，你可以使用所有工具，包括修改文件和执行命令。
+请按照之前制定的计划执行，每一步都要谨慎。`;
+
+    await this.runAgentLoop(task, systemPrompt, allowedTools);
+  }
+
+  // 用户切换模式
+  setMode(mode: Mode) {
+    this.mode = mode;
+    this.postMessage({ type: "modeChanged", mode });
+  }
+}</code></pre>
+    <p>这段代码揭示了 plan/act 的实现本质——<strong>同一套 Agent 循环，通过 system prompt 和允许的工具列表来区分行为</strong>。plan 模式不给 write_file、execute 这些有副作用的工具，即使模型想用也用不了。act 模式才放开全部工具。这种「用工具可用性来约束行为」的策略，比「在 system prompt 里说不要改」更可靠——前者是硬约束，模型无法绕过；后者是软约束，模型可能不听话。</p>
+
+    <h2 class="section" id="loop"><span class="idx">★</span> 四、Agent 循环与工具执行</h2>
+    <p>Cline 的 Agent 循环和前面几章讲的结构类似（准备 → 调模型 → 处理工具调用 → 继续），但因为用 XML 协议，有些细节不同。我们看核心循环：</p>
+    <pre><code class="language-typescript">// Cline 的 Agent 循环（简化）
+export class ClineProvider {
+  private async runAgentLoop(task: string, systemPrompt: string, allowedTools: string[]) {
+    const parser = new ToolCallParser();
+    let assistantText = "";
+
+    while (true) {
+      // 1. 调模型（流式）
+      const stream = await this.model.streamComplete({
+        system: systemPrompt,
+        messages: this.messages,
+      });
+
+      // 2. 边收边解析
+      for await (const chunk of stream) {
+        const { text, toolCall } = parser.feed(chunk);
+        if (text) {
+          assistantText += text;
+          this.postMessage({ type: "text", content: text });  // 实时显示
+        }
+        if (toolCall) {
+          // 3. 校验工具是否被允许（plan 模式下拦截写工具）
+          if (!allowedTools.includes(toolCall.name)) {
+            // 把拒绝信息作为 tool_result 喂回去
+            this.messages.push({
+              role: "assistant",
+              content: assistantText,
+            });
+            this.messages.push({
+              role: "user",
+              content: `错误：在当前模式下不能使用 ${toolCall.name} 工具。`,
+            });
+            continue;
+          }
+
+          // 4. 执行工具
+          const result = await this.executeTool(toolCall);
+          this.postMessage({ type: "toolResult", tool: toolCall.name, result });
+
+          // 5. 把工具结果加入消息，继续下一轮
+          this.messages.push({ role: "assistant", content: assistantText });
+          this.messages.push({
+            role: "user",
+            content: `[工具 ${toolCall.name} 的结果]\n${result}`,
+          });
+          assistantText = "";
+          break;  // 跳出 for await，回到 while 开始新一轮调模型
+        }
+      }
+
+      // 6. 如果整轮没有工具调用，循环结束
+      if (!this.lastRoundHadToolCall()) break;
+    }
+  }
+}</code></pre>
+    <p>注意第 3 步的 <strong>工具允许性校验</strong>——这是 plan/act 双模式的执行点。即使模型在 plan 模式下输出了 <code>&lt;write_file&gt;</code>，循环也会拦截它，返回错误信息。模型看到错误后，通常会切换到只读工具继续规划。这种「失败反馈引导模型行为」的模式，我们在 149、154 章也见过。</p>
+
+    <h2 class="section" id="presentation"><span class="idx">★</span> 五、工具结果的表达：XML 化的反馈</h2>
+    <p>工具执行完，结果要以什么格式喂回给模型？Cline 用的是 <strong>XML 化的文本反馈</strong>，而不是结构化 JSON：</p>
+    <pre><code class="language-text">[工具 read_file 的结果]
+&lt;file_content path="src/auth.py" lines="45"&gt;
+def authenticate(username, password):
+    user = db.find_user(username)
+    if user and verify_password(password, user.password_hash):
+        return create_token(user)
+    return None
+&lt;/file_content&gt;
+
+[工具 execute 的结果]
+&lt;command&gt;npm test&lt;/command&gt;
+&lt;exit_code&gt;1&lt;/exit_code&gt;
+&lt;output&gt;
+FAIL  src/auth.test.js
+  ● authenticate › should reject wrong password
+
+    expect(received).toBe(expected)
+    Expected: "invalid"
+    Received: "error"
+&lt;/output&gt;</code></pre>
+    <p>用 XML 包装结果有两个好处。一是 <strong>结构清晰</strong>：模型能区分 file_content 的 path 和实际内容、command 的 exit_code 和 output。二是 <strong>和工具调用格式对称</strong>：调用用 XML，结果也用 XML，整个对话的「机器可读部分」风格统一，模型更容易处理。</p>
+
+    <h2 class="section" id="compare"><span class="idx">★</span> 六、与 function calling 方案的对比</h2>
+    <p>把 Cline 的 XML 方案和 OpenCode/Codex 的 function calling 放在一起对比，能看出各自的取舍：</p>
+    <ul>
+      <li><strong>正确率</strong>：function calling 由 API 层保证结构化输出的正确性，接近 100%；XML 要靠模型的自觉 + 解析器的容错，错误率略高。</li>
+      <li><strong>模型兼容性</strong>：XML 支持任何模型，function calling 要求模型支持特定 API。</li>
+      <li><strong>可读性</strong>：XML 嵌在文本里，用户能看到工具调用的上下文；function calling 通常被 UI 隐藏。</li>
+      <li><strong>流式处理</strong>：XML 的流式解析更复杂（要处理标签切断）；function calling 的流式有标准化的 delta 格式。</li>
+      <li><strong>调试</strong>：XML 出错时容易看到原始文本定位问题；function calling 的 JSON 错误需要看 API 响应。</li>
+    </ul>
+    <p>总体来说，function calling 是「更工程化、更可靠」的选择，XML 是「更兼容、更透明」的选择。Cline 选 XML 是因为它早期专注 Claude（Claude 的 XML 训练强）且重视用户感知，这是符合它定位的合理决策。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Cline 的 Agent 循环在「透明性」和「可控性」上做了独特探索。要点回顾：</p>
+    <ul>
+      <li><strong>XML 工具调用</strong>：嵌在自然语言文本里，模型兼容性好、可读性强、契合 Claude 的训练偏好。</li>
+      <li><strong>流式解析</strong>：状态机 + buffer 处理标签被 token 切断的情况，只匹配已知工具名避免误触发。</li>
+      <li><strong>plan/act 双模式</strong>：plan 只给只读工具（硬约束），act 才放开写工具，分离「想」和「做」降低方向性错误代价。</li>
+      <li><strong>工具允许性校验</strong>：循环里拦截不允许的工具，失败反馈引导模型行为。</li>
+      <li><strong>XML 化结果</strong>：工具结果也用 XML 包装，和调用格式对称，结构清晰风格统一。</li>
+      <li><strong>与 function calling 对比</strong>：XML 更兼容更透明，function calling 更可靠更工程化，各有取舍。</li>
+    </ul>
+    <p>下一章（169 章）我们继续 Cline——看它的 diff 策略，SEARCH/REPLACE blocks 和 full-file rewrite 两种模式如何选择，以及错误恢复。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

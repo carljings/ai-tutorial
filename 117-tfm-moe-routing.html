@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -144,7 +142,7 @@
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
-      <a href="117-tfm-moe-routing.html" class="active" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
+      <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
       <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
       <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
     </div>
@@ -305,67 +303,217 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 117 章 · Transformer 原理深挖</span>
-<h1>MoE 路由的工程细节</h1><p class="lead">auxiliary loss 防路由塌缩、capacity factor 控制负载、expert parallelism 的通信开销。Token dropping 策略。DeepSeek MoE 的细粒度专家。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>auxiliary loss 防路由塌缩、capacity factor 控制负载、expert parallelism 的通信开销。Token dropping 策略。DeepSeek MoE 的细粒度专家。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 17 · Transformer 深度系列</span>
+      <h1>MoE 路由机制深入<br>Top-k Gating / Noisy Top-k / Auxiliary Loss 全解</h1>
+      <p class="lead">上一章我们看清了 MoE 的骨架，这一章要钻进它的「大脑」——路由器。一个几行的 top-k 选择决定了 token 去哪个专家，却藏着负载均衡、专家专业化、训练稳定性等深层问题。本章从最朴素的 top-k gating 讲起，剖析 noisy top-k 为什么能提升探索，auxiliary loss 的四种写法各自的取舍，并用代码完整实现一个带负载均衡的、可训练的 MoE 路由层。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="router-anatomy"><span class="idx">★</span> 一、路由器到底在做什么</h2>
+    <p>MoE 路由器（router，也叫 gate）本质上就是一个线性层加一个 softmax。输入是 token 的表示 x（维度 d_model），输出是一个长度为 num_experts 的概率分布 G(x) = softmax(W_gate * x)。这个分布表示「这个 token 适合去哪个专家」。然后取概率最高的 k 个作为实际选择。</p>
+    <p>听起来简单，但这个小小的选择藏着大问题：如果训练过程中路由器偏好少数专家，会导致其他专家训练不足、参数浪费，甚至训练崩溃。所以路由机制的设计，核心不是「怎么选」，而是「怎么保证选得均衡、选得有意义」。这一章我们围绕三个关键技术展开：top-k gating、noisy top-k、auxiliary loss。</p>
+
+    <h2 class="section" id="top-k-gating"><span class="idx">★</span> 二、Top-k Gating：最基础的路由</h2>
+    <p>top-k gating 是所有 MoE 模型的起点。它的步骤是：用路由器算出每个专家的概率，取概率最大的 k 个，把 token 分别送进这 k 个专家，再把专家输出按路由概率加权求和。</p>
+
+    <h3 class="section">2.1 数学定义</h3>
+    <p>设路由器输出 G(x) = softmax(W * x)（长度为 N 的向量），选出的 top-k 专家集合为 T_k(x)。则 token x 的 MoE 输出为：y(x) = sum_{i in T_k(x)} G(x)_i * E_i(x)。注意一个细节：在加权求和前，常常把 top-k 的概率重新归一化（除以它们的和），让权重和为 1，避免 scale 漂移。</p>
+    <p>当 k=1 时，就是 Switch Transformer 的方案——每 token 只去 1 个专家，路由最简单、最省通信，但表达力弱一些（无法混合多个专家的知识）。当 k=2（Mixtral、DeepSeek 常用）时，token 能融合两个专家的输出，平衡了表达力和效率。</p>
+
+    <h3 class="section">2.2 top-k 选择的一个隐藏问题：不可导</h3>
+    <p>top-k 操作（选哪些专家）本质上是离散的，梯度没法直接传给路由器。这是一个棘手的问题：路由器的权重 W 怎么更新？答案是通过<strong>被选中专家的输出加权</strong>间接更新。因为输出 y 里含有 G(x)_i 这一项，对 W 的梯度可以通过 softmax 的导数传回去——但只有被选中的 k 个专家的概率梯度是非零的，其余 N-k 个专家对 W 的梯度是 0。</p>
+    <p>这意味着：如果一个专家一直没被选中，它的路由概率就一直收不到梯度，永远学不会争取 token——这就是路由坍缩的数学根源。noisy top-k 和 auxiliary loss 都是为了对抗这个问题。</p>
+
+    <h2 class="section" id="noisy-top-k"><span class="idx">★</span> 三、Noisy Top-k：用噪声鼓励探索</h3>
+    <p>对抗路由坍缩的一个经典手段是 noisy top-k gating，最早来自 2017 年的 Outrageously Large Neural Networks 论文（Sparsely-Gated MoE layer）。它的思路是：在路由器的 logits 上加一个高斯噪声，再做 softmax 和 top-k。</p>
+
+    <h3 class="section">3.1 为什么噪声能帮助探索</h3>
+    <p>如果没有噪声，路由器的选择是确定性的——给定的 token 永远去固定的专家。这会导致训练初期某个专家偶然领先，之后就稳定接收这类 token，其他专家永远没机会。加入噪声后，选择变得随机：即使路由器偏好专家 A，有时噪声会让它选到专家 B，于是专家 B 也能收到梯度、学到东西。</p>
+    <p>用一个类比：噪声像是面试官的随机抽题。如果不抽题，能力强的人永远赢，弱的人永远没机会；加了随机抽题，弱的人偶尔也能被选中，得到锻炼机会，最终整体能力提升。噪声的强度通过一个可学习的参数（或固定标准差）控制，太大会让路由混乱，太小则探索不足。</p>
+
+    <h3 class="section">3.2 噪声的实现</h3>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
-import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+class NoisyRouter(nn.Module):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    Noisy Top-k 路由器：在 logits 上加可学习标准差的高斯噪声。
+    """
+    def __init__(self, d_model, num_experts, top_k=2):
+        super().__init__()
+        self.gate = nn.Linear(d_model, num_experts)
+        # noise 的标准差通过另一个线性层算出（依赖输入，可学习）
+        self.noise_linear = nn.Linear(d_model, num_experts)
+        self.top_k = top_k
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"MoE 路由的工程细节"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="116-tfm-moe-intro.html"><div class="lbl">← 上一章</div><div class="ttl">116 · MoE 混合专家：用稀疏激活做大模型</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="118-tfm-mamba-ssm.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">118 · Mamba 与 SSM：挑战 Transformer 的新路线</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 117 章 · MoE 路由的工程细节</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x, training=True):
+        logits = self.gate(x)                       # (B*S, N)
+        if training:
+            noise_std = F.softplus(self.noise_linear(x)) + 1e-2
+            noise = torch.randn_like(logits) * noise_std
+            # 注意：噪声加在用于「选择」的 logits 上，但 softmax 用的是无噪声 logits
+            noisy_logits = logits + noise
+            # 选择基于 noisy logits
+            _, topk_idx = noisy_logits.topk(self.top_k, dim=-1)
+        else:
+            _, topk_idx = logits.topk(self.top_k, dim=-1)
+        # 概率用无噪声 logits 算（保证确定性推理）
+        probs = F.softmax(logits, dim=-1)
+        topk_probs = probs.gather(1, topk_idx)
+        topk_probs = topk_probs / topk_probs.sum(dim=-1, keepdim=True)
+        return topk_idx, topk_probs
+
+# 演示噪声如何改变选择
+torch.manual_seed(0)
+router = NoisyRouter(d_model=64, num_experts=8, top_k=2)
+x = torch.randn(5, 64)
+idx, probs = router(x, training=True)
+print("训练时（含噪声）选中的专家：", idx.tolist())
+idx_eval, _ = router(x, training=False)
+print("推理时（无噪声）选中的专家：", idx_eval.tolist())
+# 多次运行训练模式，你会看到选择有随机性，部分 token 偶尔会去不同专家</code></pre>
+    <p>注意一个工程细节：训练时选择用带噪 logits，但加权概率用无噪 logits 算，这样推理时去掉噪声后行为一致。这种「训练探索、推理确定」的设计在工业 MoE 里很常见。</p>
+
+    <h2 class="section" id="auxiliary-loss"><span class="idx">★</span> 四、Auxiliary Loss：四种种写法</h3>
+    <p>噪声鼓励探索是软性的，要真正解决负载不均，还需要硬性的损失约束。auxiliary loss（辅助损失）就是这个约束。社区里流行着几种写法，各有优劣。</p>
+
+    <h3 class="section">4.1 Switch Loss（最经典）</h3>
+    <p>Switch Transformer 的辅助损失我们上一章介绍过：L_aux = alpha * N * sum_i (f_i * P_i)。其中 f_i 是专家 i 实际收到的 token 比例，P_i 是路由器分给专家 i 的平均概率。两者越均匀，loss 越小。这个 loss 的问题是对「实际负载 f_i」的计算依赖 top-k 选择，而选择是不可导的，所以实现时 f_i 用「硬计数」停止梯度，只让 P_i 带梯度。</p>
+
+    <h3 class="section">4.2 Load Balancing Loss（DeepSeek 版）</h3>
+    <p>DeepSeek 的变体把 f_i 也换成可微的近似。它定义每个专家 i 的负载分数为该专家在所有 token 上被选中概率之和，再除以 token 总数，得到一个可导的 P_i；同时用类似的概率形式近似 f_i。这样整个 loss 都可导，训练更稳。公式上：L_aux = alpha * sum_i (f_i * P_i)，但 f_i 和 P_i 都是基于 softmax 概率的软版本。</p>
+
+    <h3 class="section">4.3 Importance Loss 与 Load Loss 分离</h3>
+    <p>另一种思路（来自 GShard）是把辅助损失拆成两部分：importance loss 衡量「所有专家收到的总概率是否均衡」（用变异系数），load loss 衡量「每个专家收到的 token 数是否均衡」（同样用变异系数）。这种拆分能更精细地分别约束「概率分配」和「实际路由」，但实现复杂一些。</p>
+
+    <h3 class="section">4.4 z-loss：防止 logit 爆炸</h3>
+    <p>除了负载均衡，还有一种 z-loss 用来约束 router logits 的绝对值不要太大。如果某些 logits 无限增长，softmax 会变得极度尖锐，导致梯度消失或路由冻结。z-loss = beta * sum(softmax_logits^2)，是一个简单的 L2 正则。DeepSeek-V2 引入了这个 loss，提升了训练稳定性。</p>
+
+    <h2 class="section" id="full-implementation"><span class="idx">★</span> 五、完整实现：带负载均衡的可训练 MoE</h2>
+    <p>把路由、噪声、辅助损失整合起来，实现一个完整的、可以在小任务上训练的 MoE 层。这段代码是理解真实 MoE 训练流程的最佳起点。</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+
+class MoELayerWithBalance(nn.Module):
+    def __init__(self, d_model, d_ff, num_experts=8, top_k=2, aux_loss_coef=0.01):
+        super().__init__()
+        self.num_experts = num_experts
+        self.top_k = top_k
+        self.aux_loss_coef = aux_loss_coef
+        self.router = nn.Linear(d_model, num_experts)
+        self.experts = nn.ModuleList([
+            nn.Sequential(nn.Linear(d_model, d_ff), nn.GELU(), nn.Linear(d_ff, d_model))
+            for _ in range(num_experts)
+        ])
+        self.last_aux_loss = 0.0   # 记录上一次的辅助损失，供外部 loss 调用
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        返回: (输出, aux_loss)
+        """
+        B, S, D = x.shape
+        x_flat = x.reshape(-1, D)                   # (N_tokens, D)
+        N = x_flat.shape[0]
+
+        # 1. 路由
+        logits = self.router(x_flat)                # (N, E)
+        probs = F.softmax(logits, dim=-1)           # (N, E)
+        topk_probs, topk_idx = probs.topk(self.top_k, dim=-1)
+        topk_probs_norm = topk_probs / topk_probs.sum(dim=-1, keepdim=True)
+
+        # 2. 计算辅助损失（Switch 风格，可导版本）
+        # f_i: 每个专家被选中的 token 数比例（用 one-hot 的概率近似，可导）
+        # P_i: 每个专家收到的平均路由概率
+        mask = F.one_hot(topk_idx, self.num_experts).float()   # (N, top_k, E)
+        mask = mask.sum(dim=1)                                  # (N, E)
+        f = mask.mean(dim=0)        # 每个专家被选中的 token 比例（硬，停梯度）
+        P = probs.mean(dim=0)       # 每个专家的平均路由概率（软，带梯度）
+        aux_loss = self.num_experts * (f * P).sum()
+        self.last_aux_loss = aux_loss
+
+        # 3. 分发 token 到专家并加权聚合
+        out = torch.zeros_like(x_flat)
+        for i in range(self.top_k):
+            expert_ids = topk_idx[:, i]
+            weights = topk_probs_norm[:, i].unsqueeze(-1)
+            for e in range(self.num_experts):
+                m = (expert_ids == e)
+                if m.any():
+                    out[m] += weights[m] * self.experts[e](x_flat[m])
+        return out.reshape(B, S, D), aux_loss
+
+# 测试：在一个简单的前向里观察辅助损失
+torch.manual_seed(0)
+moe = MoELayerWithBalance(d_model=64, d_ff=256, num_experts=8, top_k=2)
+x = torch.randn(4, 16, 64)
+out, aux = moe(x)
+print(f"输出形状: {out.shape}")
+print(f"辅助损失: {aux.item():.4f}（理想情况下接近 1.0，说明负载均衡）")
+print(f"主任务损失 + {moe.aux_loss_coef} * aux_loss 即总训练损失")</code></pre>
+    <p>这段代码里有一个关键实现技巧：用 one-hot 把 top-k 选择转成可导的概率矩阵，让辅助损失能带梯度回传到路由器。这是让 MoE 训得稳的工程核心。训练时，把这个 aux_loss 乘以一个小系数（0.01）加到主语言建模损失上，路由器就会在「选最合适的专家」和「保持负载均衡」之间找平衡。</p>
+
+    <h2 class="section" id="expert-specialization"><span class="idx">★</span> 六、路由器真的学到了「专家专业化」吗</h2>
+    <p>一个有趣的问题是：MoE 训练后，不同专家真的负责不同领域吗？研究显示，确实如此——但不是人为指定的，而是自发涌现的。把训练好的 MoE 模型的路由统计出来，会发现某些专家专门处理代码、某些专门处理数学、某些专门处理某种语言。这种「自发分工」是 MoE 效果好的重要原因。</p>
+    <p>但也有限制。研究发现，如果不加干预，专家的分工往往不够清晰，存在大量冗余（多个专家学到了相似的知识）。这就是 DeepSeekMoE 引入「细粒度专家 + 共享专家」的动机——把专家拆得更小、更专，再固定几个共享专家处理通用知识，让路由更高效。</p>
+
+    <h3 class="section">6.1 观察路由分布的可视化思路</h3>
+    <p>下面这段代码演示如何统计一个 batch 里每个专家收到的 token 数，帮你直观判断负载是否均衡、专家是否专业化。</p>
+    <pre><code class="language-python">def analyze_routing(moe, x):
+    """统计每个专家收到的 token 数，判断负载均衡。"""
+    B, S, D = x.shape
+    x_flat = x.reshape(-1, D)
+    logits = moe.router(x_flat)
+    probs = F.softmax(logits, dim=-1)
+    _, topk_idx = probs.topk(moe.top_k, dim=-1)
+    # 统计每个专家被选中的次数
+    counts = torch.zeros(moe.num_experts)
+    for e in range(moe.num_experts):
+        counts[e] = (topk_idx == e).sum().item()
+    total = counts.sum().item()
+    print("各专家收到的 token 数：")
+    for e in range(moe.num_experts):
+        bar = "█" * int(counts[e] / total * 50)
+        print(f"  专家 {e}: {counts[e]:>4.0f} ({counts[e]/total:.1%}) {bar}")
+    # 理想情况下各专家占比接近 top_k/num_experts
+    ideal = moe.top_k / moe.num_experts
+    print(f"\n理想占比: {ideal:.1%}（实际偏差越小，负载越均衡）")
+
+# 用未训练的随机 MoE 看（应该相对均匀）
+analyze_routing(moe, torch.randn(4, 32, 64))</code></pre>
+    <p>训练良好的 MoE，各专家占比应该接近理想值（比如 top_k=2、N=8 时各占 25%）。如果你观察到某个专家占比远超 25%、某个远低于 25%，说明负载不均，需要调大 aux_loss_coef 或检查路由器初始化。</p>
+
+    <h2 class="section" id="advanced-topics"><span class="idx">★</span> 七、路由机制的进阶话题</h2>
+    <p>除了前面讲的基础，路由机制还有几个前沿方向值得关注。</p>
+    <ul>
+      <li><strong>专家并行（Expert Parallelism）</strong>：跨 GPU 分布专家，每个 GPU 只放几个专家，token 需要通过 all-to-all 通信送到目标专家所在的 GPU。这是训练超大 MoE 的必备工程，通信开销是主要瓶颈。</li>
+      <li><strong>Top-k 的 k 的选择</strong>：k=1 最省通信但表达力弱，k=2 平衡（Mixtral 选择），k=4 表达力更强但通信和计算成本上升。通常 2 到 4 是甜区。</li>
+      <li><strong>共享专家（Shared Expert）</strong>：DeepSeekMoE 引入，固定激活一个或几个共享专家处理通用知识，其余专家负责专业化，减少冗余。</li>
+      <li><strong>细粒度专家</strong>：把专家拆得更小更多（比如 64 个小专家选 6 个），路由更灵活，专业化更细。</li>
+      <li><strong>路由器容量与丢弃</strong>：训练时配合容量因子丢弃超额 token，推理时通常不限容量（动态 batching）。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 MoE 路由机制的内部细节彻底拆解了。要点回顾：</p>
+    <ul>
+      <li><strong>路由器本质</strong>：一个线性层加 softmax，输出 token 去各专家的概率，top-k 选择决定实际路由。</li>
+      <li><strong>Top-k 的不可导性</strong>：top-k 选择是离散的，梯度只能通过被选中专家的概率间接回传，未选中的专家收不到梯度，这是路由坍缩的根源。</li>
+      <li><strong>Noisy Top-k</strong>：在 logits 上加噪声，让选择有随机性，鼓励探索冷门专家，训练用噪声、推理去掉噪声。</li>
+      <li><strong>Auxiliary Loss 四种写法</strong>：Switch Loss（f*P 最经典）、DeepSeek 可导版、Importance+Load 分离、z-loss 防 logit 爆炸，组合使用最稳。</li>
+      <li><strong>工程实现</strong>：用 one-hot 把 top-k 转成可导矩阵算辅助损失，aux_loss 乘小系数（0.01）加到主损失上。</li>
+      <li><strong>专家专业化</strong>：训练后专家自发分工处理不同领域，可通过路由分布统计观察，细粒度+共享专家能减少冗余。</li>
+    </ul>
+    <p>讲完了 Transformer 家族的优化（量化、投机解码、MoE），下一章我们要跳出来，认识一个 Transformer 的有力挑战者——Mamba。它基于状态空间模型，用线性复杂度挑战 Transformer 的 O(n²) 注意力，是长序列建模的新希望。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

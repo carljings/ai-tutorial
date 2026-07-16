@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 数学基础 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 数学基础 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -65,7 +72,7 @@
       <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
       <a href="49-ai-education.html" title="AI 教育应用"><span class="num">49</span>AI 教育应用</a>
       <a href="50-glossary.html" title="LLM 术语表与速查手册"><span class="num">50</span>LLM 术语表与速查</a>
-      <a href="51-llm-math.html" class="active" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
+      <a href="51-llm-math.html" title="LLM 数学基础"><span class="num">51</span>LLM 数学基础</a>
       <a href="52-cuda-programming.html" title="CUDA/GPU 编程入门"><span class="num">52</span>CUDA/GPU 编</a>
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
@@ -295,26 +302,253 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 数学基础</h1><p class="lead">线性代数/概率/微积分——理解LLM需要的最少数学</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>你需要多少数学来理解LLM</h2>
-    <p>不需要 PhD 级数学。理解LLM需要的核心数学只有三块：线性代数（矩阵运算）、概率论（softmax/采样）、微积分（梯度下降）。本章用最精炼的方式讲清这三块的"够用版"。</p>
-    <h2><span class="idx"></span>线性代数：LLM的计算语言</h2>
-    <table class="data-table"><thead><tr><th>概念</th><th>直觉</th><th>在LLM中的作用</th></tr></thead><tbody><tr><td>向量</td><td>一列数</td><td>词嵌入（每个词=一个向量）</td></tr><tr><td>矩阵</td><td>数的表格</td><td>权重矩阵（模型参数）</td></tr><tr><td>矩阵乘法</td><td>变换</td><td>y=Wx（线性变换）</td></tr><tr><td>点积</td><td>相似度</td><td>注意力分数=q·k</td></tr><tr><td>softmax</td><td>概率化</td><td>注意力权重=softmax(q·k/√d)</td></tr></tbody></table>
-    <h2><span class="idx"></span>概率论：LLM的不确定性语言</h2>
-    <p>LLM本质上是在输出一个概率分布——"下一个token是每个词的概率"。softmax把这个分布归一化（加起来=1）。采样策略（top-k/top-p/temperature）控制怎么从这个分布里"选词"。</p>
-    <pre class="code"><code class="language-text">Softmax 直觉
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 51 · 实战案例系列</span>
+      <h1>LLM 数学基础<br>从向量、矩阵到 softmax 求导的实战拆解</h1>
+      <p class="lead">很多人一听到「大模型的数学」就劝退，以为是数学系研究生的专属。但真相是：支撑 GPT 这一代大语言模型运转的核心数学，只有三块——线性代数里的向量与矩阵运算、概率论里的分布与采样、微积分里的链式求导。本章我们不堆公式，而是用 NumPy 代码把每一个概念「跑」给你看，让你看清 attention 权重是怎么算出来的、softmax 梯度是怎么回传的、为什么温度参数能让模型从保守变激进。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-logits = [2.0, 1.0, 0.1]  ← 模型原始输出
-exp:     [7.39, 2.72, 1.11]  ← 取指数（放大差异）
-sum = 11.22
-softmax: [0.66, 0.24, 0.10]  ← 归一化为概率
+    <h2 class="section" id="why-math"><span class="idx">★</span> 一、为什么写大模型应用也得懂数学</h2>
+    <p>你可能会问：我调 OpenAI 的 API 写业务逻辑，又不需要训练模型，数学跟我有什么关系？关系很大。举几个真实场景：</p>
+    <ul>
+      <li><strong>调温度（temperature）和 top_p</strong>：这两个参数本质上是在操控 softmax 分布的尖锐程度，不懂 softmax，你就是在盲调。</li>
+      <li><strong>做向量检索（RAG 召回）</strong>：余弦相似度、点积、归一化，全是线性代数基础操作，不熟就会写出召回质量稀烂的代码。</li>
+      <li><strong>读论文改模型</strong>：哪怕只是换一个 embedding 模型，你也得看得懂维度对齐、矩阵乘法顺序这些细节。</li>
+    </ul>
+    <p>所以这一章的目标不是把你培养成算法研究员，而是让你在工程实践中「不被数学卡住」。我们从最基础的概念讲起，每一个都配可运行的 NumPy 代码。</p>
 
-→ 第一个词概率66%，第二个24%，第三个10%
-→ temperature&gt;1 压平分布（更随机）
-→ temperature&lt;1 拉开分布（更确定）</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>理解LLM的三块最少数学：线性代数（向量/矩阵/点积/softmax=注意力机制）、概率论（概率分布/采样=top-k/top-p/temperature）、微积分（梯度下降=训练）。不需要PhD——理解矩阵乘法+softmax+梯度下降就够读懂90%的LLM论文。</p>
-    <div class="chapter-nav">
-      <a href="50-glossary.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 51 章 · LLM 数学基础</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <h2 class="section" id="vectors-matrices"><span class="idx">★</span> 二、向量与矩阵：大模型的世界观</h2>
+    <p>在语言模型眼里，世界没有「词」，只有「向量」。每一个 token 都被映射成一个固定维度的浮点数列表，比如 768 维或 4096 维。这个向量就是模型对这个 token 的「数字签名」，蕴含了语义、语法、上下文信息。</p>
+    <p>而一句话就是一个矩阵——把多个 token 的向量按顺序堆叠起来，就得到了一个「序列长度 × 维度」的二维矩阵。整个 Transformer 的计算，本质上就是在这个矩阵上做一系列乘法和变换。</p>
+
+    <h3 class="section">2.1 向量的基本运算</h3>
+    <p>向量运算里最常用的有三个：点积、余弦相似度、范数。这三个操作在 RAG、embedding 检索里几乎天天用。</p>
+    <pre><code class="language-python">import numpy as np
+
+# 假设两个 token 的 embedding 向量（768 维太长，这里用 4 维演示）
+vec_a = np.array([0.8, 0.2, 0.5, 0.1])
+vec_b = np.array([0.7, 0.3, 0.4, 0.2])
+
+# 1. 点积：衡量两个向量的「方向一致性」
+dot = np.dot(vec_a, vec_b)
+print(f"点积: {dot:.4f}")   # 越大越相似
+
+# 2. L2 范数：向量的「长度」
+norm_a = np.linalg.norm(vec_a)
+norm_b = np.linalg.norm(vec_b)
+print(f"vec_a 的 L2 范数: {norm_a:.4f}")
+
+# 3. 余弦相似度：消除向量长度影响，只看方向
+cosine = dot / (norm_a * norm_b)
+print(f"余弦相似度: {cosine:.4f}")   # 范围 [-1, 1]，越接近 1 越相似</code></pre>
+    <p>余弦相似度是 RAG 检索的灵魂。当用户问「怎么部署大模型」，系统会把这句话编码成向量，再去向量库里和每条文档算余弦相似度，取出最相似的几条喂给模型。理解了这个运算，你就理解了 RAG 的召回逻辑。</p>
+
+    <h3 class="section">2.2 矩阵乘法：Transformer 的核心引擎</h3>
+    <p>注意力机制里的 Q、K、V 相乘，本质都是矩阵乘法。矩阵乘法的规则是：A 的形状是 (m, k)，B 的形状是 (k, n)，结果就是 (m, n)。中间那个 k 必须对齐，这也是写模型代码时最常报错的地方——维度不匹配。</p>
+    <pre><code class="language-python"># 模拟一个 batch 里 3 个 token，每个 token 是 4 维向量
+X = np.random.randn(3, 4)   # 形状 (3, 4)：序列长度 × 维度
+
+# 权重矩阵：把 4 维映射成新的 4 维（简化版，真实模型是 768→768）
+W = np.random.randn(4, 4)
+
+# 矩阵乘法：X @ W，一步完成所有 token 的线性变换
+Y = X @ W
+print(f"输入形状: {X.shape}")
+print(f"权重形状: {W.shape}")
+print(f"输出形状: {Y.shape}")   # (3, 4)，每个 token 都被变换了</code></pre>
+    <p>这一行 <code>X @ W</code> 背后，模型同时处理了 3 个 token 的线性变换。GPU 之所以擅长跑大模型，就是因为它能极快地做这种大规模矩阵乘法。理解维度对齐，是你调试模型报错的第一道防线。</p>
+
+    <h2 class="section" id="attention-math"><span class="idx">★</span> 三、用数学拆解 Attention：手写一个注意力</h2>
+    <p>讲了向量运算，我们就能来看大模型最核心的公式——缩放点积注意力（scaled dot-product attention）。它的公式是：</p>
+    <p><code>Attention(Q, K, V) = softmax(Q · K^T / √d_k) · V</code></p>
+    <p>看起来吓人，拆开其实就三步：Q 和 K 算相关性打分、用 softmax 归一化成权重、用权重对 V 加权求和。我们用 NumPy 完整实现一遍。</p>
+    <pre><code class="language-python">import numpy as np
+
+def softmax(x, axis=-1):
+    """数值稳定的 softmax：减去最大值防止 exp 溢出。"""
+    x_max = np.max(x, axis=axis, keepdims=True)
+    e_x = np.exp(x - x_max)   # 减去最大值，结果不变但更稳定
+    return e_x / np.sum(e_x, axis=axis, keepdims=True)
+
+def attention(Q, K, V):
+    """
+    缩放点积注意力。
+    Q, K, V 形状都是 (seq_len, d_k)。
+    """
+    d_k = Q.shape[-1]
+    # 第 1 步：Q 和 K^T 相乘，得到 (seq_len, seq_len) 的注意力分数
+    scores = Q @ K.T
+    # 第 2 步：除以 √d_k 缩放（防止分数过大让 softmax 饱和）
+    scores = scores / np.sqrt(d_k)
+    # 第 3 步：softmax 归一化成权重（每一行加起来等于 1）
+    weights = softmax(scores, axis=-1)
+    # 第 4 步：用权重对 V 加权求和
+    output = weights @ V
+    return output, weights
+
+# 演示：4 个 token，每个 8 维
+np.random.seed(42)
+seq_len, d_k = 4, 8
+Q = np.random.randn(seq_len, d_k)
+K = np.random.randn(seq_len, d_k)
+V = np.random.randn(seq_len, d_k)
+
+output, weights = attention(Q, K, V)
+print(f"注意力输出形状: {output.shape}")   # (4, 8)
+print(f"注意力权重矩阵:\n{weights.round(3)}")
+print(f"权重每行之和: {weights.sum(axis=-1).round(3)}")   # 应该都是 1.0</code></pre>
+    <p>跑完你会发现，weights 是一个 4×4 的矩阵，每一行代表当前 token 对其他 token 的关注程度，加起来正好是 1。这就是注意力「软性选择」的本质——不是硬挑一个，而是给所有 token 分配权重。</p>
+
+    <h2 class="section" id="softmax-derivative"><span class="idx">★</span> 四、softmax 求导：训练时梯度怎么回传</h2>
+    <p>softmax 是大模型输出层的标准动作——把一组任意实数（logits）变成一个概率分布。但训练时要反向传播，就得知道 softmax 的导数长什么样。这是很多人卡住的地方，我们把它彻底讲清楚。</p>
+
+    <h3 class="section">4.1 softmax 的雅可比矩阵</h3>
+    <p>softmax 的特点是：输出里的每一个元素都依赖输入里的所有元素。所以它的导数不是单个数，而是一个矩阵（雅可比矩阵）。对第 i 个输出对第 j 个输入求导，结果是：</p>
+    <ul>
+      <li>当 i == j：<code>∂y_i/∂x_j = y_i · (1 - y_i)</code></li>
+      <li>当 i ≠ j：<code>∂y_i/∂x_j = -y_i · y_j</code></li>
+    </ul>
+    <p>合并起来，softmax 对输入的雅可比矩阵是：<code>J = diag(y) - y · y^T</code>。这个形式在 PyTorch 里被高度优化，我们不用手写，但理解它有助于你看懂 loss 函数的行为。</p>
+    <pre><code class="language-python">import numpy as np
+
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+def softmax_jacobian(y):
+    """计算 softmax 的雅可比矩阵。"""
+    return np.diag(y) - np.outer(y, y)
+
+# 一个 3 分类问题的 logits
+logits = np.array([2.0, 1.0, 0.1])
+y = softmax(logits)
+print(f"softmax 输出: {y.round(4)}")   # 概率分布，和为 1
+
+J = softmax_jacobian(y)
+print(f"雅可比矩阵:\n{J.round(4)}")
+# 对角线是正的（y_i*(1-y_i)），非对角线是负的（-y_i*y_j）</code></pre>
+
+    <h3 class="section">4.2 交叉熵 + softmax：工程上从不分开算</h3>
+    <p>真实训练里，softmax 后面通常接交叉熵损失（cross-entropy）。奇妙的是，这两个组合在一起的梯度形式极其简洁：<code>梯度 = 预测概率 - 真实标签</code>。这就是为什么 PyTorch 的 <code>nn.CrossEntropyLoss</code> 内部直接吃 logits 而不是 softmax 输出——数值更稳定，计算更高效。</p>
+    <pre><code class="language-python">import numpy as np
+
+def softmax(x):
+    e_x = np.exp(x - np.max(x))
+    return e_x / e_x.sum()
+
+# 模拟一个分类：真实标签是第 0 类
+logits = np.array([1.5, 0.8, 0.3])   # 模型输出的原始分数
+target = np.array([1, 0, 0])          # one-hot 编码的真实标签
+
+probs = softmax(logits)
+print(f"预测概率: {probs.round(4)}")
+
+# softmax + 交叉熵的梯度 = 预测概率 - 真实标签
+gradient = probs - target
+print(f"梯度: {gradient.round(4)}")
+# 第 0 类梯度为负 → 梯度下降会让 logits[0] 增大（预测更准）
+# 其他类梯度为正 → 会让对应 logits 减小</code></pre>
+    <p>看明白了吗？预测对了的类（第 0 类），梯度是负的，梯度下降会推高它的 logit；预测错的类，梯度是正的，会被压低。这就是模型「从错误中学习」的数学本质。</p>
+
+    <h2 class="section" id="probability"><span class="idx">★</span> 五、概率论基础：采样、温度与生成策略</h2>
+    <p>大模型的生成过程，本质上是一个概率采样过程：每一步都得到一个词表上的概率分布，然后按某种策略挑一个词。理解概率论基础，你才能真正驾驭生成行为。</p>
+
+    <h3 class="section">5.1 温度参数的数学含义</h3>
+    <p>温度（temperature）的公式是：<code>softmax(logits / T)</code>。T 越小，分布越尖锐（模型更笃定）；T 越大，分布越平缓（模型更随机）。我们用代码看效果。</p>
+    <pre><code class="language-python">import numpy as np
+
+def softmax_with_temp(logits, T):
+    """带温度的 softmax。"""
+    scaled = logits / T
+    e_x = np.exp(scaled - np.max(scaled))
+    return e_x / e_x.sum()
+
+logits = np.array([3.0, 2.0, 1.0, 0.5])   # 4 个候选词的原始分数
+
+for T in [0.5, 1.0, 2.0]:
+    probs = softmax_with_temp(logits, T)
+    print(f"T={T}: {probs.round(4)}  熵={(-probs * np.log(probs)).sum():.3f}")
+# T=0.5: 概率更集中，模型更「自信」（低熵）
+# T=2.0: 概率更平均，模型更「发散」（高熵）</code></pre>
+    <p>所以写创意文案时调高温度（0.8-1.2），让输出更多样；做代码生成或事实问答时调低温度（0.1-0.3），让输出更确定。这不是经验主义，是概率分布的直接结果。</p>
+
+    <h3 class="section">5.2 top-k 和 top-p：截断采样</h3>
+    <p>光有温度还不够。真实生成里，词表可能有 5 万多个词，大部分概率极低，采样它们纯属浪费。于是有了 top-k（只从概率最高的 k 个里采）和 top-p（只从累积概率达到 p 的最小集合里采）。这两者都是对概率分布做截断，再重新归一化采样。</p>
+    <pre><code class="language-python">import numpy as np
+
+def top_p_sampling(logits, p=0.9):
+    """top-p（核采样）：保留累积概率达到 p 的最小 token 集合。"""
+    probs = np.exp(logits) / np.exp(logits).sum()
+    # 按概率从大到小排序
+    sorted_idx = np.argsort(probs)[::-1]
+    sorted_probs = probs[sorted_idx]
+    # 计算累积概率
+    cum_probs = np.cumsum(sorted_probs)
+    # 找到累积概率超过 p 的第一个位置，保留它及之前的
+    cutoff = np.searchsorted(cum_probs, p) + 1
+    keep_idx = sorted_idx[:cutoff]
+    # 重新归一化
+    kept_probs = probs[keep_idx]
+    kept_probs = kept_probs / kept_probs.sum()
+    # 按归一化后的概率采样
+    chosen = np.random.choice(keep_idx, p=kept_probs)
+    return chosen
+
+logits = np.array([3.0, 2.5, 1.0, 0.5, 0.1])
+for _ in range(5):
+    print(f"采样结果: token {top_p_sampling(logits, p=0.9)}")</code></pre>
+    <p>top-p 的精妙之处在于它是自适应的：当模型很笃定时，少数几个词就累积到 0.9，截断很激进；当模型很纠结时，需要很多词才累积到 0.9，截断更宽松。这比固定 k 的 top-k 聪明得多。</p>
+
+    <h2 class="section" id="chain-rule"><span class="idx">★</span> 六、链式法则与反向传播</h2>
+    <p>最后讲一个贯穿整个深度学习的核心：链式法则。它让多层神经网络的训练成为可能。核心思想是：复合函数的导数等于各层导数的乘积。</p>
+    <p>反向传播就是链式法则的工程实现——从 loss 出发，逐层往回算梯度，每一层只关心自己局部的导数，然后乘起来传给上一层。PyTorch 的 autograd 帮你做了这件事，但理解原理能帮你定位梯度爆炸、梯度消失这些要命的问题。</p>
+    <pre><code class="language-python">import numpy as np
+
+# 手写一个两层网络的前向 + 反向传播，演示链式法则
+# 网络：输入 x → 线性层1 → relu → 线性层2 → loss
+x = np.array([1.0, 2.0])         # 输入
+W1 = np.array([[0.5, -0.5], [0.3, 0.8]])
+b1 = np.array([0.1, 0.2])
+W2 = np.array([0.7, -0.6])
+b2 = 0.05
+y_true = 1.0
+
+# 前向传播
+z1 = W1 @ x + b1                  # 第一层线性
+a1 = np.maximum(0, z1)            # ReLU 激活
+z2 = W2 @ a1 + b2                 # 第二层线性
+y_pred = z2                       # 输出
+loss = 0.5 * (y_pred - y_true) ** 2
+print(f"预测值: {y_pred:.4f}, 损失: {loss:.4f}")
+
+# 反向传播（链式法则）
+dloss_dypred = y_pred - y_true             # dL/dy
+dypred_dW2 = a1                            # dy/dW2
+grad_W2 = dloss_dypred * dypred_dW2        # 链式相乘
+print(f"W2 的梯度: {grad_W2.round(4)}")
+# 用梯度更新 W2：W2 -= lr * grad_W2</code></pre>
+    <p>这个例子虽然小，但完整展示了「前向算输出、反向算梯度」的全流程。真实大模型有上百亿参数，但原理完全一样——只是矩阵更大、层数更多。梯度爆炸（梯度越来越大）和梯度消失（梯度越来越小）的根源，就是链式法则里太多项连乘，要么冲上天，要么萎缩到 0。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们用 NumPy 代码把大模型的核心数学概念跑了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>向量与矩阵</strong>：大模型的世界里一切皆张量。点积衡量相似度，矩阵乘法是 Transformer 的核心引擎，维度对齐是调试的第一防线。</li>
+      <li><strong>注意力机制</strong>：<code>softmax(Q·K^T/√d)·V</code> 四步走——算分、缩放、归一化、加权求和。理解了它，你就理解了 Transformer 的心脏。</li>
+      <li><strong>softmax 求导</strong>：雅可比矩阵形式是 <code>diag(y) - y·y^T</code>；和交叉熵组合后梯度简化为「预测值 - 真实值」，这是模型学习的数学本质。</li>
+      <li><strong>概率与采样</strong>：温度操控分布尖锐度，top-k/top-p 做截断采样。驾驭生成行为的前提是理解概率分布。</li>
+      <li><strong>链式法则</strong>：反向传播的基石，逐层相乘传梯度。梯度爆炸和消失都源于连乘效应。</li>
+    </ul>
+    <p>这些数学不需要你死记公式，但要建立直觉：看到 softmax 知道它在做归一化，看到矩阵乘法知道要检查维度，看到 loss 下降异常能联想到梯度问题。下一章我们会进入更实战的领域——看看 AI 创业里，这些技术认知如何转化为真实的产品和商业判断。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

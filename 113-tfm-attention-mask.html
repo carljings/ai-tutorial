@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -140,7 +138,7 @@
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
-      <a href="113-tfm-attention-mask.html" class="active" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
+      <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
@@ -305,67 +303,224 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 113 章 · Transformer 原理深挖</span>
-<h1>注意力掩码：因果、双向、文档级</h1><p class="lead">因果掩码（下三角）实现自回归、padding 掩码忽略无效位、文档/前缀掩码实现 prefix-tuning 与 packing。掩码是 Transformer 最灵活的控制面。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>因果掩码（下三角）实现自回归、padding 掩码忽略无效位、文档/前缀掩码实现 prefix-tuning 与 packing。掩码是 Transformer 最灵活的控制面。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 13 · Transformer 深度系列</span>
+      <h1>注意力掩码全景<br>Causal / Padding / Prefix 三种掩码的协同</h1>
+      <p class="lead">掩码是 Transformer 里最容易被忽视、却最常导致 bug 的细节。一个掩码位置写错，模型就会「偷看未来」或者「关注到无意义的 padding」。本章把 causal mask、padding mask、prefix mask 三种掩码的用途、形状、组合方式彻底讲透，并用 PyTorch 从零实现，让你之后调试任何注意力相关的诡异现象都能心中有数。</p>
+      <div class="meta">
+        <span class="chip">阅读约 23 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="what-is-mask"><span class="idx">★</span> 一、掩码到底是什么</h2>
+    <p>在注意力计算里，每个位置都要和其他所有位置算一个注意力分数，然后通过 softmax 归一化得到权重。但有些「位置对」之间是不应该有注意力联系的——比如未来位置不能被当前看到，padding 位置不携带任何语义信息。掩码的作用就是在 softmax 之前，把这些不该存在的注意力分数压成负无穷，让它们归一化后变成 0。</p>
+    <p>用一句话概括：<strong>掩码的本质是「注意力关系的开关」</strong>。1 表示允许关注，0（实现上常用 -inf）表示禁止关注。不同的掩码对应不同的「禁止规则」，组合使用就能精确控制谁能看到谁。</p>
+
+    <h3 class="section">1.1 三种掩码的分工</h3>
+    <p>在大模型里，常见的掩码有三种，各司其职：</p>
+    <ul>
+      <li><strong>Causal Mask（因果掩码）</strong>：禁止位置看「未来」，保证自回归生成。Decoder 模型必备。</li>
+      <li><strong>Padding Mask（填充掩码）</strong>：禁止所有位置关注 padding token，因为 padding 只是用来对齐长度的，没有语义。</li>
+      <li><strong>Prefix Mask（前缀掩码）</strong>：在 prefix tuning、FIM（fill-in-the-middle）等场景下，允许部分前缀双向可见，其余部分仍是因果的。</li>
+    </ul>
+    <p>这三者经常同时出现。比如在一个 batch 里做 Decoder 推理：既要 causal mask 防止偷看未来，又要 padding mask 屏蔽 batch 内不同长度的 padding。理解它们如何叠加，是写出正确 attention 实现的前提。</p>
+
+    <h2 class="section" id="causal-mask"><span class="idx">★</span> 二、Causal Mask：单向注意力的根基</h2>
+    <p>causal mask 我们在前几章已经接触过，这里做一次系统梳理。它是一个上三角为 -inf 的方阵，对角线及以下为 0。作用是让每个位置只关注自己及之前的位置，这是自回归语言模型的根基。</p>
+
+    <h3 class="section">2.1 构造与应用</h3>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+def make_causal_mask(seq_len, device="cpu"):
+    """返回 (seq_len, seq_len) 的因果掩码，可关注=0，禁止=-inf。"""
+    mask = torch.full((seq_len, seq_len), float("-inf"), device=device)
+    # 把下三角（含对角线）置为 0
+    mask = torch.triu(mask, diagonal=1)
+    return mask
+
+seq_len = 5
+causal = make_causal_mask(seq_len)
+print("因果掩码（0=可关注，-inf=禁止）：")
+print(causal)
+
+# 演示它如何作用在注意力分数上
+torch.manual_seed(0)
+scores = torch.randn(seq_len, seq_len)      # 假装是 QK^T
+attn = F.softmax(scores + causal, dim=-1)
+print("\n施加因果掩码后的注意力权重：")
+print(attn)
+# 上三角全是 0，每个位置只看左边</code></pre>
+    <p>你会看到 attn 的上三角全是 0，这正是「单向」的体现。一个常见的工程优化：在训练时构造一次 causal mask 缓存起来，每个 batch 复用，避免重复计算。</p>
+
+    <h3 class="section">2.2 一个隐蔽的数值陷阱</h3>
+    <p>用 -inf 做掩码时要注意一个数值问题：如果某一整行都被掩成 -inf（比如某些 padding 处理不当），softmax 会得到 NaN，因为它是对全 -inf 的行做 exp 求和再相除。工程上的对策是：保证每行至少有一个非 -inf 的元素，或者在 softmax 前给被全掩的行补一个 0。</p>
+    <p>这也是为什么 attention_mask 的实现里经常先做一次masked_fill然后再用 masked_softmax，而不是简单相加——后者在极端情况下会引入 NaN，让整个训练崩溃。</p>
+
+    <h2 class="section" id="padding-mask"><span class="idx">★</span> 二、Padding Mask：屏蔽无意义的填充位</h2>
+    <p>训练时一个 batch 里的句子长度往往不同，需要用 padding token（通常是 0 或专门的 pad_id）补齐到同一长度。但这些 padding 位没有任何语义，如果让其他位置关注它们，会污染注意力。padding mask 的作用就是把所有位置对 padding 位的注意力清零。</p>
+
+    <h3 class="section">3.1 构造 padding mask</h3>
+    <p>padding mask 的形状通常是 (batch, seq_len)，1 表示真实 token，0 表示 padding。在计算注意力时，把它扩展成 (batch, seq_len, seq_len) 的形式：对于每个 query 位置，所有 key 位置里是 padding 的都被掩掉。</p>
+    <pre><code class="language-python">def make_padding_mask(input_ids, pad_id=0):
+    """
+    返回 (batch, seq_len) 的 padding 掩码：1=真实 token，0=padding。
+    """
+    return (input_ids != pad_id).long()
+
+# 示例：batch=2，pad_id=0
+input_ids = torch.tensor([
+    [5, 7, 9, 2, 0, 0],     # 真实长度 4，补 2 个 padding
+    [3, 8, 1, 6, 4, 0],     # 真实长度 5，补 1 个 padding
+])
+pad_mask = make_padding_mask(input_ids, pad_id=0)
+print("padding 掩码（1=真实，0=填充）：")
+print(pad_mask)
+
+# 扩展成 (batch, seq_len, seq_len) 用于 attention
+# key_mask[b, i, j] = 1 表示 query i 可以关注 key j
+key_mask = pad_mask.unsqueeze(1).expand(-1, input_ids.size(1), -1)
+print("\n扩展后的 key_mask 形状:", key_mask.shape)
+print("第 0 个样本的 key_mask：")
+print(key_mask[0])</code></pre>
+    <p>你会看到第 0 个样本的最后两列（对应 padding 位置）全是 0，意味着任何 query 都不能关注这两个 padding key。这样 padding 就不会污染注意力计算了。</p>
+
+    <h3 class="section">3.2 注意：padding mask 是双向的</h3>
+    <p>padding mask 通常需要双向应用：既禁止 query 关注 padding key，也禁止 padding query 关注任何 key（因为 padding query 的输出本来就没用）。在 Encoder 里，第一种已经足够，因为 padding 位置的输出会被忽略；但在 Decoder 里，尤其是训练时并行计算，padding query 如果不掩掉，它产生的 logits 虽然不影响 loss（loss 会 mask 掉），但会影响梯度统计，所以严谨的做法是双向都掩。</p>
+
+    <h2 class="section" id="combine-causal-padding"><span class="idx">★</span> 四、组合掩码：训练时的标准操作</h2>
+    <p>真实训练里，causal mask 和 padding mask 经常需要同时使用。组合方式很简单：把两个掩码都表示成「可关注=0，禁止=-inf」的形式，然后相加（或逻辑或），得到的合并掩码就是两者约束的交集。</p>
+    <pre><code class="language-python">def combine_masks(causal_mask, pad_mask):
+    """
+    causal_mask: (seq_len, seq_len) 上三角 -inf
+    pad_mask: (batch, seq_len) 1=真实, 0=padding
+    返回 (batch, 1, seq_len, seq_len) 的合并掩码，用于多头注意力广播。
+    """
+    batch, seq_len = pad_mask.shape
+    # 把 pad_mask 转成 -inf/0 形式，扩展到 key 维度
+    pad_attn = pad_mask.unsqueeze(1).unsqueeze(1)   # (batch,1,1,seq_len)
+    pad_attn = torch.where(pad_attn==1, 0.0, float("-inf"))
+    # causal 扩展到 batch 维度
+    causal = causal_mask.unsqueeze(0).unsqueeze(0)  # (1,1,seq_len,seq_len)
+    combined = causal + pad_attn
+    # 相加后 -inf + 0 = -inf，0+0=0，0+(-inf)=-inf，符合「取交集」
+    return combined
+
+causal = make_causal_mask(6)
+pad_mask = make_padding_mask(torch.tensor([[5,7,9,2,0,0],[3,8,1,6,4,0]]), pad_id=0)
+combined = combine_masks(causal, pad_mask)
+
+# 验证：打印第 0 个样本的合并掩码（0=可关注）
+print("合并掩码（第 0 个样本，0=可关注，-inf=禁止）：")
+print(combined[0, 0])
+# 第 0 个样本最后两列是 padding，全 -inf；上三角也是 -inf</code></pre>
+    <p>合并后的掩码既禁止了偷看未来（上三角），又禁止了关注 padding（最后两列）。这就是一个 batch 里 Decoder 注意力计算的标准掩码配置。Hugging Face 的模型内部正是这么做的，只是封装得更隐蔽。</p>
+
+    <h2 class="section" id="prefix-mask"><span class="idx">★</span> 五、Prefix Mask：给前缀开绿灯</h2>
+    <p>在 prefix tuning、FIM（fill-in-the-middle，代码补全）等场景，我们希望序列的某个前缀部分能双向可见，而其余部分仍是单向的。这时就需要 prefix mask。</p>
+
+    <h3 class="section">5.1 FIM 场景下的需求</h3>
+    <p>举个例子。代码补全任务里，输入是 「函数开头 + 光标 + 函数结尾」，我们希望模型在光标处插入中间代码。为了让模型理解完整的函数结构，前面的「函数开头」和后面的「函数结尾」都应该对光标位置可见。但「函数结尾」里的 token 又不能互相偷看（因为它们是要被预测的）。这就需要 prefix mask。</p>
+    <p>更具体地说，假设序列被分成 prefix 和 suffix 两段。prefix 段内部双向可见（彼此能互相看），suffix 段保持因果（只能看左边），且 suffix 里的位置都能看到整个 prefix。这就是 prefix mask 的语义。</p>
+
+    <h3 class="section">5.2 构造 prefix mask</h3>
+    <pre><code class="language-python">def make_prefix_mask(seq_len, prefix_len):
+    """
+    前 prefix_len 个位置双向可见，其余位置因果。
+    返回 (seq_len, seq_len) 掩码，0=可关注，-inf=禁止。
+    """
+    mask = torch.zeros(seq_len, seq_len)
+    # suffix 部分（i &gt;= prefix_len）施加因果约束
+    for i in range(prefix_len, seq_len):
+        for j in range(i+1, seq_len):
+            mask[i, j] = float("-inf")
+    return mask
+
+# 示例：seq_len=6，prefix_len=2（前 2 个位置双向可见）
+prefix_mask = make_prefix_mask(6, 2)
+print("prefix_mask（prefix_len=2，前2位双向，后4位因果）：")
+print(prefix_mask)
+# 验证：位置 0 和 1 互相可见（全 0），位置 2-5 上三角是 -inf（因果）</code></pre>
+    <p>你会看到前 2 行全 0（这两个位置能看所有位置），从第 2 行开始上三角出现 -inf（这些位置只能看左边，符合因果）。这种掩码在 CodeLlama 的 FIM 训练、prefix LM（如 GLM）里都会用到。</p>
+
+    <h2 class="section" id="full-attention"><span class="idx">★</span> 六、把掩码接进一个完整的注意力层</h2>
+    <p>最后我们把所有掩码整合进一个完整的、可运行的多头注意力层，作为本章的实践总结。这个实现支持 causal、padding、prefix 三种掩码的组合，是工业级 attention 的简化版。</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class MaskedMultiHeadAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        assert d_model % num_heads == 0
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_head = d_model // num_heads
+        self.qkv = nn.Linear(d_model, 3 * d_model)
+        self.out = nn.Linear(d_model, d_model)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"注意力掩码：因果、双向、文档级"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="112-tfm-sampling-tricks.html"><div class="lbl">← 上一章</div><div class="ttl">112 · 典型采样与 mirostat：动态截断</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="114-tfm-speculative-decoding.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">114 · 投机解码：用小模型加速大模型</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 113 章 · 注意力掩码：因果、双向、文档级</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x, attn_mask=None):
+        """
+        x: (batch, seq_len, d_model)
+        attn_mask: (batch, 1, seq_len, seq_len) 或 None，0=可关注，-inf=禁止
+        """
+        B, S, D = x.shape
+        qkv = self.qkv(x).reshape(B, S, 3, self.num_heads, self.d_head)
+        qkv = qkv.permute(2, 0, 3, 1, 4)   # (3, B, heads, S, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+        # 注意力分数：(B, heads, S, S)
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(self.d_head)
+        if attn_mask is not None:
+            scores = scores + attn_mask     # 广播到 heads 维度
+        attn = F.softmax(scores, dim=-1)
+        out = attn @ v                       # (B, heads, S, head_dim)
+        out = out.transpose(1, 2).reshape(B, S, D)
+        return self.out(out)
+
+# 测试：用 prefix + padding 组合掩码跑一次前向
+torch.manual_seed(0)
+d_model, num_heads, seq_len, batch = 16, 4, 6, 2
+attn = MaskedMultiHeadAttention(d_model, num_heads)
+x = torch.randn(batch, seq_len, d_model)
+
+# 构造组合掩码（prefix_len=2 + padding）
+causal = make_causal_mask(seq_len)
+prefix = make_prefix_mask(seq_len, prefix_len=2)     # 替代纯 causal
+pad_mask = (torch.tensor([[5,7,9,2,0,0],[3,8,1,6,4,0]]) != 0).long()
+pad_attn = torch.where(pad_mask.unsqueeze(1).unsqueeze(1)==1, 0.0, float("-inf"))
+combined = prefix.unsqueeze(0).unsqueeze(0) + pad_attn    # (batch,1,S,S)
+
+out = attn(x, combined)
+print("输出形状:", out.shape)   # (2, 6, 16)
+print("输出不含 NaN:", not torch.isnan(out).any())</code></pre>
+    <p>这个实现虽然简化，但涵盖了工业级 attention 的核心要素：QKV 投影、分头、缩放点积、掩码施加、softmax、输出投影。理解了它，你再去读 LLaMA、GPT 的源码，会发现核心逻辑完全一致，只是加了 RoPE、GQA、Flash Attention 这些优化。</p>
+
+    <h2 class="section" id="debug-tips"><span class="idx">★</span> 七、调试掩码的实用技巧</h2>
+    <p>掩码是 Transformer bug 的高发地带。下面几条经验可以帮你快速定位问题。</p>
+    <ul>
+      <li><strong>打印掩码矩阵</strong>：怀疑注意力出问题时，第一步永远是 print 出掩码矩阵，肉眼检查 0 和 -inf 的位置是否符合预期。形状错了（比如少一维导致广播错误）一眼就能看出来。</li>
+      <li><strong>检查 NaN</strong>：如果训练中突然出现 NaN，很可能是某一行被全掩成 -inf。用 torch.isnan(attn).any() 在每层检查，定位是哪一层出问题。</li>
+      <li><strong>验证因果性</strong>：训练 Decoder 时，可以用一个简单测试验证 mask 正确——把序列反过来输入，如果 loss 和正向不一致，说明 mask 可能有泄漏。</li>
+      <li><strong>注意 device 和 dtype</strong>：掩码的 dtype 要和 attention scores 一致（通常是 float），device 要一致。混用 CPU 和 GPU 的 tensor 会报错。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把注意力掩码的完整体系梳理了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>掩码本质</strong>：注意力关系的开关，0=可关注，-inf=禁止，施加在 softmax 前的注意力分数上。</li>
+      <li><strong>Causal Mask</strong>：上三角 -inf 的方阵，禁止位置看未来，是 Decoder 自回归的根基。</li>
+      <li><strong>Padding Mask</strong>：(batch, seq_len) 形式，屏蔽 padding 位，避免无语义的 token 污染注意力。</li>
+      <li><strong>Prefix Mask</strong>：前缀段双向可见、后缀段因果，用于 FIM、prefix LM 等场景。</li>
+      <li><strong>组合方式</strong>：多个掩码用「相加」取交集，注意形状广播和 NaN 防护。</li>
+      <li><strong>调试要点</strong>：打印掩码、检查 NaN、验证因果性、统一 device 和 dtype。</li>
+    </ul>
+    <p>掩码是注意力计算正确性的基石。掌握它之后，我们就可以放心地讨论一个更激进的优化方向——投机解码。下一章会讲如何用一个小模型「投机」猜测大模型的输出，再由大模型批量验证，实现推理的大幅加速。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

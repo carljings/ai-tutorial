@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -145,7 +143,7 @@
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
       <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
-      <a href="118-tfm-mamba-ssm.html" class="active" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
+      <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
       <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
     </div>
     <div class="nav-group"><h3>★向量检索</h3>
@@ -305,67 +303,208 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 118 章 · Transformer 原理深挖</span>
-<h1>Mamba 与 SSM：挑战 Transformer 的新路线</h1><p class="lead">状态空间模型的连续动力系统视角、选择性 SSM 的硬件感知实现。线性复杂度的长序列优势、与注意力混合的 Jamba 等架构。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>状态空间模型的连续动力系统视角、选择性 SSM 的硬件感知实现。线性复杂度的长序列优势、与注意力混合的 Jamba 等架构。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 18 · Transformer 深度系列</span>
+      <h1>Mamba 状态空间模型<br>用线性复杂度挑战 Transformer</h1>
+      <p class="lead">Transformer 的注意力是 O(n²) 复杂度，序列一长就爆炸。Mamba 给出了一条新路径：基于状态空间模型（SSM），用 O(n) 复杂度处理超长序列，还通过「选择性机制」拿到了媲美注意力的建模能力。本章从连续 SSM 的微分方程讲起，一步步做离散化、引入选择性、对比 Transformer，并给出一个可在 CPU 上跑通的最小 Mamba 实现。</p>
+      <div class="meta">
+        <span class="chip">阅读约 27 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="motivation"><span class="idx">★</span> 一、Transformer 的长序列痛点</h2>
+    <p>Transformer 的成功建立在自注意力上，但自注意力有一个原罪：<strong>每个 token 都要和所有其他 token 算注意力，复杂度是 O(n²)</strong>。序列长度 n=1000 时，注意力矩阵是 100 万个元素；n=100000 时，就是 100 亿个。计算和显存都吃不消。</p>
+    <p>这限制了 Transformer 处理超长上下文的能力。虽然有 Flash Attention、稀疏注意力、滑动窗口等优化，但 O(n²) 的本质没变，长序列仍是瓶颈。于是研究者一直在寻找一种<strong>线性复杂度</strong>（O(n)）的替代方案，能像 RNN 一样高效，又能像 Transformer 一样并行训练、有长距离建模能力。</p>
+    <p>Mamba（2023 年发表）就是这条路径上的一个里程碑。它把控制论里的状态空间模型做了「选择性」改造，既保留了线性复杂度，又获得了强大的建模能力，在长序列任务上超越了同规模的 Transformer。</p>
+
+    <h2 class="section" id="ssm-basics"><span class="idx">★</span> 二、状态空间模型 SSM 是什么</h2>
+    <p>状态空间模型（State Space Model，SSM）源自控制论和信号处理，是一类用「隐状态」描述动态系统的数学模型。它的核心是两个方程：一个状态方程描述隐状态如何随输入更新，一个输出方程描述隐状态如何映射到输出。</p>
+
+    <h3 class="section">2.1 连续 SSM 的微分方程</h3>
+    <p>在连续时间下，SSM 用两个微分方程描述：dh(t)/dt = A * h(t) + B * x(t)（状态方程），y(t) = C * h(t) + D * x(t)（输出方程）。其中 x(t) 是 t 时刻的输入，h(t) 是隐状态，y(t) 是输出，A、B、C、D 是参数矩阵。物理含义是：当前的隐状态由「上一刻的状态衰减（A*h）」加上「新输入的注入（B*x）」决定；输出则是隐状态的线性组合。</p>
+    <p>把 SSM 用在语言模型上，x(t) 就是第 t 个 token 的向量表示，h(t) 是模型对「截止到第 t 个 token 的历史」的压缩记忆，y(t) 是第 t 个位置的输出。这种「维护一个隐状态」的方式天然是 O(n) 复杂度——每步只更新一个固定大小的状态向量，不依赖序列长度。</p>
+
+    <h3 class="section">2.2 用类比理解 SSM</h3>
+    <p>可以把 SSM 想象成一个「会遗忘的笔记本」。每来一个新输入，你就在笔记本上记下要点（B*x），同时笔记本上旧的内容会随时间慢慢褪色（A*h 的衰减）。当下要做决策时，你参考笔记本的当前内容（C*h）。笔记本的容量固定，不管你读过多少内容，每次决策的成本都是恒定的——这就是 O(n) 的来源。</p>
+    <p>相比之下，Transformer 的注意力像是「带完整回放的录音机」——每次决策都要回放所有历史录音（O(n) 个），然后权衡，所以成本随历史长度线性增长，两两比较又是 O(n²)。SSM 用「压缩的笔记本」换来了效率，代价是旧信息会被压缩丢失——能否压缩得好，决定了 SSM 的能力上限。</p>
+
+    <h2 class="section" id="discretization"><span class="idx">★</span> 三、从连续到离散：让 SSM 能处理序列</h2>
+    <p>语言模型处理的是离散的 token 序列，而原始 SSM 是连续时间的。需要做「离散化」（discretization），把连续微分方程转成离散的递推式。最常用的是零阶保持（Zero-Order Hold，ZOH）离散化。</p>
+
+    <h3 class="section">3.1 离散化后的递推</h3>
+    <p>经过 ZOH 离散化，连续方程变成离散形式：h_t = A_bar * h_(t-1) + B_bar * x_t，y_t = C * h_t。其中 A_bar 和 B_bar 是离散化后的矩阵，它们由连续的 A、B 和一个时间步长参数 delta 决定。具体公式是：A_bar = expm(delta * A)（矩阵指数），B_bar = (delta * A)^(-1) * (expm(delta * A) - I) * delta * B（工程上常用简化形式）。</p>
+    <p>关键在于，离散化引入了一个<strong>时间步长 delta</strong>，它控制「每一步往前推进多少」。delta 大，状态更新激进，新信息权重大；delta 小，状态更新保守，更依赖历史。后面我们会看到，Mamba 把 delta 做成「输入相关」的，这是它的核心创新。</p>
+
+    <h3 class="section">3.2 离散 SSM 的两种计算模式</h3>
+    <p>离散化后的 SSM 可以用两种方式计算。一种是<strong>递归模式</strong>（recurrent）：按 t=1,2,3... 一步步更新 h_t，每步 O(1)，总共 O(n)。这适合推理（生成时一个一个 token 来）。另一种是<strong>卷积模式</strong>（convolutional）：把整个序列的递推展开成一个卷积运算，可以用 FFT 高效计算，且天然并行。这适合训练（一次性处理整个序列）。</p>
+    <p>这种「训练用卷积并行、推理用递归 O(1)」的双模式，是早期 SSM（如 S4）的优势。但有个前提：A、B、C、delta 都是<strong>固定的</strong>（不依赖输入），否则卷积展开不成立。Mamba 的突破正是打破了这个限制。</p>
+
+    <h3 class="section">3.3 动手感受离散化与递归</h3>
+    <p>光看公式不够直观，下面用代码把连续 SSM 离散化，并跑一个简单的递推，让你亲手感受状态如何随输入演化。我们用一个标量状态（d_state=1）演示，便于看清每一步的变化。</p>
+    <pre><code class="language-python">import torch
+import math
+
+def discretize_zoh(A, B, delta):
+    """
+    ZOH 离散化：把连续 (A, B) 转成离散 (A_bar, B_bar)。
+    A, B: 标量或矩阵；delta: 时间步长。
+    这里用简化形式（标量情况，矩阵用矩阵指数 expm）。
+    """
+    A_bar = math.exp(delta * A)                       # 标量时 expm 就是 exp
+    B_bar = delta * B                                 # delta 小时的简化（完整形式略复杂）
+    return A_bar, B_bar
+
+def ssm_recurrent(x_seq, A, B, C, delta, h0=0.0):
+    """
+    用递归模式跑一遍离散 SSM。
+    x_seq: (seq_len,) 输入序列
+    返回: (seq_len,) 输出序列
+    """
+    A_bar, B_bar = discretize_zoh(A, B, delta)
+    h = h0
+    outputs = []
+    for x_t in x_seq:
+        h = A_bar * h + B_bar * x_t        # 状态更新：旧状态衰减 + 新输入注入
+        y_t = C * h                        # 输出
+        outputs.append(y_t)
+    return torch.tensor(outputs)
+
+# 演示：A 为负控制衰减，delta 控制更新激进程度
+x = torch.tensor([0.0, 1.0, 0.0, 0.0, 0.0, 0.0, 0.0])   # 一个脉冲输入
+for delta in [0.1, 0.5, 1.0]:
+    out = ssm_recurrent(x, A=-1.0, B=1.0, C=1.0, delta=delta)
+    print(f"delta={delta}: 输出 {[f'{v:.3f}' for v in out.tolist()]}")
+# delta 越大，单次脉冲的影响越深地写入状态、衰减越慢；delta 越小，状态更新越保守</code></pre>
+    <p>运行这段代码，你会看到一个直观的现象：同样的脉冲输入，delta 越大，输出响应越强烈、持续越久（状态记得越久）；delta 越小，响应越弱、衰减越快。这正是 delta 作为「时间步长」控制记忆窗口的物理含义。Mamba 让 delta 依赖输入，就是让模型对每个 token 自适应地决定「这个 token 值得多记一会儿还是快速遗忘」。</p>
+
+    <h2 class="section" id="selectivity"><span class="idx">★</span> 四、Mamba 的核心创新：选择性机制</h2>
+    <p>传统 SSM 的参数（A、B、C、delta）是固定的，不随输入变化。这带来一个问题：模型无法根据当前内容「选择性地」记住或遗忘——它对所有 token 一视同仁地压缩。但语言里，有些 token 是关键信息（如人名、数字），需要牢牢记住；有些是填充词（如「的」「是」），可以忽略。固定参数的 SSM 做不到这种选择性。</p>
+
+    <h3 class="section">4.1 选择性是什么意思</h3>
+    <p>Mamba 让 B、C、delta 三个参数<strong>依赖输入 x_t</strong>。也就是说，每个 token 进来时，模型会根据这个 token 的内容动态生成 B、C、delta。于是模型能「看内容下菜碟」：遇到重要 token，调大 delta（激进更新状态，记住它）；遇到不重要 token，调小 delta（保守更新，忽略它）。这就是「选择性」——有选择地决定记什么、忘什么。</p>
+    <p>类比一下：固定参数 SSM 像一个机械的速记员，每个词都按固定力度记；选择性 SSM（Mamba）像一个聪明的速记员，听到关键词会重点记录，听到废话会略过。后者的笔记本（隐状态）利用率远高于前者。</p>
+
+    <h3 class="section">4.2 选择性带来的代价：失去卷积并行</h3>
+    <p>但选择性的代价是：B、C、delta 依赖输入后，递推不再能展开成卷积，训练时的并行性丧失。Mamba 的解决方案是：训练时仍按递推做，但用一个精心设计的<strong>并行扫描算法</strong>（parallel scan）在 GPU 上高效并行化。并行扫描利用了递推的结合律，把 O(n) 的串行递推变成 O(log n) 深度的并行计算，在现代 GPU 上能跑出接近卷积的速度。</p>
+    <p>此外，Mamba 对矩阵 A 用了一个特殊的参数化（HiPPO 初始化或对角化），让 A 的计算可控且高效。整个设计是一个工程与理论的精致平衡。</p>
+
+    <h2 class="section" id="minimal-impl"><span class="idx">★</span> 五、最小 Mamba 块实现</h2>
+    <p>把概念落到代码。下面实现一个简化版的 Mamba 块（用递归模式，便于理解），包含选择性参数生成、状态更新、输出投影。这是理解官方 Mamba 实现的基础。</p>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+class SimpleMambaBlock(nn.Module):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    简化版 Mamba 块（递归模式，用于教学，非最优实现）。
+    展示选择性机制：B、C、delta 都依赖输入。
+    """
+    def __init__(self, d_model, d_state=16):
+        super().__init__()
+        self.d_model = d_model
+        self.d_state = d_state
+        # 输入投影（类似 Transformer 的 in_proj）
+        self.in_proj = nn.Linear(d_model, d_model * 2)
+        # 卷积（Mamba 的局部建模模块）
+        self.conv1d = nn.Conv1d(d_model, d_model, kernel_size=3, padding=1, groups=d_model)
+        # 生成选择性参数 B、C、delta 的投影
+        self.x_proj = nn.Linear(d_model, d_state * 2 + d_model)   # B(d_state) + C(d_state) + delta(d_model)
+        # 参数 A：固定初始化（这里用负数保证稳定，HiPPO 在真实实现里用）
+        self.A_log = nn.Parameter(torch.randn(d_model, d_state) * 0.01)
+        # 输出投影
+        self.out_proj = nn.Linear(d_model, d_model)
+        self.norm = nn.LayerNorm(d_model)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"Mamba 与 SSM：挑战 Transformer 的新路线"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="117-tfm-moe-routing.html"><div class="lbl">← 上一章</div><div class="ttl">117 · MoE 路由的工程细节</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="119-tfm-from-scratch.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">119 · 从零实现一个迷你 Transformer</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 118 章 · Mamba 与 SSM：挑战 Transformer 的新路线</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        递归更新状态，返回 (batch, seq_len, d_model)。
+        """
+        B, S, D = x.shape
+        residual = x
+        x = self.norm(x)
+        # 1. 投影 + 局部卷积
+        xz = self.in_proj(x)                  # (B, S, 2D)
+        xv, xz_gate = xz.chunk(2, dim=-1)
+        xv = self.conv1d(xv.transpose(1, 2)).transpose(1, 2)   # (B, S, D)
+        xv = F.silu(xv)
+
+        # 2. 算选择性参数（每个 token 不同）
+        xbc = self.x_proj(xv)                 # (B, S, d_state*2 + D)
+        B_p, C_p, delta_p = xbc.split([self.d_state, self.d_state, D], dim=-1)
+        delta = F.softplus(delta_p)           # delta &gt; 0
+        B_p = B_p                             # (B, S, d_state)
+        C_p = C_p                             # (B, S, d_state)
+        A = -torch.exp(self.A_log)            # (D, d_state)，负值保证稳定
+
+        # 3. 离散化 + 递归更新状态（教学用循环，真实实现用并行扫描）
+        h = torch.zeros(B, D, self.d_state, device=x.device)
+        ys = []
+        for t in range(S):
+            # delta_t: (B, D, 1)，A: (D, d_state) -> 离散 A_bar = exp(delta * A)
+            delta_t = delta[:, t]                          # (B, D)
+            A_bar = torch.exp(delta_t.unsqueeze(-1) * A)   # (B, D, d_state)
+            B_bar = delta_t.unsqueeze(-1) * B_p[:, t].unsqueeze(1)   # (B, D, d_state)
+            # 状态更新：h = A_bar * h + B_bar * x_t
+            h = A_bar * h + B_bar * xv[:, t].unsqueeze(-1)  # (B, D, d_state)
+            # 输出：y_t = C_t @ h
+            y_t = (h * C_p[:, t].unsqueeze(1)).sum(-1)      # (B, D)
+            ys.append(y_t)
+        y = torch.stack(ys, dim=1)               # (B, S, D)
+        y = y * F.silu(xz_gate)                  # 与门控分支相乘
+        return residual + self.out_proj(y)
+
+# 测试
+torch.manual_seed(0)
+mamba = SimpleMambaBlock(d_model=64, d_state=16)
+x = torch.randn(2, 32, 64)
+y = mamba(x)
+print(f"输入: {x.shape}, 输出: {y.shape}, 参数量: {sum(p.numel() for p in mamba.parameters())}")
+# 这个块可以替换 Transformer 的 attention+FFN，每个位置的计算量是 O(d_state)，与序列长度无关</code></pre>
+    <p>注意这个实现用 Python 循环做递归，速度慢，仅用于理解原理。真实的 Mamba 实现用 CUDA 编写的并行扫描（selective_scan）把递归并行化，在 GPU 上速度接近 Transformer。但核心数学逻辑和这段代码完全一致。</p>
+
+    <h2 class="section" id="mamba-vs-transformer"><span class="idx">★</span> 六、Mamba 与 Transformer 的全面对比</h2>
+    <p>把两者摆在一起对比，能看清各自的定位和取舍。</p>
+    <ul>
+      <li><strong>复杂度</strong>：Transformer 注意力 O(n²)，Mamba O(n)。序列越长，Mamba 优势越大。在 100K+ token 的长上下文，Mamba 的显存和速度优势显著。</li>
+      <li><strong>训练并行性</strong>：Transformer 天然高度并行（attention 矩阵运算），Mamba 需要并行扫描，并行度低于 Transformer 但仍可用。</li>
+      <li><strong>推理效率</strong>：Transformer 自回归生成每步 O(n)（要重算 KV cache 的 attention），Mamba 每步 O(1)（只更新固定大小的状态）。Mamba 在长序列推理上完胜。</li>
+      <li><strong>长距离建模</strong>：Transformer 靠 attention 直接连接任意两个位置，能力强但贵；Mamba 靠隐状态的隐式压缩传递信息，能力稍弱但便宜。研究显示 Mamba 在大多数长程任务上接近 Transformer，个别任务（如极远距离的精确检索）仍不如注意力。</li>
+      <li><strong>理论可解释性</strong>：Mamba 的状态方程有清晰的数学结构，A 矩阵控制遗忘、delta 控制选择性，比 attention 的「黑箱权重」更可解释。</li>
+    </ul>
+
+    <h3 class="section">6.1 各自的适用场景</h3>
+    <p>当前看，Mamba 更适合<strong>长序列、流式处理、低延迟推理</strong>的场景：超长文档摘要、基因组分析、音频建模、边缘设备部署。Transformer 更适合<strong>中短序列、需要精确检索</strong>的场景：通用对话（几千 token 上下文）、代码补全、问答。一个有趣的趋势是「混合架构」——把 Mamba 层和 Transformer 层交错堆叠，兼得两者的长处（如 Jamba 模型）。</p>
+
+    <h2 class="section" id="beyond-mamba"><span class="idx">★</span> 七、SSM 家族的演化</h2>
+    <p>Mamba 不是凭空出现的，它是 SSM 家族演化的结果。了解这条脉络，能帮你理解它的设计选择。</p>
+    <ul>
+      <li><strong>HiPPO（2020）</strong>：提出了用正交多项式构造 A 矩阵的方法，让 SSM 能高效记忆长历史，是后续工作的数学基础。</li>
+      <li><strong>S4（2021）</strong>：把 HiPPO 的 A 参数化和卷积模式结合，第一次让 SSM 在 Long Range Arena 等长序列基准上超越 Transformer。</li>
+      <li><strong>S5、H3</strong>：在 S4 基础上改进，引入多输入多输出（MIMO）状态、门控等，向语言建模靠拢。</li>
+      <li><strong>Mamba（2023）</strong>：引入选择性机制，让参数依赖输入，第一次在语言建模上达到 Transformer 同等水平，引发 SSM 热潮。</li>
+      <li><strong>Mamba-2（2024）</strong>：揭示了 SSM 和注意力在数学上的统一（structured state space duality），简化了实现、提升了速度。</li>
+      <li><strong>混合架构</strong>：Jamba（Mamba+Transformer+MoE）、Zamba 等，融合各家所长，是目前的大模型新方向。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 Mamba 和状态空间模型的来龙去脉梳理了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>动机</strong>：Transformer 注意力 O(n²)，长序列吃不消，需要 O(n) 的替代方案。</li>
+      <li><strong>SSM 本质</strong>：用隐状态压缩历史，每步更新固定大小状态，天然 O(n)。核心是状态方程 h_t = A_bar*h_(t-1) + B_bar*x_t 和输出方程 y_t = C*h_t。</li>
+      <li><strong>离散化</strong>：用 ZOH 把连续微分方程转成离散递推，引入时间步长 delta 控制更新幅度。</li>
+      <li><strong>双模式</strong>：传统 SSM 训练用卷积并行、推理用递归 O(1)，但要求参数固定。</li>
+      <li><strong>Mamba 选择性</strong>：让 B、C、delta 依赖输入，按内容选择性记忆或遗忘，代价是失去卷积并行，改用并行扫描。</li>
+      <li><strong>对比 Transformer</strong>：Mamba 长序列推理 O(1) 完胜，长距离精确检索略弱，混合架构是当前方向。</li>
+      <li><strong>演化脉络</strong>：HiPPO → S4 → Mamba → Mamba-2 → 混合架构，每一步都在解前一步的瓶颈。</li>
+    </ul>
+    <p>SSM 是 Transformer 之外最有潜力的架构方向，但目前 Transformer 仍是主流。下一章，也是本系列的收官之作，我们要把前面所有学到的概念串起来——从零实现一个迷你 Transformer，让你亲手把 Embedding、位置编码、多头注意力、FFN、LayerNorm 拼成一个能在 CPU 上跑的语言模型。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

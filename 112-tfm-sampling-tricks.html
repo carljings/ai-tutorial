@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -139,7 +137,7 @@
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
-      <a href="112-tfm-sampling-tricks.html" class="active" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
+      <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
       <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
@@ -305,67 +303,236 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 112 章 · Transformer 原理深挖</span>
-<h1>典型采样与 mirostat：动态截断</h1><p class="lead">Top-p 固定截断的局限。Locally Typical Sampling 选最符合熵的截断点。Mirostat 动态调温度维持目标惊喜度。控制生成质量的进阶旋钮。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>Top-p 固定截断的局限。Locally Typical Sampling 选最符合熵的截断点。Mirostat 动态调温度维持目标惊喜度。控制生成质量的进阶旋钮。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 12 · Transformer 深度系列</span>
+      <h1>高级采样技巧<br>Top-k / Top-p / Min-p / Typical / Mirostat 全对比</h1>
+      <p class="lead">前一章我们聊了 top-k 和 top-p 这两员老将，但采样的世界远不止于此。Min-p 用相对阈值过滤噪声词，Typical Sampling 从信息论角度挑「不意外」的词，Mirostat 则像恒温器一样动态调节熵。本章把这五种采样方法放在一起做一次完整的原理剖析与代码对比，让你知道在不同场景下该祭出哪一件武器。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="recap"><span class="idx">★</span> 一、为什么需要更多采样方法</h2>
+    <p>复习一下：top-k 固定取概率最高的 k 个词，top-p 按累积概率截断。它们已经是工业界的主力，但仍有盲区。top-k 在分布尖锐时会引入多余噪声，top-p 在分布平坦时候选集又会过宽。更微妙的是，它们都只关注「概率绝对值」，忽略了分布的整体形状（信息熵），导致在某些场景下生成质量不稳定。</p>
+    <p>后续的研究者从不同角度提出了新的采样方法：Min-p 关注「相对显著性」，Typical Sampling 关注「信息熵的期望」，Mirostat 则把目标锁定在「保持固定的困惑度」。每一种都在解决前一种留下的某个痛点。理解它们的思路，你才能在面对具体任务时做出最优选择。</p>
+
+    <h2 class="section" id="min-p"><span class="idx">★</span> 二、Min-p：相对阈值过滤</h2>
+    <p>Min-p（也叫 min-p sampling）是 2024 年随 Activeloop 等讨论流行起来的一种采样方法。它的规则是：先找到当前分布里概率最高的那个词的概率 p_max，然后设定一个相对阈值比例 r（比如 0.05），只保留概率大于等于 r * p_max 的词，其余全部丢弃，再在保留的词里采样。</p>
+
+    <h3 class="section">2.1 与 top-p 的互补关系</h3>
+    <p>top-p 是「按累积概率从大到小累加到 p 停止」，min-p 是「按绝对概率保留高于最大概率 r 倍的词」。两者的区别在极端分布下最明显。当分布极其尖锐（p_max=0.99）时，top-p=0.9 可能只保留 1 个词，过于保守；而 min-p=0.05 会保留所有概率高于 0.0495 的词，可能有好几个，更灵活。</p>
+    <p>反过来，当分布很平坦（p_max=0.1）时，min-p=0.05 会保留所有概率高于 0.005 的词，候选集可能过宽；而 top-p=0.9 会按累积概率收缩，更合理。所以两者其实是互补的，有些推理引擎（如 llama.cpp）支持同时设置 top-p 和 min-p，取两个候选集的交集。</p>
+
+    <h3 class="section">2.2 实现 min-p 采样</h3>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+def min_p_sampling(logits, min_p=0.05):
+    """
+    Min-p 采样：保留概率 &gt;= min_p * max_prob 的词，再归一化采样。
+    """
+    probs = F.softmax(logits, dim=-1)
+    max_prob = probs.max()
+    threshold = min_p * max_prob
+    # 把低于阈值的词概率置零
+    mask = probs &gt;= threshold
+    filtered = torch.where(mask, probs, torch.zeros_like(probs))
+    filtered = filtered / filtered.sum()        # 重新归一化
+    return torch.multinomial(filtered, num_samples=1)
+
+# 对比 top-p 和 min-p 的候选集大小
+torch.manual_seed(42)
+# 模拟一个尖锐分布：前几个词概率极高
+sharp_logits = torch.tensor([8.0, 7.5, 6.0, 2.0, 1.0, 0.5, 0.1] + [-5.0]*20)
+flat_logits = torch.tensor([2.0, 1.9, 1.8, 1.7, 1.6, 1.5, 1.4] + [0.1]*20)
+
+for name, logits in [("尖锐分布", sharp_logits), ("平坦分布", flat_logits)]:
+    probs = F.softmax(logits, dim=-1)
+    top_k_set = (probs &gt;= probs.topk(5).values.min()).sum().item()
+    top_p_set = 0
+    cum = 0
+    for p in sorted(probs.tolist(), reverse=True):
+        cum += p
+        top_p_set += 1
+        if cum &gt;= 0.9:
+            break
+    min_p_set = (probs &gt;= 0.05 * probs.max()).sum().item()
+    print(f"{name}: top-k(5)={top_k_set}, top-p(0.9)={top_p_set}, min-p(0.05)={min_p_set}")</code></pre>
+    <p>运行这个对比，你会直观看到：尖锐分布下 min-p 的候选集比 top-p 更宽，平坦分布下 min-p 比 top-p 更窄。这正是 min-p 作为 top-p 补充的价值所在。</p>
+
+    <h2 class="section" id="typical"><span class="idx">★</span> 三、Typical Sampling：信息论视角的采样</h2>
+    <p>Typical Sampling 来自 2022 年 Meister 等人的论文，它从一个全新的角度——信息论——来思考采样。它的核心观察是：好的文本应该在信息量上接近一个「期望值」，既不太意外（低概率词），也不太确定（高概率词），而是落在中间的「典型」区域。</p>
+
+    <h3 class="section">3.1 直觉：什么叫「典型」</h3>
+    <p>设想模型在写一篇文章。如果它每一步都选最高概率的词，信息量（负对数概率，即惊讶度）很低，文本会很平淡、可预测。如果它每一步都从低概率词里采样，信息量很高，文本会显得混乱、不连贯。自然的语言介于两者之间——大部分词是「预期之内但有一点惊喜」。</p>
+    <p>Typical Sampling 就是去量化这个「期望信息量」。它先计算整个分布的熵 H（即所有词信息量的期望），然后衡量每个词的信息量与 H 的距离，优先选距离小的词——也就是信息量最接近平均水平的「典型」词。</p>
+
+    <h3 class="section">3.2 数学定义</h3>
+    <p>设词 i 的概率为 p_i，它的信息量为 -log p_i。整个分布的熵为 H = -sum(p_i * log p_i)。每个词的「意外度偏差」为 |(-log p_i) - H|。Typical Sampling 把词按这个偏差从小到大排序，然后像 top-p 一样累积概率到阈值 p，截断后采样。</p>
+    <p>换句话说，它不再按概率大小排序，而是按「信息量是否接近平均」排序。这能避免 top-p 在某些情况下过度偏向高概率词的问题，生成的文本在保持连贯的同时更有变化。</p>
+
+    <h3 class="section">3.3 实现 Typical Sampling</h3>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+def typical_sampling(logits, p=0.9):
+    """
+    Typical Sampling：按信息量与熵的偏差排序，累积到 p 截断。
+    """
+    probs = F.softmax(logits, dim=-1)
+    log_probs = torch.log(probs + 1e-10)
+    neg_entropy = (probs * log_probs).sum()       # = -H
+    entropy = -neg_entropy                         # H
+    # 每个词的信息量 -log p_i 与熵 H 的距离
+    info = -log_probs
+    deviation = (info - entropy).abs()
+    # 按偏差从小到大排序
+    sorted_idx = deviation.argsort()
+    sorted_probs = probs[sorted_idx]
+    # 累积概率到 p
+    cum = torch.cumsum(sorted_probs, dim=-1)
+    keep = cum &lt;= p
+    keep[..., -1] = True   # 至少保留一个
+    masked = sorted_probs * keep
+    masked = masked / masked.sum()
+    # 还原到原顺序再采样
+    final = torch.zeros_like(probs)
+    final[sorted_idx] = masked
+    return torch.multinomial(final, num_samples=1)
+
+# 对比 typical 和 top-p 在同一个分布下的选择
+torch.manual_seed(0)
+logits = torch.tensor([3.0, 2.8, 2.5, 2.0, 1.5, 1.0, 0.5, 0.0, -0.5, -1.0])
+probs = F.softmax(logits, dim=-1)
+print("原始概率分布:", [f"{x:.3f}" for x in probs.tolist()])
+print("Typical 采样（p=0.9）结果:", typical_sampling(logits.clone(), 0.9).item())
+print("Top-p 采样（p=0.9）结果:", torch.multinomial(
+    F.softmax(logits, dim=-1), num_samples=1).item())</code></pre>
+    <p>Typical Sampling 在创意写作任务上口碑不错，但实现略复杂，且在某些分布下效果与 top-p 接近。它的主要价值在于提供了「按信息熵而非绝对概率」筛选候选的新思路。</p>
+
+    <h2 class="section" id="mirostat"><span class="idx">★</span> 四、Mirostat：恒定熵的「恒温器」</h2>
+    <p>Mirostat 是 2020 年 Basile 等人提出的自适应采样方法。它的灵感来自一个观察：人类写的优质文本有一个相对稳定的「困惑度」（surprise，即每个词的信息量）。模型生成的文本之所以会退化（重复或失控），往往是因为信息量在生成过程中漂移了——要么越来越低（重复），要么越来越高（失控）。</p>
+
+    <h3 class="section">4.1 核心思想：反馈控制</h3>
+    <p>Mirostat 把采样建模成一个控制问题。它设定一个目标困惑度 tau，然后每生成一个词都测量实际的困惑度（被选中词的信息量 -log p），用这个测量值和目标的差值来动态调节下一步的采样范围。如果实际困惑度高于目标，就收紧采样范围（少采低概率词）；如果低于目标，就放松采样范围。</p>
+    <p>这就像家里的恒温器：设定 22 度，传感器测到 25 度就开制冷，测到 19 度就开制热。Mirostat 设定目标困惑度 tau，每一步根据实际困惑度动态调节，让整个生成过程的信息量保持在目标附近。版本一（mirostat v1）用简单的比例控制，版本二（mirostat v2）改进了更新规则。</p>
+
+    <h3 class="section">4.2 Mirostat 算法步骤</h3>
+    <p>mirostat v1 的步骤如下。初始化：学习率 eta=0.1，误差 e=0。每一步生成时：先计算当前分布，把概率排序后找到一个范围 k，使得前 k 个词的累积概率正好覆盖一个与当前学习率相关的窗口；在这个窗口里采样得到词 w 和它的信息量 surprise = -log p(w)；更新误差 e = surprise - tau；更新学习率 mu = mu + eta * e；用新的 mu 决定下一步的窗口大小。</p>
+
+    <h3 class="section">4.3 实现 Mirostat v2</h3>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+def mirostat_v2_step(logits, target_surprise, mu):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    Mirostat v2 的单步：根据目标困惑度动态调节采样范围。
+    返回 (选中的词 id, 更新后的 mu)。
+    """
+    probs = F.softmax(logits, dim=-1)
+    sorted_probs, sorted_idx = probs.sort(descending=True)
+    # 当前允许的最大信息量阈值 = target_surprise + mu
+    surprise_threshold = target_surprise + mu
+    # 信息量 -log p；找信息量低于阈值的所有词
+    info = -torch.log(sorted_probs)
+    keep = info &lt;= surprise_threshold
+    keep[0] = True   # 至少保留概率最高的词
+    masked = sorted_probs * keep
+    masked = masked / masked.sum()
+    chosen = torch.multinomial(masked, num_samples=1)
+    chosen_id = sorted_idx[chosen]
+    chosen_surprise = info[chosen].item()
+    # 更新 mu：误差 = 实际困惑度 - 目标困惑度
+    error = chosen_surprise - target_surprise
+    mu = mu + 0.1 * error   # eta=0.1
+    return chosen_id.item(), mu
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"典型采样与 mirostat：动态截断"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="111-tfm-repetition-penalty.html"><div class="lbl">← 上一章</div><div class="ttl">111 · 重复惩罚与可控生成</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="113-tfm-attention-mask.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">113 · 注意力掩码：因果、双向、文档级</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 112 章 · 典型采样与 mirostat：动态截断</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 模拟一段 mirostat 生成过程
+torch.manual_seed(0)
+mu = 2.0
+tau = 3.0       # 目标困惑度
+for step in range(8):
+    logits = torch.randn(100) * 2   # 假装是模型输出
+    word, mu = mirostat_v2_step(logits.clone(), tau, mu)
+    print(f"step {step}: 选中词 {word}, 当前 mu={mu:.3f}")
+# 观察 mu 如何随实际困惑度围绕 tau 波动</code></pre>
+    <p>你会看到 mu 在 tau 附近上下波动，形成一个负反馈闭环。Mirostat 的最大优点是<strong>全局长程稳定</strong>——即使生成几千个 token，困惑度也不会大幅漂移，有效避免了长文本后期的退化。llama.cpp 已经原生支持 mirostat。</p>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 五、五种方法的横向大对比</h2>
+    <p>讲了这么多，到底该用哪个？下面用一个统一的实验框架，用同一个 prompt 和同一个模型，对比五种方法生成的文本，并用多样性指标量化评估。</p>
+
+    <h3 class="section">5.1 统一对比实验</h3>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
+from collections import Counter
+import torch
+
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
+
+def distinct_n(text, n):
+    words = text.split()
+    ngrams = [tuple(words[i:i+n]) for i in range(len(words)-n+1)]
+    if not ngrams:
+        return 0
+    return len(set(ngrams)) / len(ngrams)
+
+prompt = "The detective walked into the dark room and"
+inputs = tokenizer(prompt, return_tensors="pt").input_ids
+
+strategies = {
+    "top-k=40":      {"do_sample": True, "top_k": 40, "top_p": 1.0},
+    "top-p=0.9":     {"do_sample": True, "top_k": 0, "top_p": 0.9},
+    "min-p=0.05*":   {"do_sample": True, "min_p": 0.05, "top_k": 0, "top_p": 1.0} if False else {"do_sample": True, "top_k": 0, "top_p": 0.9},
+}
+# 注意：HF 的 generate 原生支持 top_k/top_p/typical_p/mirostat
+results = {}
+for name in ["top-k=40", "top-p=0.9", "typical_p=0.9"]:
+    torch.manual_seed(42)
+    kwargs = {"max_new_tokens": 40}
+    if "top-k" in name:
+        kwargs.update(do_sample=True, top_k=40)
+    elif "top-p" in name:
+        kwargs.update(do_sample=True, top_p=0.9)
+    elif "typical" in name:
+        kwargs.update(do_sample=True, typical_p=0.9)
+    out = model.generate(inputs, **kwargs)
+    text = tokenizer.decode(out[0], skip_special_tokens=True)
+    results[name] = text
+    print(f"\n=== {name} ===")
+    print(f"distinct-2: {distinct_n(text, 2):.2%}")
+    print(text[len(prompt):])</code></pre>
+    <p>对比 distinct-2 指标和实际文本，你通常会发现：top-k 偏保守（distinct 较低），top-p 居中，typical_p 在保持连贯性的同时 distinct 略高。没有绝对的赢家，关键是匹配任务需求。</p>
+
+    <h2 class="section" id="selection-guide"><span class="idx">★</span> 六、选型指南：什么场景用什么采样</h2>
+    <p>理论讲透了，最后给一份实战选型指南。这是基于社区大量实践的总结，可以作为你项目起步的参考。</p>
+    <ul>
+      <li><strong>通用对话</strong>：top-p=0.9 + temperature=0.7。最经典也最稳，覆盖 90% 场景。</li>
+      <li><strong>长篇创作（小说、剧本）</strong>：mirostat（tau=3.0 到 5.0）。长文本稳定性最佳，能避免后期退化。</li>
+      <li><strong>代码生成</strong>：top-p=0.95 + temperature=0.2。需要精确性，温度要低，top-p 稍宽容纳符号选择。</li>
+      <li><strong>创意头脑风暴</strong>：typical_p=0.9 或 top-p=0.95 + temperature=0.9。追求新颖但保持连贯。</li>
+      <li><strong>对噪声敏感的场景</strong>：min-p=0.05 配合 top-p=0.9。min-p 能有效滤掉尾部噪声词。</li>
+    </ul>
+    <p>记住一个原则：<strong>采样方法没有高下之分，只有适配之分</strong>。先从 top-p 起步，遇到问题（重复、失控、保守）再针对性地换方法。不要一上来就上 mirostat 这种重型武器，调参成本会拖垮你。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把采样方法的完整谱系梳理了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>Top-k</strong>：固定取概率最高的 k 个词，简单但候选集大小僵化。</li>
+      <li><strong>Top-p（核采样）</strong>：按累积概率截断，动态自适应，是工业界主力。</li>
+      <li><strong>Min-p</strong>：保留概率高于 max_prob * r 的词，相对阈值过滤，是 top-p 的有效补充。</li>
+      <li><strong>Typical Sampling</strong>：按信息量与熵的偏差排序，选「最接近平均信息量」的词，信息论视角。</li>
+      <li><strong>Mirostat</strong>：用反馈控制把生成过程的困惑度锁定在目标值，长文本稳定性最佳。</li>
+      <li><strong>选型原则</strong>：通用场景 top-p，长文本 mirostat，代码低温度，创意 typical，噪声敏感 min-p。先简单后复杂。</li>
+    </ul>
+    <p>采样技巧讲完了，接下来我们回到模型内部，看一个更底层但同样关键的话题——注意力掩码。causal mask 我们已经提过，但还有 padding mask、prefix mask 等多种掩码协同工作，下一章会完整拆解。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

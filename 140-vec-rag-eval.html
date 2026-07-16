@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -169,7 +167,7 @@
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
-      <a href="140-vec-rag-eval.html" class="active" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
+      <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
@@ -305,66 +303,164 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 140 章 · 向量索引与 RAG 原理深挖</span>
-<h1>RAG 评估：RAGAS 与忠实度</h1><p class="lead">命中率、上下文相关性、忠实度（faithfulness）、答案相关性四指标。自动评估用 LLM-as-judge。端到端 answer correctness。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>命中率、上下文相关性、忠实度（faithfulness）、答案相关性四指标。自动评估用 LLM-as-judge。端到端 answer correctness。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>命中率、上下文相关性、忠实度（faithfulness）、答案相关性四指标。自动评估用 LLM-as-judge。端到端 answer correctness。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 140 · 向量检索系列</span>
+      <h1>RAG 评估<br>RAGAS 四指标与代码实操</h1>
+      <p class="lead">"我感觉 RAG 效果变好了"——这种主观判断在生产环境里一文不值。RAGAS（Retrieval-Augmented Generation Assessment）是当前最流行的 RAG 自动评估框架，它用四个互不重叠的指标——faithfulness、answer_relevancy、context_precision、context_recall——把"检索准不准、答案对不对、有没有幻觉"量化成数字。本文逐个拆解这四个指标的原理，并跑一遍完整评估代码。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="why-eval"><span class="idx">★</span> 为什么需要自动评估</h2>
+    <p>RAG 系统调优是个高频迭代的过程：换了 embedding 模型、加了 rerank、改了 chunk_size、调了 prompt，每改一处都要回答"效果变好还是变差"。靠人工看几十个 case 既慢又不稳定，容易陷入"我觉得好了"的自欺。自动化评估的目标是给每次改动一个可比较的数字，让调优从"凭感觉"变成"凭数据"。</p>
+    <p>评估 RAG 的难点在于它有两段——检索和生成——出问题可能出在任一段。如果只看"答案对不对"，你分不清是检索没召回（应该改检索）还是召回了但 LLM 没用好（应该改 prompt 或换模型）。RAGAS 的贡献就是把这两段拆开，分别给指标。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="four-metrics"><span class="idx">★</span> RAGAS 的四个核心指标</h2>
+    <p>RAGAS 用四个指标覆盖检索和生成两端。每个指标都需要不同的输入字段（query / ground_truth_answer / retrieved_contexts / generated_answer），理解每个指标需要什么输入是正确使用 RAGAS 的前提。</p>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h3>1. Faithfulness（忠实度）—— 答案有没有幻觉</h3>
+    <p>定义：生成的答案里，有多少论断能从检索到的 context 里找到支撑。计算方法是先把答案拆成原子论断（"Acme Corp 2024 营收 50 亿"是一个论断），逐个判断 context 里有没有支撑，faithfulness = 被支撑的论断数 / 总论断数。0 表示完全幻觉，1 表示完全基于 context。</p>
+    <p>需要的输入：generated_answer + retrieved_contexts。不需要 ground_truth。这是 RAGAS 最有用的指标——它直接衡量幻觉，是 RAG 上线前的必看项。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"RAG 评估：RAGAS 与忠实度"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="139-vec-context-packing.html"><div class="lbl">← 上一章</div><div class="ttl">139 · 上下文组装：Lost in the Middle</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="141-vec-graphrag.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">141 · GraphRAG：知识图谱增强检索</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 140 章 · RAG 评估：RAGAS 与忠实度</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h3>2. Answer Relevancy（答案相关性）—— 答案有没有跑题</h3>
+    <p>定义：生成的答案和 query 的相关程度。RAGAS 的巧思是用 LLM 反向生成：基于生成的答案，反向生成几个"最可能的原问题"，然后算这些反向问题和原 query 的语义相似度。相似度高说明答案贴题，低说明答非所问。</p>
+    <p>需要的输入：query + generated_answer。不需要 context 和 ground_truth。它衡量的是"答案是否回应了问题"，不关心对错。一个答案可以 faithfulness=1（完全基于 context）但 answer_relevancy=0.3（答非所问）。</p>
+
+    <h3>3. Context Precision（上下文精确率）—— 召回的准不准</h3>
+    <p>定义：检索回的 context 里，有多少是真正和 ground_truth 相关的。RAGAS 用 LLM 逐个判断每个 context 片段"是否对回答 ground_truth 有用"，再算一个排序加权的精确率（相关片段排越前分越高）。</p>
+    <p>需要的输入：query + ground_truth + retrieved_contexts。这个指标衡量检索质量——召回的 top-k 里有几个真有用的。配合 rerank 优化时主要看这个。</p>
+
+    <h3>4. Context Recall（上下文召回率）—— 该召回的召回了没</h3>
+    <p>定义：ground_truth 答案里的信息，有多少能从检索回的 context 里找到支撑。计算方法是把 ground_truth 拆成原子论断，逐个判断 context 里有没有，recall = 能找到的 / 总论断数。0 表示 context 完全没覆盖 ground_truth 需要的信息，1 表示全覆盖。</p>
+    <p>需要的输入：ground_truth + retrieved_contexts。这个指标衡量"检索有没有把正确信息捞回来"，是检索环节最核心的指标。context_recall 低说明检索要优化（换 embedding、加混合检索、改 chunking）。</p>
+
+    <pre><code class="language-text">RAGAS 四指标速查
+┌────────────────────┬───────────────┬───────────────────────┬─────────────┐
+│ 指标               │ 衡量什么       │ 需要的输入            │ 低分优化点  │
+├────────────────────┼───────────────┼───────────────────────┼─────────────┤
+│ faithfulness       │ 幻觉          │ answer + context      │ prompt/模型 │
+│ answer_relevancy   │ 跑题          │ query + answer        │ prompt/改写 │
+│ context_precision  │ 召回准不准     │ query + gt + context  │ rerank      │
+│ context_recall     │ 召回全不全     │ gt + context          │ 检索/chunk  │
+└────────────────────┴───────────────┴───────────────────────┴─────────────┘</code></pre>
+
+    <h2 class="section" id="code"><span class="idx">★</span> RAGAS 代码实操</h2>
+
+    <pre><code class="language-python"># pip install ragas
+# RAGAS 内部用 LLM 做评估，需要配置 OpenAI 或本地模型
+import os
+os.environ["OPENAI_API_KEY"] = "sk-..."
+
+from ragas import evaluate
+from ragas.metrics import (
+    faithfulness, answer_relevancy, context_precision, context_recall
+)
+from datasets import Dataset
+
+# 1. 准备评估集：每个样本需要这些字段
+eval_data = [
+    {
+        "question": "Acme Corp 2024 年云服务营收增长率是多少？",
+        "ground_truth": "Acme Corp 2024 年云服务营收为 30 亿美元，同比增长 60%。",
+        "answer": "Acme Corp 2024 年云服务营收增长了 60%。",        # 你的 RAG 生成的答案
+        "contexts": [                                              # 你的 RAG 检索回的文档
+            "Acme Corp 2024 年财报显示，云服务业务营收达 30 亿美元，较 2023 年增长 60%。",
+            "公司整体营收 50 亿，云服务贡献 60% 的增长。",
+            "研发投入同比增加 15%。",
+        ],
+    },
+    # ... 至少 30-50 个样本才有统计意义
+]
+
+dataset = Dataset.from_list(eval_data)
+
+# 2. 跑评估
+results = evaluate(
+    dataset,
+    metrics=[faithfulness, answer_relevancy, context_precision, context_recall],
+    # 可指定评估用的 LLM（默认 gpt-4o），中文场景建议用强模型
+    # llm=ChatOpenAI(model="gpt-4o"),
+)
+
+print(results)
+# 输出形如：
+# {'faithfulness': 0.92, 'answer_relevancy': 0.88,
+#  'context_precision': 0.85, 'context_recall': 0.90}
+
+# 3. 看每个样本的细粒度分数，定位失败 case
+df = results.to_pandas()
+print(df[["question", "faithfulness", "context_recall"]].head())
+</code></pre>
+
+    <h2 class="section" id="workflow"><span class="idx">★</span> 评估驱动的调优工作流</h2>
+    <p>有了量化指标，调优就有了导航仪。标准工作流是：</p>
+    <ol>
+      <li><strong>构建基线</strong>：用当前系统跑一遍评估，记录四个指标，作为基线。</li>
+      <li><strong>定位瓶颈</strong>：看哪个指标最低。context_recall 低 → 检索问题；faithfulness 低 → 幻觉问题；answer_relevancy 低 → 跑题问题。</li>
+      <li><strong>针对性优化</strong>：检索问题换 embedding/加混合检索/改 chunking；幻觉问题改 prompt（加引用要求）/换更强模型。</li>
+      <li><strong>再跑评估</strong>：对比优化前后的指标，确认提升且没引入回退。</li>
+      <li><strong>失败 case 分析</strong>：看低分样本的具体表现，找 pattern。</li>
+    </ol>
+
+    <pre><code class="language-python"># A/B 对比：优化前 vs 优化后
+def run_eval(rag_system, eval_set):
+    """跑一个 RAG 系统的 RAGAS 评估"""
+    data = []
+    for sample in eval_set:
+        answer, contexts = rag_system.query(sample["question"])
+        data.append({
+            "question": sample["question"],
+            "ground_truth": sample["ground_truth"],
+            "answer": answer,
+            "contexts": contexts,
+        })
+    dataset = Dataset.from_list(data)
+    return evaluate(dataset, metrics=[
+        faithfulness, answer_relevancy, context_precision, context_recall])
+
+# 基线（Naive RAG）
+baseline = run_eval(naive_rag, eval_set)
+print("基线:", baseline)
+
+# 加了 rerank + HyDE 后
+improved = run_eval(advanced_rag, eval_set)
+print("优化后:", improved)
+
+# 对比提升
+for metric in ["faithfulness", "answer_relevancy", "context_precision", "context_recall"]:
+    delta = improved[metric] - baseline[metric]
+    print(f"{metric}: {baseline[metric]:.3f} → {improved[metric]:.3f} ({'+'if delta>0 else ''}{delta:.3f})")
+</code></pre>
+
+    <h2 class="section" id="eval-set"><span class="idx">★</span> 构建好的评估集：成功的一半</h2>
+    <p>RAGAS 的指标质量取决于评估集质量。垃圾评估集跑出漂亮的数字也没用。构建评估集的要点：</p>
+    <ul>
+      <li><strong>规模</strong>：30-50 个样本是下限，100-200 个更稳。太少方差大，看不出差异。</li>
+      <li><strong>覆盖</strong>：覆盖真实查询的各种类型（事实、对比、汇总、跨文档推理、模糊查询）。</li>
+      <li><strong>ground_truth 质量</strong>：人工标注，而非 LLM 生成（LLM 生成的 ground_truth 可能让 LLM 评估时偏袒）。每个 ground_truth 标注清楚"正确答案应该包含哪些要点"。</li>
+      <li><strong>难度梯度</strong>：简单、中等、困难都覆盖。全是简单题看不出系统差异。</li>
+      <li><strong>持续迭代</strong>：上线后收集真实失败 case，加进评估集，让它越来越贴近线上分布。</li>
+    </ul>
+
+    <h3>评估用 LLM 的选择</h3>
+    <p>RAGAS 内部用 LLM 做判断（拆论断、判相关性），评估 LLM 的强弱直接影响指标可靠性。建议：评估用比生成更强的模型——生成用 4o/Haiku，评估用 4o/Claude Sonnet。否则弱模型评估强模型，分数不准。中文场景评估模型必须中文好，否则反向问题生成、论断拆分会失真。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>RAG 评估的核心是把检索和生成拆开评，RAGAS 用四个互不重叠的指标实现。</li>
+      <li>faithfulness：答案对 context 的忠实度（查幻觉），输入 answer+context。</li>
+      <li>answer_relevancy：答案对 query 的相关性（查跑题），用反向生成法，输入 query+answer。</li>
+      <li>context_precision：召回的 context 精确率（查准），输入 query+gt+context，rerank 优化看这个。</li>
+      <li>context_recall：context 覆盖 ground_truth 的程度（查全），输入 gt+context，检索优化看这个。</li>
+      <li>调优工作流：基线 → 看最低指标定位瓶颈 → 针对优化 → 再评估对比；评估集要 30-200 样本、覆盖各类查询、人工标 ground_truth；评估用 LLM 要比生成 LLM 更强。</li>
+    </ul>
+    <p>下一篇我们看 RAG 的一个高级变体——GraphRAG，它用知识图谱补足向量检索在多跳推理上的短板。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

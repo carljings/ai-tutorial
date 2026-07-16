@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -185,7 +183,7 @@
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
-      <a href="154-agent-codex-loop.html" class="active" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
+      <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
@@ -305,81 +303,179 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 154 章 · 开源 Agent 源码深挖</span>
-<h1>Codex 的 Turn 模型与推理持久化</h1><p class="lead">一个 turn：用户输入 → 模型推理（含 reasoning）→ 工具调用 → 观测 → 重复 → 助手消息结束。reasoning 跨 turn 持久化保留思路。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>一个 turn：用户输入 → 模型推理（含 reasoning）→ 工具调用 → 观测 → 重复 → 助手消息结束。reasoning 跨 turn 持久化保留思路。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>一个 turn：用户输入 → 模型推理（含 reasoning）→ 工具调用 → 观测 → 重复 → 助手消息结束。reasoning 跨 turn 持久化保留思路。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 39 · Agent 源码深挖系列</span>
+      <h1>Codex Agent 循环<br>从 model call 到 approval 到 continue</h1>
+      <p class="lead">所有 Agent 的核心都是一个循环：调模型 → 模型说要调工具 → 执行工具 → 把结果喂回模型 → 继续。听起来简单，但真正的工程实现里藏着无数细节——流式中断怎么办、审批超时怎么办、工具失败要不要重试、循环什么时候算结束。本章我们把 Codex 的 Agent 循环拆到每一圈，并和 OpenCode 的实现做正面对比，看清同一种抽象下的不同工程取舍。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="loop-anatomy"><span class="idx">★</span> 一、把一轮循环切成五段</h2>
+    <p>一个成熟的 Agent 循环，单轮（turn）内部其实可以切成五段。我们用伪代码标出边界，再逐段拆解。</p>
+    <pre><code class="language-rust">// 一轮 turn 的五段结构
+async fn run_turn(session: &amp;mut Session) {
+    // 【段 1】准备：拼装 system prompt、工具列表、历史消息
+    let request = session.build_request();
+
+    // 【段 2】调用：流式调用 LLM，边收边向前端推 delta
+    let response = session.call_model_streaming(request, |delta| {
+        emit(Event::OutputDelta { text: delta });
+    }).await;
+
+    // 【段 3】判停：LLM 有没有请求工具？没有就结束本轮
+    let tool_calls = match response.tool_calls {
+        Some(c) =&gt; c,
+        None =&gt; { emit(Event::TurnComplete); return; }
+    };
+
+    // 【段 4】执行：对每个 tool_call 审批 → 沙箱执行 → 收集结果
+    for call in tool_calls {
+        let approved = request_approval(&amp;call).await;
+        if !approved { continue; }
+        let result = execute_in_sandbox(&amp;call).await;
+        session.add_tool_result(call.id, result);
+    }
+
+    // 【段 5】递归：把工具结果喂回去，开始下一圈
+    // 实际用 loop 实现，这里递归示意
+    Box::pin(run_turn(session)).await;
+}</code></pre>
+    <p>这五段不是 Codex 独创的——OpenCode、Claude Code、Aider 的循环骨架都长这样。差异在于每一段的细节处理。我们重点看 Codex 在段 2（流式调用）、段 3（判停策略）、段 4（审批与执行）上的独到设计。</p>
+
+    <h2 class="section" id="streaming-call"><span class="idx">★</span> 二、段 2：流式调用与中断的协作</h2>
+    <p>Codex 的 LLM 调用是流式的——每收到一个 token 片段，立即发一个 OutputDelta 事件给前端，前端就能实时渲染。但这带来一个问题：如果用户中途按了 Esc 想中断，怎么办？</p>
+    <p>朴素的方案是直接 abort HTTP 请求，但这会让 LLM 已经生成但还没送达的内容全部丢失。Codex 的做法是 <strong>协作式中断</strong>：设置一个 <code>cancellation_token</code>，流式回调每次检查它，如果被设置就停止向 event 发 delta，但让底层 HTTP 请求自然读完（或优雅关闭），保证已生成的内容能落盘到会话日志。</p>
+    <pre><code class="language-rust">// 流式调用的中断处理（概念示意）
+use tokio_util::sync::CancellationToken;
+
+async fn call_model_streaming&lt;F&gt;(request: Request, on_delta: F, token: CancellationToken)
+    -&gt; Response
+where F: Fn(String) {
+    let mut stream = http_client.stream_post(&amp;request).await;
+
+    let mut full_text = String::new();
+    let mut tool_calls = vec![];
+
+    while let Some(chunk) = stream.next().await {
+        // 【关键】每次收到 chunk 先检查取消信号
+        if token.is_cancelled() {
+            // 不立即 break，先把当前 chunk 处理完
+            // 但停止向前端推 delta，标记本次为「被中断」
+            full_text.push_str(&amp;chunk.text);
+            break;
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
+
+        if !chunk.text.is_empty() {
+            full_text.push_str(&amp;chunk.text);
+            on_delta(chunk.text.clone());  // 实时推给前端
+        }
+        if let Some(tc) = chunk.tool_call {
+            tool_calls.push(tc);
         }
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    Response { text: full_text, tool_calls: if tool_calls.is_empty() { None } else { Some(tool_calls) } }
+}</code></pre>
+    <p>注意这里有一个微妙的设计：<strong>中断后已经收到的文本仍然保留在 full_text 里</strong>，会被写入会话历史。这意味着如果用户中断后又想继续，Agent 知道「上次说到哪了」，可以从断点续上，而不是从零开始。这种「优雅中断」的体验，远好过粗暴 abort。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="stop-condition"><span class="idx">★</span> 三、段 3：判停策略——什么时候算一轮结束</h2>
+    <p>Agent 循环最怕两种情况：<strong>提前结束</strong>（任务还没做完就停了）和 <strong>永不结束</strong>（陷入死循环反复调同一个工具）。段 3 的判停逻辑就是在这两者间找平衡。</p>
+    <p>Codex 的判停条件是：<strong>LLM 这一轮没有返回任何 tool_call</strong>。这是一个简单但有效的启发式——如果 LLM 觉得还需要调工具，它会继续请求；如果它认为任务完成或需要用户输入，它会输出文本而不请求工具。这种「把判停权交给模型」的策略，依赖模型本身的判断力，但避免了 Agent 框架层的过度干预。</p>
+    <p>但这带来死循环风险：如果 LLM 反复请求同一个工具（比如一直 read_file 同一个文件），循环永远不结束。Codex 的防线是 <strong>最大轮数限制</strong>：</p>
+    <pre><code class="language-rust">// 防死循环的最大轮数兜底
+const MAX_TURNS_PER_USER_REQUEST: usize = 50;
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex 的 Turn 模型与推理持久化"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="153-agent-codex-arch.html"><div class="lbl">← 上一章</div><div class="ttl">153 · Codex CLI 架构：Rust 内核 + TS 前端</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="155-agent-codex-responses-api.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">155 · Codex 用 Responses API</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 154 章 · Codex 的 Turn 模型与推理持久化</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+async fn run_agent_session(session: &amp;mut Session) {
+    for turn_idx in 0..MAX_TURNS_PER_USER_REQUEST {
+        // 检测重复工具调用
+        if detect_repetitive_tool_calls(session, 3) {
+            emit(Event::Error {
+                message: "检测到重复的工具调用模式，已停止以防死循环".into()
+            });
+            break;
+        }
+        run_turn(session).await;
+        if session.last_turn_had_no_tool_calls() {
+            break;  // 正常结束
+        }
+    }
+    if turn_idx == MAX_TURNS_PER_USER_REQUEST - 1 {
+        emit(Event::Error { message: "达到最大轮数限制".into() });
+    }
+}
+
+// 检测连续 N 次相同的工具调用
+fn detect_repetitive_tool_calls(session: &amp;Session, n: usize) -&gt; bool {
+    let recent = session.recent_tool_calls(2 * n);
+    if recent.len() &lt; 2 * n { return false; }
+    // 检查是否成对重复（call → result → call → result 模式）
+    recent.chunks(2).all(|pair| pair.len() == 2 &amp;&amp; pair[0].same_call_as(&amp;pair[1]))
+}</code></pre>
+    <p>这里的 <code>detect_repetitive_tool_calls</code> 是一个简单但实用的启发式：如果连续多次调用完全相同的工具 + 相同参数，很可能陷入了死循环。我们在第 175 章讲错误恢复时会专门讨论各种死循环检测策略。</p>
+
+    <h2 class="section" id="approval"><span class="idx">★</span> 四、段 4：审批的异步等待</h2>
+    <p>不是所有工具调用都需要审批——read_file 这种只读操作通常自动放行。但 execute（执行命令）这类有副作用的操作，Codex 默认要求用户审批。审批是一个异步等待：发请求事件给前端，挂起当前 tool_call 的执行，直到前端回一个 Op::Approve。</p>
+    <pre><code class="language-rust">// 审批流程（概念示意）
+async fn request_approval(call: &amp;ToolCall) -&gt; bool {
+    let call_id = call.id.clone();
+    let (tx, rx) = tokio::sync::oneshot::channel();
+
+    // 把等待回调注册到 session，前端 Approve 时会触发它
+    session.register_approval_waiter(&amp;call_id, tx);
+
+    // 发事件给前端
+    emit(Event::ExecApprovalRequest {
+        call_id: call_id.clone(),
+        command: call.args.to_string(),
+        cwd: session.cwd.clone(),
+    });
+
+    // 阻塞等待用户决定
+    match timeout(Duration::from_secs(300), rx).await {
+        Ok(Ok(ApprovalDecision::Allow)) =&gt; true,
+        Ok(Ok(ApprovalDecision::AlwaysAllow)) =&gt; {
+            session.add_allow_rule(&amp;call);  // 学习规则，下次不问
+            true
+        }
+        _ =&gt; false,  // 拒绝或超时
+    }
+}</code></pre>
+    <p>三个细节。<strong>第一，oneshot channel</strong>：审批是「一次性」的，用 oneshot 而不是 mpsc，语义更精确。<strong>第二，超时兜底</strong>：5 分钟没回应就当拒绝，避免 Agent 永远挂起。<strong>第三，AlwaysAllow 学习</strong>：和 OpenCode 的 allow-always 一样，用户可以选择「以后都允许」把规则固化，减少后续打断。这种「交互式学习权限」已经成为现代 Agent 的标配。</p>
+
+    <h2 class="section" id="tool-execution"><span class="idx">★</span> 五、段 4 续：沙箱执行的隔离</h2>
+    <p>Codex 的工具执行不是直接 spawn 进程，而是在沙箱里执行。沙箱的具体实现（macOS 用 seatbelt，Linux 用 Landlock）我们会在 156、157 章详述，这里只点出它的存在对循环设计的影响。</p>
+    <p>沙箱执行意味着 <strong>每次工具调用都有独立的文件系统视图和网络权限</strong>。Agent 跑 <code>npm install</code> 时，沙箱可能限制它只能写 node_modules 目录、禁止访问网络（或只允许特定域名）。这种隔离让 Agent 即使「乱跑命令」也不会污染宿主系统。</p>
+    <p>对循环的影响是：工具执行失败的处理更复杂了。一次失败可能是命令本身的问题，也可能是沙箱限制（比如没网络权限导致 install 失败）。Codex 在返回 tool_result 时会把沙箱的审计信息（哪些路径被拒、哪些网络请求被拦）一并附上，让 LLM 能区分「命令错误」和「权限错误」。</p>
+
+    <h2 class="section" id="compare-opencode"><span class="idx">★</span> 六、与 OpenCode 循环的对比</h2>
+    <p>把两个项目的循环放在一起对比，能看出不同的工程侧重。</p>
+    <ul>
+      <li><strong>判停策略</strong>：两者都依赖「LLM 不再请求工具」作为正常结束条件，但 Codex 多了最大轮数兜底和重复调用检测，OpenCode 更依赖模型的自觉。</li>
+      <li><strong>中断处理</strong>：Codex 用 CancellationToken 做协作式中断，保留已生成内容；OpenCode 用 AbortController，行为类似但实现在 TypeScript 层。</li>
+      <li><strong>审批模型</strong>：两者都支持 allow/ask/deny 三态和 allow-always 学习。Codex 的审批通过 Op/Event 协议异步完成，OpenCode 通过 EventBus 的 emitAndWait。</li>
+      <li><strong>工具执行</strong>：Codex 强制沙箱（seatbelt/Landlock），OpenCode 可选（路径白名单 + 进程直接 spawn）。Codex 的隔离更强，OpenCode 的开销更低。</li>
+      <li><strong>错误反馈</strong>：两者都把工具失败当正常返回（isError=true），让 LLM 自我修正，不中断循环。</li>
+    </ul>
+    <p>总体来说，Codex 的循环更「重」——更多防护、更强隔离、更复杂的失败处理；OpenCode 的循环更「轻」——更依赖模型判断、更少的框架干预、更快的迭代。这和它们的语言选择（Rust vs TypeScript）、定位（引擎 vs 产品）一脉相承。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Codex 的 Agent 循环是工业级工程的样本。要点回顾：</p>
+    <ul>
+      <li><strong>五段结构</strong>：准备 → 流式调用 → 判停 → 执行（审批+沙箱）→ 递归，是所有 Agent 循环的通用骨架。</li>
+      <li><strong>协作式中断</strong>：用 CancellationToken 检查，中断后保留已生成内容，支持断点续传。</li>
+      <li><strong>判停靠模型</strong>：LLM 不请求工具即结束，但用最大轮数 + 重复调用检测兜底防死循环。</li>
+      <li><strong>审批异步等待</strong>：oneshot channel + 超时兜底 + AlwaysAllow 学习，平衡安全与体验。</li>
+      <li><strong>沙箱执行</strong>：强制隔离，工具失败时附带沙箱审计信息，帮 LLM 区分错误类型。</li>
+      <li><strong>与 OpenCode 对比</strong>：Codex 重防护强隔离，OpenCode 轻量快迭代，是不同定位下的合理取舍。</li>
+    </ul>
+    <p>下一章（155 章）我们看 Codex 和 OpenAI Responses API 的集成——从 stateless 到 stateful 的演进，以及 previous_response_id 如何让会话状态管理发生质变。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                              <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -126,7 +124,7 @@
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
       <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
-      <a href="99-tfm-mqa-gqa.html" class="active" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
+      <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
@@ -305,67 +303,268 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 99 章 · Transformer 原理深挖</span>
-<h1>从 MHA 到 MQA、GQA：推理加速的关键</h1><p class="lead">MHA 每头独立 KV，显存/带宽随头数爆炸。MQA 所有头共享一组 KV（Llama-2 70B）。GQA 分组共享折中（Llama-2/3、GLM）。对 KV cache 和 serving 成本的影响。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>MHA 每头独立 KV，显存/带宽随头数爆炸。MQA 所有头共享一组 KV（Llama-2 70B）。GQA 分组共享折中（Llama-2/3、GLM）。对 KV cache 和 serving 成本的影响。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 99 · Transformer 深度系列</span>
+      <h1>从 MHA 到 MQA、GQA<br>推理加速的关键一跃</h1>
+      <p class="lead">标准多头注意力（MHA）每个头都有独立的 K、V，推理时要为每个头都存一份 KV cache，显存压力巨大。MQA 和 GQA 的思路极其朴素：让多个头共享同一份（或几份）K、V，显存立省一大半，速度也跟着涨。Llama 2/3、Mistral、GLM 都用了 GQA。本章讲清 KV 共享的原理、显存到底省了多少、为什么效果几乎不掉，以及 MHA/MQA/GQA 的选择权衡。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 98 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="kv-problem"><span class="idx">★</span> MHA 的推理痛点：KV cache 随头数爆炸</h2>
+    <p>先回顾标准多头注意力（MHA）。h 个头，每个头有独立的 Wk_i、Wv_i 投影，产生独立的 K_i、V_i。推理时，每生成一个 token，就要把它的 K、V 存进 KV cache，供后续 token 注意力使用。</p>
+
+    <p>问题在于：<strong>每个头都要存一份</strong>。KV cache 的显存占用是：</p>
+
+    <blockquote>
+      KV cache 显存 = 2 × n_layers × n_heads × seq_len × head_dim × dtype_size<br>
+      （2 是 K 和 V 两份）
+    </blockquote>
+
+    <p>举个真实数字。Llama 2-70B：80 层、64 头、head_dim=128、FP16（2 字节）、上下文 4K：</p>
+
+    <blockquote>
+      2 × 80 × 64 × 4096 × 128 × 2 = 约 <strong>10.7 GB</strong>，光 KV cache 就要 10G+ 显存
+    </blockquote>
+
+    <p>如果上下文拉到 32K，KV cache 直接涨到 <strong>80 GB+</strong>——比模型参数本身还大！这就是为什么大模型推理时显存往往被 KV cache 吃掉一大半，严重限制 batch size 和并发数。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">MHA：每头独立 K、V</div>
+        <div class="node">KV cache = n_heads × (K + V) × seq × head_dim</div>
+        <div style="color:var(--text-faint);">▼ 头数多 / 上下文长 → 显存爆炸</div>
+        <div class="node sky">MQA：所有头共享 1 组 K、V</div>
+        <div class="node">KV cache = 1 × (K + V) × seq × head_dim → 省 h 倍</div>
+        <div style="color:var(--text-faint);">▼ 折中</div>
+        <div class="node violet">GQA：分 g 组，组内共享 K、V</div>
+        <div class="node">KV cache = g × (K + V) × seq × head_dim → 省 h/g 倍</div>
+      </div>
+      <div class="cap">图 99-1 · 三种注意力的 KV 共享策略，显存占用递减</div>
+    </div>
+
+    <h2 class="section" id="mqa"><span class="idx">01</span> MQA：所有头共享一组 K/V</h2>
+    <p><strong>Multi-Query Attention（MQA）</strong>是 2019 年提出的激进方案。它的改动极其简单：<strong>Q 仍然是多头的（每个头有自己的 Wq_i），但 K 和 V 全头共享一份</strong>（只有一组 Wk、Wv）。</p>
+
+    <blockquote>
+      MQA: Q 是 h 头，K 和 V 只有 1 头（所有 Q 头都去 attend 同一份 K、V）
+    </blockquote>
+
+    <p>从公式看，注意力计算变成：</p>
+    <ul>
+      <li>每个头 i：Q_i = X · Wq_i（和 MHA 一样，每头不同）</li>
+      <li>共享：K = X · Wk，V = X · Wv（所有头用同一份）</li>
+      <li>head_i = softmax(Q_i · K^T / √d_k) · V</li>
+    </ul>
+
+    <p>KV cache 直接从 h 份降到 1 份——<strong>省了 h 倍显存</strong>。对于 32 头的模型，KV cache 缩到原来的 1/32。同时，推理时从显存读 K、V 的带宽也降了 h 倍，速度更快。</p>
+
+    <h3>为什么效果几乎不掉</h3>
+    <p>直觉上，所有头看同一份 K、V，表达力应该大降。但实验发现：<strong>MQA 的效果只比 MHA 略差一点点</strong>（质量损失通常在 1% 以内）。原因有两个：</p>
+
+    <ul>
+      <li><strong>Q 仍然多头</strong>：每个头用不同的 Query 去「查询」同一份 K、V，仍能学到不同的关注模式。多样性主要来自 Q。</li>
+      <li><strong>很多头本就冗余</strong>：研究发现 MHA 里多个头的 K、V 学到的内容高度相似（都在提取类似的「被查询特征」），共享一份损失不大。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：图书馆共用书架</div>
+      <p>MHA 像 h 个读者每人有自己的书架（K/V），各自独立但占地大。MQA 像所有读者共用一个大书架——书（K/V）是一样的，但每个读者用不同的检索方式（Q）去找自己感兴趣的部分。占地省了 h 倍，而只要书足够全，检索效果差不了多少。</p>
+    </div>
+
+    <h2 class="section" id="gqa"><span class="idx">02</span> GQA：MHA 和 MQA 的折中</h2>
+    <p>MQA 虽然省显存，但毕竟激进，长上下文和复杂任务上质量损失有时明显。<strong>Grouped-Query Attention（GQA）</strong>是 Google 2023 年提出的折中：把 h 个头分成 g 组，<strong>组内共享 K、V，组间不同</strong>。</p>
+
+    <blockquote>
+      GQA: h 个 Q 头分成 g 组（每组 h/g 个头），每组共享一份 K、V<br>
+      g = 1 时退化为 MQA，g = h 时退化为 MHA
+    </blockquote>
+
+    <p>这样 KV cache 是 MHA 的 g/h 倍。比如 h=32、g=8（每 4 个头共享一组），KV cache 省 4 倍，而效果比 MQA（g=1）好得多。<strong>Llama 2-70B 用 g=8</strong>（即 8 个 KV 头服务 64 个 Q 头），是 GQA 最著名的应用。</p>
+
+    <table>
+      <thead><tr><th>方法</th><th>Q 头数</th><th>KV 头数</th><th>KV cache</th><th>质量</th><th>代表模型</th></tr></thead>
+      <tbody>
+        <tr><td>MHA</td><td>h</td><td>h</td><td>1×</td><td>最好</td><td>原始 Transformer, GPT-3</td></tr>
+        <tr><td>MQA</td><td>h</td><td>1</td><td>1/h</td><td>略差</td><td>PaLM, Falcon</td></tr>
+        <tr><td>GQA</td><td>h</td><td>g</td><td>g/h</td><td>接近 MHA</td><td>Llama 2/3, Mistral, GLM</td></tr>
+      </tbody>
+    </table>
+
+    <p>2024 年后的开源大模型，<strong>几乎清一色用 GQA</strong>。它被认为是「质量-推理成本」的最佳平衡点：比 MQA 质量高，比 MHA 推理快得多。</p>
+
+    <h2 class="section" id="memory-calc"><span class="idx">03</span> 显存到底省多少：算一笔账</h2>
+    <p>用具体数字感受一下 GQA 的威力。对比 Llama 2-70B（MHA）和 Llama 2-70B-GQA（假设配置）在 32K 上下文下的 KV cache：</p>
+
+    <div class="code-title">kv_cache_calc.py —— KV cache 显存计算器</div>
+    <pre><code class="language-python">def kv_cache_bytes(n_layers, n_kv_heads, seq_len, head_dim, dtype_bytes=2):
+    """计算 KV cache 显存。
+    n_kv_heads: 实际的 KV 头数（MHA=n_heads, MQA=1, GQA=g）
+    """
+    # 2 份（K 和 V），每个位置每头存 head_dim 个元素
+    return 2 * n_layers * n_kv_heads * seq_len * head_dim * dtype_bytes
+
+# Llama 2-70B 配置
+cfg = dict(n_layers=80, head_dim=128, dtype_bytes=2)  # FP16
+seq_len = 32 * 1024  # 32K 上下文
+
+# MHA: 64 个 KV 头
+mha = kv_cache_bytes(n_kv_heads=64, seq_len=seq_len, **cfg)
+# MQA: 1 个 KV 头
+mqa = kv_cache_bytes(n_kv_heads=1, seq_len=seq_len, **cfg)
+# GQA: 8 个 KV 头（每 8 个 Q 头共享一组）
+gqa = kv_cache_bytes(n_kv_heads=8, seq_len=seq_len, **cfg)
+
+def gb(b): return b / 1024**3
+
+print(f"MHA KV cache: {gb(mha):.1f} GB")
+print(f"MQA KV cache: {gb(mqa):.1f} GB")
+print(f"GQA KV cache: {gb(gqa):.1f} GB")
+print(f"\nGQA 比 MHA 省 {(1-gqa/mha)*100:.0f}%，比 MQA 多用 {(gqa/mqa-1)*100:.0f}%")
+</code></pre>
+
+    <p>结果（32K 上下文）：MHA 约 80 GB，MQA 约 1.25 GB，GQA 约 10 GB。GQA 比 MHA 省了 87%，而比 MQA 质量高得多。这就是为什么 GQA 成了主流——在显存压力和质量之间找到了甜点。</p>
+
+    <div class="callout note">
+      <div class="head">📌 注意 dtype 的影响</div>
+      <p>上面用 FP16（2 字节）算。如果用 INT8 量化 KV cache，显存再减半；INT4 再减 4 倍。结合 GQA + KV 量化，70B 模型的 KV cache 可以压到几 GB，让单卡推理成为可能。这是推理服务优化的核心手段。</p>
+    </div>
+
+    <h2 class="section" id="impl-gqa"><span class="idx">04</span> 代码：实现 GQA</h2>
+    <p>GQA 的实现和 MHA 几乎一样，只是 K、V 的投影维度从 d_model 变成 n_kv_heads × head_dim，然后<strong>广播</strong>到所有 Q 头。</p>
+
+    <div class="code-title">gqa.py —— 分组查询注意力实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class GroupedQueryAttention(nn.Module):
+    def __init__(self, d_model, n_heads, n_kv_heads):
+        super().__init__()
+        assert d_model % n_heads == 0
+        self.n_heads = n_heads
+        self.n_kv_heads = n_kv_heads
+        self.n_rep = n_heads // n_kv_heads  # 每个 KV 头服务几个 Q 头
+        self.head_dim = d_model // n_heads
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"从 MHA 到 MQA、GQA：推理加速的关键"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="98-tfm-multihead.html"><div class="lbl">← 上一章</div><div class="ttl">98 · 多头注意力：为什么"多看几个角度"更有效</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="100-tfm-kv-cache.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">100 · KV Cache：自回归推理为什么离不开它</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 99 章 · 从 MHA 到 MQA、GQA：推理加速的关键</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+        # Q 投影：n_heads 个头
+        self.W_q = nn.Linear(d_model, n_heads * self.head_dim, bias=False)
+        # K、V 投影：只有 n_kv_heads 个头（更少！）
+        self.W_k = nn.Linear(d_model, n_kv_heads * self.head_dim, bias=False)
+        self.W_v = nn.Linear(d_model, n_kv_heads * self.head_dim, bias=False)
+        self.W_o = nn.Linear(n_heads * self.head_dim, d_model, bias=False)
+
+    def forward(self, x):
+        B, S, _ = x.shape
+        q = self.W_q(x).view(B, S, self.n_heads, self.head_dim).transpose(1, 2)
+        k = self.W_k(x).view(B, S, self.n_kv_heads, self.head_dim).transpose(1, 2)
+        v = self.W_v(x).view(B, S, self.n_kv_heads, self.head_dim).transpose(1, 2)
+
+        # 关键：把 n_kv_heads 个 K/V 复制成 n_heads 个（每 n_rep 个 Q 头共享一份）
+        k = k.repeat_interleave(self.n_rep, dim=1)  # (B, n_heads, S, head_dim)
+        v = v.repeat_interleave(self.n_rep, dim=1)
+
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.head_dim)
+        weights = F.softmax(scores, dim=-1)
+        out = weights @ v
+        out = out.transpose(1, 2).contiguous().view(B, S, -1)
+        return self.W_o(out)
+
+# 对比参数量：GQA 的 W_k/W_v 比 MHA 小
+d_model = 512
+mha_k = nn.Linear(d_model, d_model)         # MHA: 512×512
+gqa_k = nn.Linear(d_model, 8 * 64)          # GQA: 8 KV 头 × 64 = 512→512，但逻辑上只有 8 组
+print(f"MHA W_k 参数: {mha_k.weight.numel()}")    # 262144
+print(f"GQA W_k 参数: {gqa_k.weight.numel()}")    # 262144? 看配置，这里 dim 一样
+# 真正的差异在推理时的 KV cache 头数，不是投影参数
+</code></pre>
+
+    <p>关键看 <code>repeat_interleave</code> 这一步：它把少的 KV 头复制成和 Q 头一样多，之后就和普通 MHA 一样算了。推理时<strong>不用真的复制</strong>——可以优化成「多个 Q 头直接读同一份 KV」，但训练时为了和已有 MHA kernel 兼容，通常用 repeat。</p>
+
+    <h2 class="section" id="conversion"><span class="idx">05</span> 从 MHA「升级」到 GQA 的技巧</h2>
+    <p>一个实用技巧：已经训练好的 MHA 模型，<strong>不用从头重训就能转成 GQA</strong>。方法是 <strong>「mean conversion」</strong>——把相邻的 KV 头的权重做平均，合并成一个。</p>
+
+    <p>比如 h=32 头想转成 g=8 组（每 4 头合并），就把 Wk 的第 0、1、2、3 头平均成新的第 0 组，依此类推。研究表明这种简单的平均转换，配合少量微调（几亿 token），就能达到接近原生 GQA 的效果。这就是 <strong>Uptraining</strong> 方法，Llama 2 论文里用过。</p>
+
+    <blockquote>
+      <strong>Uptraining 流程：</strong>①加载 MHA 预训练权重；②把 KV 头按组平均合并；③在原数据上继续预训练少量步骤（约原预训练量的 5%）；④得到质量接近原生 GQA 的模型。
+    </blockquote>
+
+    <p>这让已经投入巨资训练的 MHA 模型（如早期的 GPT、Llama 1）能低成本迁移到 GQA，享受推理加速。是工业界非常实用的技术。</p>
+
+    <h2 class="section" id="tradeoff"><span class="idx">06</span> MHA / MQA / GQA 怎么选</h2>
+    <p>总结一下三种方案的选择逻辑：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">🏆</span>
+        <h4>选 MHA 当</h4>
+        <p>追求最高质量，推理成本不是瓶颈（如研究、评测刷榜）。或模型规模小（KV cache 本就不大）。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚡</span>
+        <h4>选 MQA 当</h4>
+        <p>推理延迟/显存是绝对优先级（如边缘设备、超长上下文）。愿意接受 1~3% 的质量损失。</p>
+      </div>
+      <div class="card">
+        <span class="ic">✅</span>
+        <h4>选 GQA 当（默认推荐）</h4>
+        <p>绝大多数生产场景。质量接近 MHA，推理快很多。2024+ 的开源模型几乎全用它。</p>
+      </div>
+      <div class="card">
+        <span class="ic">📊</span>
+        <h4>组数 g 的选择</h4>
+        <p>经验：g 设为让每头服务 4~8 个 Q 头（n_rep = 4~8）。如 h=32 选 g=4 或 8。</p>
+      </div>
+    </div>
+
+    <div class="callout pit">
+      <div class="head">⚠️ GQA 不是万能解</div>
+      <p>①训练时 GQA 比 MHA 略慢（多一次 repeat 操作）；②g 太小接近 MQA，质量下降；③对小模型（参数 &lt; 1B），KV cache 本就不是瓶颈，GQA 收益有限，反而可能因表达力下降而 hurting。小模型仍常用 MHA。</p>
+    </div>
+
+    <h2 class="section" id="why-q-not-shared"><span class="idx">07</span> 为什么共享 K/V 而不共享 Q</h2>
+    <p>一个常被问的问题：为什么是共享 K、V，而不是共享 Q？答案在于<strong>推理时的计算结构</strong>。</p>
+
+    <p>推理（生成）时，每一步只处理<strong>一个新 token</strong>：①算这个 token 的 Q、K、V；②把 K、V 存进 cache；③用这个 token 的 Q 去查询 cache 里所有历史 K、V。<strong>Q 是当前 token 的、临时的</strong>，用完就丢；<strong>K、V 是要长期存进 cache 的</strong>。</p>
+
+    <p>所以：<strong>共享 Q 没用</strong>（Q 不存 cache，省不了显存）；<strong>共享 K、V 才省 cache</strong>。这就是为什么优化目标永远指向 K、V。这也是 KV cache 这个名字里只有 K、V 没有 Q 的原因。</p>
+
+    <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">三种方案对比</div>
+        <ul style="margin:6px 0;">
+          <li><strong>MHA</strong>：h 头全独立，质量最佳，KV cache 最大</li>
+          <li><strong>MQA</strong>：KV 共享 1 份，省 h 倍，质量略降</li>
+          <li><strong>GQA</strong>：KV 分 g 组，省 h/g 倍，质量接近 MHA</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">关键洞察</div>
+        <ul style="margin:6px 0;">
+          <li>推理显存瓶颈在 KV cache，不在模型参数</li>
+          <li>Q 多样性 &gt; K/V 多样性，故共享 K/V 损失小</li>
+          <li>GQA 是 2024+ 开源大模型的事实标准</li>
+          <li>MHA 可通过 Uptraining 低成本转 GQA</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>GQA 把 KV cache 砍了一大半，但 cache 本身仍是推理的显存大头。下一章我们深入<strong>KV Cache</strong>本身：它是怎么让自回归生成从 O(n²) 加速到 O(n) 的？显存到底怎么算？vLLM 的 PagedAttention 又是怎么像操作系统管理虚拟内存一样管理 KV cache，把碎片消灭干净的？</p>
+
+    <blockquote>
+      下一章：<a href="100-tfm-kv-cache.html">第 100 章 · KV Cache：自回归推理为什么离不开它</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

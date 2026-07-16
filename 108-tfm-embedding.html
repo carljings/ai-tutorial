@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -135,7 +133,7 @@
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
-      <a href="108-tfm-embedding.html" class="active" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
+      <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
@@ -305,67 +303,290 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 108 章 · Transformer 原理深挖</span>
-<h1>Token Embedding 与 Tie Weights</h1><p class="lead">嵌入矩阵的查表本质、维度选择。输入输出嵌入权重共享（weight tying）省参数 + 效果好。为什么大模型倾向不 tie。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>嵌入矩阵的查表本质、维度选择。输入输出嵌入权重共享（weight tying）省参数 + 效果好。为什么大模型倾向不 tie。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
-import math
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 108 · Transformer 深度系列</span>
+      <h1>Token Embedding<br>从 ID 到语义向量的查表魔法</h1>
+      <p class="lead">分词把文本变成了 token ID，但「猫」是 234、「狗」是 567——这些数字本身没有语义，234 和 567 的差并不代表「猫和狗的语义差」。Embedding 层的使命，就是把这些无意义的 ID，变成捕获了语义关系的稠密向量。本章讲清 embedding 的查表本质、为什么能学到语义、维度怎么选、位置 embedding 怎么组合，以及 tied embedding（输入输出权重共享）这个省参数又提效果的精巧设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 107 章</span>
+      </div>
+    </section>
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    <h2 class="section" id="lookup"><span class="idx">★</span> Embedding 就是查表</h2>
+    <p>Embedding 层的实现极其朴素：<strong>一个大矩阵，每行对应一个 token ID，查表就是把某行取出来</strong>。</p>
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"Token Embedding 与 Tie Weights"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="107-tfm-tokenization.html"><div class="lbl">← 上一章</div><div class="ttl">107 · Tokenizer：文字如何变成模型能吃的 Token</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="109-tfm-decoder-only.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">109 · 为什么 Decoder-Only 一统天下</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 108 章 · Token Embedding 与 Tie Weights</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <blockquote>
+      Embedding 矩阵 E：形状 (vocab_size, d_model)<br>
+      输入 token ID：t（一个整数）<br>
+      输出 embedding：E[t]，即矩阵的第 t 行（一个 d_model 维向量）
+    </blockquote>
+
+    <p>就这样。没有复杂的计算，就是<strong>按行索引</strong>。这个矩阵 E 是可学习的参数，训练时通过反向传播更新每一行。训练收敛后，E 的每一行就成了对应 token 的<strong>语义向量</strong>。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">词表：[猫=234, 狗=567, 鱼=890, ...]</div>
+        <div class="node sky">Embedding 矩阵 E (vocab × d_model)</div>
+        <div style="color:var(--text-faint);">▼ 查表：取第 234 行</div>
+        <div class="node violet">「猫」→ [0.2, -0.5, 0.8, ...] (d_model 维向量)</div>
+      </div>
+      <div class="cap">图 108-1 · Embedding 就是按 token ID 查矩阵的行</div>
+    </div>
+
+    <div class="code-title">embedding_basics.py —— Embedding 的本质</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+# Embedding 层 = 一个可学习的矩阵
+vocab_size = 1000
+d_model = 64
+embedding = nn.Embedding(vocab_size, d_model)
+
+# 它内部就是一个 (vocab, d_model) 的矩阵
+print("权重形状:", embedding.weight.shape)  # (1000, 64)
+
+# 「查表」= 按索引取行
+token_ids = torch.tensor([234, 567, 890])  # 三个 token
+vectors = embedding(token_ids)
+print("输出形状:", vectors.shape)  # (3, 64) —— 每个 ID 一行
+
+# 手动验证：embedding(token) 等于直接索引权重矩阵
+manual = embedding.weight[token_ids]
+print("和手动索引一致:", torch.allclose(vectors, manual))  # True
+</code></pre>
+
+    <p>就这么简单。Embedding 层没有非线性，没有矩阵乘，就是按 ID 取行。它之所以能学到语义，是因为<strong>这个矩阵是和整个模型一起训练的</strong>——通过反向传播，语义相近的 token 会被推到向量空间相近的位置。</p>
+
+    <h2 class="section" id="why-semantic"><span class="idx">01</span> 为什么查表能学到语义</h2>
+    <p>这是初学者最困惑的点：一个按行索引的操作，怎么就「学到了猫和狗都是动物」？</p>
+
+    <p>答案在<strong>分布式表示（distributed representation）</strong>和<strong>任务驱动的学习</strong>。关键洞察：<strong>语义相似的 token，在语言任务里会出现在相似的上下文中</strong>。「猫」和「狗」都会出现在「养了一只___」「___在叫」这样的上下文里。模型要预测下一个 token 时，「猫」和「狗」的 embedding 必须长得相似，才能在相同上下文里给出合理的预测。</p>
+
+    <blockquote>
+      <strong>语义相似 ⟺ 上下文分布相似 ⟺ Embedding 向量相似</strong><br>
+      这是 word2vec 的「分布假设」：一个词的意义由它的上下文决定。
+    </blockquote>
+
+    <p>训练过程会自然地把「猫」和「狗」的 embedding 推近，把「猫」和「汽车」的 embedding 推远——因为后者上下文分布差异大。所以 embedding 矩阵学到的，是<strong>基于上下文统计的语义关系</strong>，不是人手工编码的。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 著名的向量算术</div>
+      <p>word2vec 发现 embedding 学出了惊人的线性关系：vec("国王") − vec("男") + vec("女") ≈ vec("女王")。vec("巴黎") − vec("法国") + vec("中国") ≈ vec("北京")。这说明 embedding 空间里，「首都-国家」这类关系被编码成了<strong>方向</strong>。这是分布式表示的力量——语义关系自发地从数据中涌现。</p>
+    </div>
+
+    <h2 class="section" id="position-combine"><span class="idx">02</span> Token Embedding + Position Embedding</h2>
+    <p>第 96 章讲过，Transformer 需要位置信息。位置信息怎么和 token embedding 组合？有两种做法：</p>
+
+    <p><strong>做法一：相加（原始 Transformer）</strong></p>
+    <blockquote>
+      输入 = TokenEmbedding(t) + PositionEmbedding(pos)
+    </blockquote>
+
+    <p>位置编码（正弦余弦或可学习）和 token embedding 维度相同，直接相加。前面讲过，高维空间里两者近似正交，加法不破坏彼此的信息。</p>
+
+    <p><strong>做法二：RoPE（现代主流）</strong></p>
+    <blockquote>
+      输入 = TokenEmbedding(t)，然后在 Q、K 上应用 RoPE 旋转
+    </blockquote>
+
+    <p>RoPE 不在输入层加位置，而是在注意力的 Q、K 上做旋转（第 97 章）。所以现代大模型（Llama、GLM）的 embedding 层<strong>只做 token embedding，不加 position embedding</strong>——位置信息由后续的 RoPE 注入。</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>位置注入位置</th><th>代表模型</th></tr></thead>
+      <tbody>
+        <tr><td>正弦余弦（相加）</td><td>输入层 embedding 相加</td><td>原始 Transformer</td></tr>
+        <tr><td>可学习 PE（相加）</td><td>输入层 embedding 相加</td><td>BERT, GPT-2</td></tr>
+        <tr><td>RoPE（旋转）</td><td>每层注意力的 Q/K</td><td>Llama, GLM, Qwen</td></tr>
+        <tr><td>ALiBi（偏置）</td><td>注意力分数加偏置</td><td>BLOOM, MPT</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="dim-choice"><span class="idx">03</span> 维度 d_model 怎么选</h2>
+    <p>embedding 的维度 d_model 是核心超参，影响整个模型：</p>
+
+    <ul>
+      <li><strong>太小（128、256）</strong>：表达力不足，语义区分不开。早期小模型用。</li>
+      <li><strong>适中（768、1024、4096）</strong>：BERT-base 是 768，GPT-2 small 是 768，Llama-7B 是 4096。</li>
+      <li><strong>很大（8192、12288）</strong>：GPT-3 是 12288。表达力强，但参数和计算都涨。</li>
+    </ul>
+
+    <p>经验法则：<strong>d_model 大致和模型规模的开立方成正比</strong>。模型参数量 N，d_model ∝ N^(1/3)（配合层数和头数也 ∝ N^(1/3)，这是「计算最优缩放」的结论）。所以 7B 模型 d_model≈4096，70B 模型 d_model≈8192。</p>
+
+    <p>embedding 矩阵的参数 = vocab_size × d_model。这是模型参数的重要组成部分。Llama-2-7B：32000 × 4096 = 1.3 亿（占 7B 的 1.9%）。规模变大时，embedding 占比反而下降（因为 FFN 和注意力参数增长更快）。</p>
+
+    <h2 class="section" id="tied"><span class="idx">04</span> Tied Embedding：输入输出权重共享</h2>
+    <p>Transformer 有两个地方用到词表维度的矩阵：</p>
+
+    <ul>
+      <li><strong>输入端（Embedding 层）</strong>：E_in，形状 (vocab, d_model)。把 token ID 变成向量。</li>
+      <li><strong>输出端（LM Head，分类头）</strong>：E_out，形状 (d_model, vocab)。把最后的隐藏向量变成对每个词的预测分数（logits）。</li>
+    </ul>
+
+    <p>这两个矩阵形状互为转置，且<strong>语义上应该相关</strong>（「猫」的输入向量和输出分数应该都对齐到「猫」这个概念）。<strong>Weight Tying（权重共享）</strong>的做法：让 E_out = E_in^T，<strong>共享同一组参数</strong>。</p>
+
+    <blockquote>
+      Tied: logits = hidden @ E_in^T &nbsp;&nbsp;（输出投影直接用 embedding 矩阵的转置）<br>
+      Untied: logits = hidden @ E_out &nbsp;&nbsp;（输出投影是独立的矩阵）
+    </blockquote>
+
+    <p>好处：①<strong>省参数</strong>——vocab × d_model 的参数从两份变成一份（Llama-7B 省 1.3 亿）；②<strong>效果往往更好</strong>——输入和输出被迫对齐到同一个语义空间，理论上更一致。</p>
+
+    <p>早期 Transformer、GPT-2、早期 Llama 都用 tied embedding。但<strong>现代大模型（Llama 2、GLM、Qwen）大多改成 untied</strong>（不共享）。原因：</p>
+
+    <ul>
+      <li><strong>大模型不在乎那点参数</strong>：untied 多的参数占比很小，但表达力更强。</li>
+      <li><strong>输入和输出的最优空间其实不同</strong>：输入 embedding 要便于「被注意力处理」，输出 head 要便于「分类到词表」。强行共享可能限制两者各自优化。</li>
+      <li><strong>实验显示 untied 略好</strong>：大模型上 untied 的最终质量略高于 tied。</li>
+    </ul>
+
+    <div class="code-title">tied_vs_untied.py —— 对比两种实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+class TiedModel(nn.Module):
+    """权重共享：输出 head 用 embedding 矩阵的转置。"""
+    def __init__(self, vocab_size, d_model):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, d_model)
+        # 没有 LM head，直接用 embedding.weight 做输出
+
+    def forward(self, token_ids, hidden_states):
+        # token_ids 用于查 embedding
+        emb = self.embedding(token_ids)
+        # 输出 logits：直接用 embedding 矩阵转置
+        logits = hidden_states @ self.embedding.weight.T  # 共享！
+        return emb, logits
+
+class UntiedModel(nn.Module):
+    """权重不共享：embedding 和 LM head 是两个独立矩阵。"""
+    def __init__(self, vocab_size, d_model):
+        super().__init__()
+        self.embedding = nn.Embedding(vocab_size, d_model)
+        self.lm_head = nn.Linear(d_model, vocab_size, bias=False)  # 独立！
+
+    def forward(self, token_ids, hidden_states):
+        emb = self.embedding(token_ids)
+        logits = self.lm_head(hidden_states)  # 用独立的 head
+        return emb, logits
+
+# 参数对比
+vocab, d = 32000, 4096
+tied = TiedModel(vocab, d)
+untied = UntiedModel(vocab, d)
+tied_p = sum(p.numel() for p in tied.parameters())
+untied_p = sum(p.numel() for p in untied.parameters())
+print(f"Tied 参数:   {tied_p:,}")      # 131,072,000
+print(f"Untied 参数: {untied_p:,}")    # 262,144,000 —— 多一倍 embedding 参数
+print(f"Untied 多: {(untied_p - tied_p)/1e6:.0f}M")
+</code></pre>
+
+    <h2 class="section" id="init"><span class="idx">05</span> Embedding 怎么初始化</h2>
+    <p>Embedding 矩阵的初始化影响训练起步。常见做法：</p>
+
+    <ul>
+      <li><strong>随机小值</strong>：正态分布 N(0, 0.02²) 或均匀分布。GPT 系列用 N(0, 0.02²)。</li>
+      <li><strong>缩放到合理范围</strong>：除以 √d_model，让初始 embedding 的方差和位置编码相当（避免相加时一方淹没另一方）。</li>
+      <li><strong>预训练初始化</strong>：从 word2vec、GloVe 这些预训练向量初始化。早期做法，现代 LLM 不用了（数据足够多，自己学更好）。</li>
+    </ul>
+
+    <p>关键：<strong>初始 embedding 是随机的，语义是训练过程中逐渐「长出来」的</strong>。没有先验知识，全靠数据驱动。</p>
+
+    <h2 class="section" id="add-norm"><span class="idx">06</span> Embedding 之后的处理</h2>
+    <p>查完 embedding，通常还会做两件事：</p>
+
+    <ol>
+      <li><strong>乘以 √d_model</strong>（原论文做法）：把 embedding 的尺度放大到和位置编码相当，避免相加后被位置编码淹没。现代用 RoPE 的模型一般不做这步（RoPE 在 Q/K 上旋转，不涉及 embedding 相加）。</li>
+      <li><strong>Dropout</strong>：随机把一些维度置零，防过拟合。现代大模型常省略（数据多，不需要）。</li>
+    </ol>
+
+    <p>然后 embedding 就进入第一个 Transformer block（注意力 + FFN），开始层层加工。</p>
+
+    <h2 class="section" id="output-head"><span class="idx">07</span> 输出端：从隐藏向量到词表概率</h2>
+    <p>经过几十层 Transformer 后，最后一个 token 的隐藏向量 h（d_model 维）要变成「下一个 token 是哪个」的预测。流程：</p>
+
+    <blockquote>
+      logits = h @ E_out &nbsp;&nbsp;（d_model → vocab_size，得到每个词的分数）<br>
+      probs = softmax(logits) &nbsp;&nbsp;（归一化成概率）<br>
+      next_token = argmax(probs) 或按概率采样
+    </blockquote>
+
+    <p>这里的 E_out 就是上一节讲的 LM head（tied 或 untied）。<strong>本质是把隐藏向量和每个词的 embedding 做点积</strong>——点积最大说明隐藏向量和那个词的语义最匹配，预测就是它。</p>
+
+    <p>这给了 embedding 一个双重的语义：输入端「猫」查表得到向量，输出端把隐藏向量和「猫」的向量做点积。如果 tied，两者用同一个矩阵，<strong>「查」和「被查」共享一套语义坐标</strong>。</p>
+
+    <h2 class="section" id="subword-embedding"><span class="idx">08</span> 子词的 embedding 有什么特别的</h2>
+    <p>现代 LLM 用子词分词，embedding 学的是<strong>子词</strong>的语义，不是整词。这带来一个有趣现象：</p>
+
+    <ul>
+      <li><strong>「un」+「happy」=「unhappy」的语义</strong>：子词的 embedding 会被注意力组合出整词的语义。比如「unhappiness」被切成 ['un','happiness']，注意力层要学会把「否定」（un）和「幸福」（happiness）组合成「不幸福」。</li>
+      <li><strong>罕见词靠子词组合</strong>：没见过的词被拆成子词，每个子词的 embedding 都学过，组合起来能得到合理的语义表示。这就是子词分词泛化性好的原因。</li>
+      <li><strong>词缀的语义被单独学到</strong>：「re_」（再）、「un_」（否定）、「_ly」（副词）这些词缀的 embedding 会学到稳定的语义，组合时发挥规则作用。</li>
+    </ul>
+
+    <p>所以 embedding 不只是「背单词」，它学到的是<strong>语言的组成单元及其组合规律</strong>。这也是为什么子词 + embedding 比字符级或整词级都强。</p>
+
+    <h2 class="section" id="scaling"><span class="idx">09</span> Embedding 的参数规模与压缩</h2>
+    <p>embedding 矩阵是模型里「长而扁」的参数块（vocab × d_model）。对大词表模型（vocab=12.8 万），它占的参数不小：</p>
+
+    <blockquote>
+      Llama-3-8B：vocab=128k, d_model=4096 → embedding 参数 = 5.2 亿（占 8B 的 6.5%）<br>
+      GPT-4（推测）：vocab=100k, d_model=12288 → embedding 参数 = 12 亿
+    </blockquote>
+
+    <p>量化时 embedding 是重点压缩对象。常见做法：①embedding 用比其他层更激进的量化（如 INT8 甚至 INT4）；②词表分片到多卡（Vocab Parallel Embedding）；③对罕见 token 的 embedding 做低秩分解（少见但有探索）。</p>
+
+    <div class="callout note">
+      <div class="head">📌 词表大小影响的不只是 embedding</div>
+      <p>词表越大，embedding 参数越多，但<strong>每个参数能分到的训练数据变少</strong>（总 token 数固定时，分给每个 token 的更新少了）。所以词表大的模型，罕见 token 的 embedding 学得不充分。这是词表不能无限大的另一个原因——除了参数，还有「数据不足以训练好每个 embedding」的问题。</p>
+    </div>
+
+    <h2 class="section" id="bpe-vs-emb"><span class="idx">10</span> 分词器和 embedding 的协同</h2>
+    <p>分词器（第 107 章）和 embedding 是<strong>协同设计</strong>的。分词器决定了词表，embedding 学的是词表里每个 token 的向量。两者必须匹配：</p>
+
+    <ul>
+      <li><strong>分词器变了，embedding 必须重训</strong>：词表变了，embedding 矩阵的行数变了，旧的 embedding 用不了。这就是为什么「换分词器」是个大改动。</li>
+      <li><strong>词表的语义粒度决定 embedding 的学习难度</strong>：如果「自然语言处理」被切成 5 个 token，embedding 只需学 5 个子词；如果切成 1 个整词 token，embedding 要单独学这个整词（且数据可能不够）。</li>
+      <li><strong>多语言词表的 embedding 要平衡</strong>：中文 token 多了，英文就少（总词表固定），反之亦然。embedding 参数要在语言间分配。</li>
+    </ul>
+
+    <p>这就是为什么大模型的训练流程是：①先确定分词器（在语料上训 BPE）；②确定词表；③再训 embedding 和模型。分词器一旦定下，整个训练周期内不变。</p>
+
+    <h2 class="section" id="summary"><span class="idx">11</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">Embedding 核心</div>
+        <ul style="margin:6px 0;">
+          <li>本质：按 token ID 查矩阵的行</li>
+          <li>语义从训练中涌现（分布式表示）</li>
+          <li>相似 token → 相似向量（上下文分布决定）</li>
+          <li>d_model 选 ∝ N^(1/3)</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">Tied vs Untied</div>
+        <ul style="margin:6px 0;">
+          <li>Tied：输入输出共享，省参数</li>
+          <li>Untied：独立，表达力更强</li>
+          <li>早期模型 tied，现代大模型 untied</li>
+          <li>分词器定了，embedding 才能训</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>到此，<strong>Transformer 的输入端</strong>——从原始文本到可处理的向量——就完整讲完了：分词把文本切成 token ID，embedding 把 ID 变成语义向量，位置信息（RoPE）在后续注意力里注入。这条流水线是所有 LLM 的起点。</p>
+
+    <p>回顾从第 94 章到本章的 15 篇内容，我们把 Transformer 的<strong>每一个核心组件</strong>都拆透了：注意力的数学、QKV 投影、位置编码（正弦余弦/RoPE/ALiBi）、多头与 GQA、KV Cache、Flash Attention、FFN 的演进、层归一化、Softmax 变体、长上下文工程、分词、Embedding。这些组件拼在一起，就是一个完整的、能理解语言、能生成文本的现代大模型。下一章我们会把这些组件<strong>组装成一个完整的 Decoder-only 架构</strong>（GPT/GLM 的形态），看它们怎么协同工作。</p>
+
+    <blockquote>
+      下一章：<a href="109-tfm-decoder-only.html">第 109 章 · Decoder-only 架构：把所有组件拼成现代大模型</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -197,7 +195,7 @@
       <a href="163-agent-aider-repomap.html" title="Aider 的 Repo Map"><span class="num">163</span>Aider 的 Re</a>
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
-      <a href="166-agent-continue-codebase.html" class="active" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
+      <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
       <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
@@ -305,81 +303,301 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 166 章 · 开源 Agent 源码深挖</span>
-<h1>Continue 的代码库索引</h1><p class="lead">用 LanceDB 存代码块向量。tree-sitter 切块、嵌入、检索。@codebase 触发全仓库语义搜索。增量索引。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>用 LanceDB 存代码块向量。tree-sitter 切块、嵌入、检索。@codebase 触发全仓库语义搜索。增量索引。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>用 LanceDB 存代码块向量。tree-sitter 切块、嵌入、检索。@codebase 触发全仓库语义搜索。增量索引。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 49 · Agent 源码深挖系列</span>
+      <h1>Continue codebase 索引<br>@codebase 检索与 tf-idf + 向量混合检索</h1>
+      <p class="lead">当你在 Continue 的 chat 里输入 <code>@codebase 这个 bug 在哪</code>，它会检索整个代码库，找出最相关的几段代码塞进 context。这个能力听起来简单——不就是 embedding + 向量搜索吗？但真实的工程实现要复杂得多：纯向量检索对代码这种「关键词密集」的文本效果有限，Continue 用的是 tf-idf 关键词检索 + 向量语义检索的 <strong>混合</strong> 方案，还要处理增量更新和大型仓库的性能。本章我们拆解这套检索系统。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-hybrid"><span class="idx">★</span> 一、为什么纯向量检索对代码不够好</h2>
+    <p>向量检索（embedding + cosine similarity）是 RAG 的主流方案：把文档切成块，每块算 embedding 存进向量数据库，查询时算 query 的 embedding，找最相似的块。这对自然语言文档效果很好，但对代码有个先天弱点。</p>
+    <p>代码里大量信息是 <strong>精确的标识符</strong>——类名、函数名、变量名。如果用户问「AuthService 在哪里被调用」，最相关的是包含字面量 "AuthService" 的代码。但向量检索把 "AuthService" 变成一个向量后，可能和 "LoginService"、"UserService" 这些语义相近但字面不同的代码相似度更高——这恰恰是错的，用户要的是字面匹配。</p>
+    <p>纯关键词检索（tf-idf/BM25）则相反：它精确匹配字面量，"AuthService" 只匹配 "AuthService"。但它不懂语义——用户问「登录相关代码」，关键词检索找不到不含「登录」二字但实际是 login 函数的代码。</p>
+    <p>Continue 的洞察是：<strong>两种方法各有盲区，组合起来最互补</strong>。向量检索擅长语义相似（「登录」匹配 login 函数），关键词检索擅长精确匹配（"AuthService" 匹配字面）。混合检索同时跑两种，合并结果，兼顾语义和精度。</p>
+
+    <h2 class="section" id="chunking"><span class="idx">★</span> 二、分块策略：代码不能按字数切</h2>
+    <p>检索的第一步是把代码库切成「块」（chunk），每块作为一个检索单元。自然语言 RAG 通常按固定字数（如 500 字）切，但代码不能这么切——把一个函数从中间切断，两半都失去意义。</p>
+    <p>Continue 用的是 <strong>语法感知的分块</strong>：用 tree-sitter（和 Aider 的 repo map 用的一样，参见 163 章）解析代码，按函数/类的边界切。每个函数是一个块，每个类是一个块（或类的块包含其方法）。</p>
+    <pre><code class="language-typescript">// core/indexing/chunking.ts（简化）
+import { getParser } from "tree-sitter-languages";
+
+export interface CodeChunk {
+  filepath: string;
+  startLine: number;
+  endLine: number;
+  content: string;
+  // 元信息：函数名、类名等
+  name?: string;
+  type?: "function" | "class" | "method";
+}
+
+export function chunkFile(filepath: string, content: string): CodeChunk[] {
+  const lang = inferLanguage(filepath);
+  const parser = getParser(lang);
+  const tree = parser.parse(content);
+  const lines = content.split("\n");
+
+  const chunks: CodeChunk[] = [];
+
+  function walk(node: any) {
+    if (isDefinitionNode(node)) {  // function_definition, class_definition 等
+      const startLine = node.startPosition.row;
+      const endLine = node.endPosition.row;
+      // 太小的定义（&lt;3 行）合并到父块
+      if (endLine - startLine &gt;= 3) {
+        const nameNode = node.childByFieldName?.("name");
+        chunks.push({
+          filepath,
+          startLine,
+          endLine,
+          content: lines.slice(startLine, endLine + 1).join("\n"),
+          name: nameNode?.text,
+          type: node.type.replace("_definition", "").replace("_declaration", ""),
+        });
+        return;  // 不再递归进这个定义（它的内部已经被这个块覆盖）
+      }
     }
-]
+    for (const child of node.children || []) walk(child);
+  }
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+  walk(tree.rootNode);
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+  // 如果整个文件没有定义（纯脚本），按 50 行粗切
+  if (chunks.length === 0) {
+    for (let i = 0; i &lt; lines.length; i += 50) {
+      chunks.push({
+        filepath,
+        startLine: i,
+        endLine: Math.min(i + 49, lines.length - 1),
+        content: lines.slice(i, i + 50).join("\n"),
+      });
+    }
+  }
+  return chunks;
+}</code></pre>
+    <p>注意两个细节。第一，<strong>小定义不单独成块</strong>：不到 3 行的 getter/setter 单独成块意义不大（embedding 信息量不足），让它们留在父块里。第二，<strong>无定义文件粗切兜底</strong>：配置文件、shell 脚本没有函数定义，按 50 行粗切，至少保证能被检索到。这种「语法优先 + 兜底粗切」的策略，保证了大多数代码文件都有合理的分块。</p>
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Continue 的代码库索引"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="165-agent-continue-arch.html"><div class="lbl">← 上一章</div><div class="ttl">165 · Continue 的 IDE 架构</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="167-agent-continue-embeddings.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">167 · Continue 的嵌入管线</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 166 章 · Continue 的代码库索引</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h2 class="section" id="vector-index"><span class="idx">★</span> 三、向量索引：embedding 与存储</h2>
+    <p>分块后，每个块算一个 embedding 向量。Continue 支持多种 embedding provider——云端（OpenAI text-embedding-3）或本地（transformers.js 跑 all-MiniLM-L6-v2）。本地 embedding 的好处是不花钱、不外传代码，Continue 默认走本地。</p>
+    <pre><code class="language-typescript">// core/indexing/vectorIndex.ts（简化）
+export class VectorIndex {
+  private items: IndexItem[] = [];
+  private vectors: Float32Array[] = [];
+  private embeddingsProvider: EmbeddingsProvider;
+
+  async addChunks(chunks: CodeChunk[]) {
+    // 批量算 embedding（比逐个快）
+    const texts = chunks.map(c =&gt; this.formatForEmbedding(c));
+    const embeddings = await this.embeddingsProvider.embed(texts);
+
+    for (let i = 0; i &lt; chunks.length; i++) {
+      this.items.push({
+        filepath: chunks[i].filepath,
+        startLine: chunks[i].startLine,
+        endLine: chunks[i].endLine,
+        content: chunks[i].content,
+        name: chunks[i].name,
+      });
+      this.vectors.push(embeddings[i]);
+    }
+  }
+
+  // embedding 时把元信息也带上，提高检索质量
+  private formatForEmbedding(chunk: CodeChunk): string {
+    // 例：函数块格式化为 "function AuthService.login in auth.py:\n&lt;代码&gt;"
+    const tag = chunk.type ? `${chunk.type} ${chunk.name || ""}` : "";
+    const path = chunk.filepath;
+    return `${tag} in ${path}:\n${chunk.content}`;
+  }
+
+  async search(query: string, topK: number): Promise&lt;SearchResult[]&gt; {
+    const queryVec = await this.embeddingsProvider.embed([query]);
+    const scores = this.vectors.map(v =&gt; cosineSimilarity(queryVec[0], v));
+    // 取 topK
+    const indices = argsort(scores).slice(-topK).reverse();
+    return indices.map(i =&gt; ({
+      item: this.items[i],
+      score: scores[i],
+    }));
+  }
+}
+
+function cosineSimilarity(a: Float32Array, b: Float32Array): number {
+  let dot = 0, normA = 0, normB = 0;
+  for (let i = 0; i &lt; a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}</code></pre>
+    <p>注意 <code>formatForEmbedding</code> 这一步——它把块的元信息（函数名、类型、路径）拼在代码前面再算 embedding。这是个小但重要的优化：embedding 模型看到「function AuthService.login」前缀，能让这个块的向量更聚焦于「AuthService 的 login 函数」语义，而不是泛泛的代码。</p>
+
+    <h2 class="section" id="tfidf-index"><span class="idx">★</span> 四、tf-idf 索引：关键词精确匹配</h2>
+    <p>除了向量索引，Continue 还维护一份 tf-idf 索引，用于关键词检索。tf-idf（Term Frequency - Inverse Document Frequency）衡量一个词对某个文档的重要性——在当前块出现频率高（tf 高）、在所有块里少见（idf 高）的词，权重高。</p>
+    <pre><code class="language-typescript">// core/indexing/tfidfIndex.ts（简化）
+export class TFIDFIndex {
+  private docs: string[] = [];              // 每个块的文本
+  private termFreqs: Map&lt;string, number&gt;[] = []; // 每个块的词频
+  private docFreq: Map&lt;string, number&gt; = new Map(); // 每个词出现在多少块
+  private N = 0;                            // 总块数
+
+  addChunk(text: string) {
+    const docId = this.docs.length;
+    this.docs.push(text);
+    // 分词（代码分词：按 camelCase 和 snake_case 拆，加下划线边界）
+    const tokens = tokenizeCode(text);
+    const freq = new Map&lt;string, number&gt;();
+    for (const tok of tokens) {
+      freq.set(tok, (freq.get(tok) || 0) + 1);
+    }
+    this.termFreqs.push(freq);
+    // 更新 document frequency
+    for (const term of freq.keys()) {
+      this.docFreq.set(term, (this.docFreq.get(term) || 0) + 1);
+    }
+    this.N++;
+  }
+
+  search(query: string, topK: number): Array&lt;{docId: number, score: number}&gt; {
+    const queryTokens = tokenizeCode(query);
+    const scores: number[] = new Array(this.N).fill(0);
+
+    for (const term of queryTokens) {
+      const df = this.docFreq.get(term) || 0;
+      if (df === 0) continue;
+      // idf = log(N / df)，词越稀有 idf 越高
+      const idf = Math.log((this.N + 1) / (df + 1));
+      // 对每个包含该词的文档，累加 tf * idf
+      for (let i = 0; i &lt; this.N; i++) {
+        const tf = this.termFreqs[i].get(term) || 0;
+        if (tf &gt; 0) {
+          // 归一化 tf（除以文档长度）
+          const normalizedTf = tf / this.docs[i].length;
+          scores[i] += normalizedTf * idf;
+        }
+      }
+    }
+    return argsort(scores).slice(-topK).reverse()
+      .filter(i =&gt; scores[i] &gt; 0)
+      .map(i =&gt; ({ docId: i, score: scores[i] }));
+  }
+}
+
+// 代码专用分词：把 camelCase 和 snake_case 都拆开
+function tokenizeCode(text: string): string[] {
+  return text
+    .replace(/([a-z])([A-Z])/g, "$1 $2")   // camelCase -&gt; camel Case
+    .replace(/[_\-\.\/]/g, " ")              // snake_case / path -&gt; 拆开
+    .toLowerCase()
+    .split(/\s+/)
+    .filter(t =&gt; t.length &gt; 1);             // 丢单字符
+}</code></pre>
+    <p>这里最值得注意是 <code>tokenizeCode</code>——它把 camelCase 和 snake_case 都拆开。这解决了代码检索的一个大问题：「AuthService」的查询要能匹配到「auth_service」（同一个概念不同命名风格）。拆开后两者都包含 "auth" 和 "service" 两个 token，tf-idf 就能匹配上。这种「分词器要适配代码命名习惯」的细节，是代码检索比自然语言检索更 tricky 的地方。</p>
+
+    <h2 class="section" id="merge"><span class="idx">★</span> 五、混合检索的合并策略</h2>
+    <p>向量检索和 tf-idf 检索各返回一份 topK 结果，怎么合并？Continue 用的是 <strong>分数归一化 + 加权融合</strong>：</p>
+    <pre><code class="language-typescript">// core/indexing/hybridSearch.ts（简化）
+export async function hybridSearch(
+  query: string,
+  vectorIndex: VectorIndex,
+  tfidfIndex: TFIDFIndex,
+  topK: number,
+  options: { vectorWeight?: number; keywordWeight?: number } = {}
+): Promise&lt;SearchResult[]&gt; {
+  const vw = options.vectorWeight ?? 0.5;
+  const kw = options.keywordWeight ?? 0.5;
+
+  // 并行跑两种检索
+  const [vectorResults, keywordResults] = await Promise.all([
+    vectorIndex.search(query, topK * 2),
+    Promise.resolve(tfidfIndex.search(query, topK * 2)),
+  ]);
+
+  // 分数归一化到 [0,1]
+  const normalize = (results: Array&lt;{score: number}&gt;) =&gt; {
+    if (results.length === 0) return results;
+    const max = Math.max(...results.map(r =&gt; r.score));
+    const min = Math.min(...results.map(r =&gt; r.score));
+    const range = max - min || 1;
+    return results.map(r =&gt; ({ ...r, score: (r.score - min) / range }));
+  };
+
+  const normVec = normalize(vectorResults);
+  const normKw = normalize(keywordResults);
+
+  // 按 docId/item 合并分数
+  const merged = new Map&lt;string, SearchResult&gt;();
+  for (const r of normVec) {
+    const key = `${r.item.filepath}:${r.item.startLine}`;
+    merged.set(key, { ...r, score: r.score * vw });
+  }
+  for (const r of normKw) {
+    const key = `${r.item.filepath}:${r.item.startLine}`;
+    const existing = merged.get(key);
+    if (existing) {
+      existing.score += r.score * kw;  // 两种都命中，加权累加
+    } else {
+      merged.set(key, { ...r, score: r.score * kw });
+    }
+  }
+
+  // 排序取 topK
+  return Array.from(merged.values())
+    .sort((a, b) =&gt; b.score - a.score)
+    .slice(0, topK);
+}</code></pre>
+    <p>这里有个关键设计：<strong>一个块如果同时被两种检索命中，分数是加权累加的</strong>。这意味着「既语义相关又关键词匹配」的块会排得最高。这正是我们想要的——比如查询「AuthService.login」，包含 "AuthService" 字面量且语义上和 login 相关的块，会得到双倍加分，稳居 top。而只命中一种的块排后面。这种「两种证据互证」的策略，比单检索的精度高得多。</p>
+
+    <h2 class="section" id="incremental"><span class="idx">★</span> 六、增量更新：文件改了不用全量重建</h2>
+    <p>代码库在持续变化——用户每改一个文件，索引要不要重建？全量重建一个中型仓库可能要几分钟，每次改动都重建不可接受。Continue 的做法是 <strong>增量更新</strong>：只重新索引改动的文件。</p>
+    <pre><code class="language-typescript">// core/indexing/incremental.ts（简化）
+export class IncrementalIndex {
+  private fileHashes: Map&lt;string, string&gt; = new Map();  // path -&gt; 内容 hash
+
+  async updateForChangedFiles(changedFiles: string[]) {
+    for (const filepath of changedFiles) {
+      const content = await readFile(filepath);
+      const hash = md5(content);
+
+      // 没变就跳过
+      if (this.fileHashes.get(filepath) === hash) continue;
+      this.fileHashes.set(filepath, hash);
+
+      // 删除这个文件的所有旧块
+      this.vectorIndex.removeByFile(filepath);
+      this.tfidfIndex.removeByFile(filepath);
+
+      // 重新分块并加入
+      const chunks = chunkFile(filepath, content);
+      await this.vectorIndex.addChunks(chunks);
+      for (const c of chunks) {
+        this.tfidfIndex.addChunk(c.content);
+      }
+    }
+  }
+}</code></pre>
+    <p>用 hash 判断文件是否真的变了——保存时的 touch 不触发重建。删旧加新保证索引里不会有过期块。这种增量策略让索引始终保持最新，且每次只花毫秒级（单文件）而非分钟级（全量）。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>@codebase 是 Continue 让 Agent 真正理解项目的核心能力。要点回顾：</p>
+    <ul>
+      <li><strong>混合检索的必要性</strong>：向量擅长语义、关键词擅长精确匹配，代码检索两者都需要，组合互补。</li>
+      <li><strong>语法感知分块</strong>：用 tree-sitter 按函数/类边界切，小定义合并、无定义文件粗切兜底。</li>
+      <li><strong>向量索引</strong>：embedding 时把元信息（函数名/类型/路径）拼在前面，本地 transformer.js 默认。</li>
+      <li><strong>tf-idf 索引</strong>：代码专用分词器拆 camelCase 和 snake_case，解决命名风格不一致的匹配问题。</li>
+      <li><strong>合并策略</strong>：分数归一化 + 加权融合，同时被两种检索命中的块分数累加，精度最高。</li>
+      <li><strong>增量更新</strong>：hash 判断文件变更，删旧加新，单文件毫秒级而非全量分钟级。</li>
+    </ul>
+    <p>下一章（167 章）我们专门看 Continue 的 embedding 选择——本地 vs 云端、Jina vs BGE vs OpenAI，这些模型在代码检索上到底差在哪。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

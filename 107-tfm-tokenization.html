@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -134,7 +132,7 @@
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
-      <a href="107-tfm-tokenization.html" class="active" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
+      <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
@@ -305,67 +303,316 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 107 章 · Transformer 原理深挖</span>
-<h1>Tokenizer：文字如何变成模型能吃的 Token</h1><p class="lead">BPE 算法的字节级实现、词表大小 trade-off。SentencePiece、tiktoken。多语言、代码、emoji 的分词问题。词表对推理成本的影响。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>BPE 算法的字节级实现、词表大小 trade-off。SentencePiece、tiktoken。多语言、代码、emoji 的分词问题。词表对推理成本的影响。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
-import math
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 107 · Transformer 深度系列</span>
+      <h1>分词 Tokenizer<br>文字如何变成模型能吃的 Token</h1>
+      <p class="lead">在 token 进入 embedding 之前，首先要经历分词——把「我喜欢 Transformers」切成模型认识的单元。BPE、WordPiece、Unigram、SentencePiece 四大算法各有门道。中文没有空格，怎么分？emoji 和代码怎么处理？词表大小又怎么权衡推理成本？这一章把分词这件「看似简单实则水深」的事讲透，附带可运行的 BPE 实现和 tiktoken 实战。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 108 章概念</span>
+      </div>
+    </section>
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    <h2 class="section" id="why-tokenize"><span class="idx">★</span> 为什么需要分词</h2>
+    <p>神经网络只能吃数字。所以文本要变成一串数字 ID，才能喂给 embedding 层。这个「文本 → ID 序列」的过程就是分词（tokenization），中间的单元叫 <strong>token</strong>。</p>
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"Tokenizer：文字如何变成模型能吃的 Token"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="106-tfm-context-length.html"><div class="lbl">← 上一章</div><div class="ttl">106 · 上下文窗口的物理极限与突破</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="108-tfm-embedding.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">108 · Token Embedding 与 Tie Weights</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 107 章 · Tokenizer：文字如何变成模型能吃的 Token</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <div class="diagram">
+      <div class="flow">
+        <div class="node accent">原始文本<br>"我喜欢 Transformers"</div>
+        <span class="arrow">▶</span>
+        <div class="node sky">分词<br>["我", "喜欢", " Trans", "form", "ers"]</div>
+        <span class="arrow">▶</span>
+        <div class="node violet">查表<br>[234, 5678, 12, 890, 345]</div>
+        <span class="arrow">▶</span>
+        <div class="node">Embedding</div>
+      </div>
+      <div class="cap">图 107-1 · 文本经分词变成 token ID 序列，再查 embedding 表</div>
+    </div>
+
+    <p>分词看似简单，实则水深。它直接决定了：①模型怎么理解语言（粒度）；②推理成本（同样的话切多少 token 决定费用）；③对多语言、代码、特殊字符的友好度。一个糟糕的分词器能让模型又贵又差。</p>
+
+    <h3>三种朴素的极端方案</h3>
+    <p>先看三种最朴素的分词思路，理解它们的缺陷，就知道为什么需要 BPE 这些算法：</p>
+
+    <ul>
+      <li><strong>按字符（char-level）</strong>：「hello」→ ['h','e','l','l','o']。词表小（几十个），但序列太长，模型要学「h+e+l+l+o=hello」的组合，学习负担重。</li>
+      <li><strong>按整词（word-level）</strong>：「I love NLP」→ ['I','love','NLP']。序列短，但词表爆炸（几百万词），且遇到没见过的词（OOV，out-of-vocabulary）就抓瞎。</li>
+      <li><strong>按子词（subword）</strong>：「unhappiness」→ ['un','happiness'] 或 ['un','happy','ness']。折中：常见词整块，罕见词拆成有意义的片段。这是现代 LLM 的选择。</li>
+    </ul>
+
+    <p>子词分词的精髓：<strong>用数据驱动地学出一套「词表」，覆盖从字符到整词的所有粒度</strong>。常见组合整个是一个 token，罕见词拆成若干已知子词。既不爆炸也不太长，还能处理任何新词。</p>
+
+    <h2 class="section" id="bpe"><span class="idx">01</span> BPE：字节对编码</h2>
+    <p><strong>BPE（Byte Pair Encoding）</strong>是 GPT 系列用的算法。它的训练过程是<strong>贪心地合并最高频的相邻字节对</strong>：</p>
+
+    <div class="steps">
+      <div class="step"><h4>初始化</h4><p>把所有词拆成单个字符（或字节）。统计每个词的出现频率。</p></div>
+      <div class="step"><h4>找最高频对</h4><p>扫描所有词，找出相邻字符对里出现频率最高的那一对。比如 ('t','h') 出现了 100 次。</p></div>
+      <div class="step"><h4>合并</h4><p>把这对合并成一个新 token「th」，加进词表。所有出现 ('t','h') 的地方替换成「th」。</p></div>
+      <div class="step"><h4>重复</h4><p>循环 2~3，直到词表达到目标大小（如 5 万）。每次合并都产生一个新 token。</p></div>
+    </div>
+
+    <p>结果：词表里既有单字符（'a','b'...），也有高频组合（'th','tion'...），还有整词（'the'...）。<strong>高频组合被合并成单 token，低频的保持拆分</strong>——这就是「数据驱动」的子词粒度。</p>
+
+    <h3>推理时的分词</h3>
+    <p>训练好 BPE 词表（一个有序的合并规则列表）后，对新文本分词：①先拆成单字符；②按训练时的合并顺序，<strong>依次尝试应用每条合并规则</strong>；③所有能合并的都合并完，剩下的就是 token 序列。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：搭积木</div>
+      <p>BPE 像搭积木。单字符是最小的积木块。训练时观察哪些积木经常挨在一起，就把它们粘成一个大积木。越常一起出现的，粘得越大。最后你有一盒从大到小的积木。搭新模型（分新词）时，能用大积木就用大的，搭不上的用小块拼。</p>
+    </div>
+
+    <h2 class="section" id="bpe-impl"><span class="idx">02</span> 代码：从零实现 BPE</h2>
+    <div class="code-title">bpe_from_scratch.py —— 极简 BPE 训练器</div>
+    <pre><code class="language-python">from collections import Counter
+
+def train_bpe(corpus, vocab_size=100):
+    """在语料上训练 BPE，返回合并规则列表（按学习顺序）。"""
+    # 初始化：每个词拆成字符，统计词频
+    word_freqs = Counter(corpus.split())
+    splits = {w: list(w) for w in word_freqs}
+
+    merges = []
+    # 初始词表：所有出现过的字符
+    vocab = set(c for w in splits for c in splits[w])
+
+    while len(vocab) < vocab_size:
+        # 统计所有相邻对的出现次数
+        pairs = Counter()
+        for w, freq in word_freqs.items():
+            chars = splits[w]
+            for i in range(len(chars) - 1):
+                pairs[(chars[i], chars[i+1])] += freq
+        if not pairs:
+            break
+        # 找最高频对
+        best = pairs.most_common(1)[0][0]
+        merges.append(best)
+        vocab.add(''.join(best))
+        # 在所有词里合并这个对
+        for w in splits:
+            chars = splits[w]
+            new_chars = []
+            i = 0
+            while i < len(chars):
+                if i < len(chars) - 1 and (chars[i], chars[i+1]) == best:
+                    new_chars.append(chars[i] + chars[i+1])
+                    i += 2
+                else:
+                    new_chars.append(chars[i])
+                    i += 1
+            splits[w] = new_chars
+    return merges, vocab
+
+# 在小语料上训练
+corpus = "low low low low low lower lower newest newest newest newest newest newest widest widest widest"
+merges, vocab = train_bpe(corpus, vocab_size=30)
+print("学到的合并规则（前 10 条）:")
+for m in merges[:10]:
+    print(f"  {m[0]} + {m[1]} → {m[0]+m[1]}")
+# 你会看到 ('e','s')、('es','t')、('est','_') 等高频后缀被合并
+</code></pre>
+
+    <p>运行后你会看到 BPE 学到了 'e'+'s'='es'、'es'+'t'='est' 这类高频组合——因为语料里 'newest'、'widest' 都包含 'est'，它被高频合并了。这就是数据驱动的子词学习。</p>
+
+    <h2 class="section" id="byte-bpe"><span class="idx">03</span> Byte-level BPE：GPT 的做法</h2>
+    <p>原始 BPE 在字符层面工作，但<strong>字符层面有 Unicode 问题</strong>：中文、emoji、各种语言的字符成千上万，词表会被这些罕见字符塞满。GPT-2 的解决方案是 <strong>Byte-level BPE</strong>：</p>
+
+    <blockquote>
+      不在 Unicode 字符层面做 BPE，而是先把文本编码成 <strong>UTF-8 字节</strong>（只有 256 种），再在字节层面做 BPE。
+    </blockquote>
+
+    <p>好处：<strong>基础词表只有 256 个字节</strong>，覆盖任何语言的任何字符（因为任何字符都能用 UTF-8 字节表示）。中文「我」是 3 个字节，emoji 可能是 4 个字节。BPE 会在字节层面学合并，常见的中文字符序列会被合并成单 token。</p>
+
+    <p>这是 GPT-2/3/4、Llama、GLM 等几乎所有现代 LLM 的做法。<strong>tiktoken</strong> 是 OpenAI 开源的 GPT 系列 BPE 分词器实现。</p>
+
+    <div class="code-title">tiktoken_demo.py —— 用 tiktoken 看 GPT 怎么分词</div>
+    <pre><code class="language-python"># pip install tiktoken
+import tiktoken
+
+# GPT-4 的分词器（cl100k_base，词表约 10 万）
+enc = tiktoken.get_encoding("cl100k_base")
+
+text = "我喜欢 Transformers 这个模型！🤗"
+tokens = enc.encode(text)
+print(f"原文: {text}")
+print(f"Token 数: {len(tokens)}")
+print(f"Token IDs: {tokens}")
+print(f"逐 token 还原:")
+for t in tokens:
+    print(f"  {t:>6} → {enc.decode([t])!r}")
+
+# 对比：同样的中文在 Llama 词表下可能切更多 token（中文友好度不同）
+# GPT-4 的 cl100k_base 对中文相对友好，常见字是一个 token
+# 早期 GPT-2 的 p50k 对中文不友好，「我」可能切成 3 个字节 token
+</code></pre>
+
+    <p>运行后你会看到：「我」是一个 token（中文友好），「 Transformers」被切成几个子词，emoji 「🤗」是几个字节 token。不同模型的分词器对中文的友好度差异很大，直接影响中文场景的 token 成本。</p>
+
+    <h2 class="section" id="wordpiece"><span class="idx">04</span> WordPiece：BERT 的选择</h2>
+    <p><strong>WordPiece</strong>（Google，2016）和 BPE 很像，也是贪心合并，但合并标准不同。BPE 选「频率最高的对」，WordPiece 选「<strong>让语言模型似然提升最大的对</strong>」：</p>
+
+    <blockquote>
+      WordPiece 的合并标准：选能让 score = freq(xy) / (freq(x)·freq(y)) 最大的对<br>
+      （类似点互信息 PMI，衡量 x、y 共现的「意外程度」）
+    </blockquote>
+
+    <p>直观说：BPE 关心「这对有多常出现」，WordPiece 关心「这对的出现是不是特别显著（相对于各自单独出现的频率）」。BERT、DistilBERT 用 WordPiece。标记上 WordPiece 用「##」表示非词首的子词（如 "playing" → ["play", "##ing"]）。</p>
+
+    <p>实践中 BPE 和 WordPiece 效果接近，BPE 因为实现简单、和 byte-level 结合好，在生成式 LLM 里更流行。WordPiece 主要在 BERT 系的 encoder 模型里用。</p>
+
+    <h2 class="section" id="unigram"><span class="idx">05</span> Unigram：概率视角</h2>
+    <p><strong>Unigram Language Model</strong>（SentencePiece 的一种模式）走完全不同的路：它不「合并」，而是「<strong>从一个大词表里逐步删词</strong>」。</p>
+
+    <div class="steps">
+      <div class="step"><h4>初始化大词表</h4><p>用所有可能的子串（或 BPE 结果）作为初始词表，可能有几百万个候选。</p></div>
+      <div class="step"><h4>用 EM 训练概率</h4><p>给每个 token 一个概率，让整个语料的「分词似然」最大。用期望最大化（EM）迭代。</p></div>
+      <div class="step"><h4>删低贡献词</h4><p>计算每个 token 对总似然的贡献，删掉贡献最低的（比如删 20%）。重复训练。</p></div>
+      <div class="step"><h4>直到目标大小</h4><p>循环到词表达到目标大小。最终词表里每个 token 都有概率，分词时选概率最高的切分。</p></div>
+    </div>
+
+    <p>Unigram 的好处：<strong>分词不是唯一的</strong>——同一个词可能有多种切分，每种有不同概率。这让模型能学到「这个切分更可能」的软选择。而且因为它基于概率，对未见过的词有更好的泛化。T5、mBART、ALBERT 用 Unigram（通过 SentencePiece）。</p>
+
+    <h2 class="section" id="sentencepiece"><span class="idx">06</span> SentencePiece：跨语言的工程实现</h2>
+    <p><strong>SentencePiece</strong>（Google）不是一个新算法，而是 BPE 和 Unigram 的<strong>工程实现框架</strong>。它解决了几个实际痛点：</p>
+
+    <ul>
+      <li><strong>语言无关</strong>：不依赖空格分词（英文有空格，中文日文没有）。直接在原始文本或字节上工作。</li>
+      <li><strong>把空格当普通字符</strong>：用特殊符号 ▁（U+2581）表示空格。这样「 hello」和「hello」是不同的 token，空格信息不丢失。</li>
+      <li><strong>支持 BPE 和 Unigram</strong>：用户可以选算法。</li>
+      <li><strong>可逆</strong>：分词后能无损还原原文（包括空格）。</li>
+    </ul>
+
+    <p>Llama、T5、GLM 的分词器都用 SentencePiece（或它的变体）。对中文这种无空格语言，SentencePiece 的「空格当字符」设计特别重要——它让模型能学到中文词边界。</p>
+
+    <div class="code-title">sentencepiece_demo.py —— SentencePiece 实战</div>
+    <pre><code class="language-python"># pip install sentencepiece
+import sentencepiece as spm
+
+# 训练一个 Unigram 分词器（实际要在文件上训，这里示意命令）
+# spm.SentencePieceTrainer.train(
+#     input='corpus.txt',
+#     model_prefix='m',
+#     vocab_size=32000,
+#     model_type='unigram',   # 或 'bpe'
+#     character_coverage=0.9995,  # 覆盖多少字符（中文要高）
+# )
+
+# 加载使用
+sp = spm.SentencePieceProcessor()
+# sp.load('m.model')
+# text = "我喜欢自然语言处理"
+# tokens = sp.encode(text)
+# print(tokens)
+# print([sp.id_to_piece(t) for t in tokens])
+
+# 关键属性：
+# - encode 把任意文本变成 token id（无 OOV，因为总能拆到字节）
+# - decode 无损还原
+# - 支持 BPE 和 Unigram 两种模式
+print("SentencePiece 示意：实际使用需先在语料上训练 model 文件")
+</code></pre>
+
+    <h2 class="section" id="chinese"><span class="idx">07</span> 中文分词的特殊问题</h2>
+    <p>中文没有空格，这给分词带来独特挑战。同一个模型，中文的 token 效率（每 token 承载的信息）往往低于英文，因为：</p>
+
+    <ul>
+      <li><strong>词表偏向英文</strong>：很多开源模型的词表英文 token 占比高，中文常见字可能没进词表，要拆成 UTF-8 字节（3 字节/字），token 数膨胀。</li>
+      <li><strong>词边界模糊</strong>：「自然语言处理」是「自然/语言/处理」还是「自然语言/处理」？不同切分语义不同。BPE 是按频率学的，可能切得不「语义」。</li>
+      <li><strong>「的字了」等高频字</strong>：这些字单独成 token，但很多短语被切碎。</li>
+    </ul>
+
+    <p>对比同样意思的中英文在 GPT-4 分词器下的 token 数：</p>
+
+    <table>
+      <thead><tr><th>语言</th><th>句子</th><th>字符数</th><th>Token 数</th><th>效率</th></tr></thead>
+      <tbody>
+        <tr><td>英文</td><td>"I love natural language processing"</td><td>35</td><td>~7</td><td>5 字符/token</td></tr>
+        <tr><td>中文</td><td>"我喜欢自然语言处理"</td><td>10</td><td>~6</td><td>1.7 字符/token</td></tr>
+      </tbody>
+    </table>
+
+    <p>中文的 token 效率明显低——<strong>同样意思的话，中文要花更多 token，也就是更多钱、更慢</strong>。这就是为什么国产大模型（GLM、Qwen、DeepSeek）都<strong>专门优化中文词表</strong>：在预训练前，把中文常见字、常见词加入词表，让中文切得更粗。GLM-4 的中文 token 效率比 GPT-4 高约 2~3 倍。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ Token 效率直接影响成本</div>
+      <p>API 按 token 计费。如果你的应用主要处理中文，选一个中文友好的模型（如 GLM）能省一大笔钱。反之用英文优化的模型，中文成本可能翻 2~3 倍。这是选型时常被忽视的因素。</p>
+    </div>
+
+    <h2 class="section" id="vocab-size"><span class="idx">08</span> 词表大小怎么选</h2>
+    <p>词表大小是个 trade-off：</p>
+
+    <ul>
+      <li><strong>太小（~1 万）</strong>：常见词也被切碎，序列变长，推理慢、成本高。</li>
+      <li><strong>适中（3~10 万）</strong>：平衡。GPT-2 是 5 万，Llama 2 是 3.2 万，GPT-4 是 10 万。</li>
+      <li><strong>太大（50 万+）</strong>：embedding 层参数爆炸（词表 × d_model），且很多 token 训练数据不足，学不好。</li>
+    </ul>
+
+    <p>embedding 层的参数量 = vocab_size × d_model。Llama-2-7B：32000 × 4096 = 1.3 亿（占总参数 7B 的约 2%）。GPT-4 假设词表 10 万、d_model=12288：10 万 × 12288 = 12 亿——光 embedding 就 12 亿参数。所以<strong>词表越大，embedding 越占参数</strong>，这也是为什么词表不能无限大。</p>
+
+    <p>多语言模型的词表通常更大（要覆盖多种语言的字符和常见词），Llama 3 把词表从 3.2 万扩到 12.8 万就是为了更好的多语言和代码支持。</p>
+
+    <h2 class="section" id="special-tokens"><span class="idx">09</span> 特殊 token 和代码、emoji 处理</h2>
+    <p>除了从语料学的子词，分词器还有一批<strong>特殊 token</strong>：</p>
+
+    <ul>
+      <li><strong>BOS/EOS</strong>（Begin/End of Sequence）：序列的起止标记。</li>
+      <li><strong>PAD</strong>：填充 token，用于 batch 内对齐长度。</li>
+      <li><strong>UNK</strong>（Unknown）：理论上 byte-level 不会有 UNK（总能拆到字节），但有些实现保留。</li>
+      <li><strong>系统/用户/助手标记</strong>：聊天模型的对话结构标记（&lt;|im_start|&gt; 等）。</li>
+    </ul>
+
+    <p>代码和 emoji 的处理：byte-level BPE 天然支持（都是字节），但效果取决于训练数据。如果训练语料代码少，代码会被切得很碎（每个符号一个 token），序列膨胀。这就是为什么编程能力强的模型（如 GLM、Claude）都<strong>在训练语料里混入大量代码</strong>——让 BPE 学到代码的常见结构（如 "def"、"function"、"(){}"）作为单 token。</p>
+
+    <h2 class="section" id="four-algos"><span class="idx">10</span> 四种算法总结</h2>
+    <table>
+      <thead><tr><th>算法</th><th>思路</th><th>代表模型</th><th>工具</th></tr></thead>
+      <tbody>
+        <tr><td>BPE / Byte-level BPE</td><td>贪心合并最高频对</td><td>GPT 全系列, Llama, GLM</td><td>tiktoken, SentencePiece</td></tr>
+        <tr><td>WordPiece</td><td>合并似然提升最大的对</td><td>BERT, DistilBERT</td><td>tokenizers (HF)</td></tr>
+        <tr><td>Unigram</td><td>从大词表删低贡献词</td><td>T5, mBART, ALBERT</td><td>SentencePiece</td></tr>
+        <tr><td>SentencePiece</td><td>工程框架（支持 BPE/Unigram）</td><td>Llama, T5</td><td>sentencepiece</td></tr>
+      </tbody>
+    </table>
+
+    <div class="callout note">
+      <div class="head">📌 现代 LLM 的主流选择</div>
+      <p>2024+ 的开源大模型几乎清一色用 <strong>Byte-level BPE</strong>（通过 tiktoken 或 SentencePiece 实现）。原因：①byte-level 无 OOV、语言无关；②BPE 实现简单、效果好；③和 GPT 生态兼容。WordPiece 和 Unigram 主要在 BERT 系和老模型里用。</p>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">11</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">分词的本质</div>
+        <ul style="margin:6px 0;">
+          <li>文本 → token ID 序列，子词粒度</li>
+          <li>BPE：贪心合并高频对</li>
+          <li>WordPiece：合并似然提升最大的对</li>
+          <li>Unigram：从大词表删低贡献词</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">工程要点</div>
+        <ul style="margin:6px 0;">
+          <li>Byte-level BPE 是现代 LLM 主流</li>
+          <li>词表大小 3~13 万，影响 embedding 参数</li>
+          <li>中文 token 效率低于英文，国产模型优化了</li>
+          <li>token 数直接影响推理成本</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>分词把文本变成了 token ID。但这些 ID 只是无意义的数字——「猫」是 234、「狗」是 567，数字大小不代表语义。<strong>怎么把这些 ID 变成有语义的向量？</strong>这就是下一章<strong>词嵌入（Embedding）</strong>的主题。我们会讲清 embedding 的查表本质、维度选择、位置 embedding 的组合，以及 tied embedding（输入输出权重共享）这个省参数又提效果的技巧。</p>
+
+    <blockquote>
+      下一章：<a href="108-tfm-embedding.html">第 108 章 · Token Embedding 与 Tie Weights</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

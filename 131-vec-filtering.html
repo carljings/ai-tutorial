@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -160,7 +158,7 @@
       <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
       <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
       <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
-      <a href="131-vec-filtering.html" class="active" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
+      <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
@@ -305,66 +303,131 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 131 章 · 向量索引与 RAG 原理深挖</span>
-<h1>元数据过滤：ANN 与 WHERE 子句</h1><p class="lead">pre-filter 先按元数据缩小再 ANN、post-filter 先 ANN 再过滤、in-filter 在搜索中过滤。各方案的 recall 与适用条件。稀疏结果集的坑。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>pre-filter 先按元数据缩小再 ANN、post-filter 先 ANN 再过滤、in-filter 在搜索中过滤。各方案的 recall 与适用条件。稀疏结果集的坑。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>pre-filter 先按元数据缩小再 ANN、post-filter 先 ANN 再过滤、in-filter 在搜索中过滤。各方案的 recall 与适用条件。稀疏结果集的坑。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 131 · 向量检索系列</span>
+      <h1>向量 + 属性过滤<br>pre / in / post-filter 与 FAISS IDMap 实操</h1>
+      <p class="lead">真实的 RAG 几乎从不是"纯向量检索"。用户问"找 2024 年 Q3 华东区关于退货的工单"，你不只要语义相似，还要时间、区域、类别三个属性同时命中。把向量检索和属性过滤结合起来，听起来简单，实现策略却大有门道。本文拆解 pre-filter、post-filter、in-filter 三种方案的取舍，并用 FAISS IVFPQ + IDMap 走一遍完整实操。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-problem"><span class="idx">★</span> 为什么这是个难题</h2>
+    <p>纯向量索引（HNSW/IVF）是为"在全部 N 个向量里找最近的 k 个"优化的，它<strong>不知道属性过滤的存在</strong>。当过滤条件命中率高（比如筛掉 10%），影响不大；但当过滤条件命中率很低（比如只要 2024-Q3 的数据，全库 5% 命中），问题就来了：纯向量检索返回的 top-100 里可能只有 3 个满足过滤，top-10 凑不齐。</p>
+    <p>这就引出三种解决策略：<strong>先过滤后检索（pre-filter）</strong>、<strong>检索中过滤（in-filter）</strong>、<strong>检索后过滤（post-filter）</strong>。它们在召回、性能、实现复杂度上各有取舍，没有银弹。</p>
+
+    <h2 class="section" id="three-strategies"><span class="idx">★</span> 三种策略详解</h2>
+
+    <h3>1. Post-filter（检索后过滤）</h3>
+    <p>做法：先用向量索引召回 top-K（K 比目标 k 大很多，比如 K=200），再从这 K 个里筛掉不满足属性条件的，取剩下的 top-k。</p>
+    <p>优点是<strong>实现最简单</strong>——向量索引和过滤完全解耦，任何索引都能用。缺点是<strong>低命中率时召回崩塌</strong>：如果过滤条件只命中 1%，召回的 200 个里期望只有 2 个满足，top-10 还是凑不齐。即便把 K 加到 2000，向量索引本身的 recall 也会随着 K 变大而稀释。</p>
+    <p>经验法则：当过滤命中率 &gt; 10% 时，post-filter 通常够用；&lt; 5% 就要考虑别的方案了。</p>
+
+    <h3>2. Pre-filter（检索前过滤）</h3>
+    <p>做法：先用属性过滤（通常是倒排索引或位图）筛出满足条件的全量候选集（比如命中 5 万条），再在这个子集上做向量检索。</p>
+    <p>优点是<strong>召回有保证</strong>——在精确的候选集上做向量检索，不存在"凑不齐"的问题。缺点是<strong>实现复杂</strong>：标准 HNSW/IVF 不支持"只在子集上检索"，要么把候选集拷出来建临时索引（慢、贵），要么用支持 bitset 过滤的索引（FAISS、Milvus 的 in-filter 就是在做这件事）。</p>
+    <p>真正的 pre-filter（拷出候选建临时索引）只适合候选集相对静态且不太大的场景，比如"只在用户上传的 1000 个文档里搜"。</p>
+
+    <h3>3. In-filter（检索中过滤）</h3>
+    <p>这是现代向量库（FAISS、Milvus、Qdrant、pgvector）的主流方案，本质是 post-filter 的优化版。做法：在向量索引（HNSW/IVF）遍历图或倒排列表的过程中，<strong>每遇到一个候选就先检查它是否满足过滤条件，不满足直接跳过</strong>（不加入候选集和结果集）。同时把召回的 K 适当放大、ef/nprobe 适当调高，保证最终能凑够 k 个满足条件的。</p>
+    <p>它的精髓是把"过滤"嵌进"图遍历"里——满足条件的候选可能稀疏分布在图上，所以遍历要更广。FAISS 用 <code>IDSelector</code> 接口实现，Milvus/Qdrant 用 bitset 表达"哪些 ID 满足条件"。代价是命中率极低时（&lt;1%），遍历要扩散很大，QPS 会显著下降。</p>
+
+    <pre><code class="language-text">三种策略对比
+┌──────────────┬────────────┬──────────┬──────────┬─────────────────────┐
+│ 策略         │ 召回稳定性 │ 实现难度 │ 低命中表现│ 典型适用            │
+├──────────────┼────────────┼──────────┼──────────┼─────────────────────┤
+│ post-filter  │ 中         │ 极低     │ 差       │ 命中率&gt;10% 的简单场景│
+│ pre-filter   │ 高         │ 高       │ 好       │ 候选集小且静态       │
+│ in-filter    │ 高         │ 中       │ 中       │ 主流通用，命中率&gt;1% │
+└──────────────┴────────────┴──────────┴──────────┴─────────────────────┘</code></pre>
+
+    <h2 class="section" id="faiss-idmap"><span class="idx">★</span> FAISS IVFPQ + IDMap 实操</h2>
+    <p>FAISS 通过 <code>IDSelector</code> 接口实现 in-filter。我们用一个具体例子走一遍：100 万条带"类别"属性的向量，检索时只返回类别=2 的 top-10。</p>
+
+    <pre><code class="language-python">import faiss
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+d = 256
+N = 1_000_000
+xb = np.random.randn(N, d).astype(np.float32); faiss.normalize_L2(xb)
+# 给每条向量一个随机类别 0-4，模拟属性
+categories = np.random.randint(0, 5, size=N)
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 1. 构建 IVFPQ + IDMap（保留原始 ID 以便和属性表关联）
+quantizer = faiss.IndexFlatIP(d)
+base = faiss.IndexIVFPQ(quantizer, d, nlist=1024, m=16, nbits=8,
+                        faiss.METRIC_INNER_PRODUCT)
+index = faiss.IndexIDMap2(base)        # 包装一层支持自定义 ID
+ids = np.arange(N)
+index.train(xb[:50000])
+index.add_with_ids(xb, ids)
+base.nprobe = 32
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+# 2. 构造一个 IDSelector：只接受 categories==2 的 ID
+allowed_ids = np.where(categories == 2)[0]      # 假设约 20 万条
+selector = faiss.IDSelectorBatch(allowed_ids)
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"元数据过滤：ANN 与 WHERE 子句"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="130-vec-diskann.html"><div class="lbl">← 上一章</div><div class="ttl">130 · DiskANN：内存装不下的亿级索引</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="132-vec-hybrid-search.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">132 · 混合检索：BM25 + 向量的正确姿势</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 131 章 · 元数据过滤：ANN 与 WHERE 子句</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 3. 带 filter 的检索（FAISS 1.7.4+ 支持 search_with_filter 参数）
+# 如果版本较老，用重建候选或外部过滤的写法
+xq = np.random.randn(5, d).astype(np.float32); faiss.normalize_L2(xq)
+
+# 新版 FAISS：search 时传入 filter
+params = faiss.SearchParametersIVF()
+params.sel = selector
+D, I = index.search(xq, 10, params=params)
+print("带过滤的 top-10 ids:\n", I)
+# 验证：返回的 id 对应的 category 应该全是 2
+assert all(categories[i] == 2 for row in I for i in row if i >= 0)
+</code></pre>
+
+    <h3>没有 filter 接口时的兜底写法</h3>
+    <p>如果你的 FAISS 版本不支持 SearchParameters，或用别的库，可以用"召回放大 + 外部过滤"的 post-filter 写法，关键是<strong>动态放大 K</strong>直到凑够 k 个满足条件的：</p>
+
+    <pre><code class="language-python">def search_with_fallback_filter(index, xq, allowed_set, k=10, max_K=2000):
+    """
+    allowed_set: 满足属性条件的 ID 集合
+    如果命中的不够 k 个，逐步放大召回 K
+    """
+    allowed = set(allowed_set)
+    K = max(k * 4, 100)                  # 起始召回
+    while K &lt;= max_K:
+        D, I = index.search(xq, K)
+        filtered = [i for i in I[0] if i in allowed]
+        if len(filtered) >= k:
+            return filtered[:k]
+        K *= 2                           # 倍增放大
+    return filtered                      # 凑不齐就返回所有命中的
+</code></pre>
+
+    <h2 class="section" id="choosing"><span class="idx">★</span> 实战选型指南</h2>
+    <ul>
+      <li><strong>过滤命中率 &gt; 10%</strong>：post-filter 直接了当，K=k×10 通常够用。</li>
+      <li><strong>过滤命中率 1%-10%</strong>：用 in-filter（FAISS IDSelector / Milvus bitset / Qdrant filter），适当调大 efSearch/nprobe。</li>
+      <li><strong>过滤命中率 &lt; 1%</strong>：考虑分库存——把高频过滤维度（如时间、租户）拆成独立子库，直接在子库上检索，绕过过滤问题。这是多租户 SaaS 的常见做法。</li>
+      <li><strong>属性是连续值（如价格区间）</strong>：先把区间转成离散桶（如按月、按价格段），再走 in-filter。</li>
+    </ul>
+
+    <h3>容易踩的坑</h3>
+    <ul>
+      <li><strong>把过滤放在 SQL 层后置</strong>：很多人"先向量检索 top-100，再 SQL join 过滤"，等于硬做了 post-filter，低命中率会塌方。</li>
+      <li><strong>过滤条件太复杂</strong>：嵌套 OR/NOT 在 bitset 上要展开成多个集合的并/补，开销不小。能用单维度过滤就别嵌套。</li>
+      <li><strong>忘记放大 ef/nprobe</strong>：开了 in-filter 还用默认参数，低命中率时召回会掉，要把 efSearch 或 nprobe 适当调大补偿。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>向量 + 属性过滤有三种策略：post-filter（最简单，低命中率塌方）、pre-filter（召回稳但实现重）、in-filter（主流，把过滤嵌进图遍历）。</li>
+      <li>选型看过滤命中率：&gt;10% 用 post-filter，1-10% 用 in-filter，&lt;1% 考虑分库存。</li>
+      <li>FAISS 用 IDSelector / SearchParametersIVF 实现 in-filter；老版本用"动态放大 K"的兜底 post-filter。</li>
+      <li>常见坑：把过滤后置到 SQL、过滤条件过度嵌套、开了 in-filter 忘记放大 ef/nprobe。</li>
+      <li>分库存（按租户/时间拆子库）是处理极低命中率过滤的终极手段。</li>
+    </ul>
+    <p>下一篇我们看 RAG 里另一个高频需求——混合检索，把 BM25 关键词检索和向量语义检索用 RRF 融合起来。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -187,7 +185,7 @@
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
       <a href="154-agent-codex-loop.html" title="Codex 的 Turn 模型与推理持久化"><span class="num">154</span>Codex 的 Tu</a>
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
-      <a href="156-agent-codex-sandbox-seatbelt.html" class="active" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
+      <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
       <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
@@ -305,81 +303,179 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 156 章 · 开源 Agent 源码深挖</span>
-<h1>Codex 沙箱：macOS Seatbelt</h1><p class="lead">sandbox-exec 动态生成策略文件。profile 限制文件写/网络/exec。workspace-write 模式只允许工作目录写。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>sandbox-exec 动态生成策略文件。profile 限制文件写/网络/exec。workspace-write 模式只允许工作目录写。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>sandbox-exec 动态生成策略文件。profile 限制文件写/网络/exec。workspace-write 模式只允许工作目录写。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 41 · Agent 源码深挖系列</span>
+      <h1>macOS Seatbelt 沙箱<br>sandbox-exec profile 与进程隔离</h1>
+      <p class="lead">让 Agent 执行任意 shell 命令，等同于给它一把能删库的钥匙。Codex 在 macOS 上用的是一个叫 seatbelt 的内核级沙箱——通过 <code>sandbox-exec</code> 命令加载一份 profile 文件，就能把进程的文件系统访问、网络能力、进程创建全部关进笼子。本章我们从一份真实的 profile 文件读起，看懂 Seatbelt 的规则语法，以及 Codex 是怎么动态生成 profile 来约束每次工具执行的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="what-is-seatbelt"><span class="idx">★</span> 一、Seatbelt：macOS 内核里的安全栅栏</h2>
+    <p>Seatbelt 是 macOS（确切说是 XNU 内核）里的 mandatory access control（MAC）框架，它的用户态接口是 <code>sandbox-exec</code> 命令。和 Linux 的 AppArmor 或 SELinux 类似，Seatbelt 允许你定义一套规则——某个进程能访问哪些路径、能连哪些网络、能 spawn 什么子进程——然后强制执行。</p>
+    <p>Seatbelt 的规则是用一种 Scheme 方言写的（没错，是 Lisp 风格的语法）。一条规则大致长这样：<code>(allow file-write* (subpath "/Users/me/project/node_modules"))</code>，意思是「允许在 node_modules 目录下写文件」。所有未明确 allow 的操作，默认被 deny。</p>
+    <p>关键特性是：<strong>规则只对 sandbox-exec 拉起的进程及其所有子进程生效</strong>，对系统其他进程无影响。这意味着你可以把 Agent 的命令执行隔离在一个沙箱里，而你的终端、IDE、其他应用完全不受影响。这种「进程级隔离」比修改系统全局配置安全得多。</p>
+
+    <h2 class="section" id="profile-anatomy"><span class="idx">★</span> 二、读一份真实的 profile 文件</h2>
+    <p>我们先看一份 Codex 用来约束命令执行的 profile 文件（简化版，保留核心结构）：</p>
+    <pre><code class="language-scheme">;; codex-mac-sandbox.sb（简化）
+;; 版本声明
+(version 1)
+
+;; 默认拒绝所有操作
+(deny default)
+
+;; === 文件系统访问 ===
+;; 允许读取系统库（否则任何程序都跑不起来）
+(allow file-read*
+  (subpath "/usr/lib")
+  (subpath "/usr/share")
+  (subpath "/System/Library"))
+
+;; 允许读写项目目录
+(allow file-read* file-write*
+  (subpath "/Users/me/project"))
+
+;; 显式拒绝项目内的敏感文件
+(deny file-read*
+  (subpath "/Users/me/project/.env")
+  (subpath "/Users/me/project/.env.local"))
+
+;; 允许临时目录（很多程序需要写 /tmp）
+(allow file-read* file-write*
+  (subpath "/private/tmp")
+  (subpath "/private/var/folders"))   ;; macOS 用户级临时目录
+
+;; === 网络访问 ===
+(allow network-outbound
+  (remote tcp "github.com:443")
+  (remote tcp "registry.npmjs.org:443"))
+;; 其他网络出站一律拒绝
+(deny network-outbound)
+
+;; === 进程控制 ===
+;; 允许 fork 和 exec（否则没法跑子命令）
+(allow process-fork)
+(allow process-exec
+  (subpath "/usr/bin")
+  (subpath "/bin")
+  (subpath "/usr/local/bin"))
+
+;; 禁止发信号给其他进程（防止 kill 干扰外部进程）
+(deny signal process-info-target)</code></pre>
+    <p>这份 profile 展示了 Seatbelt 的核心设计理念：<strong>白名单 + 默认拒绝</strong>。先 <code>(deny default)</code> 把所有操作设为拒绝，然后逐条 <code>(allow ...)</code> 放行需要的。这种「默认关闭」的策略保证了即使 profile 有疏漏，最坏情况也是「某些功能用不了」，而不是「Agent 能干坏事」。</p>
+
+    <h2 class="section" id="dynamic-profile"><span class="idx">★</span> 三、Codex 如何动态生成 profile</h2>
+    <p>上面的 profile 里项目路径是写死的 <code>/Users/me/project</code>。但 Codex 每次会话的项目路径不同、网络需求也不同（有的会话要装 npm 包，有的不需要）。所以 Codex 不是用一份静态 profile，而是 <strong>在每次工具执行前动态生成 profile</strong>。</p>
+    <pre><code class="language-rust">// codex-rs/src/sandbox/seatbelt.rs（概念示意）
+use std::fs;
+use std::path::Path;
+
+pub fn generate_profile(config: &amp;SandboxConfig) -&gt; String {
+    let cwd = config.cwd.to_string_lossy();
+    let mut allowed_networks = String::new();
+    for host in &amp;config.allowed_hosts {
+        allowed_networks += &amp;format!(r#"(remote tcp "{}:443")"#, host);
     }
-]
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    // 读模板，填充占位符
+    format!(r#"(version 1)
+(deny default)
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+;; 系统库读取
+(allow file-read* (subpath "/usr/lib") (subpath "/System/Library"))
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex 沙箱：macOS Seatbelt"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="155-agent-codex-responses-api.html"><div class="lbl">← 上一章</div><div class="ttl">155 · Codex 用 Responses API</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="157-agent-codex-sandbox-landlock.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">157 · Codex 沙箱：Linux Landlock + seccomp</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 156 章 · Codex 沙箱：macOS Seatbelt</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+;; 项目目录读写
+(allow file-read* file-write* (subpath "{cwd}"))
+
+;; 敏感文件保护
+(deny file-read* (subpath "{cwd}/.env") (subpath "{cwd}/.env.local"))
+
+;; 临时目录
+(allow file-read* file-write*
+  (subpath "/private/tmp")
+  (subpath "/private/var/folders"))
+
+;; 网络（按配置放行）
+(allow network-outbound {allowed_networks})
+(deny network-outbound)
+
+;; 进程执行
+(allow process-exec (subpath "/usr/bin") (subpath "/bin") (subpath "/usr/local/bin"))
+(allow process-fork)
+"#, cwd = cwd, allowed_networks = allowed_networks)
+}
+
+pub fn run_sandboxed(command: &amp;str, config: &amp;SandboxConfig) -&gt; io::Result&lt;Output&gt; {
+    // 1. 生成 profile
+    let profile = generate_profile(config);
+    let profile_path = format!("/tmp/codex-sandbox-{}.sb", uuid::Uuid::new_v4());
+    fs::write(&amp;profile_path, &amp;profile)?;
+
+    // 2. 用 sandbox-exec 拉起命令
+    let output = Command::new("sandbox-exec")
+        .arg("-p").arg(&amp;profile_path)
+        .args(["bash", "-c", command])
+        .output()?;
+
+    // 3. 清理 profile 文件
+    let _ = fs::remove_file(&amp;profile_path);
+    Ok(output)
+}</code></pre>
+    <p>这段代码揭示了 Codex 沙箱执行的三步流程：<strong>生成 profile → sandbox-exec 拉起 → 清理</strong>。注意几个细节。第一，profile 文件用 UUID 命名避免冲突，执行完立即删除（不留痕迹，也防止 profile 被其他进程读到分析你的沙箱策略）。第二，<code>bash -c command</code> 是被 sandbox-exec 拉起的，意味着 bash 进程及其所有子进程都受沙箱约束——无论命令多复杂（管道、子 shell、后台进程），全部在笼子里。第三，网络白名单是从 config 来的，这意味着 Agent 执行 <code>npm install</code> 时只能访问 registry.npmjs.org，没法偷偷把代码外传到其他服务器。</p>
+
+    <h2 class="section" id="profile-debugging"><span class="idx">★</span> 四、调试 profile：为什么我的命令被拒了</h2>
+    <p>用沙箱最头疼的是：命令突然失败了，报错往往是「Operation not permitted」，但不知道是哪条规则挡的。Codex 提供了一个调试技巧——用 <code>sandbox-exec</code> 的 trace 模式。</p>
+    <pre><code class="language-bash"># 用 -D 让 sandbox-exec 把所有被拒绝的操作打印到 stderr
+sandbox-exec -D 1 -p /tmp/codex-sandbox-xxx.sb bash -c "npm install"
+# 输出会包含类似：
+# sandbox-exec: deny file-write* /etc/test
+# sandbox-exec: deny network-outbound evil.example.com:443</code></pre>
+    <p>Codex 在 dev 模式下会自动启用这个 trace，把被拒绝的操作收集起来，附在工具执行失败的返回里。这样 LLM 看到「npm install 失败」时，能同时看到「deny network-outbound registry.npmjs.org:443」——它就知道是网络权限问题，可以提示用户调整沙箱配置，而不是反复重试。这种「把沙箱审计信息反馈给 LLM」的设计，我们在第 154 章提到过，是 Codex 让 Agent 能理解「为什么失败」的关键。</p>
+
+    <h2 class="section" id="limitations"><span class="idx">★</span> 五、Seatbelt 的局限</h2>
+    <p>Seatbelt 很强大，但不是万能的。Codex 在设计时清楚它的几个局限。</p>
+    <p>第一，<strong>仅限 macOS</strong>。Seatbelt 是 XNU 内核的特性，Linux 上没有。所以 Codex 在 Linux 上要用 Landlock（我们在下一章讲）。这种「平台相关的沙箱」增加了维护成本——两套实现、两套规则语法。</p>
+    <p>第二，<strong>规则语法不直观</strong>。Scheme 方言对大多数开发者是陌生的，调试 profile 需要专门的学习成本。Codex 团队内部维护了一套「常用 profile 片段」的库，避免每次手写。</p>
+    <p>第三，<strong>Apple 的文档有限</strong>。Seatbelt 的官方文档稀少，很多规则的实际行为要靠实验验证。社区维护的 sandbox profile 集合（如 google 的 sandbox-macos）是重要参考。</p>
+    <p>第四，<strong>sandbox-exec 可能在未来版本被限制</strong>。Apple 近年来收紧了 sandbox API，未签名的应用使用 sandbox-exec 已经受到限制。Codex 作为开源工具，依赖系统自带的 sandbox-exec，存在被未来 macOS 版本影响的政策风险。</p>
+
+    <h2 class="section" id="network-policy"><span class="idx">★</span> 六、网络白名单的实战考量</h2>
+    <p>网络访问是沙箱里最敏感的部分。完全禁止网络，Agent 连 npm install 都做不了；完全放开，又等于没沙箱。Codex 的策略是 <strong>按场景配置白名单</strong>：</p>
+    <ul>
+      <li>默认配置：只允许常见包管理器的 registry（npm、pip、cargo 等）。</li>
+      <li>宽松配置（用户主动开启）：允许所有 HTTPS 出站，但仍禁止非标准端口。</li>
+      <li>严格配置：完全禁止网络，适合纯静态分析场景。</li>
+    </ul>
+    <pre><code class="language-scheme">;; 默认配置下的网络白名单片段
+(allow network-outbound
+  (remote tcp "registry.npmjs.org:443")
+  (remote tcp "pypi.org:443")
+  (remote tcp "files.pythonhosted.org:443")
+  (remote tcp "crates.io:443")
+  (remote tcp "static.crates.io:443")
+  (remote tcp "github.com:443")
+  (remote tcp "raw.githubusercontent.com:443"))
+(deny network-outbound)</code></pre>
+    <p>这种「按域名白名单」的策略比「按 IP」更实用——域名稳定、可读、可维护。但要注意 DNS 解析可能被劫持，高安全场景下要配合 DNS-over-HTTPS 或固定 IP。对大多数开发场景，域名白名单已经足够。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Seatbelt 让 Codex 在 macOS 上实现了进程级的强隔离。要点回顾：</p>
+    <ul>
+      <li><strong>Seatbelt 是 XNU 内核的 MAC 框架</strong>，用户态接口是 sandbox-exec，规则用 Scheme 方言写。</li>
+      <li><strong>白名单 + 默认拒绝</strong>：先 deny default，再逐条 allow，最坏情况是功能不可用而非安全事故。</li>
+      <li><strong>动态生成 profile</strong>：Codex 每次执行前按 cwd 和网络配置生成 profile，用 UUID 命名、执行完删除。</li>
+      <li><strong>bash 及所有子进程受约束</strong>：无论命令多复杂都在笼子里，网络白名单按域名配置。</li>
+      <li><strong>调试用 -D 1 trace</strong>：把被拒绝的操作打印出来，Codex 在 dev 模式收集这些信息反馈给 LLM。</li>
+      <li><strong>局限</strong>：仅 macOS、规则语法陌生、官方文档少、有政策风险。</li>
+    </ul>
+    <p>下一章（157 章）我们看 Linux 上的对应方案——Landlock。它是 Linux 5.13 引入的内核特性，用完全不同的方式（基于 syscall 的程序化设置）实现类似的隔离，我们对比两者的设计哲学。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

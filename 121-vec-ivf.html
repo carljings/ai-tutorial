@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -150,7 +148,7 @@
     </div>
     <div class="nav-group"><h3>★向量检索</h3>
       <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
-      <a href="121-vec-ivf.html" class="active" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
+      <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
       <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
       <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
       <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
@@ -305,41 +303,107 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 121 章 · 向量索引与 RAG 原理深挖</span>
-<h1>IVF 倒排索引：用聚类加速检索</h1><p class="lead">k-means 把向量聚成 nlist 簇，每个簇一个质心。查询时找最近的 nprobe 个质心，只搜这些簇。nprobe 控制 recall/latency。FAISS IVFFlat 的实现。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>k-means 把向量聚成 nlist 簇，每个簇一个质心。查询时找最近的 nprobe 个质心，只搜这些簇。nprobe 控制 recall/latency。FAISS IVFFlat 的实现。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>IVF 倒排索引原理</h2>
-<p>IVF（Inverted File）借鉴了文本检索的倒排索引思想：先把向量空间划分成若干区域（用 k-means 聚类成 nlist 个簇），每个簇一个质心。查询时不去和所有 N 个向量比，而是先找到离 query 最近的 nprobe 个质心，只在这些簇内搜索。</p>
-<h3>构建流程</h3>
-<p>1. 用 k-means 把训练数据聚成 nlist 个簇（nlist 通常取 √N 到几万）。2. 每个向量归到最近的簇，按簇组织成倒排列表。3. 存储质心表 + 倒排列表。</p>
-<h3>查询流程</h3>
-<pre class="code"><code class="language-python">def ivf_search(query, nlist_centroids, inverted_lists, nprobe, k):
-    # 1. query 到所有质心的距离
-    dists = [dist(query, c) for c in nlist_centroids]
-    # 2. 取最近的 nprobe 个簇
-    nearest = argsort(dists)[:nprobe]
-    # 3. 只在这些簇内做精确搜索
-    candidates = []
-    for cid in nearest:
-        candidates.extend(inverted_lists[cid])
-    # 4. 从候选里取 top-k
-    return sorted(candidates, key=lambda x: dist(query, x))[:k]</code></pre>
-<p>nprobe 是速度与召回的旋钮：nprobe=1 最快但可能漏掉相关簇，nprobe=nlist 退化为暴力搜索。实践中 nprobe 通常设 nlist 的 1%-10%。</p>
-<h2><span class="idx"></span>参数调优</h2>
-<table class="data-table"><thead><tr><th>参数</th><th>经验值</th><th>影响</th></tr></thead><tbody><tr><td>nlist</td><td>√N ~ 16√N</td><td>太小簇内搜索慢，太大训练成本高</td></tr><tr><td>nprobe</td><td>nlist 的 1%-10%</td><td>越大召回越高、越慢</td></tr><tr><td>训练样本</td><td>≥ 30×nlist</td><td>保证质心质量</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>IVF 的本质是"用聚类把最近邻搜索从全局降到局部"。它简单、可解释、好调参，是入门 ANN 的第一步。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"IVF 倒排索引：用聚类加速检索"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="120-vec-ann-overview.html"><div class="lbl">← 上一章</div><div class="ttl">120 · ANN 概览：为什么不能用暴力 kNN</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="122-vec-ivf-tuning.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">122 · IVF 调参实战：nlist 与 nprobe 的取舍</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 121 章 · IVF 倒排索引：用聚类加速检索</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 121 · 向量RAG补充</span>
+      <h1>IVF索引详解<br>倒排文件如何让百万级向量检索提速百倍</h1>
+      <p class="lead">当你的向量库从一万条增长到一千万条时，暴力扫描的 O(N) 复杂度会让 P99 延迟从 5 毫秒飙升到 5 秒。IVF（Inverted File）索引通过 k-means 聚类把搜索空间切成成百上千个"小盒子"，让每次查询只扫描其中几个。本章从 nlist 与 nprobe 两个核心参数切入，带你用 FAISS 的 IVFFlat 把十亿级检索做进 10 毫秒。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="problem"><span class="idx">1</span> 暴力扫描的天花板在哪里</h2>
+    <p>向量检索的本质是"最近邻搜索"（Nearest Neighbor Search）。最朴素的方案是 Flat 索引：把所有向量放在一个矩阵里，查询来了一次性计算与 N 个向量的内积或 L2 距离，然后做一次 top-k 排序。FAISS 的 <code>IndexFlatL2</code> 就是这个实现，它用 BLAS 矩阵乘法可以做到每秒大约 5000 万次 768 维距离计算。</p>
+    <p>听起来很快，但换算到真实场景：1000 万条 768 维向量（float32）占用约 28 GB 内存，单次查询需要 1000 万次距离计算，即便 GPU 上也要 50 毫秒以上，CPU 上轻松破秒。更要命的是延迟随数据量线性增长——数据翻十倍，延迟翻十倍。这就是 ANN（Approximate Nearest Neighbor）算法存在的理由：用一点点召回率，换取几个数量级的速度提升。</p>
+    <h2 class="section" id="core-idea"><span class="idx">2</span> IVF 的核心思想：聚类倒排</h2>
+    <p>IVF 的灵感来自传统搜索引擎的倒排索引。文本检索里，倒排索引按"词项"组织文档；向量检索里没有天然的"词项"，于是 IVF 用 k-means 把向量空间切成 <code>nlist</code> 个簇（cluster），每个簇有一个中心点（centroid）。查询时先找到离查询向量最近的 <code>nprobe</code> 个中心点，然后只在这几个簇内部做暴力扫描。</p>
+    <p>这样做有三个直接好处：第一，搜索空间从 N 缩小到 N/nlist × nprobe，通常缩小 50 到 500 倍；第二，构建一次索引后可复用千万次查询，摊销成本极低；第三，通过调整 nprobe 可以在召回率与延迟之间连续滑动，灵活性远高于 HNSW。代价是构建索引需要训练（聚类），且数据分布偏斜时某些簇会特别大。</p>
+    <p>一个关键直觉：IVF 假设"相近的向量大概率落在相近的簇里"。这个假设在均匀分布时几乎完美，但在长尾分布（比如某些热门商品向量扎堆）时会失效，导致 nprobe 个簇里堆满了相似但不相关的向量。这也是为什么生产系统常常把 IVF 和 PQ、HNSW 组合使用。</p>
+    <h2 class="section" id="params"><span class="idx">3</span> nlist 与 nprobe：召回率与速度的旋钮</h2>
+    <p><code>nlist</code> 是聚类中心数，决定了索引的"粒度"。FAISS 官方推荐的取值范围是 <code>sqrt(N)</code> 到 <code>4 * sqrt(N)</code>。例如 100 万向量，nlist 取 1000 到 4000 之间比较合理。nlist 太小，每个簇太大，搜索时还是要扫很多向量；nlist 太大，训练慢、每个簇向量太少导致召回下降，且查询时找最近的 nprobe 个中心本身也要扫 nlist 个点。</p>
+    <p><code>nprobe</code> 是查询时探查的簇数，是运行时可调的参数。这是 IVF 相对 HNSW 最优雅的地方：你可以在不重建索引的前提下，根据业务流量的高低峰动态调整。白天高峰把 nprobe 调到 8 保证速度，凌晨低峰做离线召回任务时调到 64 保证精度。下表是一个典型的权衡曲线（100 万 768 维向量，单线程 CPU）：</p>
+    <pre><code class="language-text">nprobe=1   recall@10≈0.42  延迟 0.3ms
+nprobe=4   recall@10≈0.78  延迟 0.8ms
+nprobe=8   recall@10≈0.89  延迟 1.4ms
+nprobe=16  recall@10≈0.95  延迟 2.6ms
+nprobe=64  recall@10≈0.99  延迟 9.8ms</code></pre>
+    <p>可以看到从 recall 0.89 到 0.99，延迟涨了 7 倍。这就是 ANN 的经典"最后一公里"问题：精度越高，代价越大。生产实践中 recall@10 达到 0.95 通常就足够，再往上投入产出比极低。</p>
+    <h2 class="section" id="faiss-code"><span class="idx">4</span> FAISS IVFFlat 完整实操代码</h2>
+    <p>下面用 FAISS 构建一个完整的 IVFFlat 索引，覆盖训练、查询、参数调优三个环节。数据用随机生成的 768 维向量模拟真实 embedding，实际项目中替换成你的 embedding 模型输出即可。</p>
+    <pre><code class="language-python">import numpy as np
+import faiss
+import time
+
+# 1. 准备数据：100 万条 768 维向量，模拟 BERT 输出
+np.random.seed(42)
+N, D = 1_000_000, 768
+data = np.random.randn(N, D).astype('float32')
+faiss.normalize_L2(data)  # 归一化后可用内积近似余弦相似度
+
+# 2. 确定 nlist：取 4 * sqrt(N) ≈ 4000
+nlist = 4096  # 取 2 的幂方便内部优化
+
+# 3. 创建 IVFFlat 索引（内积度量，配合归一化向量）
+quantizer = faiss.IndexFlatIP(D)
+index = faiss.IndexIVFFlat(quantizer, D, nlist, faiss.METRIC_INNER_PRODUCT)
+
+# 4. 训练：用全部数据或代表性子集训练聚类中心
+#    FAISS 要求训练样本数 >= 39 * nlist，约 16 万条
+train_size = min(N, 39 * nlist)
+train_data = data[:train_size]
+print(f"训练聚类中心，样本数 {train_size}...")
+t0 = time.time()
+index.train(train_data)
+print(f"训练耗时 {time.time() - t0:.1f}s")
+
+# 5. 添加向量
+print("添加向量到索引...")
+t0 = time.time()
+index.add(data)
+print(f"添加耗时 {time.time() - t0:.1f}s, 总数 {index.ntotal}")
+
+# 6. 查询：调整 nprobe 在召回率与延迟间权衡
+queries = np.random.randn(100, D).astype('float32')
+faiss.normalize_L2(queries)
+
+for nprobe in [1, 4, 8, 16]:
+    index.nprobe = nprobe
+    t0 = time.time()
+    distances, labels = index.search(queries, k=10)
+    latency = (time.time() - t0) / 100 * 1000  # ms/query
+    
+    # 用暴力搜索计算真实 top-10 作为 ground truth
+    gt = np.argsort(-(data @ queries.T), axis=0)[:10].T
+    recall = sum(len(set(labels[i]) & set(gt[i])) for i in range(100)) / (100 * 10)
+    print(f"nprobe={nprobe:2d}  recall@10={recall:.3f}  延迟={latency:.1f}ms")</code></pre>
+    <p>运行这段代码你会看到类似第 3 节的输出曲线。几个实战要点：第一，<code>index.train()</code> 是 CPU 密集型操作，100 万向量 4096 个中心大约要 1 到 3 分钟，建议用 GPU 版 FAISS（<code>faiss-gpu</code>）或提前离线训练后用 <code>index.write()</code> 持久化；第二，<code>add</code> 阶段会按最近的中心点把每个向量分配到对应簇，这一步可以并行；第三，归一化后用内积（IP）度量，比 L2 更符合语义检索场景，且数值稳定性更好。</p>
+    <h2 class="section" id="training"><span class="idx">5</span> 训练聚类中心的工程细节</h2>
+    <p>k-means 训练是 IVF 能否用的关键。如果聚类中心选得不好（比如某类数据完全没有中心），整个簇的向量都会被"漏检"，召回率直接崩塌。FAISS 默认的 <code>Clustering</code> 参数对大多数场景够用，但有几个可调旋钮值得关注。</p>
+    <pre><code class="language-python"># 自定义聚类参数，处理长尾分布或加速训练
+ngpu = faiss.get_num_gpus()
+ clustering = faiss.Clustering(D, nlist)
+clustering.niter = 25           # 迭代次数，默认 25，数据量大可降到 10
+clustering.max_points_per_centroid = 256  # 每个中心最多用多少点训练，防止热门簇拖慢
+clustering.min_points_per_centroid = 10    # 中心至少用多少点，防止空簇
+clustering.seed = 42
+clustering.verbose = True
+
+# 必须先 train quantizer，再用它构建 IVF
+quantizer = faiss.IndexFlatIP(D)
+clustering.train(train_data, quantizer)
+index = faiss.IndexIVFFlat(quantizer, D, nlist, faiss.METRIC_INNER_PRODUCT)
+index.add(data)</code></pre>
+    <p>训练数据的选取也有讲究。如果你的数据有明显的时间漂移（比如每周新增一批新话题的文档），用最近一个月的数据训练比用全量历史数据更合适，因为聚类中心能反映当前分布。一个常见做法是：每周用最近 30 天的向量重新训练一次中心，然后重建索引。这就是 IVF 的"重建成本"，也是它相对 HNSW 的主要劣势——HNSW 支持在线增量插入而不需要重建。</p>
+    <h2 class="section" id="production"><span class="idx">6</span> 生产环境的取舍：IVF vs HNSW vs IVFPQ</h2>
+    <p>选索引类型本质是在四个维度上做权衡：召回率、延迟、内存、构建/更新成本。IVFFlat 的定位是"延迟可调、内存中等、构建较慢、不支持增量"。对比来看：HNSW 召回率最高（recall 0.99 轻松达到）、延迟最低（亚毫秒），但内存占用是原始向量的 3 到 5 倍；IVFPQ 内存最省（压缩 16 到 64 倍），但召回率上限在 0.9 左右。</p>
+    <p>一个推荐的决策路径：如果内存充裕且需要极致召回，选 HNSW；如果向量数量极大（亿级以上）且内存紧张，选 IVFPQ；如果数据是批量写入、能接受定期重建、且需要在速度和精度间动态调，选 IVFFlat。很多系统（Milvus、Qdrant）实际上把 IVF 和 PQ 组合成 IVFPQ，用 IVF 切分空间、用 PQ 压缩向量，兼顾两者优势。</p>
+    <p>另一个实战技巧是"分段索引"。把 1000 万向量按时间或类别分成 10 个 IVF 索引，每个 100 万，查询时并行搜 10 个索引再合并 top-k。这样做的好处是单索引更小、nprobe 命中率更高，且可以按段独立重建而不影响在线服务。</p>
+    <h2 class="section" id="summary"><span class="idx">7</span> 本章小结</h2>
+    <p>IVF 索引通过 k-means 聚类把向量空间划分成 nlist 个簇，查询时只扫描最近的 nprobe 个簇，用 5% 到 20% 的召回损失换取 50 到 500 倍的速度提升。两个核心参数中，nlist 决定粒度（推荐 4 倍根号 N），nprobe 决定精度与速度的平衡点（运行时可调，recall 0.95 通常是性价比拐点）。FAISS 的 IVFFlat 实现覆盖了训练、查询、持久化全流程，是上手 ANN 检索的最佳起点。理解了 IVF，你就掌握了所有基于聚类的 ANN 算法的共同骨架，后续学习 IVFPQ（压缩）和 HNSW（图结构）时会发现它们都在解决"如何更聪明地缩小搜索空间"这同一个问题。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

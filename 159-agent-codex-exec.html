@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -190,7 +188,7 @@
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
       <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
-      <a href="159-agent-codex-exec.html" class="active" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
+      <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
       <a href="162-agent-aider-edit-formats.html" title="Aider 的文件编辑格式"><span class="num">162</span>Aider 的文件编</a>
@@ -305,81 +303,221 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 159 章 · 开源 Agent 源码深挖</span>
-<h1>Codex exec 路径：命令分类</h1><p class="lead">exec.rs 把命令分类 safe/match/needs-approval。安全命令直接跑、需审批的弹确认。execpolicy crate 的规则匹配。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>exec.rs 把命令分类 safe/match/needs-approval。安全命令直接跑、需审批的弹确认。execpolicy crate 的规则匹配。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>exec.rs 把命令分类 safe/match/needs-approval。安全命令直接跑、需审批的弹确认。execpolicy crate 的规则匹配。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 43 · Agent 源码深挖系列</span>
+      <h1>Codex 命令执行<br>fork + exec 与流式输出捕获</h1>
+      <p class="lead">Agent 跑 shell 命令听起来简单——调个 system() 不就行了？但一旦你认真考虑流式输出、超时、中断、stdout/stderr 分离、退出码，就会发现这是个复杂的并发问题。Codex 的 codex-rs 用 Rust 的 tokio + async I/O 实现了一套生产级的命令执行器。本章我们把它的 fork+exec 流程拆开，看清每一段输出是怎么从子进程流到 LLM 的 context 里的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-not-system"><span class="idx">★</span> 一、为什么不用 system() 或 std::process::Command</h2>
+    <p>最朴素的命令执行是 C 的 <code>system()</code> 或 Rust 标准库的 <code>std::process::Command::output()</code>。它们的接口是同步阻塞的——调用了就等命令跑完，拿到全部 stdout/stderr 再返回。这对 Agent 来说有几个致命问题。</p>
+    <p>第一，<strong>无流式输出</strong>。Agent 要把命令的实时输出反馈给用户（用户想看到 <code>npm test</code> 一个个用例的输出，而不是等几十秒后一次性蹦出来）。system() 做不到。第二，<strong>无法中断</strong>。命令跑起来后，用户按 Esc 想停，system() 没有提供取消接口，得 kill 整个进程组。第三，<strong>阻塞线程</strong>。在 tokio 的异步世界里，一个阻塞调用会卡住整个 runtime 的工作线程，影响其他并发任务。</p>
+    <p>所以 Codex 用的是 tokio 的 <code>tokio::process::Command</code>，它是异步的、支持流式读取 stdout/stderr、可以通过 Child handle 发送 kill 信号。这是构建生产级命令执行器的基础。</p>
+
+    <h2 class="section" id="anatomy"><span class="idx">★</span> 二、一次执行的完整流程</h2>
+    <p>我们把 Codex 执行命令的流程画出来，标注每一步的并发关系：</p>
+    <pre><code class="language-text">主 Agent 循环
+    │
+    │ 1. 构造 Command（设置 cwd、env、stdout/stderr = pipe）
+    │
+    │ 2. spawn()  -&gt; Child
+    │       │
+    │       │ [内核] fork + exec
+    │       │
+    │       ▼
+    │    子进程开始运行命令
+    │       │
+    │       │ 持续输出 stdout/stderr
+    │       │
+    │       ▼
+    │ 3. 并发三个 task：
+    │    ├─ task A: 读 child.stdout，每块发 OutputDelta 事件
+    │    ├─ task B: 读 child.stderr，累积到缓冲
+    │    └─ task C: 超时计时器，到点 kill
+    │
+    │ 4. child.wait() 等子进程退出，拿 exit code
+    │
+    │ 5. 组装 ToolResult { stdout, stderr, exit_code } 返回
+    │
+    ▼
+继续 Agent 循环</code></pre>
+    <p>关键在第 3 步的「并发三个 task」——这是流式输出和超时能同时工作的秘密。我们看对应的 Rust 代码。</p>
+
+    <h2 class="section" id="streaming-exec"><span class="idx">★</span> 三、流式执行器的核心实现</h2>
+    <pre><code class="language-rust">// codex-rs/src/exec.rs（概念示意）
+use tokio::process::Command;
+use tokio::io::{AsyncBufReadExt, BufReader};
+use tokio::time::{timeout, Duration};
+use std::process::Stdio;
+
+pub struct ExecResult {
+    pub stdout: String,
+    pub stderr: String,
+    pub exit_code: Option&lt;i32&gt;,
+    pub truncated: bool,
+}
+
+pub async fn run_command(
+    command: &amp;str,
+    cwd: &amp;Path,
+    env: &amp;[(String, String)],
+    timeout_ms: u64,
+    on_output: impl Fn(&amp;str) + Send + 'static,  // 实时回调
+    cancel: CancellationToken,
+) -&gt; io::Result&lt;ExecResult&gt; {
+    let mut child = Command::new("bash")
+        .arg("-c").arg(command)
+        .current_dir(cwd)
+        .envs(env.iter().map(|(k, v)| (k.clone(), v.clone())))
+        .stdout(Stdio::piped())    // 拿到 pipe 才能流式读
+        .stderr(Stdio::piped())
+        .spawn()?;
+
+    // 取出 stdout 和 stderr 的 pipe
+    let stdout = child.stdout.take().unwrap();
+    let stderr = child.stderr.take().unwrap();
+
+    // 并发：读 stdout（流式）、读 stderr（累积）、等超时
+    let stdout_task = tokio::spawn(async move {
+        let mut reader = BufReader::new(stdout).lines();
+        let mut buf = String::new();
+        let mut truncated = false;
+        while let Ok(Some(line)) = reader.next_line().await {
+            buf.push_str(&amp;line);
+            buf.push('\n');
+            on_output(&amp;line);          // 每行实时回调
+            // 防止输出爆炸：超过 1MB 截断
+            if buf.len() &gt; 1_000_000 {
+                truncated = true;
+                break;
+            }
         }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
+        (buf, truncated)
+    });
+
+    let stderr_task = tokio::spawn(async move {
+        let mut reader = BufReader::new(stderr).lines();
+        let mut buf = String::new();
+        while let Ok(Some(line)) = reader.next_line().await {
+            buf.push_str(&amp;line);
+            buf.push('\n');
+        }
+        buf
+    });
+
+    // 等子进程退出，或超时，或取消
+    let exit_code = tokio::select! {
+        status = child.wait() =&gt; status?.code(),
+        _ = timeout(Duration::from_millis(timeout_ms), futures::future::pending::&lt;()&gt;()) =&gt; {
+            // 超时：kill 子进程
+            let _ = child.kill().await;
+            None
+        }
+        _ = cancel.cancelled() =&gt; {
+            // 用户取消：kill 子进程
+            let _ = child.kill().await;
+            None
+        }
+    };
+
+    let (stdout_str, truncated) = stdout_task.await.unwrap();
+    let stderr_str = stderr_task.await.unwrap();
+
+    Ok(ExecResult {
+        stdout: stdout_str,
+        stderr: stderr_str,
+        exit_code,
+        truncated,
+    })
+}</code></pre>
+    <p>这段代码信息密度很高，我们拆几个关键点。<strong>第一，stdout 和 stderr 分开读</strong>。这是因为两者的语义不同——stdout 是正常输出（测试结果、命令产物），stderr 是错误和警告（编译错误、deprecation 提示）。分开读让 Codex 能在返回给 LLM 时区分展示：「这是 stdout」「这是 stderr」，帮 LLM 更准确地理解命令的执行情况。</p>
+    <p><strong>第二，tokio::select! 实现三路等待</strong>。child.wait() 等正常结束，timeout 等超时，cancel.cancelled() 等用户中断。三者谁先触发就走谁的分支，后两个都会 kill 子进程。这是 Rust 异步编程里处理「多条件终止」的优雅写法。</p>
+    <p><strong>第三，输出截断</strong>。stdout_task 里检查 buf 长度，超过 1MB 就 break 并标记 truncated。这防止 <code>find /</code> 或 <code>yes</code> 这种无限输出的命令把内存撑爆。</p>
+
+    <h2 class="section" id="timeout"><span class="idx">★</span> 四、超时处理的细节</h2>
+    <p>超时看似简单——到点 kill 就完了。但实际有几个坑。第一，<strong>kill 不等于立即死</strong>。<code>child.kill()</code> 发送 SIGKILL，但子进程可能有孙子进程（命令 spawn 了子命令）没被杀掉。Codex 的做法是用 <code>process_group</code>（在 Unix 上 kill 整个进程组），确保子进程树全部终止。</p>
+    <pre><code class="language-rust">// 用进程组确保杀干净（概念示意）
+use tokio::process::Command;
+use std::os::unix::process::CommandExt;
+
+let mut cmd = Command::new("bash");
+cmd.arg("-c").arg(command);
+// 关键：让子进程成为新的进程组 leader
+unsafe {
+    cmd.pre_exec(|| {
+        // setsid 让 bash 成为新 session leader
+        libc::setsid();
+        Ok(())
+    });
+}
+// kill 时，用负 PID 杀整个进程组
+let pgid = child.id().unwrap() as i32;  // 子进程 PID = 进程组 ID
+unsafe { libc::kill(-pgid, libc::SIGKILL); }</code></pre>
+    <p>第二，<strong>超时时间的设置策略</strong>。Codex 默认 120 秒，但允许按命令类型调整——比如 <code>npm test</code> 可能要 10 分钟，<code>git status</code> 只要 5 秒就够了。这个策略通过配置文件的规则匹配实现，我们在第 161 章会看到。</p>
+    <p>第三，<strong>超时后的返回</strong>。超时不被当成致命错误，而是返回一个 exit_code=None 的 ExecResult，让 LLM 看到「命令没在时限内完成，已终止」，由 LLM 决定是重试（加长超时）、改命令还是放弃。</p>
+
+    <h2 class="section" id="env-isolation"><span class="idx">★</span> 五、环境变量的隔离与注入</h2>
+    <p>子进程默认继承父进程的所有环境变量，这可能泄露敏感信息（如 AWS_SECRET_ACCESS_KEY）。Codex 的策略是 <strong>白名单环境变量</strong>——只传命令明确需要的，而不是全盘继承。</p>
+    <pre><code class="language-rust">// 环境变量白名单（概念示意）
+const ALLOWED_ENV: [&amp;str; 8] = [
+    "PATH",        // 必须有，否则找不到命令
+    "HOME",        // 很多程序依赖
+    "USER",
+    "SHELL",
+    "LANG",
+    "LC_ALL",
+    "TERM",
+    "COLORTERM",
+];
+
+fn build_env(extra: &amp;[(String, String)]) -&gt; Vec&lt;(String, String)&gt; {
+    let mut env = vec![];
+    for key in ALLOWED_ENV {
+        if let Ok(val) = std::env::var(key) {
+            env.push((key.to_string(), val));
         }
     }
-]
+    // 用户配置的额外变量（如项目特定的 NODE_ENV）
+    env.extend(extra.iter().cloned());
+    env
+}</code></pre>
+    <p>这种白名单策略和我们在 149 章讲的路径白名单一脉相承——都是「默认最小权限」的思想。即使 Agent 想把 AWS 密钥传给子进程，框架层也不允许。</p>
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+    <h2 class="section" id="output-format"><span class="idx">★</span> 六、输出格式化：给 LLM 看的格式</h2>
+    <p>命令执行完，输出要以什么样的格式塞进 ToolResult 返回给 LLM？Codex 的格式经过精心设计：</p>
+    <pre><code class="language-text">[exit 0]
+&gt; npm test
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+&gt; project@1.0.0 test
+&gt; jest
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"Codex exec 路径：命令分类"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="158-agent-codex-approval.html"><div class="lbl">← 上一章</div><div class="ttl">158 · Codex 审批：sandbox_mode × approval_policy</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="160-agent-codex-guardian.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">160 · Codex Guardian AI 审批</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 159 章 · Codex exec 路径：命令分类</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+ PASS  src/auth.test.js
+ PASS  src/utils.test.js
+Tests:       12 passed, 12 total
+
+[无 stderr]</code></pre>
+    <p>几个细节。第一，<strong>exit code 放最前面</strong>，让 LLM 第一眼就知道成功还是失败。第二，<strong>命令本身用 &gt; 引用</strong>，便于 LLM 区分「我让它跑的命令」和「命令的输出」。第三，<strong>stderr 即使为空也明确标注「无 stderr」</strong>，避免 LLM 猜「是没有 stderr 还是 stderr 被丢了」。第四，<strong>超时情况标注特殊状态</strong>，如 <code>[timeout after 120s, killed]</code>。这些格式细节看似琐碎，但对 LLM 准确理解执行结果非常关键——一个模糊的输出格式可能导致 LLM 误判。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Codex 的命令执行器是异步编程的精细样本。要点回顾：</p>
+    <ul>
+      <li><strong>不用同步 system()</strong>：要流式、可中断、不阻塞 runtime，必须用 tokio 的异步 Command。</li>
+      <li><strong>stdout/stderr 分离</strong>：两者语义不同，分开读、分开返回，帮 LLM 区分正常输出和错误。</li>
+      <li><strong>三路 select! 等待</strong>：正常退出、超时、用户取消，谁先触发走谁，后两者 kill 子进程。</li>
+      <li><strong>输出截断</strong>：单条命令输出超 1MB 截断，防止内存爆炸，标记 truncated 让 LLM 知道不完整。</li>
+      <li><strong>进程组 kill</strong>：用 setsid + 负 PID 杀整个进程树，避免孙子进程残留。</li>
+      <li><strong>环境变量白名单</strong>：只传 PATH/HOME 等必要变量，防止敏感信息泄露。</li>
+      <li><strong>格式化设计</strong>：exit code 在前、命令用 &gt; 引用、stderr 为空也标注，每个细节都为 LLM 准确理解服务。</li>
+    </ul>
+    <p>下一章（160 章）我们看 Codex 的另一个守护机制——Guardian 守护进程，它负责审计 Agent 的网络访问、维护 auto-approve 规则引擎，是 Agent 安全的又一层防线。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

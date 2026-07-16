@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -168,7 +166,7 @@
       <a href="136-vec-chunking-deep.html" title="分块进阶：表格、代码、长文档"><span class="num">136</span>分块进阶</a>
       <a href="137-vec-rag-architecture.html" title="RAG 系统架构：从查询到引用"><span class="num">137</span>RAG 系统架构</a>
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
-      <a href="139-vec-context-packing.html" class="active" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
+      <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
@@ -305,66 +303,140 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 139 章 · 向量索引与 RAG 原理深挖</span>
-<h1>上下文组装：Lost in the Middle</h1><p class="lead">把召回的相关文档塞进 prompt 的顺序与位置很关键——中段易被忽略。重排把最相关的放头尾、按相关性递减。context window 的预算分配。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>把召回的相关文档塞进 prompt 的顺序与位置很关键——中段易被忽略。重排把最相关的放头尾、按相关性递减。context window 的预算分配。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>把召回的相关文档塞进 prompt 的顺序与位置很关键——中段易被忽略。重排把最相关的放头尾、按相关性递减。context window 的预算分配。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 139 · 向量检索系列</span>
+      <h1>上下文打包<br>Lost in the Middle 与重排序策略</h1>
+      <p class="lead">检索回 10 个文档一股脑塞进 prompt，LLM 真能平等对待吗？2023 年斯坦福的论文《Lost in the Middle》给出了否定答案：LLM 对 prompt 开头和结尾的信息关注多，对中间的信息关注少。这意味着文档的排列顺序、上下文窗口的利用率，会直接影响答案质量。本文拆解这个问题，给出几种实用的上下文打包和重排序策略。</p>
+      <div class="meta">
+        <span class="chip">阅读约 15 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="litm"><span class="idx">★</span> Lost in the Middle：LLM 的注意力 U 型曲线</h2>
+    <p>《Lost in the Middle: How Language Models Use Long Contexts》这篇论文做了一个简洁有力的实验：给 LLM 一份长文档，在里面某个位置插入一个关键事实，然后问一个必须依赖这个事实才能回答的问题。结果发现：<strong>LLM 的回答准确率随关键事实所在位置呈 U 型曲线</strong>——在文档开头和结尾时准确率高（70-80%），在中间时显著下降（30-40%）。</p>
+    <p>原因在于 transformer 的注意力机制（虽然长上下文模型用了 RoPE、滑动窗口等优化，但本质问题仍在）：每个 token 对其他 token 的注意力在长上下文里被稀释，中间位置的 token 既不被"开头强注意力"也不被"结尾近因效应"覆盖，容易被忽略。</p>
+    <p>这对 RAG 的直接影响是：<strong>你精心检索回来的 top-10 文档，如果按检索分数降序塞进 prompt，排在第 4-7 位的文档（中间位置）很可能被 LLM 忽略</strong>。而很多时候最相关的文档恰好在中间——这就解释了为什么有时明明检索到了正确文档，LLM 还是答错。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="reorder-strategies"><span class="idx">★</span> 三种重排序打包策略</h2>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h3>1. 把最好的放两头（interleave / 两端优先）</h3>
+    <p>最直接的解法：既然中间被忽略，就把最重要的文档放到开头和结尾，把次要的放中间。具体做法是把 rerank 后的文档按 [1, 3, 5, 7, 9, 10, 8, 6, 4, 2] 这种交错顺序排——奇数位（高质量）往前和往后放，偶数位（次要）挤中间。</p>
+    <p>论文实验显示这个简单技巧能把答案准确率提升 5-10 个百分点，几乎是零成本的提升。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"上下文组装：Lost in the Middle"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="138-vec-query-rewrite.html"><div class="lbl">← 上一章</div><div class="ttl">138 · 查询改写：让检索更准</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="140-vec-rag-eval.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">140 · RAG 评估：RAGAS 与忠实度</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 139 章 · 上下文组装：Lost in the Middle</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <h3>2. 截断：少即是多</h3>
+    <p>另一个反直觉的发现：在 Lost in the Middle 效应下，<strong>塞 10 个文档有时不如塞 5 个</strong>。因为塞多了不仅中间文档被忽略，还引入了更多噪声干扰 LLM。所以策略是：rerank 后只取 top-3 到 top-5，宁缺毋滥。</p>
+    <p>选几个的依据：看 rerank 分数的分布。如果 top-3 分数远高于第 4 个（有明显断层），取 top-3 就够；如果分数平缓下降，可以多取几个但要配合重排序。</p>
+
+    <h3>3. map-reduce：长文档分块多次问</h3>
+    <p>当文档本身很长（每个都几千字），塞 3 个就占满上下文，这时换 map-reduce 策略：对每个文档单独问 LLM"这个文档能不能回答 query？如果能，答案是什么"，再合并各文档的子答案。这样每个文档独占 LLM 注意力，不受 Lost in the Middle 影响。代价是 LLM 调用次数等于文档数，成本高。</p>
+
+    <pre><code class="language-python"># 策略 1：交错重排，把高质量文档放两端
+def interleave_reorder(ranked_docs):
+    """
+    ranked_docs: 按 rerank 分数降序的文档列表
+    return: 优化后顺序（高质量在两端）
+    """
+    n = len(ranked_docs)
+    if n &lt;= 2:
+        return ranked_docs
+    # 奇数索引（0,2,4...）正向放前面，偶数索引（1,3,5...）反向放后面
+    front = ranked_docs[0::2]                    # [d0, d2, d4, ...]
+    back  = list(reversed(ranked_docs[1::2]))    # [..., d5, d3, d1]
+    return front + back
+
+# 示例：10 个文档
+docs = [f"doc_{i}(score={10-i})" for i in range(10)]
+reordered = interleave_reorder(docs)
+print("重排后:", reordered)
+# 输出: doc_0, doc_2, doc_4, doc_6, doc_8, doc_9, doc_7, doc_5, doc_3, doc_1
+# 最高分的 doc_0 在最前，次高的 doc_1 在最后，最低分的 doc_9 在中间附近
+</code></pre>
+
+    <h2 class="section" id="window-utilization"><span class="idx">★</span> 上下文窗口利用率</h2>
+    <p>另一个常被忽视的问题：<strong>塞多少内容进上下文窗口</strong>。128K 窗口的模型，不代表塞满 128K 效果最好。实测发现：</p>
+    <ul>
+      <li><strong>塞到 50-70% 容量</strong>通常是甜区。留点余量给 LLM 推理，避免被信息淹没。</li>
+      <li><strong>塞满 100%</strong>，Lost in the Middle 效应加剧，且 LLM 容易"放弃思考"直接抄最近的片段。</li>
+      <li><strong>太少（&lt;10%）</strong>又浪费窗口、信息不足。RAG 场景一般 20-50% 是合理的起点。</li>
+    </ul>
+    <p>实操上，按 token 计算而非字数。用 tiktoken 精确计算每个文档的 token 数，按目标利用率（如 50%）预算总 token 数，再决定塞几个文档。</p>
+
+    <pre><code class="language-python"># 精确计算 token 数 + 按预算打包
+import tiktoken
+
+enc = tiktoken.encoding_for_model("gpt-4o")
+def count_tokens(text):
+    return len(enc.encode(text))
+
+def pack_context(docs, max_tokens=6000, target_utilization=0.6):
+    """
+    docs: rerank 后的文档列表（已降序）
+    max_tokens: 模型上下文窗口（如 128000）
+    target_utilization: 目标利用率（0.6 = 60%）
+    return: 打包后的文档列表 + 实际 token 数
+    """
+    budget = int(max_tokens * target_utilization)
+    packed, total = [], 0
+    for doc in docs:
+        t = count_tokens(doc)
+        if total + t > budget:
+            break
+        packed.append(doc)
+        total += t
+    return packed, total
+
+# 完整流程：rerank → 截断 → 交错重排 → 打包
+ranked = reranker.rerank(query, candidates, top_k=10)
+packed, used = pack_context(ranked, max_tokens=8192, target_utilization=0.6)
+final_order = interleave_reorder(packed)
+prompt = build_prompt(query, final_order)
+print(f"实际塞入 {len(final_order)} 个文档，{used} tokens")
+</code></pre>
+
+    <h2 class="section" id="advanced-context-engineering"><span class="idx">★</span> 进阶：上下文压缩与引用标注</h2>
+
+    <h3>上下文压缩</h3>
+    <p>检索回的文档常有大量无关内容（页眉页脚、过渡句、不相关段落）。在打包前用一个小模型或 LLM 把每个文档压缩成"和 query 最相关的 1-2 句"，能显著提升信噪比。Anthropic 的 Contextual Retrieval（136 篇）也是这个思路的变体。代价是每文档一次压缩调用，可用 batch + 小模型控成本。</p>
+
+    <h3>引用标注</h3>
+    <p>让 LLM 在答案里标注每个论断来自哪个文档（"[1]"、"[2]"），有几个好处：① 用户可点击验证，增加信任；② 方便定位幻觉（标了引用但引用里没这内容）；③ 强制 LLM "对号入座"，减少幻觉。实现上在 prompt 里要求"每个事实后加 [文档编号]"，并把文档编号写清楚。</p>
+
+    <pre><code class="language-python"># 引用标注的 prompt 模板
+RAG_PROMPT_WITH_CITATION = """你是一个严谨的问答助手。请只基于下面提供的文档回答问题。
+要求：
+1. 每个事实性论断后必须标注来源，格式 [文档N]，N 是文档编号。
+2. 如果文档里没有相关信息，直接说"提供的文档中没有相关信息"，不要编造。
+3. 答案要简洁，重点突出。
+
+文档：
+{docs_with_numbers}
+
+问题：{question}
+
+回答："""
+
+def build_prompt_with_citation(query, docs):
+    docs_text = "\n\n".join([f"[文档{i+1}] {d}" for i, d in enumerate(docs)])
+    return RAG_PROMPT_WITH_CITATION.format(
+        docs_with_numbers=docs_text, question=query)
+
+# 实测：加引用后，faithfulness（见 140 篇）通常提升 10-15 个点
+</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>Lost in the Middle：LLM 对 prompt 中间位置的信息关注度低，呈 U 型曲线，导致中间的文档被忽略。</li>
+      <li>策略 1 交错重排：把高质量文档放两端、次要的放中间，几乎零成本提升 5-10 个点准确率。</li>
+      <li>策略 2 截断：rerank 后只取 top-3 到 top-5，少即是多，避免噪声。看分数断层决定取几个。</li>
+      <li>策略 3 map-reduce：长文档场景下对每个文档单独问再合并，绕开 Lost in the Middle，成本高。</li>
+      <li>窗口利用率：塞到 50-70% 是甜区，按 token 而非字数算；进阶可加上下文压缩（提信噪比）和引用标注（降幻觉、增信任）。</li>
+    </ul>
+    <p>下一篇讲怎么量化评估这些优化到底有没有效——RAG 框架 RAGAS 的四个核心指标。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

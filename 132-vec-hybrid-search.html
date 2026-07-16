@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -161,7 +159,7 @@
       <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
       <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
-      <a href="132-vec-hybrid-search.html" class="active" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
+      <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
       <a href="134-vec-embedding-models.html" title="嵌入模型选型：BGE、E5、Cohere"><span class="num">134</span>嵌入模型选型</a>
       <a href="135-vec-chunking.html" title="分块策略：固定/递归/语义/父子"><span class="num">135</span>分块策略</a>
@@ -305,66 +303,141 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 132 章 · 向量索引与 RAG 原理深挖</span>
-<h1>混合检索：BM25 + 向量的正确姿势</h1><p class="lead">稀疏（BM25/关键词）抓精准命中、稠密（向量）抓语义相关。RSV 融合 vs 加权求和。RRF（倒数秩融合）为何对分数尺度不敏感。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>稀疏（BM25/关键词）抓精准命中、稠密（向量）抓语义相关。RSV 融合 vs 加权求和。RRF（倒数秩融合）为何对分数尺度不敏感。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>稀疏（BM25/关键词）抓精准命中、稠密（向量）抓语义相关。RSV 融合 vs 加权求和。RRF（倒数秩融合）为何对分数尺度不敏感。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 132 · 向量检索系列</span>
+      <h1>混合检索<br>BM25 + 向量与 RRF 融合</h1>
+      <p class="lead">纯向量检索擅长抓住"语义"，却抓不住精确关键词；纯 BM25 关键词检索擅长精确匹配，却理解不了同义词和语义。混合检索把两者结果用 RRF（Reciprocal Rank Fusion）融合，是当前 RAG 系统召回率提升最显著的工程手段之一。本文拆解 RRF 公式的直觉，并用 Elasticsearch 走一遍完整的混合检索实操。</p>
+      <div class="meta">
+        <span class="chip">阅读约 16 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="why-hybrid"><span class="idx">★</span> 为什么需要混合：两种检索的互补盲区</h2>
+    <p>纯向量检索的盲区在于<strong>精确词形</strong>。用户搜"GPT-4o"，embedding 可能把"GPT-4"、"GPT4o"、"GPT 4 o"都映射到相近向量，返回一堆"差不多的"结果，但用户要的就是那个精确型号——这种"精确 ID/型号/专有名词/错误码"的查询，向量检索容易失焦。</p>
+    <p>纯 BM25 的盲区在于<strong>语义</strong>。用户问"怎么解决内存泄漏"，文档里写的是"OutOfMemoryError 怎么排查"，BM25 因为词不重叠而召回失败，但向量检索能抓住语义。</p>
+    <p>真实查询往往同时有这两种诉求。所以混合检索的思路是：<strong>两路并行召回，结果融合取长补短</strong>。BM25 保证精确词形命中的结果不被埋没，向量保证语义相近的结果能进来。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <h2 class="section" id="rrf"><span class="idx">★</span> RRF 融合：用排名而非分数</h2>
+    <p>融合两路结果，最直觉的做法是把两路分数加权求和。但问题是 BM25 分数（通常几十到几十）和向量余弦相似度（0-1）的尺度完全不同，加权前要归一化，归一化方法又五花八门（min-max、z-score、softmax），效果不稳定。</p>
+    <p>RRF（Reciprocal Rank Fusion）用了一个绝妙的偷懒：<strong>不用分数，只用排名</strong>。对每个文档 d，它在两路检索里分别有一个排名 rank_BM25(d) 和 rank_vec(d)（没出现就视作无穷大），融合分数定义为：</p>
+    <p style="font-family:monospace;background:#f4f4f4;padding:12px;border-radius:6px;">score(d) = Σ_path 1 / (k + rank_path(d))</p>
+    <p>其中 k 是平滑常数（通常取 60），求和遍历两路（或多路）检索。这个公式有几个直觉优点：</p>
+    <ul>
+      <li><strong>尺度无关</strong>：只看排名，BM25 和向量分数的尺度差异消失。</li>
+      <li><strong>排名前列的权重高</strong>：1/(k+1) 比 1/(k+10) 大几倍，前几名对融合分数贡献主导，符合"两路都觉得好的才是真好"。</li>
+      <li><strong>稳健</strong>：k=60 让第 1 名和第 2 名的分数差距不太悬殊，避免单路第一名独霸。</li>
+      <li><strong>天然支持多路</strong>：除了 BM25+向量，还可以加第三路（如稀疏向量 SPLADE），直接多加一项即可。</li>
+    </ul>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <pre><code class="language-python"># RRF 融合的纯 Python 实现 —— 5 行讲清原理
+def rrf_fusion(rank_lists, k=60, top_n=10):
+    """
+    rank_lists: list of list，每个内层 list 是一路检索的文档 ID（已按相关性降序）
+    k:          平滑常数，60 是论文默认
+    return:     融合后按 score 降序的 (id, score) 列表
+    """
+    scores = {}
+    for ranks in rank_lists:
+        for rank, doc_id in enumerate(ranks, start=1):    # rank 从 1 开始
+            scores[doc_id] = scores.get(doc_id, 0) + 1.0 / (k + rank)
+    return sorted(scores.items(), key=lambda x: -x[1])[:top_n]
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"混合检索：BM25 + 向量的正确姿势"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="131-vec-filtering.html"><div class="lbl">← 上一章</div><div class="ttl">131 · 元数据过滤：ANN 与 WHERE 子句</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="133-vec-rerank.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">133 · 重排序 Rerank：精排召回结果</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 132 章 · 混合检索：BM25 + 向量的正确姿势</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 示例：两路检索
+bm25_results = ["doc_a", "doc_b", "doc_c", "doc_d"]       # BM25 排序
+vec_results  = ["doc_c", "doc_e", "doc_a", "doc_f"]       # 向量排序
+fused = rrf_fusion([bm25_results, vec_results], k=60, top_n=5)
+for doc_id, score in fused:
+    print(f"{doc_id}: {score:.5f}")
+# doc_c 在两路都靠前 → 融合分数最高；doc_a 两路都出现 → 次之
+</code></pre>
+
+    <p>跑这个例子你会看到 doc_c（两路都第 1 或第 3）分数最高，doc_a 次之。这就是 RRF 的精髓：<strong>两路都认可的文档浮上来，单路独有的下沉</strong>。</p>
+
+    <h3>k 的选择</h3>
+    <p>k=60 是论文推荐值，来源是实验观察：这个值在多数数据集上接近最优。k 太小（如 1），第 1 名分数远超第 2 名，融合被单路第一名主导；k 太大（如 1000），所有排名的分数趋于一致，区分度消失。60 是个稳健的甜区。实测如果业务数据有特殊分布，可以在 20-100 间扫一遍，但收益通常很小。</p>
+
+    <h2 class="section" id="es-practice"><span class="idx">★</span> Elasticsearch 混合检索实操</h2>
+    <p>Elasticsearch 从 8.x 开始原生支持 RRF，可以一条查询完成 BM25 + 向量的混合检索。</p>
+
+    <pre><code class="language-python"># 前置：ES 8.x，索引已建好 text 字段和 dense_vector 字段
+from elasticsearch import Elasticsearch
+es = Elasticsearch("http://localhost:9200")
+
+INDEX = "kb_docs"
+
+# 1. 索引 mapping（建库时定义）
+mapping = {
+    "mappings": {
+        "properties": {
+            "title":   {"type": "text", "analyzer": "ik_max_word"},  # 中文分词
+            "content": {"type": "text", "analyzer": "ik_max_word"},
+            "embedding": {
+                "type": "dense_vector",
+                "dims": 768,
+                "index": true,
+                "similarity": "cosine",
+                "index_options": {"type": "hnsw", "m": 16, "ef_construction": 200}
+            }
+        }
+    }
+}
+# es.indices.create(index=INDEX, body=mapping)   # 建库时执行一次
+
+# 2. 混合检索：BM25 + KNN + RRF 融合
+def hybrid_search(es, query_text, query_vec, top_k=10):
+    body = {
+        "size": 0,
+        "query": {
+            "match": {                       # 第一路：BM25 关键词
+                "content": query_text
+            }
+        },
+        "knn": {
+            "field": "embedding",
+            "query_vector": query_vec,
+            "k": 50,
+            "num_candidates": 500            # 向量召回的候选数
+        },
+        "rank": {                            # RRF 融合（ES 8.8+）
+            "rrf": {"window_size": 100, "rank_constant": 60}
+        },
+        "rank_window_size": top_k
+    }
+    resp = es.search(index=INDEX, body=body)
+    hits = resp["hits"]["hits"]
+    return [(h["_id"], h["_score"], h["_source"]) for h in hits]
+
+# 调用
+results = hybrid_search(es, "GPT-4o 内存泄漏", query_vec=embed("GPT-4o 内存泄漏"))
+for _id, score, src in results:
+    print(f"{score:.4f}  {src['title']}")
+</code></pre>
+
+    <h3>几个实操要点</h3>
+    <ul>
+      <li><strong>两路召回数要够</strong>：BM25 和 KNN 各自至少召回 50-100 个，RRF 才有融合空间。recall 不好时先检查是不是召回数太小。</li>
+      <li><strong>窗口大小 window_size</strong>：决定参与 RRF 的候选数，100-200 常见。太大会稀释质量，太小会漏掉该上来的文档。</li>
+      <li><strong>重排序配合</strong>：RRF 融合后的 top-K 通常再过一道 cross-encoder 重排序（见 133 篇），效果更佳。</li>
+    </ul>
+
+    <h2 class="section" id="weighted-fusion"><span class="idx">★</span> 进阶：加权融合与多路扩展</h2>
+    <p>RRF 是无权的（两路等权）。如果你的业务里某一路明显更强（比如技术文档场景，BM25 更可靠），可以用加权 RRF：score = Σ w_path / (k + rank)。但更工程化的做法是<strong>分别调两路的召回数</strong>——把弱的那路召回数调大，让它的好结果有机会排进融合窗口。</p>
+    <p>多路扩展：除了 BM25 + 向量，可以加第三路 SPLADE（学习型稀疏向量，见 143 篇）或元数据精确匹配。RRF 天然支持，多加一项即可。三路融合通常比两路召回再涨 2-5 个点。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>纯向量抓不住精确词形，纯 BM25 抓不住语义，混合检索取长补短。</li>
+      <li>RRF 用排名而非分数：score = Σ 1/(k+rank)，k=60 是稳健甜区。优点是尺度无关、排名前列权重高、天然支持多路。</li>
+      <li>Elasticsearch 8.x 原生支持 BM25+KNN+RRF 一条查询搞定；两路召回数要够（50-100），window_size 通常 100-200。</li>
+      <li>弱路用调大召回数比加权更稳；可扩展到三路（+SPLADE）再涨 2-5 点召回。</li>
+      <li>RRF 融合后通常再过 cross-encoder 重排序，是当前 RAG 召回质量的最佳实践组合。</li>
+    </ul>
+    <p>下一篇就讲重排序 Rerank：cross-encoder 为什么比 bi-encoder 准、bge-reranker 怎么用、top-N 怎么选。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

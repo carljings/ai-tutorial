@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -181,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" class="active" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -305,81 +303,161 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 150 章 · 开源 Agent 源码深挖</span>
-<h1>OpenCode 上下文收集</h1><p class="lead">调用前收集项目上下文：git 状态、文件树、LSP 诊断。把环境信息注入 system prompt 让模型理解当前代码库。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>源码级视角</h2>
-<p>调用前收集项目上下文：git 状态、文件树、LSP 诊断。把环境信息注入 system prompt 让模型理解当前代码库。</p>
-<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
-<h2><span class="idx"></span>实现要点</h2>
-<p>调用前收集项目上下文：git 状态、文件树、LSP 诊断。把环境信息注入 system prompt 让模型理解当前代码库。</p>
-<p>从源码里能学到的不仅是这个机制本身，更是"如何工程化地实现一个 agent 系统"。每个设计决策——数据结构选型、错误处理策略、配置层级、权限边界——都是可复用的经验，可以直接迁移到你自己的 agent 项目。</p>
-<h3>数据结构：消息与会话</h3>
-<p>几乎所有 agent 的核心数据结构都是"消息列表"。每条消息有角色（system/user/assistant/tool）、内容、可选的工具调用记录。会话状态就是消息列表加上一些元数据（模型、token 计数、时间戳）。理解了这个数据结构，agent 的"记忆"就不神秘了——它就是不断增长的消息列表。</p>
-<h3>工具定义：自描述的接口</h3>
-<p>现代 agent 用 JSON Schema 描述工具：name（工具名）、description（让模型理解何时用）、input_schema（参数的结构化描述）。这套 schema 既给人看（开发者配置），也给模型看（模型据此决定调用），还给运行时看（运行时据此校验参数）。自描述是这套设计的精髓。</p>
-<h2><span class="idx"></span>代码片段</h2>
-<pre class="code"><code class="language-python"># 一个最小但完整的 agent 工具定义 + 执行示例
-tools = [
-    {
-        "name": "read_file",
-        "description": "读取文件内容。当需要了解现有代码或配置时使用。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {
-                    "type": "string",
-                    "description": "文件路径，相对工作目录"
-                }
-            },
-            "required": ["path"]
-        }
-    },
-    {
-        "name": "write_file",
-        "description": "写入文件。需要用户确认（危险操作）。",
-        "input_schema": {
-            "type": "object",
-            "properties": {
-                "path": {"type": "string"},
-                "content": {"type": "string"}
-            },
-            "required": ["path", "content"]
-        }
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 35 · Agent 源码深挖系列</span>
+      <h1>OpenCode 上下文管理<br>压缩、淘汰与文件树注入</h1>
+      <p class="lead">Agent 跑久了必然遇到一个尴尬：对话历史越来越长，读过的文件越堆越多，很快就把模型的 context window 塞满，要么报错要么费用飙升。OpenCode 把上下文当成一种「需要主动管理的资源」，内置了 token 计数、消息压缩、文件树注入三套机制。本章我们看看一个聪明的 Agent 是怎么在有限的窗口里腾挪转圜的。</p>
+      <div class="meta">
+        <span class="chip">阅读约 19 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="window-reality"><span class="idx">★</span> 一、context window 不是「有多大」，而是「能用多少」</h2>
+    <p>现代模型的 context window 已经从 GPT-3 的 2K 涨到了 128K 甚至 1M，但「标称容量」和「实际可用容量」是两回事。原因有三：第一，输入越长，推理延迟越高，token 计费也线性增长；第二，研究表明模型对超长上下文存在「lost in the middle」现象——中间位置的信息容易被忽略；第三，工具调用的输入输出本身就占大量 token，一次 read_file 几百行代码就可能吃掉几千 token。</p>
+    <p>所以 OpenCode 的策略不是「尽量塞满」，而是 <strong>「主动留白」</strong>：始终给当前轮的输出预留空间，主动淘汰过时消息，用摘要替代历史细节。它把 context 管理分成了三层：实时 token 计数、消息压缩、文件树注入。我们逐个看。</p>
+
+    <h2 class="section" id="token-count"><span class="idx">★</span> 二、实时 token 计数：知道还剩多少弹药</h2>
+    <p>所有压缩决策的前提是「知道现在用了多少 token」。OpenCode 不是发完请求才知道超了——它在每次拼装请求前先做一次本地 token 计数，超限就触发压缩。计数用的是一个本地 tokenizer（基于 tiktok 的 wasm 版本或类似实现）。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/context/counter.ts（简化）
+import { encode } from "gpt-tokenizer";  // 纯 JS 的 BPE tokenizer
+
+export function countMessageTokens(msg: Message): number {
+  // 每条消息有固定开销（角色标记、分隔符），约 4 token
+  const overhead = 4;
+  let body = msg.role + ":";
+  if (typeof msg.content === "string") {
+    body += msg.content;
+  } else {
+    // 多模态消息：文本累加，图片按占位估算
+    for (const part of msg.content) {
+      if (part.type === "text") body += part.text;
+      else body += " [image:~750 tokens] ";  // 图片粗估
     }
-]
+  }
+  return overhead + encode(body).length;
+}
 
-async def execute_tool(name, args, permission, confirm_fn):
-    """统一的工具执行入口：权限检查 → 用户确认 → 执行 → 结果封装。"""
-    # 1. 权限检查：这个工具当前会话允许吗
-    if not permission.can_run(name):
-        return {"error": f"工具 {name} 未授权"}
+export function countSessionTokens(messages: Message[]): number {
+  return messages.reduce((sum, m) => sum + countMessageTokens(m), 0);
+}</code></pre>
+    <p>注意两个细节。<strong>第一是图片的粗估</strong>：OpenCode 把每张图按约 750 token 估算（这是 OpenAI vision 模型的典型开销），因为图片的精确 token 数要等服务器算，本地拿不到。<strong>第二是每条消息的固定开销</strong>：不同模型对消息格式的编码不同，OpenCode 用一个保守的 4 token overhead 作为通用估算，可能在某些模型上略偏多，但宁可高估也别低估——低估会导致压缩不及时而请求失败。</p>
 
-    # 2. 危险操作要用户确认
-    if name in DANGEROUS_TOOLS and not await confirm_fn(
-        f"即将执行 {name}({args})，是否允许？"
-    ):
-        return {"error": "用户拒绝"}
+    <h2 class="section" id="compression"><span class="idx">★</span> 三、消息压缩：当历史变成负担</h2>
+    <p>当 token 计数接近阈值（通常是模型 context 的 70-80%，留出输出空间）时，OpenCode 触发压缩。压缩的核心思想是：<strong>把早期的多轮对话 + 工具调用结果，合并成一条摘要消息</strong>。</p>
+    <pre><code class="language-typescript">// packages/opencode-core/src/context/compress.ts（简化）
+export async function compressIfNeeded(
+  messages: Message[],
+  maxTokens: number,
+  model: ModelConfig
+): Promise&lt;Message[]&gt; {
+  const RESERVED_FOR_OUTPUT = 4096;
+  const budget = maxTokens - RESERVED_FOR_OUTPUT;
 
-    # 3. 执行
-    try:
-        result = await TOOL_IMPLS[name](**args)
-        return {"ok": True, "result": result}
-    except Exception as e:
-        return {"ok": False, "error": str(e)}</code></pre>
-<p>这段代码体现了开源 agent 的几个共性设计：权限前置检查、危险操作确认、统一的错误封装。这些是生产级 agent 区别于玩具 demo 的关键。</p>
-<h2><span class="idx"></span>从源码学到的设计原则</h2>
-<table class="data-table"><thead><tr><th>原则</th><th>源码体现</th><th>为什么重要</th></tr></thead><tbody><tr><td>权限边界设在工具层</td><td>不在 prompt 里写"不要删文件"</td><td>prompt 可被注入绕过</td></tr><tr><td>工具自描述</td><td>JSON Schema 给模型和运行时</td><td>解耦模型与工具实现</td></tr><tr><td>错误要可恢复</td><td>工具失败返回 error，不崩循环</td><td>agent 要能自纠</td></tr><tr><td>流式输出</td><td>SSE 增量渲染</td><td>用户体验/可取消</td></tr><tr><td>会话可持久化</td><td>JSON 存盘、可恢复</td><td>长任务断点续传</td></tr></tbody></table>
-<p>这些原则不是某个 agent 独有的，而是社区在大量实践中沉淀的共识。你在构建自己的 agent 时，与其从零摸索，不如直接借鉴这些经过验证的模式。</p>
-<h2><span class="idx"></span>设计启示</h2>
-<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们通过源码深挖了"OpenCode 上下文收集"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
-<div class="chapter-nav">
-<a href="149-agent-opencode-permission.html"><div class="lbl">← 上一章</div><div class="ttl">149 · OpenCode 权限模型：工具级守卫</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="151-agent-opencode-mcp.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">151 · OpenCode 与 MCP 协议</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 150 章 · OpenCode 上下文收集</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+  let current = [...messages];
+  while (countSessionTokens(current) > budget &amp;&amp; current.length > 4) {
+    // 保留最近 4 条（最近的上下文最重要），压缩更早的
+    const toCompress = current.slice(0, current.length - 4);
+    const recent = current.slice(current.length - 4);
+
+    const summary = await summarizeWithLLM(toCompress, model);
+    current = [
+      { role: "system", content: `[早期对话摘要]\n${summary}` },
+      ...recent,
+    ];
+  }
+  return current;
+}
+
+async function summarizeWithLLM(oldMessages: Message[], model: ModelConfig): Promise&lt;string&gt; {
+  // 用同一个模型（或更便宜的模型）做摘要
+  const resp = await callLLM({
+    model,
+    messages: [
+      { role: "system", content: "请把以下对话和工具调用历史压缩成一段简洁摘要，保留：用户目标、已做的关键决定、已修改的文件、尚未解决的问题。丢弃冗长的工具输出原文。" },
+      { role: "user", content: JSON.stringify(oldMessages) },
+    ],
+    // 用低温度确保摘要稳定
+    temperature: 0.2,
+  });
+  return resp;
+}</code></pre>
+    <p>这段代码揭示了一个权衡：<strong>压缩本身要花一次 LLM 调用</strong>，是有成本的。所以 OpenCode 不会频繁压缩，而是「攒到快超限了再压一次」。同时保留最近 4 条原始消息，因为最新的上下文（用户刚说的话、刚执行的工具）对当前轮的决策影响最大，不能被摘要稀释。</p>
+    <p>还有一个被忽略的细节：工具的返回值往往是压缩的大头（一次 execute 的 stdout 可能上千行）。OpenCode 在压缩前会先对单条超长的工具结果做「就地截断」——保留头尾各 100 行，中间用 <code>[... 省略 N 行 ...]</code> 替代。这往往能在不丢失关键信息（开头通常是错误摘要，结尾是最终状态）的前提下，把单条消息从 5000 token 砍到 500。</p>
+
+    <h2 class="section" id="file-tree"><span class="idx">★</span> 四、文件树注入：给 Agent 一张「地图」</h2>
+    <p>这是 OpenCode 上下文管理里最有意思的设计之一。在每轮对话开始时（或首次引用某个目录时），OpenCode 会自动把当前工作目录的文件树结构作为一条 system 消息注入。这张「地图」让 LLM 不必先调 list_dir 才知道项目长什么样——它能直接基于树结构判断「这个功能应该在 src/auth/ 下」。</p>
+    <pre><code class="language-typescript">// 生成文件树摘要（简化）
+export async function buildFileTree(cwd: string, maxDepth = 3): Promise&lt;string&gt; {
+  const SKIP = new Set(["node_modules", ".git", "dist", "build", ".next"]);
+  const lines: string[] = [];
+
+  async function walk(dir: string, prefix: string, depth: number) {
+    if (depth > maxDepth) return;
+    const entries = await Array.fromAsync(Bun.Glob("*").scan(dir));
+    entries.sort();
+    for (const name of entries) {
+      if (SKIP.has(name)) {
+        lines.push(`${prefix}${name}/  [skipped]`);
+        continue;
+      }
+      const isDir = await isDirectory(join(dir, name));
+      lines.push(`${prefix}${name}${isDir ? "/" : ""}`);
+      if (isDir) {
+        await walk(join(dir, name), prefix + "  ", depth + 1);
+      }
+    }
+  }
+
+  await walk(cwd, "", 0);
+  // 限制总行数，避免巨型仓库撑爆
+  const capped = lines.slice(0, 500).join("\n");
+  return capped;
+}
+
+// 注入到 system prompt
+const tree = await buildFileTree(session.cwd);
+const systemWithTree = `${baseSystemPrompt}
+
+## 当前项目结构
+${tree}`;</code></pre>
+    <p>这里有几个工程细节。第一，<strong>跳过 node_modules 等大目录</strong>——这些目录文件多但对理解项目结构毫无帮助，注入它们纯粹浪费 token。第二，<strong>限制最大深度</strong>——3 层通常够看清楚一个中型项目的骨架，再深就是细节，应该按需通过 read_file 获取。第三，<strong>总行数封顶</strong>——对超大仓库（如 monorepo），即使深度有限，文件数也可能爆炸，500 行的硬上限是最后的保险。</p>
+
+    <h2 class="section" id="eviction-priority"><span class="idx">★</span> 五、消息淘汰的优先级：什么该留，什么该扔</h2>
+    <p>当压缩还不够时（比如一次工具返回了巨量输出），OpenCode 会按优先级主动淘汰消息。优先级从低到高大致是：</p>
+    <ol>
+      <li><strong>工具调用的完整输出</strong>（最容易膨胀，优先截断或替换为摘要）。</li>
+      <li><strong>早期的来回对话</strong>（已被摘要覆盖的部分）。</li>
+      <li><strong>read_file 的文件内容</strong>（如果文件没改，可以稍后重新读）。</li>
+      <li><strong>最近 2-3 轮的用户指令和 assistant 回复</strong>（当前任务的核心，几乎不淘汰）。</li>
+      <li><strong>system prompt + 文件树</strong>（每轮都保留，是 Agent 的「世界观」）。</li>
+    </ol>
+    <p>这种优先级不是写死的常量，而是隐含在压缩算法的实现里——它通过「保留最近 N 条 + 摘要早期 + 截断超长工具输出」的组合，自然实现了上述优先级。理解这个优先级有助于你诊断「为什么 Agent 忘了我之前说的话」——通常是因为那段对话被压缩进了摘要，而摘要丢失了细节。</p>
+
+    <h2 class="section" id="cost-tradeoff"><span class="idx">★</span> 六、压缩的成本与质量权衡</h2>
+    <p>压缩不是免费的。除了那次摘要用的 LLM 调用费用，还有「信息损失」的隐性成本。OpenCode 在源码里暴露了几个可调旋钮，让用户在质量和成本间权衡：</p>
+    <ul>
+      <li><strong>压缩阈值</strong>：设低一点（如 50%），更早压缩、单次请求更便宜，但摘要次数多；设高一点（如 85%），单次请求贵但摘要次数少。</li>
+      <li><strong>摘要用的模型</strong>：可以用更便宜的小模型做摘要（如 haiku 级别），主对话用大模型。OpenCode 允许为摘要任务单独配置 model。</li>
+      <li><strong>保留的最近消息数</strong>：保留越多，上下文越完整但压缩空间越小。</li>
+    </ul>
+    <p>实际使用中，一个常见的调优方向是：<strong>对长会话把阈值调到 60%，对短会话调到 85%</strong>。因为长会话本来就是要持续工作的，频繁压缩可以保持每轮请求的轻量；短会话则希望尽量保留原始信息，避免摘要失真。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>上下文管理是 Agent 能长时间运行而不崩溃的关键。OpenCode 的做法可以总结为一套「主动管理」哲学。要点回顾：</p>
+    <ul>
+      <li><strong>标称容量 ≠ 可用容量</strong>：要考虑延迟、成本、lost-in-the-middle 效应，主动留白而非尽量塞满。</li>
+      <li><strong>本地 token 计数</strong>：用纯 JS tokenizer 在拼装请求前预估，超限就触发压缩，避免请求失败。</li>
+      <li><strong>消息压缩</strong>：把早期对话 + 工具输出摘要成一条 system 消息，保留最近 4 条原始上下文，单条超长工具结果就地截断头尾。</li>
+      <li><strong>文件树注入</strong>：把项目结构作为 system prompt 的一部分，跳过 node_modules、限制深度和总行数，让 LLM 有「地图」不用每次 list_dir。</li>
+      <li><strong>淘汰优先级</strong>：工具输出 &gt; 早期对话 &gt; 文件内容 &gt; 最近对话 &gt; system prompt，由压缩算法自然实现。</li>
+      <li><strong>可调旋钮</strong>：压缩阈值、摘要模型、保留条数都是可配置的，长会话和短会话各有最优策略。</li>
+    </ul>
+    <p>下一章（151 章）我们转向另一个扩展上下文能力的关键机制——MCP 集成。如果说文件树是给 Agent 一张静态地图，MCP 就是给它一把打开外部世界的万能钥匙。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

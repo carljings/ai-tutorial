@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>知识图谱与 LLM · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>知识图谱与 LLM · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -86,7 +93,7 @@
       <a href="69-adversarial-testing.html" title="LLM 对抗性测试"><span class="num">69</span>LLM 对抗性测试完</a>
       <a href="70-advanced-orchestration.html" title="AI Agent 高级编排"><span class="num">70</span>AI Agent 高</a>
       <a href="71-learning-path.html" title="AI 学习路径规划"><span class="num">71</span>LLM 完整学习路径</a>
-      <a href="72-knowledge-graph.html" class="active" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
+      <a href="72-knowledge-graph.html" title="知识图谱与 LLM"><span class="num">72</span>全书知识图谱与复习指</a>
       <a href="73-interview-questions.html" title="LLM 面试题全集"><span class="num">73</span>LLM 面试题全集</a>
       <a href="74-design-patterns.html" title="AI 设计模式与最佳实践"><span class="num">74</span>AI 设计模式与最佳</a>
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
@@ -295,15 +302,300 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>知识图谱与 LLM</h1><p class="lead">知识图谱+LLM——结构化知识的复兴</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>知识图谱：给AI"结构化记忆"</h2>
-    <p>LLM 的知识是"模糊的"（存在参数里，不可查不可信）。知识图谱（KG）的知识是"结构化的"——实体/关系/属性明确存储，可查可推理可溯源。KG+LLM 的结合是当前热点：用 KG 给 LLM 提供精确的结构化知识。</p>
-    <table class="data-table"><thead><tr><th>知识来源</th><th>形态</th><th>优点</th><th>缺点</th></tr></thead><tbody><tr><td>LLM参数</td><td>隐式(权重)</td><td>回答快</td><td>不可查/会幻觉/不可更新</td></tr><tr><td>向量RAG</td><td>文本chunk</td><td>语义检索</td><td>不擅长关系推理</td></tr><tr><td>知识图谱</td><td>实体-关系图</td><td>精确/可推理/可溯源</td><td>构建成本高</td></tr></tbody></table>
-    <h2><span class="idx"></span>GraphRAG：KG+RAG的结合</h2>
-    <p>微软的 GraphRAG 是 KG+RAG 的代表——先用 LLM 从文档抽取实体/关系建图，再用社区检测把图分层，最后查询时在图上做推理+在社区摘要上做理解。这比纯向量RAG更擅长"关系推理"和"全局总结"。详见我们的知识库章（第248章）。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>知识图谱给LLM"结构化记忆"——精确/可推理/可溯源，弥补LLM参数知识的模糊性。GraphRAG是KG+RAG的结合：LLM抽取实体建图→社区检测分层→图上推理+摘要理解。比纯向量RAG擅长关系推理和全局总结。构建成本高是主要障碍。</p>
-    <div class="chapter-nav">
-      <a href="71-learning-path.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 72 章 · 知识图谱与 LLM</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 72 · 实战案例系列</span>
+      <h1>知识图谱与 GraphRAG<br>从 Neo4j 实操到图增强检索的进阶之路</h1>
+      <p class="lead">RAG 的痛点是「只懂相似、不懂关系」——向量检索能找到语义相近的文本，但抓不住实体间的逻辑关系。「张三是李四的导师」这种关系，纯向量检索很难召回。知识图谱（Knowledge Graph）补上了这一块。这一章从知识图谱的构建流程、Neo4j 图数据库实操，到微软 GraphRAG 的前沿方案，让你理解什么时候该用向量检索，什么时候必须上图谱。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-graph"><span class="idx">★</span> 一、纯向量检索的局限</h2>
+    <p>向量检索（RAG 的基础）的核心逻辑是「语义相似」——把文本编码成向量，用余弦相似度找最相关的片段。这对「找相关内容」很有效，但对「找关系」很无力。</p>
+    <p>举一个真实场景：用户问「和特斯拉在同一个供应链里的公司有哪些」。纯向量检索会找和「特斯拉供应链」语义相近的文本片段，但它不理解「供应链」是一种关系，也不知道哪些公司通过哪些零部件和特斯拉关联。这种多跳关系推理，正是知识图谱的强项。</p>
+    <pre><code class="language-python"># 向量检索 vs 图谱检索的差异
+query = "张三的学生里，谁现在在 Google 工作？"
+
+# 向量检索（RAG）的问题：
+# 1. 检索到包含"张三""学生""Google"的文本片段
+# 2. 但这些信息可能分散在不同文档里
+# 3. 无法做"张三→学生→在Google工作"的多跳推理
+retrieved = vector_db.search(query, top_k=5)
+# 结果：可能是一些提到张三和Google的零散段落，答非所问
+
+# 知识图谱的优势：
+# 图里存的是结构化的三元组：(张三)-[指导]->(李四)
+#                            (李四)-[就职于]->(Google)
+# 一次图遍历就能精确回答这个问题
+graph_query = """
+MATCH (teacher {name: '张三'})-[:ADVISES]->(student)-[:WORKS_AT]->(company {name: 'Google'})
+RETURN student.name
+"""
+# 结果：精确返回符合条件的人名</code></pre>
+
+    <h2 class="section" id="what-is-kg"><span class="idx">★</span> 二、知识图谱的基本概念</h2>
+    <p>知识图谱用「实体-关系-实体」的三元组来表示世界。实体是节点（人、公司、地点），关系是边（就职于、指导、位于）。这种结构天然适合表达复杂的关系网络。</p>
+    <ul>
+      <li><strong>实体（Entity）</strong>：图中的节点，如「张三」「Google」「北京」。</li>
+      <li><strong>关系（Relation）</strong>：节点间的有向边，如「就职于」「位于」「指导」。</li>
+      <li><strong>属性（Property）</strong>：节点和边的附加信息，如「张三.年龄=35」「就职于.起始时间=2020」。</li>
+      <li><strong>本体（Ontology）</strong>：定义实体类型和关系类型的 schema，如「人可以就职于公司，但不能就职于城市」。</li>
+    </ul>
+
+    <h2 class="section" id="build-pipeline"><span class="idx">★</span> 三、知识图谱的构建流程</h2>
+    <p>构建知识图谱是最大的工程挑战。从非结构化文本里抽取实体和关系，传统方法用 NLP（命名实体识别 + 关系抽取），现在 LLM 让这个过程大大简化。</p>
+    <pre><code class="language-python"># 用 LLM 从文本构建知识图谱
+from openai import OpenAI
+import json
+
+client = OpenAI()
+
+def extract_triples(text: str) -> list:
+    """用 LLM 从文本抽取三元组（实体-关系-实体）。"""
+    prompt = f"""从以下文本中抽取知识三元组。
+
+文本：{text}
+
+抽取规则：
+1. 识别文本中的实体（人名、公司名、地点、概念等）
+2. 识别实体间的关系
+3. 输出 JSON 数组，每个元素是一个三元组
+
+输出格式：
+[
+  {{"subject": "实体1", "relation": "关系", "object": "实体2"}},
+  ...
+]
+
+示例：
+文本："张三于2020年加入Google，担任高级工程师，他的导师是李四。"
+输出：
+[
+  {{"subject": "张三", "relation": "就职于", "object": "Google"}},
+  {{"subject": "张三", "relation": "职位", "object": "高级工程师"}},
+  {{"subject": "张三", "relation": "导师是", "object": "李四"}}
+]"""
+
+    resp = client.chat.completions.create(
+        model="gpt-4o",
+        response_format={"type": "json_object"},
+        messages=[{"role": "user", "content": prompt}],
+        temperature=0,
+    )
+    return json.loads(resp.choices[0].message.content)["triples"]
+
+# 从一段新闻构建图谱
+news = "马斯克于2004年投资特斯拉，担任CEO。特斯拉总部位于得州奥斯汀，"
+      "主要生产电动汽车。马斯克同时是SpaceX的创始人。"
+triples = extract_triples(news)
+# 输出：
+# [
+#   {"subject": "马斯克", "relation": "投资", "object": "特斯拉"},
+#   {"subject": "马斯克", "relation": "担任", "object": "CEO"},
+#   {"subject": "特斯拉", "relation": "总部位于", "object": "奥斯汀"},
+#   {"subject": "特斯拉", "relation": "生产", "object": "电动汽车"},
+#   {"subject": "马斯克", "relation": "创立", "object": "SpaceX"},
+# ]</code></pre>
+
+    <h3 class="section">3.1 完整构建流水线</h3>
+    <pre><code class="language-python"># 知识图谱构建的完整流水线
+class KnowledgeGraphBuilder:
+    def __init__(self, graph_db):
+        self.db = graph_db  # Neo4j 连接
+        self.entity_resolver = EntityResolver()
+
+    def build_from_documents(self, documents: list):
+        """从一批文档构建知识图谱。"""
+        all_triples = []
+        for doc in documents:
+            # 1. 实体关系抽取
+            triples = extract_triples(doc)
+            # 2. 实体消歧（合并指向同一实体的不同表述）
+            triples = self.entity_resolver.resolve(triples)
+            # 3. 写入图数据库
+            for t in triples:
+                self.upsert_triple(t)
+            all_triples.extend(triples)
+        return all_triples
+
+    def upsert_triple(self, triple):
+        """写入三元组（存在则更新，不存在则创建）。"""
+        cypher = """
+        MERGE (s:{subj_type} {name: $subject})
+        MERGE (o:{obj_type} {name: $object})
+        MERGE (s)-[r:{relation}]->(o)
+        """
+        self.db.run(cypher, **triple)
+
+    def validate_with_ontology(self, triples):
+        """用本体校验三元组的合法性。"""
+        # 确保关系类型符合 schema
+        # 例如："人"不能"位于"（只有"公司"才能"位于"）
+        valid = [t for t in triples if self.ontology.is_valid(t)]
+        return valid</code></pre>
+
+    <h2 class="section" id="neo4j"><span class="idx">★</span> 四、Neo4j 实操：图数据库入门</h2>
+    <p>Neo4j 是最主流的图数据库，用 Cypher 查询语言。它的数据模型直观、查询表达力强，是知识图谱落地的首选。</p>
+    <pre><code class="language-python"># Neo4j 实操：从连接到查询
+from neo4j import GraphDatabase
+
+class Neo4jKG:
+    def __init__(self, uri, user, password):
+        self.driver = GraphDatabase.driver(uri, auth=(user, password))
+
+    def create_entity(self, name, entity_type, properties=None):
+        """创建实体节点。"""
+        query = f"CREATE (n:{entity_type} {{name: $name}})"
+        if properties:
+            props = ", ".join(f"n.{k} = ${k}" for k in properties)
+            query = query[:-1] + ", " + props + "}"
+        with self.driver.session() as session:
+            session.run(query, name=name, **(properties or {}))
+
+    def create_relation(self, subject, relation, object_):
+        """创建关系。"""
+        query = f"""
+        MATCH (s {{name: $subject}}), (o {{name: $object}})
+        MERGE (s)-[:{relation}]->(o)
+        """
+        with self.driver.session() as session:
+            session.run(query, subject=subject, object=object_)
+
+    def find_multi_hop(self, start_entity, relation_chain):
+        """多跳查询：知识图谱的核心能力。"""
+        # 例如：找"马斯克"投资的公司里，哪些在得州
+        query = """
+        MATCH path = (p:Person {name: $start})-[:INVESTS_IN]->(c:Company)-[:LOCATED_IN]->(loc:State {name: 'Texas'})
+        RETURN c.name, loc.name
+        """
+        with self.driver.session() as session:
+            return list(session.run(query, start=start_entity))
+
+    def shortest_path(self, entity_a, entity_b):
+        """找两个实体间的最短路径（关系发现）。"""
+        query = """
+        MATCH path = shortestPath(
+          (a {name: $a})-[*..5]-(b {name: $b})
+        )
+        RETURN [node IN nodes(path) | node.name] AS path
+        """
+        with self.driver.session() as session:
+            result = session.run(query, a=entity_a, b=entity_b)
+            return result.single()["path"]
+
+# 使用示例
+kg = Neo4jKG("bolt://localhost:7687", "neo4j", "password")
+kg.create_entity("马斯克", "Person", {"age": 53})
+kg.create_entity("特斯拉", "Company", {"industry": "汽车"})
+kg.create_relation("马斯克", "INVESTS_IN", "特斯拉")
+
+# 多跳查询：谁通过供应链和特斯拉关联？
+path = kg.shortest_path("宁德时代", "特斯拉")
+# 可能返回：["宁德时代", "供应电池", "Model 3", "属于", "特斯拉"]</code></pre>
+
+    <h2 class="section" id="graphrag"><span class="idx">★</span> 五、GraphRAG：微软的前沿方案</h2>
+    <p>2024 年微软提出的 GraphRAG 是知识图谱增强 RAG 的里程碑方案。它解决了传统 RAG 的两个痛点：<strong>无法回答全局性问题</strong>（如「这本书的主要主题是什么」）和<strong>无法做多跳推理</strong>。</p>
+    <pre><code class="language-python"># GraphRAG 的工作流程（对比传统 RAG）
+graphrag_pipeline = {
+    "第 1 步：索引（离线）": """
+    1. 把文档切分成 chunks
+    2. 用 LLM 从每个 chunk 抽取实体和关系（前面讲过）
+    3. 构建知识图谱
+    4. 用图聚类算法（如 Leiden）把相关实体聚成「社区」
+    5. 用 LLM 为每个社区生成摘要（这就是「层级摘要」）
+    """,
+
+    "第 2 步：查询（在线）": """
+    GraphRAG 支持两种查询模式：
+
+    A. 局部搜索（Local Search）：
+       - 适合具体的、指向特定实体的问题
+       - "马斯克投资了哪些公司？"
+       - 从图里找到相关实体及其邻居，结合原文回答
+
+    B. 全局搜索（Global Search）：
+       - 适合抽象的、跨文档的问题
+       - "这些文档讨论的主要趋势是什么？"
+       - 遍历所有社区摘要，用 map-reduce 方式汇总答案
+    """,
+}
+
+# GraphRAG vs 传统 RAG 的对比
+comparison = {
+    "查询类型": "具体事实查询 / 全局抽象查询 / 多跳推理查询",
+    "传统RAG": "擅长具体事实，不擅长全局和多跳",
+    "GraphRAG": "全局查询和多跳推理显著优于传统 RAG",
+    "代价": "GraphRAG 索引成本高（要调大量 LLM 抽取实体）",
+    "建议": "如果只是简单 QA 用传统 RAG，需要全局分析就用 GraphRAG",
+}</code></pre>
+
+    <h2 class="section" id="hybrid"><span class="idx">★</span> 六、混合检索：向量 + 图谱</h2>
+    <p>GraphRAG 虽强，但成本高。更实用的方案是「向量检索 + 图谱检索」的混合模式：用向量找相关文本，用图谱补充关系信息。两者互补，效果最好。</p>
+    <pre><code class="language-python"># 混合检索的实现
+class HybridRetriever:
+    """向量检索 + 图谱检索的混合方案。"""
+    def __init__(self, vector_db, graph_db):
+        self.vector_db = vector_db
+        self.graph_db = graph_db
+
+    def retrieve(self, query: str, top_k: int = 5):
+        # 1. 向量检索：找语义相关的文本片段
+        vector_results = self.vector_db.search(query, top_k=top_k)
+
+        # 2. 实体抽取：从 query 里提取关键实体
+        entities = extract_entities_from_query(query)
+
+        # 3. 图谱检索：找这些实体的关系信息
+        graph_context = []
+        for entity in entities:
+            # 找实体的邻居和关系
+            neighbors = self.graph_db.get_neighbors(entity, depth=2)
+            graph_context.append(format_neighbors(entity, neighbors))
+
+        # 4. 融合：把向量结果和图谱信息一起喂给 LLM
+        context = f"""
+        相关文档（向量检索）：
+        {format_vector_results(vector_results)}
+
+        实体关系（图谱检索）：
+        {chr(10).join(graph_context)}
+        """
+        return context
+
+# 混合检索的优势：
+# 1. 向量检索提供「语义相关」的内容
+# 2. 图谱检索提供「结构化关系」的信息
+# 3. 两者互补，能回答更复杂的问题
+# 4. 比纯 GraphRAG 成本低很多</code></pre>
+
+    <h2 class="section" id="use-cases"><span class="idx">★</span> 七、什么场景该用知识图谱</h2>
+    <ul>
+      <li><strong>关系密集型场景</strong>：社交网络、供应链、组织架构。这些天然是图结构。</li>
+      <li><strong>多跳推理</strong>：「A 的合作伙伴投资了哪些公司」这种需要多步推理的查询。</li>
+      <li><strong>全局分析</strong>：「这批文档的主要趋势是什么」需要跨文档的抽象。</li>
+      <li><strong>知识溯源</strong>：需要精确知道答案来自哪些结构化关系。</li>
+    </ul>
+    <p>反过来，如果你的场景只是简单的「找相关文档回答问题」，传统 RAG 就够了，不必上图谱——知识图谱的构建和维护成本不低。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们覆盖了知识图谱从构建到应用的完整链路。核心要点：</p>
+    <ul>
+      <li><strong>纯向量的局限</strong>：向量检索擅长找语义相似的内容，但不擅长找关系和多跳推理。知识图谱补上了关系维度。</li>
+      <li><strong>构建流程</strong>：LLM 让实体关系抽取大大简化，流水线是「文档 → 抽取三元组 → 实体消歧 → 写入图库 → 本体校验」。</li>
+      <li><strong>Neo4j 实操</strong>：用 Cypher 做多跳查询、最短路径发现，这是图谱的核心价值。</li>
+      <li><strong>GraphRAG</strong>：微软的方案，通过社区聚类和层级摘要，支持全局查询和多跳推理，代价是索引成本高。</li>
+      <li><strong>混合检索</strong>：向量 + 图谱互补，比纯 GraphRAG 实用，适合大多数生产场景。</li>
+      <li><strong>适用场景</strong>：关系密集、多跳推理、全局分析、知识溯源才需要图谱。简单 QA 用传统 RAG。</li>
+    </ul>
+    <p>知识图谱是 RAG 从「语义匹配」走向「关系推理」的关键升级。下一章我们回到编程实战，看 Docker、CI/CD、测试自动化的完整案例。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

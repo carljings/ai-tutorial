@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Computer Use agent：操作图形界面 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Computer Use agent：操作图形界面 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -238,7 +245,7 @@
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
-      <a href="208-deep-computer-use.html" class="active" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
+      <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
     </div>
     <div class="nav-group"><h3>★LLMOps工程化</h3>
@@ -295,31 +302,143 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★Deep Agent</span><h1>Computer Use agent：操作图形界面</h1><p class="lead">让 AI 看着屏幕点鼠标——Computer Use 的原理与挑战</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Computer Use：AI 的"终极工具"</h2>
-    <p>之前的 Agent 调用的是 API（结构化接口）。Computer Use agent 调用的是**图形界面**——它看屏幕截图，决定点哪里、输入什么、按什么键，像一个人类在操作电脑。这是 Anthropic 在 2024 年推出的能力（Claude Computer Use），代表了 Agent 的"终极形态"——如果 AI 能操作任何 GUI，它就能用任何软件，不需要 API。</p>
-    <h2><span class="idx"></span>工作原理：看→想→做</h2>
-    <pre class="code"><code class="language-text">Computer Use agent 循环
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 208 · 深度应用</span>
+      <h1>Computer Use<br>让 AI 像人一样操作电脑</h1>
+      <p class="lead">过去的 AI 只能在对话框里回答问题。Computer Use 把这道墙打破了:AI 能看到屏幕、移动鼠标、敲击键盘、点击按钮——像真人一样操作任意软件。Anthropic 在 2024 年推出的 Computer Use API,让 Agent 第一次具备通用的"操作图形界面"能力。本章讲透它的原理、实操代码,以及这项能力背后的机遇与风险。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="what-is-computer-use"><span class="idx">★</span> Computer Use 是什么:从"对话"到"操作"</h2>
+    <p>在 Computer Use 出现之前,Agent 与外部世界的交互主要靠 API。要让 Agent 发邮件,你得提供邮件 API;要让它操作 Excel,你得接入 Office SDK。每接一个新软件都要写新集成,这是 Agent 能力扩展的根本瓶颈。</p>
+    <p>Computer Use 提供了一条截然不同的路径:既然人类是通过"看屏幕 + 操作鼠标键盘"来使用所有软件的,那让 AI 也学会这套通用接口,就能操作任意软件,无需专门集成。这是一个极具想象力的思路——GUI 是人类为人类设计的最通用的人机接口,让 AI 掌握它,等于打开了"整个数字世界"的入口。</p>
+    <p>Anthropic 的 Computer Use 能力让 Claude 能够:截取屏幕截图理解当前界面状态、识别界面上的元素(按钮、输入框、菜单)、计算需要移动到的坐标、执行点击/输入/滚动等操作、然后再次截图确认结果。这个"感知-决策-行动"的循环,正是人类操作电脑的方式。这种通用性让一个 Agent 就能处理浏览网页、填表单、操作 ERP、甚至写代码(在 IDE 里操作)等各种各样的任务。</p>
+    <h2 class="section" id="why-hard"><span class="idx">★</span> 为什么 Computer Use 极其困难</h2>
+    <p>让 AI 操作 GUI 听起来简单,实际上极其困难,这也是为什么它直到 2024 年才真正可用。理解这些难点,能帮你认识到这项技术的分量,也能解释它的局限。</p>
+    <p><strong>难点一:像素级的视觉理解</strong>。GUI 是像素构成的,没有语义标签。AI 要从一张截图里识别出"这是按钮"、"那是输入框"、"这个图标代表保存"——这种视觉语义理解需要极强的多模态能力。早期方案用 OCR 提取文字 + 规则匹配,效果差;现代方案用视觉大模型直接"看懂"界面,才有了质的飞跃。</p>
+    <p><strong>难点二:坐标定位的精度</strong>。决定点击哪里,需要把"我想点那个按钮"转化为具体的像素坐标。不同分辨率、不同布局、动态变化的界面,都让坐标计算充满挑战。Claude 通过在截图上叠加坐标网格,辅助自己定位,这是一种巧妙的工程化手段。</p>
+    <p><strong>难点三:状态的动态性</strong>。网页会加载、弹窗会跳出、动画在播放、元素在变化。AI 每次操作后都要重新评估状态,不能假设界面静止。这种"实时感知"的要求,让 Agent 必须走"操作-观察-再决策"的闭环,而非一次规划到底。</p>
+    <p><strong>难点四:错误恢复</strong>。点击没反应、加载超时、意外弹窗——真实软件使用充满意外。好的 Computer Use Agent 要能识别异常、调整策略、重试或换路径。这种鲁棒性是目前最不成熟的环节,也是 Computer Use 还不能完全可靠的原因。</p>
+    <h2 class="section" id="anthropic-api"><span class="idx">★</span> Anthropic Computer Use API 的工作原理</h2>
+    <p>Anthropic 的 Computer Use 能力是通过特殊的工具(tool use)实现的。Claude 被赋予了几个"computer tool",它们让模型可以执行屏幕截图、鼠标键盘操作。整个工作循环是:模型请求截图 → 看到屏幕 → 决定下一步操作(如"点击坐标(120,340)")→ 执行 → 再次截图 → 继续。这个循环一直持续,直到任务完成。</p>
+    <p>关键的几个工具:<strong>computer</strong> 工具负责屏幕级别的操作(截图、点击、输入、滚动、按键);<strong>text_editor</strong> 工具负责文件级别的文本编辑;<strong>bash</strong> 工具负责命令行操作。这三个工具组合起来,让 Claude 能在完整的桌面环境里完成任务。</p>
+    <p>这种设计的一个重要特点是<strong>模型驱动而非脚本驱动</strong>。传统自动化(RPA、Selenium)是写死步骤的脚本,环境一变就失效;Computer Use 是模型实时看屏幕决策,对界面变化有适应性。代价是每次决策都要调用模型,延迟和成本较高,且决策可能出错。</p>
+    <h2 class="section" id="code-practice"><span class="idx">★</span> 实操:用 Computer Use API 完成一个任务</h2>
+    <p>来看实际怎么用。Anthropic 提供了官方的 reference 实现(一个 Docker 镜像,包含虚拟桌面环境),我们在代码层面通过 tool use 调用。下面演示一个完整的 Computer Use 循环:让 Claude 打开浏览器、搜索某个词、记录结果。</p>
+    <pre><code class="language-python">import anthropic
+import json, time, base64
 
-[截图] → 视觉模型理解屏幕内容（按钮/输入框/文字）
-   │
-   ▼
-[推理] → LLM 决定下一步操作
-   │     "看到搜索框，我应该点击它并输入关键词"
-   ▼
-[执行] → 模拟鼠标/键盘操作（点击坐标/输入文字/按键）
-   │
-   ▼
-[截图] → 看操作后的结果 → 继续...
+client = anthropic.Anthropic()
 
-挑战：
-  - 屏幕元素定位（按钮在哪？坐标精度）
-  - 动态页面（元素会变位置）
-  - 状态判断（操作成功了吗？页面加载了吗？）
-  - 效率（截图→推理→执行循环很慢）</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>Computer Use agent 通过"截图→推理→模拟操作"循环操作 GUI，是 Agent 的终极形态——能用任何软件。核心挑战：屏幕元素定位、动态页面、状态判断、效率。当前还处于早期（慢且不够准），但代表了 Agent 通用化的方向。</p>
-    <div class="chapter-nav">
-    <a href="207-deep-agentic-rag.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 208 章 · Computer Use agent：操作图形界面</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+# Computer Use 需要的三个工具定义
+tools = [{
+    "type": "computer_20241022",
+    "name": "computer",
+    "display_width_px": 1024,
+    "display_height_px": 768,
+    "display_number": 1,
+}]
+
+def run_computer_use(task: str, max_steps: int = 15):
+    """Computer Use 主循环:模型决策-执行-观察"""
+    messages = [{"role": "user", "content": task}]
+
+    for step in range(max_steps):
+        # 1. 让模型决策下一步(传入当前屏幕截图)
+        screenshot_b64 = capture_screen_b64()
+        response = client.beta.messages.create(
+            model="claude-3-5-sonnet-20241022",
+            max_tokens=4096,
+            tools=tools,
+            messages=messages,
+            system="你是一个能操作电脑的助手。一步步完成任务,每步后观察结果。",
+            betas=["computer-use-2024-10-22"],
+        )
+
+        # 2. 处理模型返回的工具调用
+        if response.stop_reason == "end_turn":
+            print("任务完成")
+            break
+
+        # 把模型回复加入对话
+        messages.append({"role": "assistant", "content": response.content})
+
+        # 执行模型请求的工具调用
+        tool_results = []
+        for block in response.content:
+            if block.type == "tool_use":
+                result = execute_tool(block.name, block.input)
+                tool_results.append({
+                    "type": "tool_result",
+                    "tool_use_id": block.id,
+                    "content": result,
+                })
+        messages.append({"role": "user", "content": tool_results})
+
+def execute_tool(name: str, action_input: dict):
+    """执行 computer 工具的各种 action"""
+    action = action_input.get("action")
+    if action == "screenshot":
+        return [{"type": "image", "source": {
+            "type": "base64",
+            "media_type": "image/png",
+            "data": capture_screen_b64(),
+        }}]
+    elif action == "mouse_move":
+        move_mouse(action_input["coordinate"])
+        return "moved"
+    elif action == "left_click":
+        click_mouse()
+        time.sleep(0.5)   # 等待界面响应
+        return "clicked"
+    elif action == "type":
+        type_text(action_input["text"])
+        return "typed"
+    elif action == "key":
+        press_key(action_input["key"])
+        return "key pressed"
+    elif action == "scroll":
+        scroll(action_input.get("scroll_direction", "down"))
+        return "scrolled"
+
+run_computer_use("打开浏览器,搜索'今天上海的天气',告诉我结果")
+</code></pre>
+    <p>这段代码揭示了 Computer Use 的核心循环:模型每一步都基于当前屏幕决策,执行一个原子操作,然后重新观察。任务分解、错误处理、路径调整,都由模型自主完成。这种"感知-决策-行动"的闭环,是 Computer Use 的本质。</p>
+    <h2 class="section" id="safety"><span class="idx">★</span> 安全:Computer Use 最大的红线</h2>
+    <p>Computer Use 的能力越强,安全风险越大。一个能操作电脑的 AI,如果被恶意引导或决策失误,可能造成严重后果——删除文件、泄露隐私、执行危险操作。所以安全是 Computer Use 第一优先级,远在能力之上。</p>
+    <p>几个必须做好的安全措施。<strong>沙箱环境</strong>:永远不要让 Computer Use 直接操作你的真实电脑。Anthropic 的官方实现就是一个隔离的 Docker 容器,里面是虚拟桌面,即使 AI 失控也不会影响宿主机。生产部署更要严格隔离网络和文件访问。<strong>权限最小化</strong>:只给 Agent 完成任务所需的最小权限,不要给管理员权限、不要给敏感目录写权限、不要给关键账号的操作权。<strong>操作审计</strong>:记录 AI 的每一次点击、每一次输入,便于事后追溯和 debug。对关键操作(删除、发送、支付)要做二次确认或人工审核。<strong>动作白名单</strong>:对高危动作(关机、格式化、发邮件给外部)做白名单拦截,模型即使想也执行不了。</p>
+    <p>除了这些技术措施,还有<strong>内容安全</strong>:防止 AI 被诱导做坏事(比如"帮我点击这个可疑链接")、防止 AI 接触到不该看的内容(屏幕上可能有敏感信息)。这些都是 Computer Use 走向生产前必须解决的课题。</p>
+    <h2 class="section" id="use-cases"><span class="idx">★</span> 典型应用场景</h2>
+    <p>Computer Use 适合什么场景?它的核心价值在"通用"——能操作那些没有 API 的传统软件,或 API 集成成本过高的场景。几个典型方向。</p>
+    <p><strong>遗留系统集成</strong>。许多企业用的老系统(传统 ERP、内部工具、主机系统)没有现代 API,但能通过 GUI 操作。Computer Use 让 Agent 能操作这些系统,打通数字化转型的最后一公里。比如让 Agent 在一个 90 年代的库存系统里查询和录入数据。</p>
+    <p><strong>跨应用工作流</strong>。很多真实工作要跨多个软件:从邮件里提取信息 → 在 CRM 里建客户 → 在财务系统里开票 → 发邮件通知。传统方案要分别集成四个软件的 API;Computer Use 让一个 Agent 直接像人一样操作这四个软件,省去集成成本。</p>
+    <p><strong>数据录入与表单填写</strong>。把 PDF/图片里的信息录入到某个只有 GUI 的系统里,这种重复劳动 Computer Use 能高效完成。</p>
+    <p><strong>软件测试</strong>。让 Agent 像真实用户一样操作软件,测试 UI 流程、发现 bug,这是自动化测试的新形态。</p>
+    <p><strong>无障碍辅助</strong>。为视障用户提供"代为操作电脑"的助手,帮他们完成无法独立完成的 GUI 操作。这是 Computer Use 的社会价值所在。</p>
+    <h2 class="section" id="vs-rpa"><span class="idx">★</span> Computer Use 与 RPA 的对比</h2>
+    <p>Computer Use 经常被拿来和 RPA(机器人流程自动化)比较,因为它们都是"自动化操作软件"。但两者有本质区别,理解差异能帮你选对工具。</p>
+    <p>RPA(如 UiPath、Automation Anywhere)是基于规则的:开发者录制或编写固定的操作脚本(点这里 → 输入这个 → 等那个元素出现 → 再点),系统按脚本回放。它的优点是确定、可审计、执行快;缺点是<strong>脆弱</strong>——界面一变(按钮移位、流程微调),脚本就失效,维护成本高。</p>
+    <p>Computer Use 是基于模型的:AI 实时看屏幕,理解当前状态,自主决策下一步。它的优点是<strong>鲁棒</strong>——界面变化时能自适应调整;缺点是不确定(每次路径可能不同)、慢(每步都要推理)、有出错概率。</p>
+    <p>所以选择逻辑是:流程极其稳定、追求确定性和速度、规则明确 → RPA;流程多变、需要灵活适应、能容忍不确定性 → Computer Use。两者也可以结合:主干用 RPA 保证稳定,异常情况交给 Computer Use 处理。这正是企业级自动化的趋势。</p>
+    <h2 class="section" id="limitations"><span class="idx">★</span> 当前局限与未来方向</h2>
+    <p>诚实地讲,Computer Use 还处在早期,有几个明显局限,选型时要有清醒认识。</p>
+    <p><strong>速度慢</strong>。每一步都要截图、推理、执行,完成一个简单任务可能要几十秒到几分钟,远慢于 API 调用。对实时性要求高的场景不适用。</p>
+    <p><strong>可靠性不足</strong>。视觉理解会误判、点击会点偏、复杂界面会迷失。当前的成功率对简单任务还不错,但对复杂、长流程的任务仍不稳定,需要人工兜底。</p>
+    <p><strong>成本高</strong>。多轮推理 + 大量截图传输,token 消耗和 API 费用都不低。规模化部署要算清成本账。</p>
+    <p><strong>无法访问无障碍信息</strong>。理想情况下,如果软件提供 accessibility tree(无障碍语义树),Agent 能更精确地理解界面。但目前多数软件的无障碍支持参差不齐,Computer Use 主要靠视觉,精度受限。</p>
+    <p>未来方向上,几个趋势值得期待:更快的视觉模型降低延迟;更强的鲁棒性减少错误;专用硬件(如操作系统级的 Agent API)让操作更精确;以及安全框架的成熟让 Computer Use 能更放心地用。Anthropic、OpenAI、Google 都在押注这个方向,它很可能是 Agent 走向"通用智能体"的关键一环。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Computer Use 让 AI 从"对话框"走进"整个数字世界",通过视觉理解屏幕、鼠标键盘操作软件,实现了通用的软件操作能力。它的难点在像素级视觉理解、精确坐标定位、动态状态感知、错误恢复,这也是它直到最近才可用的原因。</p>
+    <p>Anthropic 的 Computer Use API 通过 computer/text_editor/bash 三个工具,实现了"模型驱动"的操作循环:截图-决策-执行-观察。我们演示了完整代码。安全是它的第一红线,沙箱、最小权限、审计、动作白名单缺一不可。</p>
+    <p>Computer Use 适合遗留系统集成、跨应用工作流、数据录入、软件测试、无障碍辅助等场景。相比 RPA 它更鲁棒但更慢更不确定,两者适合不同场景,也可结合使用。当前它在速度、可靠性、成本上仍有局限,但方向意义重大——这是 AI 从"专用助手"走向"通用数字劳动力"的桥梁,值得长期关注和提前布局。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

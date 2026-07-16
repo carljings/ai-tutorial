@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 开源社区参与 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 开源社区参与 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -79,7 +86,7 @@
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
       <a href="63-ai-investment.html" title="AI 投资与估值"><span class="num">63</span>AI 投资与估值</a>
       <a href="64-advanced-coding.html" title="高级编程实战案例（第二辑）"><span class="num">64</span>高级编程实战案例（第</a>
-      <a href="65-community.html" class="active" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
+      <a href="65-community.html" title="AI 开源社区参与"><span class="num">65</span>AI 社区运营与开源</a>
       <a href="66-inference-engine-internals.html" title="LLM 推理引擎源码深度剖析"><span class="num">66</span>LLM 推理引擎源码</a>
       <a href="67-performance-tuning.html" title="LLM 性能调优手册"><span class="num">67</span>LLM 应用性能调优</a>
       <a href="68-ai-research.html" title="AI 在科研中的应用"><span class="num">68</span>AI 在科研中的应用</a>
@@ -295,13 +302,310 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 开源社区参与</h1><p class="lead">从用开源到贡献开源——AI 社区参与指南</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么参与 AI 开源社区</h2>
-    <p>AI 领域的快速发展离不开开源——Hugging Face（模型）、LangChain（框架）、vLLM（推理引擎）、Llama/Qwen/GLM（开源模型）。参与开源社区不只是"回馈"，更是提升自己——读懂优秀源码、和顶尖工程师协作、建立行业声誉。</p>
-    <table class="data-table"><thead><tr><th>参与方式</th><th>门槛</th><th>价值</th><th>建议</th></tr></thead><tbody><tr><td>用</td><td>低</td><td>学习最佳实践</td><td>先深度用，遇到问题读源码</td></tr><tr><td>提 issue</td><td>低</td><td>帮助项目改进</td><td>带可复现的 bug report</td></tr><tr><td>提 PR</td><td>中</td><td>代码贡献+声誉</td><td>从 small bug 开始</td></tr><tr><td>翻译文档</td><td>低</td><td>降低中文用户门槛</td><td>持续贡献</td></tr><tr><td>建工具/插件</td><td>高</td><td>生态贡献</td><td>解决自己痛点</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 开源社区参与从"用"开始→提 issue→提 PR→建生态。核心价值不只是回馈，更是学习+声誉。建议从深度使用+读源码开始，遇到 bug 带 reproducible report 提 issue，有 fix 就提 PR。</p>
-    <div class="chapter-nav">
-      <a href="64-advanced-coding.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 65 章 · AI 开源社区参与</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 65 · 实战案例系列</span>
+      <h1>开源社区运营<br>从 Issue、PR 到版本发布的完整流程</h1>
+      <p class="lead">一个开源项目的成功，代码质量只占 50%，剩下 50% 是社区运营。LLaMA、vLLM、LangChain 这些明星项目之所以火，不只是技术强，更是社区运营做得好。这一章把 Issue 管理、PR review、文档维护、版本发布的全流程讲透，帮你把自己的开源项目从「自嗨」做成「社区共识」。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-community"><span class="idx">★</span> 一、社区是开源项目的生命线</h2>
+    <p>很多人以为开源就是「把代码放 GitHub 上」，这是最大的误解。开源项目的核心价值在于社区——贡献者、使用者、传播者组成的生态。一个没有社区的项目，代码再好也只是作者的私人作品。</p>
+    <p>社区的价值体现在几个方面：<strong>贡献者</strong>帮你写代码、修 Bug、做测试，放大你的产出；<strong>使用者</strong>提供反馈、发现边界情况、验证设计；<strong>传播者</strong>写文章、做分享、扩大影响力。这三类人共同构成了项目的飞轮。运营社区就是让这个飞轮转起来。</p>
+
+    <h2 class="section" id="issue-management"><span class="idx">★</span> 二、Issue 管理：社区的第一道门面</h2>
+    <p>Issue 是用户接触项目的第一个触点。一个管理混乱的 Issue 区（大量未回复、无标签、重复问题）会直接劝退潜在贡献者。好的 Issue 管理要做到：快速响应、清晰分类、引导复现。</p>
+
+    <h3 class="section">2.1 Issue 模板</h3>
+    <p>第一件事是建立 Issue 模板，让用户提交时就有结构。这能过滤掉大量低质量报告，也方便你快速定位问题。</p>
+    <pre><code class="language-markdown"># .github/ISSUE_TEMPLATE/bug_report.md
+---
+name: Bug 报告
+about: 报告一个可复现的 Bug
+---
+
+## Bug 描述
+清晰简洁地描述这个 Bug 是什么。
+
+## 复现步骤
+1. 进入 '...'
+2. 点击 '...'
+3. 看到 '...'
+
+## 期望行为
+你期望发生什么？
+
+## 实际行为
+实际发生了什么？
+
+## 环境信息
+- OS: [e.g. Ubuntu 22.04]
+- Python 版本: [e.g. 3.10]
+- 项目版本: [e.g. v1.2.0]
+- 模型: [e.g. Llama-3-8B]
+
+## 附加信息
+日志、截图、错误堆栈等。</code></pre>
+
+    <h3 class="section">2.2 Issue 分类与标签体系</h3>
+    <p>建立清晰的标签体系，让 Issue 一目了然。一个成熟的标签体系包含几个维度：</p>
+    <pre><code class="language-yaml"># 推荐的 Issue 标签体系
+labels:
+  类型:
+    - bug:          Bug 报告
+    - feature:      新功能请求
+    - enhancement:  现有功能改进
+    - question:     使用问题（非 Bug）
+    - documentation:文档相关
+
+  优先级:
+    - priority:critical:  紧急（崩溃、数据丢失）
+    - priority:high:      重要
+    - priority:medium:    一般
+    - priority:low:       低优先级
+
+  状态:
+    - status:needs-triage:   待分类（新建默认）
+    - status:needs-repro:    需要复现信息
+    - status:confirmed:      已确认
+    - status:in-progress:    处理中
+    - status:blocked:        被阻塞
+
+  难度（吸引贡献者）:
+    - good-first-issue:   适合新手的第一个贡献
+    - help-wanted:        欢迎社区帮忙
+
+  模块:
+    - module:inference:   推理相关
+    - module:training:    训练相关
+    - module:docs:        文档</code></pre>
+    <p>这套标签体系的价值在于：新人能快速找到「good-first-issue」上手，维护者能按优先级处理，还能统计各模块的问题分布。这是社区健康度的数据基础。</p>
+
+    <h2 class="section" id="pr-review"><span class="idx">★</span> 三、PR Review：质量与社区的平衡</h2>
+    <p>PR review 是开源运营最耗时的部分，但也是最关键的——它决定了代码质量和贡献者体验。好的 review 要做到既严格又友善，让贡献者愿意继续贡献。</p>
+
+    <h3 class="section">3.1 Review 的流程</h3>
+    <pre><code class="language-python"># PR Review 的标准流程（可以用 GitHub Actions 部分自动化）
+pr_review_checklist = {
+    "第一步：快速分类（5分钟内）": [
+        "[ ] PR 描述清晰，说明了改了什么、为什么改",
+        "[ ] 关联了对应的 Issue（fixes #123）",
+        "[ ] CI 通过了（测试、lint、格式）",
+    ],
+    "第二步：代码审查": [
+        "[ ] 设计是否合理（有没有过度设计）",
+        "[ ] 是否有测试覆盖",
+        "[ ] 命名、注释、代码风格是否符合规范",
+        "[ ] 有无性能、安全问题",
+        "[ ] 是否破坏了向后兼容",
+    ],
+    "第三步：反馈（友善且具体）": [
+        "[ ] 肯定贡献（感谢！）",
+        "[ ] 用提问代替命令（'这里用 X 是不是更好？'）",
+        "[ ] 区分必须修改 vs 建议",
+        "[ ] 给出具体代码建议，而不只是指出问题",
+    ],
+    "第四步：合并后": [
+        "[ ] 在 Release Notes 里感谢贡献者",
+        "[ ] 如果是重要贡献，在社交媒体致谢",
+    ],
+}
+
+# 关键原则：对代码严格，对人友善
+# 一个差的 review 能直接劝退一个潜在长期贡献者</code></pre>
+
+    <h3 class="section">3.2 用 AI 辅助 PR Review</h3>
+    <p>对于活跃的项目，PR 太多 review 不过来。可以用 AI 做第一道筛选，把明显的问题（缺测试、风格问题、潜在 Bug）先标记出来，人工再聚焦在设计和架构层面。</p>
+    <pre><code class="language-yaml"># GitHub Actions 配置：用 AI 做 PR 初审
+name: AI PR Reviewer
+on:
+  pull_request:
+    types: [opened, synchronize]
+
+jobs:
+  review:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: AI Review
+        uses: coderabbitai/ai-pr-reviewer@latest
+        with:
+          openai_api_key: ${{ secrets.OPENAI_API_KEY }}
+          # 配置：只 review 代码改动，给出结构化反馈
+          # 注意：AI review 是辅助，不能替代人工 review
+          # 关键 PR（涉及安全、核心逻辑）必须人工 review</code></pre>
+
+    <h2 class="section" id="documentation"><span class="idx">★</span> 四、文档维护：项目的第二张脸</h2>
+    <p>用户判断一个项目好不好用，第一时间看文档。文档差的项目的 star 数永远上不去。文档要覆盖几个层次：README（门面）、Quickstart（5 分钟上手）、详细文档（每个功能）、FAQ（常见问题）、迁移指南（版本升级）。</p>
+    <pre><code class="language-markdown"># 一个高质量 README 的结构
+# 项目名
+
+![Build Status](badge) ![License](badge) ![Downloads](badge)
+
+一句话说清楚项目是什么、解决什么问题。
+
+## 为什么用这个项目
+- 亮点 1（对比同类项目的优势）
+- 亮点 2
+- 亮点 3
+
+## 快速开始（5 分钟内跑起来）
+安装命令 + 最小示例代码
+
+## 核心功能
+每个功能一段简短说明 + 代码示例
+
+## 文档
+完整文档链接
+
+## 社区
+- Issue 反馈
+- 讨论区
+- 贡献指南
+
+## 贡献
+欢迎贡献！请阅读 CONTRIBUTING.md。
+感谢所有贡献者（用 contributors badge 自动生成）。
+
+## License</code></pre>
+    <p>一个关键细节：<strong>README 的前 10 行决定用户会不会继续看</strong>。把最有冲击力的信息（一句话介绍、核心亮点、快速安装命令）放在最前面。冗长的背景介绍、设计哲学往后放。</p>
+
+    <h2 class="section" id="release"><span class="idx">★</span> 五、版本发布：节奏与规范</h2>
+    <p>版本发布是开源项目的里程碑事件。稳定的发布节奏（如每月或每两周）给用户信心，规范的版本号让用户敢升级。</p>
+
+    <h3 class="section">5.1 语义化版本</h3>
+    <p>遵循语义化版本（SemVer）是开源的基本礼仪：MAJOR.MINOR.PATCH。</p>
+    <pre><code class="language-python"># 语义化版本的决策规则
+def decide_version_bump(current_version, changes):
+    """
+    current_version: 当前版本如 "1.2.3"
+    changes: 本次变更列表
+    """
+    major, minor, patch = map(int, current_version.split("."))
+
+    # 有破坏性变更（breaking change）→ 主版本号 +1
+    if any(c.breaking for c in changes):
+        return f"{major+1}.0.0"
+
+    # 有新功能（向后兼容）→ 次版本号 +1
+    elif any(c.type == "feature" for c in changes):
+        return f"{major}.{minor+1}.0"
+
+    # 只有 Bug 修复 → 补丁号 +1
+    else:
+        return f"{major}.{minor}.{patch+1}"
+
+# 发布前必须检查：
+# 1. CHANGELOG 是否更新
+# 2. 破坏性变更是否在文档里显眼标注
+# 3. 迁移指南是否写好
+# 4. 测试是否全部通过
+# 5. 版本号是否在代码里同步更新</code></pre>
+
+    <h3 class="section">5.2 Release Notes 怎么写</h3>
+    <p>Release Notes 是用户决定升不升级的依据。好的 Release Notes 应该按变更类型分组，突出重点，附带迁移指南。</p>
+    <pre><code class="language-markdown"># v2.0.0 Release Notes 模板
+
+## 🎉 重大更新
+本次发布包含若干重要改进和破坏性变更，请仔细阅读迁移指南。
+
+## ⚠️ 破坏性变更（Breaking Changes）
+- `inference()` 函数签名变更，新增 `stream` 参数（默认 True）
+- 移除了已废弃的 `old_api()`，请使用 `new_api()` 替代
+- 最低 Python 版本提升至 3.9
+
+## ✨ 新功能
+- 新增 INT4 量化支持（性能提升 2 倍）
+- 支持 Llama-3 系列
+- 新增流式输出 API
+
+## 🐛 Bug 修复
+- 修复长文本场景下的内存泄漏 (#234)
+- 修复多 GPU 并发时偶发的死锁 (#241)
+
+## 📦 升级指南
+```bash
+pip install project==2.0.0
+```
+如果你的代码使用了 `old_api()`，请按以下方式迁移：
+（给出代码示例）
+
+## 🙏 贡献者
+感谢 @user1 @user2 @user3 的贡献！</code></pre>
+
+    <h2 class="section" id="automation"><span class="idx">★</span> 六、用自动化减轻运营负担</h2>
+    <p>社区运营有很多重复性工作，能用自动化就别手动。GitHub Actions 是开源项目运营的瑞士军刀。</p>
+    <pre><code class="language-yaml"># 自动化运营的常用 Actions 配置
+# 1. 自动给新 Issue 打标签
+name: Issue Labeler
+on:
+  issues:
+    types: [opened]
+jobs:
+  label:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/github-script@v6
+        with:
+          script: |
+            // 新 Issue 默认打 needs-triage 标签
+            github.rest.issues.addLabels({
+              issue_number: context.issue.number,
+              labels: ['status:needs-triage']
+            })
+
+# 2. 欢迎新贡献者
+            if (context.payload.action === 'opened') {
+              github.rest.issues.createComment({
+                issue_number: context.issue.number,
+                body: '感谢提交 Issue！我们会在 48 小时内回复。'
+              })
+            }
+
+# 3. 自动关闭长期无活动的 Issue（stale）
+name: Mark Stale Issues
+on:
+  schedule:
+    - cron: '0 0 * * *'   # 每天检查
+jobs:
+  stale:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/stale@v8
+        with:
+          days-before-stale: 60
+          days-before-close: 14
+          stale-issue-label: 'status:stale'
+          exempt-issue-labels: 'priority:critical,status:in-progress'</code></pre>
+
+    <h2 class="section" id="governance"><span class="idx">★</span> 七、治理结构与社区文化</h2>
+    <p>项目做大后，治理结构变得重要。要明确：谁能合并代码、重大决策怎么拍板、贡献者怎么晋升为 maintainer。透明的治理能让贡献者有长期投入的信心。</p>
+    <ul>
+      <li><strong>贡献者阶梯</strong>：从 Issue 报告者 → PR 贡献者 → Reviewer → Maintainer → 核心团队，每级有明确标准。</li>
+      <li><strong>行为准则</strong>：制定 Code of Conduct，明确什么行为是鼓励的、什么是不被容忍的。</li>
+      <li><strong>决策机制</strong>：小决策 Maintainer 拍板，大决策发 RFC（提案）社区讨论，涉及方向的投票。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们覆盖了开源社区运营的全流程。核心要点：</p>
+    <ul>
+      <li><strong>Issue 管理</strong>：模板 + 标签体系是基础，快速响应是态度，good-first-issue 吸引新贡献者。</li>
+      <li><strong>PR Review</strong>：对代码严格、对人友善。用「提问代替命令」，区分必须修改 vs 建议，感谢每个贡献。</li>
+      <li><strong>文档维护</strong>：README 前 10 行最重要，Quickstart 让用户 5 分钟上手，完整文档覆盖每个功能。</li>
+      <li><strong>版本发布</strong>：遵循语义化版本，写好 Release Notes（破坏性变更要显眼），稳定的发布节奏给用户信心。</li>
+      <li><strong>自动化</strong>：用 GitHub Actions 自动化打标签、欢迎新用户、关闭 stale issue，减轻运营负担。</li>
+      <li><strong>治理结构</strong>：透明的贡献者阶梯 + 行为准则 + 决策机制，让社区有长期投入的信心。</li>
+    </ul>
+    <p>运营开源社区是一场长期主义修行。代码决定项目能不能用，社区决定项目能走多远。下一章我们回到性能优化——LLM 推理的延迟、吞吐、成本三维调优。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 编程范式演进 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 编程范式演进 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -40,7 +47,7 @@
       <a href="25-inference-optimization.html" title="LLM 推理优化深度"><span class="num">25</span>LLM 推理优化深度</a>
       <a href="26-finetuning-lora.html" title="微调技术与 LoRA/QLoRA"><span class="num">26</span>微调技术与 LoRA</a>
       <a href="27-speech-models.html" title="语音大模型"><span class="num">27</span>语音大模型</a>
-      <a href="28-coding-paradigm.html" class="active" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
+      <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
       <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
       <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
       <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
@@ -295,16 +302,118 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>AI 编程范式演进</h1><p class="lead">从补全到Agent——AI编程的四代演进</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>AI 编程的四代演进</h2>
-    <p>AI 编程能力在快速进化，每一代都改变了开发者与代码的关系。理解这条演进线，你才能判断"现在该用哪种 AI 编程工具"以及"未来会往哪走"。</p>
-    <table class="data-table"><thead><tr><th>代</th><th>能力</th><th>代表</th><th>人的角色</th></tr></thead><tbody><tr><td>1.0 补全</td><td>补全当前行/函数</td><td>GitHub Copilot 1</td><td>写主体，AI补细节</td></tr><tr><td>2.0 对话</td><td>Chat+代码理解</td><td>Cursor/ChatGPT</td><td>对话指导，AI生成</td></tr><tr><td>3.0 Agent</td><td>自主多步编码</td><td>Devin/Claude Code</td><td>描述需求，AI自主实现</td></tr><tr><td>4.0 协作</td><td>多Agent团队编程</td><td>未来</td><td>架构决策，AI团队执行</td></tr></tbody></table>
-    <h2><span class="idx"></span>从补全到Agent：核心转变</h2>
-    <p>1.0→3.0 的核心转变是"自主性"——从"AI帮你补一行"到"AI自己写整个功能"。这背后是 Agent Loop（第4章讲过）：理解需求→规划→写代码→测试→修错→交付。Agent 能做到人类开发者的完整工作流，只是需要人类审查和指导。</p>
-    <div class="callout"><strong>💡 要点</strong><br>AI编程的最佳实践不是"完全交给AI"也不是"完全不用"，而是"人机协作"——人做架构决策和审查，AI做实现和测试。这比纯人或纯AI都快。Cursor 和 Claude Code 的设计哲学就是这种"人机协作"。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI编程四代：补全(Copilot1)→对话(Cursor)→Agent(Claude Code)→协作(多Agent)。核心转变是自主性——从补一行到自主实现完整功能。最佳实践是人机协作——人做架构+审查，AI做实现+测试。</p>
-    <div class="chapter-nav">
-      <a href="27-speech-models.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 28 章 · AI 编程范式演进</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 28 · 核心知识系列</span>
+      <h1>AI 编程范式演进<br>从自动补全到自主编程的五十年长征</h1>
+      <p class="lead">编程工具的演进，本质上是在重新定义"人"和"机器"之间的分工。从 IDE 里的逐字补全，到 GitHub Copilot 的整行建议，再到 Cursor 的多文件编辑，最终走向 Devin 这样的自主编程 Agent。本章梳理五代 AI 编程范式的脉络，用一张对比表看清每代的能力边界，也帮你判断自己该站在哪一级的台阶上。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> 编程范式的本质：抽象层次的不断上移</h2>
+    <p>回顾计算机历史，编程一直在"向上抽象"：从打孔卡片到汇编，从汇编到 C，从 C 到 Python，每一次抽象都让开发者离机器远一点、离意图近一点。AI 编程的演进只是这条主线的延续——从"写代码"到"描述需求"，最终目标是"只说想法，机器自动实现"。</p>
+    <p>但每一次抽象都伴随着阵痛。汇编程序员曾经嘲笑高级语言"效率低下"，Python 老手曾经鄙视 JavaScript"不够严谨"。今天，完全依赖 AI 生成代码也面临同样的质疑。历史告诉我们：工具会赢，但赢家是那些理解底层原理、又能善用新工具的人。所以本章的目的不是鼓吹"AI 取代程序员"，而是帮你理解每一代范式的能力边界，在合适的场景用合适的工具。</p>
+
+    <h2 class="section" id="five-generations"><span class="idx">★</span> 五代范式全景对比</h2>
+    <p>AI 辅助编程可以清晰地划分为五代，每一代都伴随着模型能力、上下文理解、自主性的跃升：</p>
+    <pre><code class="language-text">┌──────────┬───────────────┬────────────────┬──────────────┬──────────────┐
+│   代际   │    代表产品   │   核心能力     │   上下文范围  │   自主程度    │
+├──────────┼───────────────┼────────────────┼──────────────┼──────────────┤
+│ 第一代   │ IntelliSense  │ 基于语法的补全  │  当前文件     │  无（规则驱动）│
+│ REPL查询  │ StackOverflow │  搜索 + 复制   │  外部知识     │  人工检索     │
+├──────────┼───────────────┼────────────────┼──────────────┼──────────────┤
+│ 第二代   │ GitHub Copilot│ 整行/整段建议   │  当前文件+相邻│  被动建议     │
+│ Copilot  │ TabNine       │  自然语言→代码  │  多文件上下文  │  接受/拒绝    │
+├──────────┼───────────────┼────────────────┼──────────────┼──────────────┤
+│ 第三代   │ Cursor Chat   │  多轮对话编程   │  整个项目仓库  │  对话驱动     │
+│ Chat     │ GitHub Copilot│  代码解释/重构  │  跨文件引用   │  需人工粘贴   │
+│          │   Chat        │  Bug 定位       │  + 终端输出   │              │
+├──────────┼───────────────┼────────────────┼──────────────┼──────────────┤
+│ 第四代   │ Cursor Agent  │  多文件自动修改  │  仓库+文档+   │  半自主执行   │
+│ Agent    │ Devin/SWE-agent│  运行+测试+修复 │  搜索+终端    │  需人工确认   │
+│          │ Claude Code   │  PR 级别交付    │  + 测试反馈   │  工具调用循环 │
+├──────────┼───────────────┼────────────────┼──────────────┼──────────────┤
+│ 第五代   │ Devin /       │  需求→完整项目  │  全局规划+   │  高度自主     │
+│ 自主编程  │  OpenHands    │  自主调试部署   │  长期记忆     │  目标驱动     │
+│          │  Manus        │  多 Agent 协作  │  + 沙盒环境   │  例外时介入   │
+└──────────┴───────────────┴────────────────┴──────────────┴──────────────┘
+</code></pre>
+    <p>这张表里最关键的一列是"自主程度"——它定义了人机协作的模式。前两代是"机器建议、人决策"，第三代是"人提问、机器回答"，第四代是"人下指令、机器执行多步、人审核"，第五代是"人给目标、机器自主完成、人验收"。每一次跃升，都意味着开发者从"写代码的人"向"审代码的人"转变。</p>
+
+    <h2 class="section" id="gen1-2"><span class="idx">★</span> 第一二代：从补全到 Copilot</h2>
+    <p>第一代的代表是 IDE 自带的 IntelliSense，它基于语法树做符号补全——输入 <code>obj.</code> 后列出方法列表。这本质上是查表，没有任何智能。开发者遇到问题只能去 Stack Overflow 搜索，复制粘贴，这一过程极其碎片化。</p>
+    <p>第二代的里程碑是 2021 年 GitHub Copilot 的发布。它基于 Codex（GPT-3 的代码微调版），能在你写注释或函数签名时，自动生成完整的实现代码。Copilot 的革命性在于：它理解代码的"意图"而不只是语法。你写 <code># 计算斐波那契数列</code>，它就能补全整个递归实现。但它有明显的局限——上下文仅限于当前文件和少量相邻文件，无法理解项目整体架构，建议的质量高度依赖周边代码的清晰度。</p>
+
+    <h2 class="section" id="gen3-chat"><span class="idx">★</span> 第三代：对话式编程的崛起</h2>
+    <p>ChatGPT 的爆火催生了第三代范式——对话式编程。Cursor、GitHub Copilot Chat、JetBrains AI Assistant 把聊天窗口嵌入 IDE，开发者可以用自然语言提问："这个函数为什么会报空指针？"、"把这个 API 从同步改成异步并加错误处理。"AI 会解释、重构、生成代码，但你需要手动复制粘贴到编辑器。</p>
+    <p>这一代解决了"跨文件理解"的问题——AI 可以索引整个仓库，回答"用户认证的逻辑在哪里"这样的架构级问题。但它仍然是"对话驱动"——每一步都需要你发起提问，AI 不会主动做事。体验上比第二代好很多，但离"放手让 AI 干活"还有距离。</p>
+    <pre><code class="language-python"># 第三代典型工作流：对话式重构
+# 用户: "把这个同步的数据库查询改成异步连接池版本"
+# AI 输出（需要手动复制）:
+
+import asyncio
+from databases import Database
+
+# 改造前: 同步阻塞
+# def get_user(user_id):
+#     cursor.execute("SELECT * FROM users WHERE id = ?", user_id)
+#     return cursor.fetchone()
+
+# 改造后: 异步连接池
+database = Database("postgresql://localhost/myapp")
+
+async def get_user(user_id: int):
+    """异步查询用户，自动管理连接池"""
+    query = "SELECT * FROM users WHERE id = :uid"
+    return await database.fetch_one(query, values={"uid": user_id})
+
+# 开发者: 需要手动复制到文件中，再运行测试验证
+</code></pre>
+
+    <h2 class="section" id="gen4-agent"><span class="idx">★</span> 第四代：Agent 模式的工具调用循环</h2>
+    <p>2024 年，第四代范式成熟——Agent 模式。代表产品是 Cursor 的 Agent 模式、Claude Code、GitHub Copilot Workspace。核心区别是：AI 不再只是"建议"，而是能"动手"。它可以直接修改文件、运行终端命令、执行测试、根据报错自动修复——形成一个"编辑-运行-观察-修正"的闭环。</p>
+    <p>这一代的底层是 LLM 的 function calling（函数调用）能力。模型被赋予一组工具：<code>edit_file</code>、<code>run_command</code>、<code>read_file</code>、<code>search_code</code>，然后进入一个 ReAct 循环——思考要做什么、调用工具、观察结果、继续思考。开发者只需要说"修复测试失败的那个 bug"，Agent 就会自己读测试、跑测试、定位错误、修改代码、再跑验证。</p>
+    <pre><code class="language-python"># 第四代 Agent 的核心：ReAct 工具调用循环（简化版）
+def agent_loop(task: str, max_steps=20):
+    messages = [{"role": "user", "content": task}]
+    tools = [read_file, edit_file, run_command, search_code]
+    
+    for step in range(max_steps):
+        # 1. 模型决定下一步：直接回答 OR 调用工具
+        response = llm.chat(messages, tools=tools)
+        
+        if response.is_final_answer:
+            return response.content  # 任务完成
+        
+        # 2. 执行工具调用
+        for tool_call in response.tool_calls:
+            result = execute_tool(tool_call)   # 真正改文件/跑命令
+            messages.append({"role": "tool", "content": result})
+        
+        # 3. 观察结果，进入下一轮思考（自动循环）
+
+# 实际效果：
+# agent_loop("给这个 FastAPI 项目加上 JWT 认证，并写好测试")
+# → Agent 自己读取项目结构 → 安装依赖 → 创建 auth.py
+# → 修改 main.py → 写 test_auth.py → 运行 pytest → 修复报错 → 完成
+</code></pre>
+    <p>Cursor Agent、Claude Code 已经能在真实项目中完成 PR 级别的工作——实现一个完整功能、修复一个复杂 bug、迁移一个 API。但第四代仍需人类"把关"——Agent 在关键决策点（如架构选择、数据库迁移）需要人工确认，避免不可逆的错误。</p>
+
+    <h2 class="section" id="gen5-autonomous"><span class="idx">★</span> 第五代：自主编程的曙光与争议</h2>
+    <p>第五代是最前沿、也最有争议的——完全自主编程。Cognition Labs 的 Devin 号称是"第一个 AI 软件工程师"，给它一个需求描述（"帮我做一个航班搜索 App"），它能自己规划、写代码、调试、甚至部署到云端。开源的 OpenHands（原 OpenDevin）、Manus 也在追赶这条路线。</p>
+    <p>第五代的核心特征是"目标驱动"而非"指令驱动"。你不再逐步指挥 AI 做什么，而是给出一个高层目标，AI 自己分解任务、管理上下文、协调多个子 Agent、在沙盒环境中试错。这依赖三个关键技术：长期记忆（跨 session 保持项目上下文）、规划能力（把大目标拆成可执行步骤）、自我反思（发现错误后调整策略）。</p>
+    <p>但第五代目前仍不成熟。Devin 的演示视频后来被证实有夸大成分，实际复杂任务的成功率并不高。真正的自主编程还需要解决：长程推理的可靠性、代码质量的保证、安全沙盒的隔离、以及对不可逆操作的保护。乐观估计，第五代在 2026-2027 年会达到"能独立完成中小型项目"的水平。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>AI 编程的五代演进，本质上是在提升"抽象层次"：第一代补全符号，第二代补全语句，第三代对话解释，第四代自动执行，第五代目标驱动。每一代都让开发者从更宏观的层面参与编程——从"敲字符"到"审架构"。关键判断是：当前的主流是第三代（对话式）向第四代（Agent）过渡期，聪明的开发者应该同时掌握这两代——用 Chat 做探索和设计，用 Agent 做执行和迭代。无论工具如何进化，理解代码原理、能审查 AI 输出的人，永远是稀缺的。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -157,7 +155,7 @@
       <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
       <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
       <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
-      <a href="128-vec-lsh.html" class="active" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
+      <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
       <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
       <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
@@ -305,66 +303,159 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 128 章 · 向量索引与 RAG 原理深挖</span>
-<h1>LSH 局部敏感哈希</h1><p class="lead">相似项以高概率哈希到同桶。随机投影 LSH（余弦相似度）、MinHash（Jaccard）。与图方法对比：更适合超大规模、低精度的初筛。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>相似项以高概率哈希到同桶。随机投影 LSH（余弦相似度）、MinHash（Jaccard）。与图方法对比：更适合超大规模、低精度的初筛。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>相似项以高概率哈希到同桶。随机投影 LSH（余弦相似度）、MinHash（Jaccard）。与图方法对比：更适合超大规模、低精度的初筛。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 128 · 向量检索系列</span>
+      <h1>局部敏感哈希 LSH<br>p-stable 分布、欧氏距离哈希族与碰撞概率</h1>
+      <p class="lead">局部敏感哈希（Locality Sensitive Hashing, LSH）是向量检索里理论最优雅、却也是工程上最容易跑偏的方法。它用一组特殊的哈希函数让"近的向量大概率哈希到同一个桶"，从而把最近邻搜索转化为桶内搜索。本文从 p-stable 分布讲起，推导碰撞概率公式，并用代码实现一个可用的 LSH 索引，最后讲清它为什么在主流向量库里逐渐退场。</p>
+      <div class="meta">
+        <span class="chip">阅读约 18 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="lsh-core-idea"><span class="idx">★</span> LSH 的核心定义：近的更易碰撞</h2>
+    <p>普通哈希函数（如 MD5）的设计目标是"输入差一点，输出完全不同"——用于去重和查找。LSH 反其道而行：它要的是<strong>"输入越近，哈希碰撞概率越高"</strong>。形式化定义是：一个哈希函数族 H 称为 (r, cr, p1, p2)-敏感的，如果对任意两点 p, q：</p>
+    <ul>
+      <li>当 dist(p,q) ≤ r 时，Pr[h(p)=h(q)] ≥ p1</li>
+      <li>当 dist(p,q) ≥ cr 时，Pr[h(p)=h(q)] ≤ p2</li>
+      <li>其中 c &gt; 1 是近似比，且 p1 &gt; p2（近的点碰撞概率严格高于远的点）</li>
+    </ul>
+    <p>有了这样的函数族，检索流程是：把所有数据库向量哈希到桶里，查询时算 q 的哈希，只在同桶（或相邻桶）里做精确搜索。近的点大概率落在同桶被找到，远的点大概率分到不同桶被剪掉。这就是 LSH 用"碰撞概率差异"实现剪枝的本质。</p>
+    <p>LSH 的理论保证很强：经过恰当的 AND/OR 构造（后面讲），可以在次线性时间 O(N^ρ) 内以高概率找到 (1+ε)-近似最近邻，其中 ρ = ln(p1)/ln(p2) &lt; 1。这是 LSH 论文 1998 年发表时的里程碑结果。但工程实践里，这个理论保证的代价是参数难调、内存占用不省、长尾召回不稳。</p>
+
+    <h2 class="section" id="p-stable"><span class="idx">★</span> p-stable 分布：欧氏距离 LSH 的数学基础</h2>
+    <p>对于欧氏距离（L2），最经典的 LSH 函数族基于 p-stable 分布。一个分布称为 p-stable，如果对任意实数 v1,...,vn 和独立同分布的 a1,...,an，线性组合 Σ vi·ai 的分布与 (Σ|vi|^p)^(1/p) · a 同分布，其中 a 服从原分布。</p>
+    <p>两个重要的 p-stable 分布：p=1 是柯西分布，p=2 是高斯分布。后者直接对应欧氏距离——这正是我们需要的。基于高斯分布（p=2-stable）的 LSH 哈希函数定义为：</p>
+    <p style="font-family:monospace;background:#f4f4f4;padding:12px;border-radius:6px;">h_{a,b}(v) = floor( (a·v + b) / w )</p>
+    <p>其中 a 是从 d 维标准高斯分布采样的随机向量，b 是从 [0, w] 均匀采样的偏移，w 是桶宽（关键参数）。直觉是：a·v 把 d 维向量投影到一维（保留距离信息，因为高斯是 2-stable），再除以 w 分桶。两个向量 v, u 的投影差 a·(v-u) 服从 N(0, ||v-u||²)（2-stable 性质），所以它们的距离 ||v-u|| 越大，投影差越可能超过 w 落到不同桶。</p>
+
+    <h3>碰撞概率公式</h3>
+    <p>对一对距离 c=||v-u|| 的向量，单次哈希碰撞概率为：</p>
+    <p style="font-family:monospace;background:#f4f4f4;padding:12px;border-radius:6px;">p(c) = 1 - 2·Φ(-w/c) - (2/(√(2π)·w/c)) · (1 - exp(-w²/(2c²)))</p>
+    <p>其中 Φ 是标准正态分布的累积分布函数。这个公式看上去吓人，但关键结论很简单：p(c) 是 c 的单调递减函数，c 越大碰撞概率越低。这就是 LSH 工作的基础——距离和碰撞概率有单调关系。w 控制曲线的陡峭程度：w 小则区分度高但召回低，w 大则召回高但区分度低。</p>
+
+    <pre><code class="language-python"># 画出 p(c) 曲线，直观感受 w 的影响
 import numpy as np
+from scipy.stats import norm
+import matplotlib.pyplot as plt
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+def collision_prob(c, w):
+    if c &lt; 1e-9:
+        return 1.0
+    x = w / c
+    return 1 - 2*norm.cdf(-x) - (2/(np.sqrt(2*np.pi)*x)) * (1 - np.exp(-x**2/2))
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+c_range = np.linspace(0.1, 5, 200)
+for w in [1.0, 2.0, 4.0]:
+    plt.plot(c_range, [collision_prob(c, w) for c in c_range], label=f"w={w}")
+plt.xlabel("distance c"); plt.ylabel("collision prob p(c)")
+plt.legend(); plt.grid(True); plt.title("LSH p-stable 碰撞概率曲线")
+plt.savefig("lsh_curve.png", dpi=100)
+# 结论：w 越大曲线越平（区分度低），w 越小越陡（区分度高但整体召回低）
+</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h2 class="section" id="and-or-construction"><span class="idx">★</span> AND/OR 构造：调出 p1 和 p2 的差距</h2>
+    <p>单个 LSH 函数的 p1 和 p2 差距通常不够大（比如 p1=0.8, p2=0.5），剪枝效果弱。LSH 用两个组合操作放大这个差距：</p>
+    <ul>
+      <li><strong>AND 构造（串联）</strong>：用 K 个独立哈希函数，只有全部碰撞才算同桶。新碰撞概率 p^K，把高概率和低概率都压低，但低概率压得更狠，差距拉大。代价是召回下降。</li>
+      <li><strong>OR 构造（并联）</strong>：用 L 组 AND 哈希表，任一组碰撞就算候选。新碰撞概率 1-(1-p^K)^L，召回回升。</li>
+    </ul>
+    <p>组合后，最终碰撞概率 P(p) = 1 - (1 - p^K)^L。它是个 S 型曲线：对中间的 p 几乎是线性，但对很小的 p 几乎压到 0、对接近 1 的 p 几乎抬到 1。这正是我们要的——把"近（p1）"和"远（p2）"的碰撞概率分别推到接近 1 和 0。</p>
+    <p>参数 K 和 L 的选择是个权衡：K 大则假阳性少（远的不易混入）但召回低，L 大则召回高但内存和查询时间增加（要查 L 个哈希表）。经验上 K ≈ log(N)/log(1/p2)、L ≈ N^ρ，其中 ρ=ln(1/p1)/ln(1/p2)。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"LSH 局部敏感哈希"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="127-vec-pq-adc.html"><div class="lbl">← 上一章</div><div class="ttl">127 · ADC 与对称距离计算</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="129-vec-scann.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">129 · ScaNN 与各向异性量化</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 128 章 · LSH 局部敏感哈希</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <pre><code class="language-python"># 看清 K 和 L 如何塑造最终的碰撞概率曲线
+def combined_prob(p, K, L):
+    return 1 - (1 - p**K)**L
+
+p_range = np.linspace(0, 1, 200)
+for K, L in [(1,1), (5,10), (10,20), (15,30)]:
+    plt.plot(p_range, [combined_prob(p, K, L) for p in p_range],
+             label=f"K={K}, L={L}")
+plt.xlabel("单函数碰撞概率 p"); plt.ylabel("组合后碰撞概率")
+plt.legend(); plt.grid(True); plt.title("AND/OR 构造的 S 型曲线")
+plt.savefig("lsh_andor.png", dpi=100)
+# K,L 越大，曲线越接近阶跃 —— 越能精准区分近/远
+</code></pre>
+
+    <h2 class="section" id="implementation"><span class="idx">★</span> 从零实现一个可用的 LSH 索引</h2>
+    <p>理论清楚了，我们写一个能跑的 LSH 索引，看清工程上每个组件。</p>
+
+    <pre><code class="language-python">import numpy as np
+from collections import defaultdict
+
+class LSHIndex:
+    def __init__(self, d, n_tables=10, hash_size=8, w=4.0, seed=42):
+        """
+        d:         向量维度
+        n_tables:  OR 构造的哈希表数 L
+        hash_size: AND 构造的串联哈希数 K
+        w:         桶宽（关键参数）
+        """
+        self.d = d; self.L = n_tables; self.K = hash_size; self.w = w
+        rng = np.random.default_rng(seed)
+        # 为每个表预生成 K 个投影向量 a 和偏移 b
+        self.A = rng.standard_normal((self.L, self.K, d))   # (L, K, d)
+        self.B = rng.uniform(0, w, (self.L, self.K))        # (L, K)
+        self.tables = [defaultdict(list) for _ in range(self.L)]
+
+    def _hash_one_table(self, v, t):
+        proj = (self.A[t] @ v + self.B[t]) / self.w          # (K,)
+        return tuple(np.floor(proj).astype(int))             # 一个 K 维 tuple 作为桶键
+
+    def insert(self, vecs):
+        for i, v in enumerate(vecs):
+            for t in range(self.L):
+                key = self._hash_one_table(v, t)
+                self.tables[t][key].append(i)
+
+    def query(self, q, k=10):
+        cand = set()
+        for t in range(self.L):
+            key = self._hash_one_table(q, t)
+            cand.update(self.tables[t].get(key, []))
+        return cand     # 候选集，再交给精确距离排序
+
+# 实测
+d = 128; N = 50_000
+data = np.random.randn(N, d).astype(np.float32)
+lsh = LSHIndex(d, n_tables=15, hash_size=8, w=4.0)
+lsh.insert(data)
+q = np.random.randn(d).astype(np.float32)
+cand = lsh.query(q)
+print(f"候选集大小: {len(cand)} / {N}  (剪枝率 {1-len(cand)/N:.2%})")
+# 在候选集上精确排序
+if cand:
+    cand = np.array(list(cand))
+    dists = np.linalg.norm(data[cand] - q, axis=1)
+    top = cand[np.argsort(dists)[:10]]
+    print("LSH top-10:", top)
+</code></pre>
+
+    <p>跑这段代码你会观察到一个尴尬现象：候选集大小很不稳定，有时几十个、有时几千个。这正是 LSH 的工程痛点——召回方差大。w 调小，多数查询候选为空（召回低）；w 调大，候选爆炸（接近暴力）。要在所有查询上稳定达到 95% 召回，L 和 K 要调得很保守，结果速度优势就被吃掉了。</p>
+
+    <h2 class="section" id="why-decline"><span class="idx">★</span> 为什么 LSH 在主流向量库里退场</h2>
+    <ul>
+      <li><strong>参数难调且数据敏感</strong>：w/K/L 强依赖数据分布，换一份数据要重调，不像 HNSW 那套参数几乎通用。</li>
+      <li><strong>召回方差大</strong>：不同查询的候选集大小差异巨大，P99 延迟难控制，对在线服务不友好。</li>
+      <li><strong>内存不省</strong>：需要 L 个哈希表，每张表存全量 ID，内存和 HNSW 相当甚至更高。</li>
+      <li><strong>不擅长高召回</strong>：要 recall@10 ≥ 0.95 通常需要很大的 L，速度优势被抹平，跑不赢 HNSW。</li>
+      <li><strong>动态更新麻烦</strong>：插入会改变桶分布，删改要标记，重建成本高。</li>
+    </ul>
+    <p>但 LSH 不是没价值。它在<strong>理论分析</strong>（次线性时间保证）、<strong>位图指纹去重</strong>（MinHash/_simhash 之于文档）、<strong>海量粗筛</strong>（先 LSH 桶筛再精确）等场景仍有用武之地。理解 LSH 也能帮你理解后续 ScaNN、PQ 这些更现代方法的设计动机。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>LSH 的定义是"近的点碰撞概率高、远的低"，形式化为 (r, cr, p1, p2)-敏感，p1&gt;p2。</li>
+      <li>欧氏距离 LSH 用 p=2-stable 的高斯分布：h(v)=floor((a·v+b)/w)，a~N(0,I)，碰撞概率 p(c) 随距离 c 单调递减。</li>
+      <li>AND 构造（K 个串联）压低假阳性，OR 构造（L 张表并联）召回回升，组合概率 1-(1-p^K)^L 呈 S 型，放大近/远差距。</li>
+      <li>K 和 L 的选择是召回-速度-内存的三方权衡，强依赖数据分布。</li>
+      <li>工程上 LSH 因参数难调、召回方差大、内存不省、不擅长高召回，在主流向量库里被 HNSW/IVFPQ 取代；但在理论、指纹去重、粗筛等场景仍有价值。</li>
+    </ul>
+    <p>下一篇我们看 Google 的 ScaNN 如何用"各向异性量化"在 PQ 的基础上再进一步，成为召回-QPS 的 SOTA 之一。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

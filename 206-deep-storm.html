@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -245,7 +243,7 @@
     <div class="nav-group"><h3>★Deep Agent</h3>
       <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
-      <a href="206-deep-storm.html" class="active" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
+      <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
       <a href="208-deep-computer-use.html" title="Computer Use agent：操作图形界面"><span class="num">208</span>Computer U</a>
       <a href="209-deep-eval-observability.html" title="Agent 评估与可观测性"><span class="num">209</span>Agent 评估与可</a>
@@ -305,23 +303,128 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 第 230 章 · Deep Agent</span>
-    <h1>STORM</h1><p class="lead">斯坦福的多视角研究 agent</p>
-    <div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>STORM 的独特思路：模拟多角度访谈</h2>
-    <p>STORM 是斯坦福开发的文章生成 agent（用于生成维基百科级别的长文）。它的独特之处是"多视角提问"：先用 LLM 模拟不同领域的专家，从各自角度对研究主题"提问"，然后带着这些问题去搜索。这比"直接搜索主题"覆盖更全面——不同专家会问出不同维度的问题。</p>
-    <h2><span class="idx"></span>工作流程：视角生成 → 提问 → 搜索 → 大纲 → 写作</h2>
-    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>为什么</th></tr></thead><tbody><tr><td>视角生成</td><td>为主题生成多个专家视角</td><td>覆盖不同维度</td></tr><tr><td>提问</td><td>每个视角生成相关问题</td><td>比直接搜更全面</td></tr><tr><td>搜索</td><td>带着问题搜索+收集素材</td><td>获取信息</td></tr><tr><td>大纲</td><td>基于素材生成文章大纲</td><td>组织结构</td></tr><tr><td>写作</td><td>按大纲用素材写完整文章</td><td>产出长文</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>STORM 的核心洞察：研究的质量取决于"问对问题"。直接搜"AI agent"得到的信息泛泛；但从"技术专家""投资人""用户""政策制定者"四个角度各自提问，能覆盖技术、商业、体验、监管四个维度的深度信息。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>STORM 用"多视角提问"提升了研究质量：模拟多个专家视角、各自提问、带着问题搜索、综合成大纲和长文。它的思想可以迁移到任何研究 agent——与其直接搜主题，不如从多角度提问再搜。</p>
-    <div class="chapter-nav">
-    <a href="205-deep-gpt-researcher.html"><div class="lbl">← 上一章</div><div class="ttl">205 · GPT Researcher：开源深度研究 agent 源码解析</div></a>
-    <a href="207-deep-agentic-rag.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">207 · Agentic RAG：让 RAG 学会自主决策</div></a>
-    </div>
-    <footer><p>AI 全栈实战教学 · 第 230 章 · STORM：多视角提问的研究 agent</p></footer>
-  </main>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 206 · 深度应用</span>
+      <h1>STORM 写作 Agent<br>斯坦福如何让 AI 写出有深度的长文</h1>
+      <p class="lead">写一篇有深度的维基百科式长文,难在哪里?不是辞藻,是"信息密度"和"多角度"。人类百科编辑会从不同视角调研、交叉验证、再去重综合,这个流程繁琐却关键。斯坦福的 STORM(System for Tree-Organized Retrieval and Modeling)正是把这个流程自动化的写作 Agent。本章解读它的论文思想,并给出可复现的实现思路。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="writing-challenge"><span class="idx">★</span> 长文写作的真正难点</h2>
+    <p>让大模型写一段营销文案,它已经做得很好。但让它写一篇维基百科式的、有深度的长文,效果往往令人失望——内容空泛、视角单一、缺乏权威引用、还容易编造。要理解 STORM 为什么有效,先要理解长文写作到底难在哪。</p>
+    <p>第一个难点是<strong>视角多样性</strong>。一篇好的百科条目,要从多个角度展开:历史背景、技术原理、社会影响、不同流派的观点。而直接让 LLM"写一篇关于 X 的文章",它倾向于从一个"平均视角"铺陈,内容扁平。人类编辑会刻意地问自己:"从历史学家的视角该写什么?从批评者的视角呢?"——这种多视角提问是深度的来源。</p>
+    <p>第二个难点是<strong>信息充分性</strong>。长文需要大量事实和细节支撑,直接基于 LLM 的参数知识写,难免挂一漏万或编造。必须先做充分的调研,收集可靠来源,再基于这些来源写作。这本质上是一个"研究 + 写作"的复合任务。</p>
+    <p>第三个难点是<strong>组织结构</strong>。长文不是段落的堆砌,需要有清晰的大纲和合理的详略。哪些内容独立成章、哪些一笔带过、按什么逻辑顺序展开——这些结构决策决定了文章的可读性和深度。</p>
+    <p>STORM 的贡献,正是针对这三个难点提出了系统化的解决方案:用多视角对话做调研、用检索保证信息充分、用大纲驱动组织结构。下面我们逐一拆解它的方法。</p>
+    <h2 class="section" id="storm-overview"><span class="idx">★</span> STORM 的四阶段流程</h2>
+    <p>STORM 把写作流程拆成四个阶段,模拟人类百科编辑的工作方式,但用 Agent 的方式规模化执行。理解这个流程是把握 STORM 思想的关键。</p>
+    <p><strong>阶段一:预研究(Pre-research)</strong>。给定一个主题,STORM 先快速调研,生成一个初步大纲和一组"研究角色"(perspectives)。大纲决定了文章的结构,角色决定了调研的视角。比如主题是"区块链",可能生成"技术专家"、"经济学家"、"监管者"、"批评者"等角色,每个角色会带着自己的关注点去调研。</p>
+    <p><strong>阶段二:多视角对话调研(Multi-perspective Conversation)</strong>。这是 STORM 最核心的创新。它让一个"百科作者"Agent 与多个"领域专家"Agent 进行模拟对话:作者提问,专家(基于检索的真实信息)回答,作者追问,如此多轮。每个专家代表一个视角,带着自己的关注点回答。这种对话产出的,是带引用的、多角度的、经过追问深挖的素材——比单轮检索丰富得多。</p>
+    <p><strong>阶段三:大纲优化(Outline Refinement)</strong>。基于调研收集的素材,优化和细化最初的大纲。这一步让文章结构更贴合实际素材,避免大纲与内容脱节。优化后的大纲是写作的骨架。</p>
+    <p><strong>阶段四:基于大纲和素材的生成(Section Generation)</strong>。逐章节生成正文,每个章节都基于相关的调研素材(带引用),确保内容有据可依、视角多元。最后把各章节合并、去重、润色,形成完整长文。</p>
+    <p>这个流程的精髓在于<strong>把"写作"拆成"研究 + 组织 + 生成"</strong>,每个环节都用专门的方法优化。直接端到端生成做不到的深度,分阶段就能逼近。</p>
+    <h2 class="section" id="multi-perspective"><span class="idx">★</span> 核心创新:多视角模拟对话</h2>
+    <p>STORM 与其他写作系统最大的区别,是它的多视角模拟对话。这个设计值得深入理解,因为它揭示了一个重要的 Agent 设计模式。</p>
+    <p>传统 RAG 写作的调研方式是:针对主题做几次检索,把结果塞进 prompt 让 LLM 写。这种方式的局限是:检索查询是"主题级"的,粒度粗;检索结果是"被动"的,不会深挖;视角是单一的(默认是"百科作者"视角)。结果素材质量低、视角窄。</p>
+    <p>STORM 的做法是模拟一个真实的调研过程。它先确定多个相关角色(通过检索类似主题的现有百科文章,看它们引用了哪些类型的来源,反推出"需要哪些视角")。然后对每个角色,启动一段模拟对话:作者提问(基于当前已知和想了解的),专家回答(基于检索的真实信息,带引用)。多轮对话让作者能不断追问深挖,像真实采访一样获得深度信息。</p>
+    <p>这种对话的产出质量远高于单轮检索,因为:问题是针对具体角色设计的(问经济学家"区块链对货币政策的影响",问技术专家"共识机制的演进"),答案是带引用的(基于检索),且经过追问深挖(作者不理解会追问,专家会展开)。这些对话记录就成了写作的高质量素材库。</p>
+    <pre><code class="language-python">from anthropic import Anthropic
+client = Anthropic()
+
+def simulate_research_conversation(topic: str, perspective: str,
+                                    num_turns: int = 3) -> list[dict]:
+    """模拟作者与某视角专家的多轮调研对话"""
+    conversation = []
+    # 作者角色:想为百科写这个主题,向专家请教
+    author_system = f"你是百科作者,正在为'{topic}'写条目。你向{perspective}请教,"
+                    f"提问要具体、有深度,基于已有信息追问。"
+    # 专家角色:基于检索信息回答,必须带引用
+    expert_system = f"你是{perspective},回答关于'{topic}'的问题。"
+                    f"回答必须基于你检索到的真实信息,每个事实陈述后标注来源 URL。"
+
+    current_question = f"作为{perspective},您认为关于'{topic}'最重要的几个方面是什么?"
+
+    for turn in range(num_turns):
+        # 作者提问
+        conversation.append({"role": "author", "content": current_question})
+        # 专家检索相关资料(用搜索 API)
+        sources = search_web(f"{topic} {perspective} {current_question}")
+        retrieved = format_search_results(sources)
+        # 专家基于检索回答
+        expert_answer = llm_generate(
+            system=expert_system,
+            user=f"问题:{current_question}\n\n检索资料:\n{retrieved}"
+        )
+        conversation.append({"role": "expert", "content": expert_answer,
+                             "sources": sources})
+        # 作者基于回答生成下一个追问
+        current_question = llm_generate(
+            system=author_system,
+            user=f"专家刚回答:{expert_answer}\n请提一个有深度的追问。"
+        )
+    return conversation
+</code></pre>
+    <h2 class="section" id="outline"><span class="idx">★</span> 大纲驱动:结构决定深度</h2>
+    <p>有了多视角调研素材,下一步是把它们组织成有结构的文章。STORM 用大纲驱动的方式:先生成大纲,再按章节填充。这比"一次性写全文"更可控、更完整。</p>
+    <p>大纲生成不是孤立的,它基于调研素材。STORM 的做法是:把所有调研对话的要点提取出来,聚类成主题,每个主题对应大纲的一个章节。这样的大纲与素材紧密对应,不会出现"大纲有但没素材"或"有素材但大纲没覆盖"的脱节。</p>
+    <p>大纲生成后还可以做<strong>去重和合并</strong>:不同视角的调研可能覆盖了相同主题(比如技术专家和经济学家都谈了"去中心化"),这些要在章节层面合并,避免文章重复。大纲层面的去重比段落层面的去重更高效,也更彻底。</p>
+    <h2 class="section" id="generation"><span class="idx">★</span> 分章节生成与全局润色</h2>
+    <p>正文生成是逐章节进行的。对每个章节,STORM 从调研素材中检索最相关的内容,作为该章节的写作依据。这种"按需检索"避免了一个长 prompt 塞进所有素材的上下文爆炸问题,也保证了每节内容聚焦。</p>
+    <p>分章节生成后,各章节的质量已经不错,但拼接起来可能有风格不一致、衔接生硬的问题。最后一步是<strong>全局润色</strong>:通读全文,统一风格、优化过渡、补充必要的导语和总结。这一步对最终可读性影响很大,但要小心不能"润色"掉事实——润色只动表达,不动信息。</p>
+    <p>一个重要的工程细节是<strong>引用保留</strong>。调研素材里带了来源 URL,生成时要确保这些引用被正确带入正文。STORM 要求每个事实性陈述都标注引用,最终文章的每句话都能溯源——这是它区别于"AI 编故事"的关键。</p>
+    <h2 class="section" id="insights"><span class="idx">★</span> STORM 带来的设计启示</h2>
+    <p>STORM 的价值不止于写百科,它揭示的几个 Agent 设计原则,适用于更广泛的复杂任务。</p>
+    <p><strong>启示一:角色扮演提升质量</strong>。让 Agent 扮演不同角色协作,比单个 Agent 一把抓效果好得多。多视角对话本质是"用角色多样性换取内容多样性"。这个模式可以推广到任何需要全面性的任务:产品设计(用户/开发/运维视角)、代码审查(安全/性能/可维护性视角)、商业分析(不同利益相关方视角)。</p>
+    <p><strong>启示二:研究先于生成</strong>。复杂内容任务应该先充分调研,再基于素材生成,而不是边写边想。这个"先研究后写作"的模式,适用于任何需要信息密度和准确性的内容生产。</p>
+    <p><strong>启示三:结构驱动生成</strong>。先定结构(大纲)再填内容,比端到端生成更可控、更完整。这是处理长内容的通用方法,无论是写文章、写代码、做方案。</p>
+    <p><strong>启示四:对话是深挖信息的有效形式</strong>。多轮对话的追问机制,能挖出单轮检索得不到的深度信息。这个思路在客服、调研、需求收集等场景都适用。</p>
+    <h2 class="section" id="implement"><span class="idx">★</span> 复现 STORM 的简化实现</h2>
+    <p>把前面的思想组合起来,就是一个简化版的 STORM。下面是主流程骨架,展示如何把多视角对话、大纲生成、分章节写作串起来:</p>
+    <pre><code class="language-python">async def storm_write(topic: str) -> str:
+    # 1. 预研究:生成研究视角和初步大纲
+    perspectives = generate_perspectives(topic)
+    # 例如 ["技术专家", "经济学家", "法律学者", "历史学家"]
+    print(f"研究视角: {perspectives}")
+
+    # 2. 多视角调研:每个视角做一段模拟对话
+    all_materials = []
+    for p in perspectives:
+        conversation = simulate_research_conversation(topic, p, num_turns=3)
+        all_materials.extend(extract_cited_facts(conversation))
+    print(f"收集到 {len(all_materials)} 条带引用素材")
+
+    # 3. 基于素材生成大纲(聚类成章节)
+    outline = generate_outline_from_materials(topic, all_materials)
+    # outline = ["历史背景", "核心原理", "经济影响", "法律监管", "争议与展望"]
+
+    # 4. 分章节生成:每节检索相关素材
+    sections = []
+    for section_title in outline:
+        relevant = retrieve_relevant_materials(section_title, all_materials)
+        section_text = generate_section(topic, section_title, relevant)
+        sections.append({"title": section_title, "text": section_text})
+
+    # 5. 全局润色:统一风格、优化过渡、补全引用列表
+    article = polish_and_assemble(topic, sections, all_materials)
+    return article
+
+article = await storm_write("区块链技术")
+print(article)  # 一篇带多角度、带引用的深度长文
+</code></pre>
+    <h2 class="section" id="evaluation"><span class="idx">★</span> 效果评估与局限</h2>
+    <p>STORM 论文用 WikiGenerator-SE 数据集做了评估,指标包括内容覆盖度、组织性、引用准确性等。结果显示,STORM 生成的文章在"内容覆盖度"上显著优于直接 RAG 生成,在专家盲评中也更受偏好。这验证了多视角调研的价值。</p>
+    <p>但 STORM 也有局限。<strong>成本较高</strong>:多视角多轮对话意味着大量 LLM 调用,写一篇文章可能消耗几十万 token。<strong>质量依赖检索</strong>:如果检索不到好素材,多视角对话也无米下炊。<strong>可能过度冗长</strong>:多视角素材丰富,容易写成"什么都谈但都不深"的流水账,需要好的大纲去重和详略控制。<strong>时效性问题</strong>:百科类内容需要持续更新,一次性生成的文章会过时。</p>
+    <p>这些局限也指明了改进方向:用更便宜的小模型做对话、用更强的检索(包括学术库、专业数据库)、引入人审把关详略、建立持续更新机制。事实上,STORM 团队后续的 Co-STORM 就引入了人机协作,进一步提升了质量。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>STORM 是斯坦福提出的写作 Agent,核心贡献是把长文写作拆成"预研究 → 多视角对话调研 → 大纲优化 → 分章节生成"四阶段流程,模拟人类百科编辑的工作方式。它最核心的创新是多视角模拟对话——让作者 Agent 与多个专家角色对话,通过追问深挖出带引用的、多角度的高质量素材。</p>
+    <p>STORM 揭示的几个 Agent 设计原则价值深远:角色扮演换取内容多样性、研究先于生成、结构驱动生成、对话深挖信息。这些原则适用于百科之外的广泛复杂内容任务。</p>
+    <p>给实践者的启示:当你需要让 AI 生产深度内容时,不要寄希望于"一个超长 prompt 端到端生成",而要像 STORM 那样把任务分解、用多视角和迭代换取深度。这套"研究驱动的结构化写作"范式,正是 AI 内容生产从"能用"走向"好用"的关键。OpenAI、Google 等推出的 Deep Research 功能,本质上都借鉴了类似的思想——STORM 的论文值得每个做内容 Agent 的人精读。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

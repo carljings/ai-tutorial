@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>全书总结与进阶路线 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>全书总结与进阶路线 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -92,7 +99,7 @@
       <a href="75-coding-cases-3.html" title="AI 编程实战第三辑"><span class="num">75</span>AI 编程实战第三辑</a>
       <a href="76-industry-deep.html" title="行业深度案例第二辑"><span class="num">76</span>行业深度案例第二辑</a>
       <a href="77-project-management.html" title="LLM 项目管理与团队协作"><span class="num">77</span>LLM 项目管理与团</a>
-      <a href="78-finale.html" class="active" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
+      <a href="78-finale.html" title="全书总结与进阶路线"><span class="num">78</span>全书总结与 AI 未</a>
     </div>
     <div class="nav-group"><h3>参考</h3>
       <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
@@ -295,14 +302,206 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 参考</span><h1>全书总结与进阶路线</h1><p class="lead">回顾与展望——从学会到精通</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>全书回顾</h2>
-    <p>从 LLM 基础原理（基石）到 Harness/Agent Loop（工程）到 Transformer 数学（原理）到向量检索/RAG（专题）再到开源 Agent 源码/设计模式/框架（进阶）——全书 249 章覆盖了 AI 工程的完整知识图谱。</p>
-    <h2><span class="idx"></span>进阶路线建议</h2>
-    <table class="data-table"><thead><tr><th>方向</th><th>下一步学什么</th><th>推荐资源</th></tr></thead><tbody><tr><td>工程深度</td><td>LLMOps/推理优化/分布式训练</td><td>vLLM源码/DeepSpeed文档</td></tr><tr><td>模型深度</td><td>预训练/SFT/RLHF全流程</td><td>LLaMA-Factory/Axolotl实战</td></tr><tr><td>Agent深度</td><td>多Agent系统/Agent评估</td><td>LangGraph/CrewAI源码</td></tr><tr><td>研究前沿</td><td>论文精读/复现</td><td>arXiv/Hugging Face Papers</td></tr><tr><td>产品深度</td><td>AI产品设计/安全/合规</td><td>EU AI Act/OWASP LLM Top10</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>全书249章覆盖AI工程完整图谱：基石→工程→原理→专题→进阶。进阶五方向：工程深度（LLMOps/推理优化）、模型深度（训练全流程）、Agent深度（多Agent/评估）、研究前沿（论文复现）、产品深度（设计/安全/合规）。最重要的建议：动手做项目——看100篇文章不如做一个RAG应用。</p>
-    <div class="chapter-nav">
-      <a href="77-project-management.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 78 章 · 全书总结与进阶路线</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 78 · 实战案例系列</span>
+      <h1>全书总结<br>五十章核心知识点回顾与进阶路线图</h1>
+      <p class="lead">你已经走到了这段旅程的终点。从第一章的「什么是大语言模型」到现在，我们穿越了 Transformer 架构、训练原理、prompt 工程、RAG、Agent、部署运维、行业应用、法规合规、创业投资……这五章的实战案例系列是整本书的收尾。这一章帮你把所有知识点串成一张认知地图，并给出清晰的进阶路线，让你知道接下来该往哪里走。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="knowledge-map"><span class="idx">★</span> 一、全书知识图谱</h2>
+    <p>学完这么多内容，最重要的不是记住每个细节，而是建立知识之间的联系。我把全书的核心知识点组织成一张知识图谱，分六个模块。</p>
+    <pre><code class="language-text">全书知识图谱（六大模块）：
+
+模块一：基础理论（理解原理）
+├── 数学基础（第 51 章）：向量、矩阵、softmax、概率、链式法则
+├── Transformer 架构（第 56/57/109 章）：Attention、Encoder/Decoder、因果掩码
+├── 训练范式（第 57 章）：预训练、微调、RLHF、Constitutional AI
+└── 发展史（第 56 章）：ELMo→BERT→GPT→ChatGPT→推理模型
+
+模块二：工程能力（会用工具）
+├── Prompt 工程：设计原则、few-shot、CoT、结构化输出
+├── RAG 系统（第 72 章）：向量检索、知识图谱、GraphRAG
+├── Agent 编排（第 70 章）：LangGraph、条件分支、工具调用、人在回路
+├── 模型微调：LoRA、QLoRA、数据准备、评估
+└── 多模态：视觉语言模型、语音处理
+
+模块三：部署运维（能上线）
+├── GPU 选型（第 59 章）：A100/H100/4090、显存计算
+├── 推理优化（第 67 章）：vLLM、量化、Continuous Batching
+├── 运维体系（第 58 章）：K8s 部署、监控告警、灰度回滚、SLO
+├── 容器化（第 75 章）：Docker、CI/CD
+└── 性能调优：延迟、吞吐、成本三维平衡
+
+模块四：质量与安全（做可靠）
+├── 测试体系（第 64/75 章）：单元/集成/prompt/安全测试
+├── 对抗性测试（第 69 章）：prompt injection、越狱、防御
+├── 错误处理（第 79 章）：调试方法论
+└── 最佳实践（第 83 章）：50 条经验法则
+
+模块五：业务与行业（能落地）
+├── 行业应用（第 55/76 章）：金融/医疗/教育/制造/客服/文档/代码
+├── AI for Science（第 68 章）：AlphaFold、材料、药物
+├── 项目管理（第 77 章）：需求拆解、敏捷迭代、风险控制
+├── 产品设计（第 85 章）：UX 模式、错误处理、人在回路
+└── 开源社区（第 65 章）：Issue/PR/文档/版本管理
+
+模块六：战略与视野（看得远）
+├── AI 创业（第 53 章）：赛道、MVP、成本、融资
+├── 投资估值（第 63 章）：开源闭源、三层结构、护城河
+├── 法规合规（第 62 章）：EU AI Act、中国办法、美国行政令
+├── 学习路径（第 71 章）：五阶段 20 周计划
+└── 论文阅读（第 57 章）：五篇奠基论文</code></pre>
+
+    <h2 class="section" id="core-concepts"><span class="idx">★</span> 二、必须牢记的十个核心认知</h2>
+    <p>如果整本书只能记住十件事，我会选这些。它们是理解整个 LLM 领域的认知锚点。</p>
+    <pre><code class="language-text">十个核心认知：
+
+1. Decoder-Only + 自回归生成是当前大模型的主流架构。
+   理解了因果掩码和 KV Cache，就理解了 GPT 的骨架。
+
+2. Scaling Law + Chinchilla 法则决定了模型训练的基本规律。
+   参数和数据要按 20:1 的比例增长，大力能出奇迹。
+
+3. RLHF 让模型从「预测互联网文本」变成「给有用的回答」。
+   能力 + 对齐 = 大众级 AI 产品。
+
+4. 一切任务都可以统一为「续写」。
+   Prompt 工程的本质是引导模型按你期望的方向续写。
+
+5. RAG 解决了「知识更新」和「幻觉」两大痛点。
+   向量检索是基础，知识图谱补上关系维度。
+
+6. Agent 是 LLM 从「回答」走向「行动」的关键。
+   状态管理 + 条件路由 + 工具调用 + 人在回路。
+
+7. 推理优化的核心是「带宽受限」下的效率最大化。
+   Continuous Batching + 量化是两大 free lunch。
+
+8. 安全合规不是事后补丁，是设计阶段的硬约束。
+   Prompt injection 是第一大威胁，多层防御是唯一解。
+
+9. AI 的价值在「AI+人协作」，不是「AI 替代人」。
+   让 AI 做 80% 的重复，让人聚焦 20% 的判断。
+
+10. 持续学习是 AI 领域的唯一常数。
+    今天的前沿明天可能过时，学会学习比学具体知识重要。</code></pre>
+
+    <h2 class="section" id="skill-levels"><span class="idx">★</span> 三、能力自评：你在哪个层级</h2>
+    <pre><code class="language-text">AI 工程师能力层级（自评参考）：
+
+Level 1：AI 使用者
+□ 会用 ChatGPT/Claude 辅助日常工作
+□ 能写基本的 prompt 获得可用输出
+□ 了解 AI 的基本概念和局限
+→ 目标：提升日常效率
+
+Level 2：AI 应用开发者
+□ 能用 API 开发 AI 功能（RAG、对话）
+□ 理解 prompt 工程和 RAG 原理
+□ 能部署一个 AI 应用到生产
+→ 目标：独立交付 AI 功能
+
+Level 3：AI 工程师
+□ 掌握模型微调、推理优化、性能调优
+□ 能设计 Agent 系统和多模型架构
+□ 理解安全合规，能做对抗性测试
+→ 目标：主导 AI 系统的技术决策
+
+Level 4：AI 架构师
+□ 能设计大型 AI 系统的完整架构
+□ 深入理解一个垂直领域（如 RAG/Agent/训练）
+□ 能做技术选型和团队技术规划
+→ 目标：影响组织的技术方向
+
+Level 5：AI 研究者/创新者
+□ 能提出新的方法或架构
+□ 深度理解前沿论文并能复现
+□ 在特定方向有原创贡献
+→ 目标：推动领域边界</code></pre>
+
+    <h2 class="section" id="next-steps"><span class="idx">★</span> 四、进阶路线：接下来学什么</h2>
+    <p>学完这本书不是终点，而是起点。根据你的目标和当前水平，有几条进阶路线。</p>
+    <pre><code class="language-text">进阶路线（按方向）：
+
+路线 A：深入模型训练（想成为算法工程师）
+1. 系统学习深度学习理论
+   - 课程：Stanford CS231N + CS224N
+   - 实践：从零训练一个小模型
+2. 深入预训练和微调
+   - 阅读 LLaMA、Qwen 的技术报告
+   - 实践：用 LoRA 微调一个领域模型
+3. 研究前沿论文
+   - 跟踪 arXiv cs.CL/cs.LG
+   - 复现 1-2 篇重要论文
+4. 参与 Kaggle/HuggingFace 比赛
+
+路线 B：深入系统工程（想成为 AI 基础设施工程师）
+1. 深入推理优化
+   - 研究 vLLM/TensorRT-LLM 源码
+   - 实践：优化一个推理服务的吞吐和延迟
+2. 分布式系统
+   - 学习分布式训练（数据并行/模型并行）
+   - K8s + GPU 调度
+3. 成本优化
+   - 建立完整的成本模型
+   - 量化、缓存、路由的综合优化
+
+路线 C：深入产品与创业（想做 AI 产品/创业）
+1. 行业深耕
+   - 选择一个行业深入理解业务
+   - 做一个解决真实问题的 MVP
+2. 产品设计
+   - 学习 AI 产品的 UX 设计模式（第 85 章）
+   - 数据驱动的产品迭代
+3. 商业化
+   - 理解 AI 产品的单位经济模型
+   - 学习融资和团队管理
+
+路线 D：深入安全与合规（想成为 AI 安全专家）
+1. 对抗性测试
+   - 深入研究 prompt injection 和越狱
+   - 建立自动化红队测试体系
+2. 合规框架
+   - 深入研究 EU AI Act、各国法规
+   - 建立 Privacy by Design 的工程实践
+3. 可信 AI
+   - 研究 AI 公平性、可解释性、鲁棒性</code></pre>
+
+    <h2 class="section" id="mindset"><span class="idx">★</span> 五、终身学习的心态</h2>
+    <p>AI 领域的变化速度是前所未有的。2022 年 ChatGPT 诞生，2024 年推理模型出现，这些颠覆性变化在传统软件领域要十年才发生一次，在 AI 领域只要一两年。在这种节奏下，具体知识会快速贬值，但以下能力会持续增值：</p>
+    <ul>
+      <li><strong>快速学习的能力</strong>：能在几天内理解一个新概念/新框架，这是 AI 时代最重要的元技能。</li>
+      <li><strong>第一性原理思维</strong>：穿透表面的技术名词，理解底层的本质（本书一直在做这件事）。</li>
+      <li><strong>系统化思维</strong>：不孤立地看技术，而是理解它在整个系统中的位置和权衡。</li>
+      <li><strong>实验精神</strong>：不轻信任何「最佳实践」，自己跑实验验证。数据胜过观点。</li>
+      <li><strong>分享和连接</strong>：把学到的东西分享出去，在过程中深化理解、建立人脉。</li>
+    </ul>
+
+    <h2 class="section" id="final-words"><span class="idx">★</span> 六、写在最后</h2>
+    <p>回顾这本书的起点——我们从一个最基本的问题「什么是大语言模型」出发，一路走到 Agent 编排、推理优化、行业落地、法规合规、投资创业。这条路径本身就是 AI 从「实验室技术」到「改变世界的基础设施」的缩影。</p>
+    <p>但书的结束不是学习的结束。AI 领域最迷人的地方在于：它还在快速演进，每个人都既是学习者也是参与者。你今天写的一个 prompt、做的一个应用、提的一个问题，都可能成为推动这个领域前进的一份力量。</p>
+    <p>保持好奇，保持实践，保持谦逊。AI 的黄金时代才刚刚开始，而你，已经准备好了。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们对全书做了系统性回顾。核心要点：</p>
+    <ul>
+      <li><strong>六大知识模块</strong>：基础理论、工程能力、部署运维、质量安全、业务行业、战略视野。每个模块都有对应的章节支撑。</li>
+      <li><strong>十个核心认知</strong>：Decoder-Only 主流、Scaling Law、RLHF 对齐、一切皆续写、RAG 治幻觉、Agent 走向行动、带宽受限优化、安全前置、AI+人协作、持续学习。</li>
+      <li><strong>五个能力层级</strong>：使用者 → 应用开发者 → 工程师 → 架构师 → 研究者。自评定位，明确下一步。</li>
+      <li><strong>四条进阶路线</strong>：模型训练、系统工程、产品创业、安全合规。按兴趣和目标选择。</li>
+      <li><strong>终身学习</strong>：快速学习、第一性原理、系统思维、实验精神、分享连接——这些元能力比具体知识更持久。</li>
+    </ul>
+    <p>感谢你读完这本书。接下来的实战案例系列（第 79-85 章）会深入更多具体场景：调试手册、产品增长、源码导读、最佳实践、优化案例、UX 模式。它们是这本书最后的礼物，也是你走向实战的最后一块拼图。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

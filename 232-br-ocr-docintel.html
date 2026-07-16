@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>OCR 与文档智能：把纸面变数据 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>OCR 与文档智能：把纸面变数据 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -270,7 +277,7 @@
       <a href="229-br-responsible-ai.html" title="负责任 AI 文档：模型卡与数据卡"><span class="num">229</span>负责任 AI 文档</a>
       <a href="230-br-speech-pipeline.html" title="语音 AI 全链路：ASR → LLM → TTS"><span class="num">230</span>语音 AI 全链路</a>
       <a href="231-br-data-closedloop.html" title="AI 项目的数据闭环与持续改进"><span class="num">231</span>AI 项目的数据闭环</a>
-      <a href="232-br-ocr-docintel.html" class="active" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
+      <a href="232-br-ocr-docintel.html" title="OCR 与文档智能：把纸面变数据"><span class="num">232</span>OCR 与文档智能</a>
       <a href="233-br-a2a-protocol.html" title="A2A 协议：Agent 间通信标准"><span class="num">233</span>A2A 协议</a>
       <a href="234-br-finetune-strategy.html" title="微调策略决策：什么时候该微调"><span class="num">234</span>微调策略决策</a>
       <a href="235-br-cost-engineering.html" title="成本工程：Token 经济学与省钱之道"><span class="num">235</span>成本工程</a>
@@ -295,15 +302,148 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★AI知识拓宽</span><h1>OCR 与文档智能：把纸面变数据</h1><p class="lead">从扫描件到结构化数据——文档智能的技术栈</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>文档智能：不只是 OCR</h2>
-    <p>传统 OCR 只做"图片→文字"。文档智能（Document Intelligence）要做的多得多——识别文档的版面结构（标题/段落/表格/图片）、提取键值对（发票号/金额/日期）、理解表格（行列关系）、分类文档类型。这是企业数字化（纸质合同/发票/报告的电子化）的核心技术。</p>
-    <table class="data-table"><thead><tr><th>层级</th><th>做什么</th><th>代表技术</th></tr></thead><tbody><tr><td>OCR</td><td>图片→文字</td><td>PaddleOCR/Tesseract</td></tr><tr><td>版面分析</td><td>识别标题/段落/表格/图</td><td>LayoutLM/Donut</td></tr><tr><td>信息提取</td><td>提取键值对/实体</td><td>LLM + 结构化 prompt</td></tr><tr><td>文档理解</td><td>问答/摘要/分类</td><td>多模态 LLM</td></tr></tbody></table>
-    <h2><span class="idx"></span>LLM 时代的文档智能</h2>
-    <p>多模态 LLM（GPT-4V/Claude Vision）正在颠覆文档智能——它能直接"看"文档图片，理解版面+提取信息+回答问题，不需要专门的 OCR + 版面分析 + 信息提取流水线。RAGFlow 的"深度文档理解"就是用多模态 LLM 处理复杂文档（表格/版式/扫描件），这是它 83K stars 的核心原因。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>文档智能从 OCR（文字识别）→ 版面分析（结构理解）→ 信息提取（键值对）→ 文档理解（问答/摘要）四层。LLM 时代，多模态 LLM 正在统一这些步骤——直接看图理解+提取+回答。RAGFlow 用这个思路处理复杂文档，是企业知识库的关键技术。</p>
-    <div class="chapter-nav">
-    <a href="231-br-data-closedloop.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 232 章 · OCR 与文档智能：把纸面变数据</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 232 · 业务应用</span>
+      <h1>OCR 与文档智能<br>让机器真正读懂一张发票或一份合同</h1>
+      <p class="lead">把一张图片里的文字提取出来,这件事 OCR 引擎已经做得不错。但业务真正想要的不是文字,而是"结构化的信息":发票金额是多少、合同甲乙双方是谁、报表里哪个数字对应哪个科目。文档智能(Document Intelligence)正是 OCR 之上的那层理解能力。本章梳理从 PaddleOCR 到 TrOCR 到 LayoutLMv3 的技术谱系,并通过发票、合同、报表三大场景讲透落地方法。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="ocr-vs-di"><span class="idx">★</span> OCR 和文档智能的区别</h2>
+    <p>先厘清两个常被混淆的概念。OCR(Optical Character Recognition,光学字符识别)的任务是把图像中的文字像素转换成机器可编辑的字符——输入一张图片,输出一段文字。它的关注点是"认字",不关心字与字之间的关系、不关心字段含义。</p>
+    <p>文档智能(Document Intelligence,有时叫 Document Understanding)更进一步,它要理解文档的<strong>结构</strong>和<strong>语义</strong>。比如看到一张发票,它要识别出" invoice_no: 发票号码 12345678"、"amount: 价税合计 ¥1,000.00"、"date: 开票日期 2026-07-01"这样的键值对;看到一份合同,它要提取出甲方、乙方、签订日期、关键条款。这需要同时理解文字内容、文字位置(版式)、以及它们的语义关系。</p>
+    <p>一句话概括:OCR 解决"图里有字"的问题,文档智能解决"这些字是什么意思、属于哪个字段"的问题。业务价值几乎全在后者的结构化提取上——客户要的不是一堆文字,而是能直接进数据库的字段。这也是为什么近年来研究热点从纯 OCR 转向了"版面理解 + 文本理解"的多模态文档智能。</p>
+    <h2 class="section" id="paddleocr"><span class="idx">★</span> PaddleOCR:工业级开箱即用的基线</h2>
+    <p>PaddleOCR 是百度开源的 OCR 工具套件,凭借"轻量、多语言、效果好、易部署"成为工业界最常用的 OCR 方案。它的完整 pipeline 包含三个阶段:<strong>文本检测</strong>(找到图中文本的位置,输出框)、<strong>文本识别</strong>(把每个框里的字识别出来)、<strong>版面分析</strong>(可选,识别表格、图片、标题等区域)。</p>
+    <p>PaddleOCR 的检测模型常用 DB(Differentiable Binarization),能在复杂背景下准确找到文本边界;识别模型常用 CRNN+CTC,支持中文、英文、数字混排;它还内置了表格识别、关键信息提取等高阶能力。对大多数文档场景,PaddleOCR 的预训练模型直接用就有不错效果,且提供了从移动端到服务端的多种尺寸。下面是基本用法:</p>
+    <pre><code class="language-python">from paddleocr import PaddleOCR
+
+# 初始化:同时加载检测、识别、(可选)版面分析模型
+ocr = PaddleOCR(
+    use_angle_cls=True,   # 方向分类,处理旋转文本
+    lang="ch",            # 中英文
+    show_log=False,
+)
+
+result = ocr.ocr("invoice.png", cls=True)
+# result 是按文本框组织的列表
+for line in result[0]:
+    box, (text, conf) = line
+    print(f"文本: {text}  置信度: {conf:.2f}")
+    # box 是 4 个角的坐标,可用于后续版面分析
+</code></pre>
+    <p>拿到文字和坐标后,要做信息提取,传统做法是写正则。但发票、合同这类半结构化文档,正则维护成本高、泛化差。这时就需要结合<strong>版面理解模型</strong>或<strong>大语言模型</strong>来提取结构化字段——这是文档智能的真正难点,也是 LayoutLMv3 和 LLM 发挥的地方。</p>
+    <h2 class="section" id="trocr"><span class="idx">★</span> TrOCR:基于 Transformer 的端到端识别</h2>
+    <p>PaddleOCR 这类传统 pipeline 是"检测 + 识别"两阶段,识别部分常用 CNN+RNN+CTC。微软提出的 TrOCR(Transformer-based OCR)走了一条不同路线:用视觉 Transformer(ViT)编码图像,用文本 Transformer 解码文字,端到端地从图像直接输出文本,不需要字符级别的对齐标注。</p>
+    <p>TrOCR 的优势在<strong>手写体、复杂排版、长文本</strong>这些 CNN 难处理的场景。它的解码器是自回归的,能利用语言模型先验"猜"出模糊的字,所以在脏污、模糊图像上比 CTC 模型更鲁棒。TrOCR 提供了从 base 到 large 的多个尺寸,以及针对手写(IAM)、数学公式等微调的专用版本。</p>
+    <p>TrOCR 的局限是推理较慢(自回归解码),且对中文的支持需要自己微调(官方主要在英文上预训练)。实践中,常见组合是"用 PaddleOCR 做检测定位,用 TrOCR 识别难认的文本框",各取所长。下面是 TrOCR 的典型用法:</p>
+    <pre><code class="language-python">from transformers import TrOCRProcessor, VisionEncoderDecoderModel
+from PIL import Image
+
+processor = TrOCRProcessor.from_pretrained("microsoft/trocr-base-handwritten")
+model = VisionEncoderDecoderModel.from_pretrained("microsoft/trocr-base-handwritten")
+
+image = Image.open("handwritten_note.png").convert("RGB")
+pixel_values = processor(image, return_tensors="pt").pixel_values
+# 自回归生成文本
+generated = model.generate(pixel_values)
+text = processor.batch_decode(generated, skip_special_tokens=True)[0]
+print(text)
+</code></pre>
+    <h2 class="section" id="layoutlm"><span class="idx">★</span> LayoutLMv3:融合文字、版式、图像的多模态王者</h2>
+    <p>当你需要的不仅是"认字",还要"理解文档结构"(比如判断哪段是标题、哪个数字属于金额字段),LayoutLMv3 是当前最强的开源方案。它的核心创新是把<strong>文本内容、文本的 2D 位置坐标、图像 patch</strong> 三种模态统一在一个 Transformer 里建模,让模型同时理解"写了什么"、"写在哪里"、"长什么样"。</p>
+    <p>理解它的设计动机:一个数字"1000"在发票里,可能是金额、可能是编号、也可能是日期的一部分——单看文字无法区分,必须结合位置和上下文。LayoutLM 系列正是为此而生。LayoutLMv1 引入了文本 1D 位置(在序列中的顺序);v2 加入了 2D 版面坐标和图像特征;v3 进一步统一了文本和图像的预训练目标,效果持续提升。</p>
+    <p>LayoutLMv3 的典型用法是<strong>微调</strong>到一个具体的文档理解任务,比如"发票字段提取"。你需要一份标注数据:每张文档图标注出文本块(文字 + 坐标)和它们的类别(invoice_no、amount、date 等)。微调后,模型能对新文档做 token 级别的分类,自动把每个文本块归到对应字段。下面是一个微调的数据准备示意:</p>
+    <pre><code class="language-python"># 简化的 LayoutLMv3 微调数据准备(实际用 datasets + transformers)
+# 每个样本:words(词列表)、boxes(每个词的坐标)、labels(每个词的标签)
+
+example = {
+    "image": "invoice_001.png",
+    "words": ["发票号码", "12345678", "价税合计", "¥1,000.00"],
+    # 坐标格式 [x0, y0, x1, y1],归一化到 0-1000
+    "boxes": [
+        [120, 80, 240, 110],
+        [260, 80, 420, 110],
+        [120, 400, 240, 430],
+        [260, 400, 420, 430],
+    ],
+    # BIO 标签:B-INV_NO 表示发票号码开头,I-INV_NO 后续,O 无关
+    "labels": ["B-INV_NO", "I-INV_NO", "B-AMOUNT", "I-AMOUNT"],
+}
+
+# 微调用 LayoutLMv3ForTokenClassification,预测每个 token 的标签
+# 推理时对标签做 BIO 解码,即可提取出 {invoice_no: "12345678", amount: "¥1,000.00"}
+</code></pre>
+    <p>LayoutLMv3 的效果在 FUNSD、CORD、XFUND 等文档理解 benchmark 上长期领先,适合需要高精度字段提取的中大型项目。它的成本是:需要标注数据(几百到几千份)、需要 GPU 微调、模型较大。对小规模、快速验证的场景,现在还有另一个选择——直接用 LLM。</p>
+    <h2 class="section" id="llm-approach"><span class="idx">★</span> LLM + OCR:文档智能的新范式</h2>
+    <p>大语言模型兴起后,文档智能出现了新的实现路径:用 OCR 提取所有文字(带位置),然后把文字连同它们的坐标或文档图像一起喂给 LLM,让 LLM 输出结构化 JSON。这种方式的优势是<strong>零微调、快速上手、自然处理复杂语义</strong>——LLM 已经懂"甲方乙方"、"价税合计"这些概念,你只需要给个提示和示例。</p>
+    <p>具体有两种喂法。<strong>纯文本喂法</strong>:把 OCR 结果按位置顺序拼成文本(可以加上简单的坐标标注),让 LLM 提取字段。简单但丢失了视觉信息。<strong>多模态喂法</strong>:直接把文档图片喂给视觉大模型(GPT-4V、Gemini、Claude 等),让它"看图说话"提取字段。后者更强大,因为模型能直接利用版面信息,但对图像质量和模型能力要求高。下面演示纯文本喂法的提示工程:</p>
+    <pre><code class="language-python">import json
+from anthropic import Anthropic
+
+client = Anthropic()
+
+ocr_text = """
+[发票号码] 12345678
+[开票日期] 2026-07-01
+[购买方] XX科技有限公司
+[货物名称] 笔记本电脑 数量 5 单价 6000
+[价税合计] ¥30,000.00
+[税额] ¥3,451.33
+"""
+
+prompt = f"""你是一个发票信息提取助手。从下面 OCR 文本中提取字段,以 JSON 输出。
+要求:金额输出纯数字,日期用 YYYY-MM-DD,缺失字段用 null。
+
+{ocr_text}
+
+输出 JSON schema:
+{{
+  "invoice_no": "",
+  "date": "",
+  "buyer": "",
+  "amount_total": 0,
+  "tax": 0
+}}"""
+
+resp = client.messages.create(
+    model="claude-3-5-sonnet-20241022",
+    max_tokens=512,
+    messages=[{"role": "user", "content": prompt}],
+)
+data = json.loads(resp.content[0].text)
+print(data)
+# {'invoice_no': '12345678', 'date': '2026-07-01', 'buyer': 'XX科技有限公司',
+#  'amount_total': 30000.0, 'tax': 3451.33}
+</code></pre>
+    <p>这种 LLM 方式的开发效率是革命性的:以前要标注几千份、微调几天的字段提取任务,现在写个提示、给几个示例就能跑起来。它的局限是<strong>推理成本和延迟</strong>:每张文档都调一次 LLM API,大批量场景成本不低,且延迟高于专用模型。所以现在的最佳实践是:用 LLM 快速验证和冷启动,效果稳定后再用 LayoutLMv3 之类的专用模型做生产部署,降低成本。</p>
+    <h2 class="section" id="scene-invoice"><span class="idx">★</span> 场景一:发票自动录入</h2>
+    <p>发票是最经典的文档智能场景,特点是<strong>版式相对固定、字段明确、容错率低</strong>。典型字段包括发票号码、开票日期、购买方/销售方、货物明细、金额、税额、价税合计。</p>
+    <p>落地方案分两档。高精度档(财务要求严格):PaddleOCR 检测识别 + LayoutLMv3 字段提取,在自家发票数据上微调,准确率可达 95% 以上,适合月处理量百万级的共享中心。轻量档(快速上线、中小量):PaddleOCR + LLM 提取,无需训练,几天就能上线,准确率 85-90%,适合报销自动化、ERP 集成。两档都要做"人审兜底":对模型置信度低的字段,人工复核后再入库。</p>
+    <p>一个容易被忽视的细节是<strong>票据预处理</strong>:手机拍照的发票常有倾斜、阴影、折痕,直接送 OCR 会大幅降低识别率。先用 OpenCV 做边缘检测、透视矫正、二值化,往往比换更高级的模型更有效。这也是文档智能落地的"脏活累活"——很多项目失败不是因为模型不行,而是没做预处理。</p>
+    <h2 class="section" id="scene-contract"><span class="idx">★</span> 场景二:合同关键条款抽取</h2>
+    <p>合同比发票难得多,因为<strong>版式多样、条款语义复杂、字段位置不固定</strong>。同样叫"违约金条款",不同合同的表达千差万别(有的叫"赔偿金"、有的叫"逾期责任"),纯靠正则或位置无法提取。</p>
+    <p>合同场景的推荐方案是"LLM 为主 + 检索增强"。先把合同按段落切分,对每个段落用 LLM 判断属于哪个字段(甲方、乙方、签订日期、违约责任、保密条款等),并提取具体内容。对于长合同(几十页),可以先用 embedding 检索相关段落,再让 LLM 精读,降低成本。LayoutLMv3 在合同上效果一般,因为合同的关键在语义而非版面。</p>
+    <p>合同场景的特殊要求是<strong>准确率优先</strong>——漏抽一个违约条款可能造成重大损失。所以要做严格的人工复核流程:模型抽完后,关键条款必须经法务确认;同时建立"反例库",把模型抽错的案例沉淀下来,持续优化提示或微调模型。</p>
+    <h2 class="section" id="scene-report"><span class="idx">★</span> 场景三:财务报表结构化</h2>
+    <p>财务报表的难点是<strong>表格</strong>。表格有复杂的行列对应关系、合并单元格、跨页表格,纯 OCR 提取的文字会丢失这种结构。报表结构化的目标是:把"资产负债表"图片转成一个二维数组或 DataFrame,每个数字精确对应到"流动资产-应收账款-期末余额"。</p>
+    <p>专门做表格识别的开源工具有 PaddleOCR 的 PP-Structure、Microsoft 的 Table Transformer。它们能检测表格边界、识别行列结构、输出 HTML 或 Excel。但对复杂合并单元格,效果仍有提升空间。一个实用的混合方案:用表格识别模型得到 HTML 骨架,再用 LLM 填充和校验单元格内容,结合两者优势。</p>
+    <p>报表场景对数字精度要求极高,任何错位都是灾难。所以除了模型,还要做<strong>交叉校验</strong>:利用会计恒等式(资产=负债+所有者权益)、上下期勾稽关系做自动验证,模型输出不符合勾稽关系的要重点复核。这种业务规则的校验,是文档智能在金融场景可靠落地的关键。</p>
+    <h2 class="section" id="selection"><span class="idx">★</span> 技术选型建议</h2>
+    <p>把上面三种工具放在选型框架里。需要快速验证、文档版式多样、量不大 → <strong>LLM + OCR</strong>,几天就能出原型。需要高精度、有标注数据、版式相对固定 → <strong>LayoutLMv3 微调</strong>,适合规模化生产。需要处理手写、模糊、复杂字体 → <strong>TrOCR</strong> 替换识别环节。需要轻量部署到端侧 → <strong>PaddleOCR 轻量版</strong>。</p>
+    <p>一个常见误解是"上大模型就万事大吉"。LLM 在文档智能上的问题是成本高、延迟高、且对密集表格的精确数字提取不稳定。所以大型生产系统通常是"专用模型 + LLM 兜底"的混合架构:常规文档用专用模型高效处理,边缘 case 或低置信度的用 LLM 处理或转人工。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>OCR 解决"认字",文档智能解决"理解字段含义"。技术谱系上,PaddleOCR 是工业级开箱即用的基线,适合检测+识别;TrOCR 用 Transformer 端到端识别,擅长手写和复杂版式;LayoutLMv3 融合文本、版面、图像三模态,是字段提取的强者;LLM+OCR 开辟了零微调的新范式,适合快速验证。</p>
+    <p>三大场景各有对策:发票用 PaddleOCR + LayoutLMv3 或 LLM;合同用 LLM + 检索增强,语义优先;报表要专门表格识别 + 业务规则校验。无论哪种场景,预处理(矫正、去噪)和人审兜底都是落地的关键。</p>
+    <p>文档智能的核心洞察是:技术只是工具,真正决定成败的是你对业务字段的理解、对准确率与成本的平衡、以及对边界 case 的处理策略。把"模型 + 规则 + 人审"组合好,远比追求单一模型的高分重要。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

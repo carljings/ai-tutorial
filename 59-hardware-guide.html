@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 硬件选型与采购指南 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 硬件选型与采购指南 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -73,7 +80,7 @@
       <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
-      <a href="59-hardware-guide.html" class="active" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
+      <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
       <a href="60-more-projects.html" title="更多端到端实战项目"><span class="num">60</span>更多端到端实战项目</a>
       <a href="61-redteam-handbook.html" title="AI 安全红队手册"><span class="num">61</span>AI 安全红队手册</a>
       <a href="62-ai-regulation.html" title="AI 法规与合规"><span class="num">62</span>AI 法规与合规</a>
@@ -295,19 +302,200 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 硬件选型与采购指南</h1><p class="lead">GPU/NPU/内存/存储——AI 工程的硬件决策</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>硬件是 AI 的地基</h2>
-    <p>AI 工程的很多"软件问题"本质是硬件问题——推理慢可能是显存带宽不够，OOM 是显存太小，训练慢是 GPU 算力不足。理解硬件，才能做对工程决策。本章梳理 GPU/NPU/内存/存储的选型逻辑。</p>
-    <h2><span class="idx"></span>GPU 选型：三大维度</h2>
-    <table class="data-table"><thead><tr><th>维度</th><th>为什么重要</th><th>选型建议</th></tr></thead><tbody><tr><td>显存</td><td>决定能跑多大的模型</td><td>70B INT4 需 40GB+，建议 A100 80GB</td></tr><tr><td>算力(TFLOPS)</td><td>决定推理/训练多快</td><td>训练选 H100/A100，推理可选 4090</td></tr><tr><td>显存带宽</td><td>决定推理瓶颈（KV Cache读写）</td><td>HBM3 &gt; HBM2e，越高越好</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>GPU 选购最常见的错误：**只看显存，不看带宽**。LLM 推理是"显存带宽瓶颈"而非"算力瓶颈"——生成每个 token 要读全量 KV Cache，带宽不够算力再高也白搭。这就是为什么 A100（带宽 2TB/s）比 3090（带宽 0.9TB/s）快不止 2 倍，尽管显存差不多。</div>
-    <h2><span class="idx"></span>主流 GPU 对比</h2>
-    <table class="data-table"><thead><tr><th>GPU</th><th>显存</th><th>带宽</th><th>适合</th><th>参考价</th></tr></thead><tbody><tr><td>RTX 4090</td><td>24 GB</td><td>1.0 TB/s</td><td>7B 推理/微调</td><td>~$1500</td></tr><tr><td>A100 80GB</td><td>80 GB</td><td>2.0 TB/s</td><td>70B 推理/训练</td><td>~$15000</td></tr><tr><td>H100 80GB</td><td>80 GB</td><td>3.4 TB/s</td><td>大规模训练</td><td>~$30000</td></tr><tr><td>L40S</td><td>48 GB</td><td>0.9 TB/s</td><td>推理性价比</td><td>~$8000</td></tr></tbody></table>
-    <h2><span class="idx"></span>非 GPU 方案：NPU/TPU/CPU</h2>
-    <table class="data-table"><thead><tr><th>方案</th><th>适合</th><th>优势</th><th>劣势</th></tr></thead><tbody><tr><td>NPU（华为昇腾）</td><td>国产替代</td><td>不依赖NVIDIA</td><td>生态弱</td></tr><tr><td>TPU（Google）</td><td>Google Cloud</td><td>训练快</td><td>绑定GCP</td></tr><tr><td>CPU推理(llama.cpp)</td><td>端侧/低并发</td><td>零硬件门槛</td><td>慢</td></tr><tr><td>Mac M系列</td><td>本地开发</td><td>统一内存大</td><td>不支持CUDA</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>GPU 选型三大维度：显存（决定模型大小）、算力（决定速度）、带宽（决定推理瓶颈，最易被忽略）。推理是带宽瓶颈——A100 比 3090 快不止 2 倍因为带宽差 2 倍。4090 适合 7B，A100/H100 适合 70B+。非 GPU 方案：NPU（国产）、TPU（GCP）、CPU（端侧）、Mac M（本地开发）。</p>
-    <div class="chapter-nav">
-      <a href="58-llm-ops.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 59 章 · AI 硬件选型与采购指南</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 59 · 实战案例系列</span>
+      <h1>GPU 选型指南<br>从 A100、H100 到 4090 与 Mac MPS 的实战对比</h1>
+      <p class="lead">买 GPU 是 AI 工程师最容易踩坑的消费决策之一。一张 H100 要 3 万美元，一张 4090 只要 1.5 万人民币，差了十几倍价格，到底差在哪？什么时候该买贵的、什么时候便宜的反而更香？Mac 的统一内存到底能不能跑大模型？这一章用真实 benchmark 数据和显存计算公式，帮你做出最理性的采购决策。</p>
+      <div class="meta">
+        <span class="chip">阅读约 27 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-gpu-matters"><span class="idx">★</span> 一、为什么大模型离不开 GPU</h2>
+    <p>大模型的计算本质是大规模矩阵乘法，这种「相同操作重复几亿次」的计算模式，正好是 GPU 的强项。CPU 设计为低延迟（快速完成单个任务），GPU 设计为高吞吐（同时处理海量任务）。训练一个 7B 模型，CPU 要几个月，GPU 只要几天。</p>
+    <p>但 GPU 之间的差异极大。核心要看四个参数：<strong>显存容量</strong>（能放多大的模型）、<strong>显存带宽</strong>（数据搬运速度，决定生成速度）、<strong>算力（FLOPS）</strong>（计算速度，决定训练速度）、<strong>互联带宽</strong>（多卡协同效率）。我们逐一对比。</p>
+
+    <h2 class="section" id="spec-comparison"><span class="idx">★</span> 二、主流 GPU 规格对比</h2>
+    <p>先看一张规格对比表，这是所有选型决策的基础。</p>
+
+    <table>
+      <thead>
+        <tr><th>型号</th><th>显存</th><th>显存带宽</th><th>FP16 算力</th><th>互联</th><th>参考价</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>NVIDIA A100 80G</td><td>80GB HBM2e</td><td>2.0 TB/s</td><td>312 TFLOPS</td><td>NVLink 600GB/s</td><td>$10K-15K</td></tr>
+        <tr><td>NVIDIA H100 80G</td><td>80GB HBM3</td><td>3.35 TB/s</td><td>989 TFLOPS</td><td>NVLink 900GB/s</td><td>$25K-40K</td></tr>
+        <tr><td>NVIDIA H200</td><td>141GB HBM3e</td><td>4.8 TB/s</td><td>989 TFLOPS</td><td>NVLink 900GB/s</td><td>$30K-50K</td></tr>
+        <tr><td>RTX 4090</td><td>24GB GDDR6X</td><td>1.0 TB/s</td><td>330 TFLOPS</td><td>PCIe 4.0</td><td>¥12K-15K</td></tr>
+        <tr><td>RTX 4080</td><td>16GB GDDR6X</td><td>0.717 TB/s</td><td>241 TFLOPS</td><td>PCIe 4.0</td><td>¥8K-10K</td></tr>
+        <tr><td>Mac M2 Ultra 192G</td><td>192GB 统一</td><td>0.8 TB/s</td><td>~30 TFLOPS</td><td>统一内存</td><td>¥50K+（整机）</td></tr>
+      </tbody>
+    </table>
+
+    <p>这张表里有几个关键信息：H100 比 A100 算力高 3 倍、带宽高 1.7 倍，这就是为什么训练大模型 H100 几乎是必选；4090 的 FP16 算力其实不低（330 TFLOPS），但显存只有 24GB，限制了能跑的模型规模；Mac 的统一内存容量巨大（能跑 70B 模型），但带宽和算力远低于专业卡，速度慢。</p>
+
+    <h2 class="section" id="vram-calc"><span class="idx">★</span> 三、显存计算公式：你的模型放得下吗</h2>
+    <p>这是选 GPU 最关键的判断。一个模型需要多少显存，有明确的计算公式。</p>
+    <pre><code class="language-python">def model_vram_gb(params_billion, precision="fp16", training=False):
+    """
+    估算模型占用的显存（GB）。
+    params_billion: 参数量（十亿）
+    precision: fp16/fp32/int8/int4
+    training: 是否训练（训练要存梯度和优化器状态）
+    """
+    bytes_per_param = {
+        "fp32": 4, "fp16": 2, "bf16": 2,
+        "int8": 1, "int4": 0.5,
+    }[precision]
+
+    # 模型权重
+    weights = params_billion * bytes_per_param
+
+    if training:
+        # 训练额外需要：梯度（同权重）+ Adam 优化器状态（2倍权重）
+        optimizer = params_billion * bytes_per_param * 2  # Adam 的 m 和 v
+        gradients = params_billion * bytes_per_param
+        total = weights + optimizer + gradients
+    else:
+        # 推理只需要权重 + KV Cache（按 4K 上下文估算，约占权重 20%）
+        kv_cache = weights * 0.2
+        total = weights + kv_cache
+
+    return total
+
+# 常见模型的显存需求
+for model, params in [("Llama-3-8B", 8), ("Llama-3-70B", 70), ("Qwen-72B", 72)]:
+    for prec in ["fp16", "int8", "int4"]:
+        infer = model_vram_gb(params, prec, training=False)
+        train = model_vram_gb(params, prec, training=True)
+        print(f"{model} ({prec}): 推理 {infer:.1f}GB, 训练 {train:.1f}GB")
+# Llama-3-8B (fp16):  推理 19.2GB, 训练 80GB    → 4090 可推理
+# Llama-3-70B (fp16): 推理 168GB, 训练 700GB    → 必须 H100 多卡
+# Llama-3-70B (int4): 推理 42GB, 训练 -         → 单卡 A100 可推理</code></pre>
+    <p>这个公式解释了一个关键事实：<strong>70B 模型 FP16 推理需要 168GB，单张卡根本放不下</strong>。但用 INT4 量化后只要 42GB，单张 A100 80G 就能跑。量化是让大模型在有限显存里跑起来的核心技术。而训练的计算量是推理的好几倍——Adam 优化器要存两份状态。</p>
+
+    <h2 class="section" id="a100-h100"><span class="idx">★</span> 四、A100 vs H100：数据中心双雄</h2>
+    <p>A100 和 H100 是 NVIDIA 的数据中心级 GPU，也是训练大模型的主力。两者怎么选？</p>
+
+    <h3 class="section">4.1 训练场景：H100 几乎是必选</h3>
+    <p>训练大模型时，算力和互联带宽是瓶颈。H100 的 FP16 算力是 A100 的 3 倍多，NVLink 互联带宽也高 50%，这意味着多卡训练时的通信开销更低。综合下来，训练同样规模的模型，H100 集群的速度是 A100 集群的 2-3 倍。</p>
+    <p>但这不意味着 A100 没价值。对于<strong>推理场景</strong>和<strong>中小规模训练</strong>（7B 以下微调），A100 的性价比依然很高。一张二手 A100 只要几千美元，而 H100 还在高位。</p>
+
+    <h3 class="section">4.2 推理场景：看带宽</h3>
+    <p>LLM 推理是「显存带宽受限」（memory-bound）的计算——生成每个 token 都要把模型权重读一遍，所以带宽比算力更重要。H100 的 3.35 TB/s 带宽让它在大模型推理上速度远超 A100。但如果预算有限，A100 80G 依然是性价比之王——能放下量化后的 70B 模型，速度也够用。</p>
+    <pre><code class="language-python"># 推理速度的理论上限估算
+def inference_speed_tokens_per_sec(vram_bandwidth_tbs, model_vram_gb):
+    """
+    大模型推理是带宽受限的。
+    生成每个 token 至少要把模型权重读一遍。
+    理论最大速度 = 带宽 / 模型大小。
+    """
+    bandwidth_gbps = vram_bandwidth_tbs * 1000  # TB/s → GB/s
+    # 实际效率约 50-70%（受 attention 计算和 KV cache 影响）
+    efficiency = 0.5
+    return bandwidth_gbps / model_vram_gb * efficiency
+
+# Llama-3-8B FP16 推理（约 16GB）
+print(f"A100: {inference_speed_tokens_per_sec(2.0, 16):.0f} tokens/s")  # ~62
+print(f"H100: {inference_speed_tokens_per_sec(3.35, 16):.0f} tokens/s") # ~104
+print(f"4090: {inference_speed_tokens_per_sec(1.0, 16):.0f} tokens/s")  # ~31
+
+# 结论：H100 推理速度约 A100 的 1.7 倍，约 4090 的 3.3 倍
+# 这就是专业卡在带宽上的碾压优势</code></pre>
+
+    <h2 class="section" id="consumer-gpu"><span class="idx">★</span> 五、RTX 4090：消费级卡的性价比之王</h2>
+    <p>4090 是消费级显卡里跑大模型的性价比之王。它的算力其实不输 A100（FP16 都是 300+ TFLOPS），价格只有 A100 的十分之一。唯一的短板是显存只有 24GB，限制了能跑的模型规模。</p>
+    <p>但 24GB 显存配上 INT4 量化，能跑不少有用的模型：</p>
+    <pre><code class="language-python"># 4090 (24GB) 能跑什么模型
+models_4090 = {
+    "Llama-3-8B FP16": 19,       # 刚好放得下
+    "Llama-3-8B INT4": 5,        # 绰绰有余，还能放大 batch
+    "Qwen-14B INT4": 9,           # 没问题
+    "Llama-3-70B INT4": 42,      # 放不下！需要双 4090 或单 A100
+    "CodeLlama-34B INT4": 20,    # 刚好
+}
+
+# 4090 的最佳使用场景：
+# 1. 个人开发者本地跑 7B-14B 模型
+# 2. 小团队微调 7B 模型（LoRA 方式，不全量微调）
+# 3. 推理服务的开发/测试环境
+# 4. 成本敏感的中小规模部署</code></pre>
+    <p>4090 还有一个隐藏优势：<strong>功耗比专业卡低</strong>（450W vs A100 的 400W，但性能接近），电费成本更低。对于长期跑推理的小团队，电费是一笔不小的开支。</p>
+
+    <h2 class="section" id="mac-mps"><span class="idx">★</span> 六、Mac MPS：另辟蹊径的选择</h2>
+    <p>Mac 的 M 系列芯片用统一内存架构——CPU 和 GPU 共享同一块内存，容量可以做到很大（M2 Ultra 最高 192GB）。这意味着 Mac 能放下 70B 甚至更大的模型，而专业显卡要几张拼接才行。</p>
+    <p>但 Mac 的短板也很明显：带宽和算力远低于专业 GPU，推理速度慢。同一个 7B 模型，4090 能跑到 60 tokens/s，Mac M2 Ultra 只有 20 tokens/s 左右。</p>
+    <pre><code class="language-python"># Mac MPS 的推理（使用 llama.cpp 或 MLX 框架）
+# llama.cpp 是跑 Mac 大模型最成熟的工具
+import subprocess
+
+# 用 llama.cpp 在 Mac 上跑 Llama-3-8B
+cmd = [
+    "./llama-cli",
+    "-m", "llama-3-8b-q4.gguf",   # INT4 量化模型
+    "-p", "解释一下什么是注意力机制",
+    "-n", "512",                    # 生成 512 token
+    "--gpu-layers", "99",           # 所有层放 GPU（MPS）
+]
+# Mac M2 Pro (32GB) 跑 Llama-3-8B Q4: 约 25 tokens/s
+# Mac M2 Ultra (192GB) 跑 Llama-3-70B Q4: 约 8 tokens/s（慢但能跑）
+
+# Mac 的适用场景：
+# 1. 本地开发测试，不想买显卡
+# 2. 隐私敏感场景（数据不出本机）
+# 3. 跑超大模型的 demo（70B+），不在乎速度
+# 4. 移动办公（MacBook 跑小模型）</code></pre>
+    <p>Mac 的真正价值在「能跑大模型」这件事本身——哪怕速度慢，对于本地隐私场景、研究 demo、单机调试都足够了。MLX 框架（Apple 官方）的出现也让 Mac 上的模型微调成为可能。</p>
+
+    <h2 class="section" id="purchase-advice"><span class="idx">★</span> 七、采购建议：按场景选型</h2>
+    <p>综合前面的分析，我给出按场景的采购建议：</p>
+    <ul>
+      <li><strong>训练百亿参数以上模型</strong>：H100 集群（8卡起），没有替代品。预算不够就租云 H100。</li>
+      <li><strong>训练 7B-13B 模型微调</strong>：A100 40G/80G 单卡或双卡，或租云 A100。</li>
+      <li><strong>生产推理服务（7B 模型）</strong>：A100 或 4090（多卡），配合 vLLM 做 batch。</li>
+      <li><strong>生产推理服务（70B 模型）</strong>：A100 80G 双卡，或 H200 单卡。</li>
+      <li><strong>个人开发者本地跑模型</strong>：4090（首选）或 Mac（如果已经有 Mac）。</li>
+      <li><strong>预算极有限的探索阶段</strong>：先租云 GPU（按小时计费），验证需求再买硬件。</li>
+    </ul>
+
+    <h3 class="section">7.1 云 vs 自建的成本对比</h3>
+    <pre><code class="language-python"># 云 GPU vs 自建 GPU 的成本对比
+# 假设：需要 8 张 H100 做训练，使用率 50%
+
+# 云成本（AWS p5.48xlarge，8x H100）
+cloud_hourly_rate = 98          # 美元/小时
+daily_usage = 12                # 每天 12 小时
+monthly_cloud = cloud_hourly_rate * daily_usage * 30
+print(f"云 H100 8卡 月成本: ${monthly_cloud:,}")  # $35,280
+
+# 自建成本
+h100_price = 30000              # 单卡
+server_cost = 50000             # 8卡服务器（含 CPU/内存/网络）
+total_hardware = h100_price * 8 + server_cost
+electricity = 0.15 * 3.5 * 24 * 30   # 电费：$0.15/kWh × 3.5kW × 24h × 30天
+print(f"自建 H100 8卡 初始投入: ${total_hardware:,}")
+print(f"自建月电费: ${electricity:.0f}")
+# 回本周期 = total_hardware / monthly_cloud ≈ 7-8 个月
+# 结论：使用率超过 50%，自建更划算；偶尔用，云更灵活</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们全面对比了主流 GPU 的选型。核心要点：</p>
+    <ul>
+      <li><strong>四个关键参数</strong>：显存容量（放多大模型）、显存带宽（推理速度）、算力（训练速度）、互联带宽（多卡效率）。</li>
+      <li><strong>显存计算</strong>：推理显存 ≈ 权重 + KV Cache；训练显存 ≈ 权重 ×4（含梯度和优化器）。量化能把显存需求砍半甚至更多。</li>
+      <li><strong>H100 vs A100</strong>：训练选 H100（算力 3 倍），推理看预算（A100 性价比高，H100 速度快）。</li>
+      <li><strong>RTX 4090</strong>：消费级性价比之王，24GB 显存配 INT4 量化能跑 7B-14B 模型，适合个人和小团队。</li>
+      <li><strong>Mac MPS</strong>：统一内存能放超大模型，但带宽和算力有限，适合本地开发、隐私场景、demo。</li>
+      <li><strong>云 vs 自建</strong>：使用率超 50% 自建划算，偶尔用租云灵活。验证阶段先租云，确定需求再买硬件。</li>
+    </ul>
+    <p>选对 GPU 是控制 AI 项目成本的第一步。下一章我们会转向另一个影响成本的因素——AI 法规合规，看看监管如何影响技术决策。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

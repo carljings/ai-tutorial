@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -127,7 +125,7 @@
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
       <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
-      <a href="100-tfm-kv-cache.html" class="active" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
@@ -305,67 +303,285 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 100 章 · Transformer 原理深挖</span>
-<h1>KV Cache：自回归推理为什么离不开它</h1><p class="lead">生成第 t 个 token 时前面 t-1 个 token 的 K/V 已算过且不变，缓存避免重算。显存占用公式、prefill vs decode 阶段、为什么 decode 是访存瓶颈。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>生成第 t 个 token 时前面 t-1 个 token 的 K/V 已算过且不变，缓存避免重算。显存占用公式、prefill vs decode 阶段、为什么 decode 是访存瓶颈。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 100 · Transformer 深度系列</span>
+      <h1>KV Cache<br>自回归推理为什么离不开它</h1>
+      <p class="lead">生成式大模型（GPT、GLM、Llama）是「自回归」的——一个字一个字往外蹦。如果每生成一个字，都把前面所有字重新跑一遍注意力，1000 字的文章要算上百万次冗余矩阵乘，慢到没法用。KV Cache 的思路简单到爆：把算过的 K、V 存下来，下次直接复用。这一招把推理复杂度从 O(n²) 降到 O(n)，是大模型能「实时对话」的基石。本章还讲清显存计算和 vLLM 的 PagedAttention。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 98、99 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="autoregressive"><span class="idx">★</span> 自回归生成：一次一个 token 的代价</h2>
+    <p>生成式 Transformer 的推理方式叫<strong>自回归（autoregressive）</strong>：根据已有的 token 序列，预测下一个 token；把这个新 token 接到序列末尾，再预测下一个……如此循环。</p>
+
+    <p>假设要生成 1000 个 token。第 1 步输入 1 个 token 预测第 2 个；第 2 步输入 2 个 token 预测第 3 个……第 999 步输入 999 个 token 预测第 1000 个。如果不做任何优化，<strong>总计算量</strong>是：</p>
+
+    <blockquote>
+      总 FLOPs ∝ 1 + 2 + 3 + ... + 999 = 999×1000/2 ≈ <strong>50 万</strong>（按序列长度的平方级增长）
+    </blockquote>
+
+    <p>而且每一步都要<strong>重新计算前面所有 token 的 K、V</strong>，但它们其实根本没变——前 998 个 token 的 K、V，在第 999 步和第 998 步是完全一样的！这是巨大的浪费。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node sky">第 1 步：输入 [t1] → 预测 t2</div>
+        <div class="node">第 2 步：输入 [t1,t2] → 预测 t3（t1 的 K/V 重算了！）</div>
+        <div class="node">第 3 步：输入 [t1,t2,t3] → 预测 t4（t1,t2 的 K/V 又重算了！）</div>
+        <div style="color:var(--text-faint);">▼ 没有 cache：每步都重复算所有历史</div>
+        <div class="node accent">总计算量 O(n²)，无法用于实时推理</div>
+      </div>
+      <div class="cap">图 100-1 · 没有 KV cache 时，自回归生成的冗余计算</div>
+    </div>
+
+    <p>这种 O(n²) 的冗余，让生成 1000 字可能要几十秒。怎么破？<strong>把算过的 K、V 存起来，别重算</strong>。</p>
+
+    <h2 class="section" id="kv-cache-idea"><span class="idx">01</span> KV Cache 的核心思想</h2>
+    <p>KV Cache 的逻辑极其朴素。在注意力里，K = X·Wk，V = X·Wv。对于已经处理过的 token，它们的 K、V 是固定的（参数 Wk、Wv 不变，输入也不变）。所以：</p>
+
+    <blockquote>
+      <strong>把每个 token 的 K、V 算一次后存进缓存（KV cache），后续步骤直接读缓存，不再重算。</strong>
+    </blockquote>
+
+    <p>具体流程变成：</p>
+    <ul>
+      <li>第 1 步（prefill）：输入 [t1]，算 K1、V1，存进 cache。用 Q1 attend [K1] 得到预测。</li>
+      <li>第 2 步：只算新 token t2 的 Q2、K2、V2。把 K2、V2 追加到 cache。用 Q2 attend [K1, K2]（K1 来自 cache，不重算）。</li>
+      <li>第 k 步：只算新 token 的 Q、K、V，把 K、V 追加进 cache，用 Q attend 所有历史 K、V。</li>
+    </ul>
+
+    <p>关键点：<strong>每步只算一个新 token 的 Q、K、V，注意力是 1×n（一个 Q 查询所有历史 K）</strong>，而不是 n×n。总计算量从 O(n²) 降到 O(n)。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：做笔记</div>
+      <p>没有 cache 像每次开会都从头翻所有历史会议纪要。有 cache 像你有个笔记本，每次只记新内容，需要时翻笔记本就行。笔记（K、V）记一次，永久复用。</p>
+    </div>
+
+    <h2 class="section" id="why-only-kv"><span class="idx">02</span> 为什么只 cache K 和 V，不 cache Q</h2>
+    <p>这是理解 KV cache 的关键。回顾注意力：softmax(Q·K^T)·V。在第 k 步：</p>
+    <ul>
+      <li><strong>Q</strong>：只有当前 token t_k 的 Q 需要参与计算（要预测下一个 token）。历史 token 的 Q 在这一步<strong>用不到</strong>——因为分数矩阵只需要「当前 Q × 所有历史 K」这一行。</li>
+      <li><strong>K、V</strong>：所有历史 token 的 K、V 都要用（当前 token 要 attend 它们）。</li>
+    </ul>
+
+    <p>所以 Q 是「一次性的」，用完就丢；K、V 是「累积的」，要反复用。<strong>缓存只对反复用的东西有意义</strong>，于是只 cache K、V。这就是「KV Cache」名字的由来。</p>
+
+    <blockquote>
+      自回归推理的每一步：当前 Q · [所有历史 K（来自 cache）]^T → softmax → · [所有历史 V（来自 cache）] → 输出
+    </blockquote>
+
+    <h2 class="section" id="prefill-decode"><span class="idx">03</span> 两个阶段：Prefill 和 Decode</h2>
+    <p>实际推理分成两个阶段，它们的计算模式完全不同：</p>
+
+    <table>
+      <thead><tr><th>阶段</th><th>输入</th><th>计算模式</th><th>特点</th></tr></thead>
+      <tbody>
+        <tr><td>Prefill（预填）</td><td>整个 prompt（如 500 token）</td><td>n × n 注意力</td><td>计算密集，并行度高，一次算完填充 cache</td></tr>
+        <tr><td>Decode（解码）</td><td>每次 1 个新 token</td><td>1 × n 注意力</td><td>访存密集，串行，读 cache 比算还慢</td></tr>
+      </tbody>
+    </table>
+
+    <p>Prefill 阶段一次性处理 prompt，算量大但可并行，GPU 利用率高。Decode 阶段每步只算 1 个 token，算量极小但要从显存读整个 KV cache——<strong>访存带宽成为瓶颈</strong>。这就是为什么 decode 阶段往往比 prefill 慢得多（按每 token 计），也是推理优化的重点。</p>
+
+    <div class="callout note">
+      <div class="head">📌 Decode 是访存瓶颈</div>
+      <p>Decode 时每生成 1 个 token，要从显存读取整个 KV cache（可能几 GB），只做一点点矩阵乘。算力（FLOPS）远没用满，<strong>时间全花在搬数据上</strong>。这叫 memory-bound。优化方向：①减小 cache（GQA、量化）；②增大 batch（多个请求共享模型权重读取）；③连续批处理（Continuous Batching）。</p>
+    </div>
+
+    <h2 class="section" id="impl"><span class="idx">04</span> 代码：手写一个 KV Cache 注意力</h2>
+    <p>用一个最小实现看清楚 cache 怎么工作：</p>
+
+    <div class="code-title">kv_cache_attention.py —— 带 KV cache 的注意力层</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class CachedAttention(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.W_qkv = nn.Linear(d_model, 3 * d_model, bias=False)
+        self.W_o = nn.Linear(d_model, d_model, bias=False)
+        # KV cache：每层一对
+        self.k_cache = None  # (B, n_heads, S, d_k)
+        self.v_cache = None
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"KV Cache：自回归推理为什么离不开它"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="99-tfm-mqa-gqa.html"><div class="lbl">← 上一章</div><div class="ttl">99 · 从 MHA 到 MQA、GQA：推理加速的关键</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="101-tfm-flash-attention.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">101 · FlashAttention：让注意力不再是显存噩梦</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 100 章 · KV Cache：自回归推理为什么离不开它</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x, use_cache=True):
+        """
+        x: (B, S_new, d_model) —— 本次新增的 token
+        use_cache=True 时复用历史 K/V
+        """
+        B, S_new, _ = x.shape
+        qkv = self.W_qkv(x)
+        q, k, v = qkv.chunk(3, dim=-1)
+
+        def reshape(t):
+            return t.view(B, S_new, self.n_heads, self.d_k).transpose(1, 2)
+
+        q, k, v = reshape(q), reshape(k), reshape(v)
+
+        if use_cache and self.k_cache is not None:
+            # 拼接历史 K/V
+            k = torch.cat([self.k_cache, k], dim=2)
+            v = torch.cat([self.v_cache, v], dim=2)
+
+        # 更新 cache
+        if use_cache:
+            self.k_cache = k
+            self.v_cache = v
+
+        # 注意力：q 是 S_new 个查询，k/v 是全部历史
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.d_k)
+        weights = F.softmax(scores, dim=-1)
+        out = weights @ v
+        out = out.transpose(1, 2).contiguous().view(B, S_new, -1)
+        return self.W_o(out)
+
+    def reset_cache(self):
+        self.k_cache = None
+        self.v_cache = None
+
+# 模拟自回归生成
+torch.manual_seed(0)
+attn = CachedAttention(d_model=64, n_heads=8)
+attn.reset_cache()
+
+# Prefill：处理 prompt（5 个 token）
+prompt = torch.randn(1, 5, 64)
+_ = attn(prompt, use_cache=True)
+print(f"Prefill 后 cache 长度: {attn.k_cache.shape[2]}")  # 5
+
+# Decode：逐个生成 3 个新 token
+for step in range(3):
+    new_token = torch.randn(1, 1, 64)  # 每次只输入 1 个 token
+    _ = attn(new_token, use_cache=True)
+    print(f"Decode 第 {step+1} 步后 cache 长度: {attn.k_cache.shape[2]}")
+# 输出：6, 7, 8 —— cache 线性增长，历史 K/V 不重算
+</code></pre>
+
+    <p>核心就是 <code>torch.cat([self.k_cache, k], dim=2)</code> 这一步：把历史的 K 和新 token 的 K 拼起来。Q 只用新的，K/V 用全部。这就是 KV cache 的全部魔法。</p>
+
+    <h2 class="section" id="memory"><span class="idx">05</span> KV Cache 的显存计算</h2>
+    <p>cache 省了计算，但<strong>吃显存</strong>。精确公式：</p>
+
+    <blockquote>
+      KV cache 显存 = 2 × n_layers × n_kv_heads × seq_len × head_dim × dtype_bytes
+    </blockquote>
+
+    <div class="code-title">kv_memory.py —— 主流模型的 KV cache 显存对比</div>
+    <pre><code class="language-python">def kv_cache_gb(n_layers, n_kv_heads, head_dim, seq_len, dtype="fp16"):
+    bytes_per = {"fp16": 2, "int8": 1, "int4": 0.5}[dtype]
+    mem = 2 * n_layers * n_kv_heads * seq_len * head_dim * bytes_per
+    return mem / 1024**3
+
+models = {
+    "Llama-2-7B (MHA, 32KV头)":  dict(n_layers=32, n_kv_heads=32, head_dim=128),
+    "Llama-2-70B (MHA, 64KV头)": dict(n_layers=80, n_kv_heads=64, head_dim=128),
+    "Llama-3-70B (GQA, 8KV头)":  dict(n_layers=80, n_kv_heads=8,  head_dim=128),
+    "GLM-4-9B (GQA, 4KV头)":     dict(n_layers=40, n_kv_heads=4,  head_dim=128),
+}
+
+for name, cfg in models.items():
+    for seq in [4096, 32768]:
+        mem = kv_cache_gb(seq_len=seq, **cfg)
+        print(f"{name:32s} @{seq:>6} tokens: {mem:6.2f} GB (FP16)")
+    print()
+</code></pre>
+
+    <p>你会看到触目惊心的数字：Llama-2-70B 在 32K 上下文时 KV cache 高达 80 GB，比 70B 模型参数本身（FP16 约 140 GB）的<strong>一半还多</strong>。而 GQA 的 Llama-3-70B 只有 10 GB，省了 87%。这就是 GQA 的实战价值。</p>
+
+    <h2 class="section" id="paged"><span class="idx">06</span> PagedAttention：像操作系统管内存一样管 cache</h2>
+    <p>即便用了 GQA，KV cache 的管理仍是个难题。传统做法是<strong>为每个请求预分配连续的显存</strong>（按最大可能长度预留）。问题：</p>
+
+    <ul>
+      <li><strong>内部碎片</strong>：预分配 4K，实际只生成 500，3.5K 显存浪费。</li>
+      <li><strong>无法动态扩容</strong>：生成超长就要重新分配、拷贝，昂贵。</li>
+      <li><strong>并发难</strong>：不同请求长度不一，显存池难以高效复用。</li>
+    </ul>
+
+    <p>vLLM 提出的 <strong>PagedAttention</strong> 借鉴了操作系统的<strong>虚拟内存分页</strong>：把 KV cache 切成固定大小的「页（block）」（比如每页存 16 个 token 的 K/V），用<strong>页表</strong>管理逻辑位置到物理位置的映射。请求需要更多空间时，按页分配，不需要连续。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">逻辑视图：请求 A 序列 [t1...t500]，连续</div>
+        <div style="color:var(--text-faint);">▼ PagedAttention 分页</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;width:100%;">
+          <div class="node sky">物理页 3<br>t1~t16</div>
+          <div class="node sky">物理页 7<br>t17~t32</div>
+          <div class="node sky">物理页 12<br>t33~t48</div>
+          <div class="node">...</div>
+        </div>
+        <div class="node violet">页表：逻辑→物理映射，按需分配，无碎片</div>
+      </div>
+      <div class="cap">图 100-2 · PagedAttention：逻辑连续，物理分页，按需分配</div>
+    </div>
+
+    <p>PagedAttention 的好处：</p>
+    <ul>
+      <li><strong>几乎零碎片</strong>：只按实际使用的页分配，内部碎片最多一页（16 token）。</li>
+      <li><strong>动态扩容</strong>：序列变长就多分配几页，无需拷贝。</li>
+      <li><strong>高并发</strong>：不同请求的页可以散布在显存各处，显存利用率接近 100%。</li>
+      <li><strong>支持 Continuous Batching</strong>：请求可以随时加入/退出 batch，每个用各自的页。</li>
+    </ul>
+
+    <p>vLLM 凭借 PagedAttention，把推理吞吐量提升了 2~4 倍。这是 2023 年推理框架的革命性进步，现在几乎所有高性能推理框架（vLLM、TGI、TensorRT-LLM）都采用了类似思想。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：虚拟内存</div>
+      <p>操作系统给每个进程一个「看起来连续」的虚拟地址空间，实际映射到物理上分散的页帧。进程不用关心物理布局，按需分页。<strong>PagedAttention 对 KV cache 做了完全一样的事</strong>——这就是它名字里「Paged」的由来。</p>
+    </div>
+
+    <h2 class="section" id="optimization"><span class="idx">07</span> KV Cache 的其他优化手段</h2>
+    <p>除了 GQA 和 PagedAttention，还有一系列压缩 cache 的技巧：</p>
+
+    <table>
+      <thead><tr><th>技术</th><th>原理</th><th>省显存</th></tr></thead>
+      <tbody>
+        <tr><td>KV 量化</td><td>FP16 → INT8/INT4</td><td>2~4 倍</td></tr>
+        <tr><td>KV 淘汰（Eviction）</td><td>丢弃注意力权重低的 token 的 K/V</td><td>取决于淘汰率</td></tr>
+        <tr><td>共享前缀 cache</td><td>多请求共用系统提示的 K/V</td><td>系统提示越长省越多</td></tr>
+        <tr><td>Cache 压缩</td><td>用更小的向量表示 K/V</td><td>有损</td></tr>
+      </tbody>
+    </table>
+
+    <p>其中<strong>共享前缀 cache</strong> 在实际产品里特别有用：很多请求有相同的系统提示（几百到几千 token），这部分 K/V 只算一次，所有请求共享。GLM、Claude 的 API 都在底层做了这个优化，长系统提示的批量请求成本大幅下降。</p>
+
+    <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">KV Cache 核心原理</div>
+        <ul style="margin:6px 0;">
+          <li>把历史 token 的 K、V 存下来，避免重算</li>
+          <li>每步只算新 token 的 Q/K/V，注意力 1×n</li>
+          <li>复杂度从 O(n²) 降到 O(n)</li>
+          <li>只 cache K、V（Q 一次性，不用缓存）</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">工程实战要点</div>
+        <ul style="margin:6px 0;">
+          <li>Prefill 计算密集，Decode 访存密集</li>
+          <li>显存 = 2·L·n_kv·S·d·dtype，长上下文易爆</li>
+          <li>GQA / 量化 / PagedAttention 三板斧</li>
+          <li>vLLM 的 PagedAttention 提速 2~4 倍</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>KV Cache 解决了「推理重算」的问题，但注意力的<strong>另一个噩梦</strong>还没解决——训练和 prefill 阶段的 O(n²) 计算与显存。这个问题在长上下文（32K、128K）时尤其致命：分数矩阵 n×n 大到显存放不下。下一章的 <strong>Flash Attention</strong>，用 tiling 分块和 online softmax，巧妙绕开了「把整个 n×n 矩阵实例化」的步骤，让注意力既快又省显存。</p>
+
+    <blockquote>
+      下一章：<a href="101-tfm-flash-attention.html">第 101 章 · FlashAttention：让注意力不再是显存噩梦</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

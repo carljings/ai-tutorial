@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -172,7 +170,7 @@
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
       <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
-      <a href="143-vec-splade.html" class="active" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
+      <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
       <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
       <a href="145-vec-prod-ops.html" title="向量库运维：重建、调优、成本"><span class="num">145</span>向量库运维</a>
     </div>
@@ -305,66 +303,161 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 143 章 · 向量索引与 RAG 原理深挖</span>
-<h1>SPLADE 稀疏向量：学习型 BM25</h1><p class="lead">用模型生成稀疏高维向量（词项权重），既可语义又能精确匹配。与传统倒排索引兼容。稀疏与稠密的统一表示。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>用模型生成稀疏高维向量（词项权重），既可语义又能精确匹配。与传统倒排索引兼容。稀疏与稠密的统一表示。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>用模型生成稀疏高维向量（词项权重），既可语义又能精确匹配。与传统倒排索引兼容。稀疏与稠密的统一表示。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
-import numpy as np
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 143 · 向量检索系列</span>
+      <h1>SPLADE 稀疏向量<br>稀疏激活与学习型倒排索引</h1>
+      <p class="lead">BM25 是经典的稀疏表示（每个词一个权重），向量检索是稠密表示。SPLADE 把两者合体：用一个训练过的 transformer 产生"稀疏的高维向量"——大部分维度是 0，少数维度有值，且这些维度对应"词项"。它兼具 BM25 的可解释性、精确匹配能力和向量检索的语义理解，是 dense+sparse 混合检索的明星方案。本文拆解它的稀疏激活原理和工程用法。</p>
+      <div class="meta">
+        <span class="chip">阅读约 17 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+    <h2 class="section" id="sparse-vs-dense"><span class="idx">★</span> 稠密 vs 稀疏：两种表示的本质区别</h2>
+    <p>BM25 本质是一种<strong>稀疏表示</strong>：把文档表示成一个 vocab_size 维（如 3 万维）的向量，每维对应一个词项，值是该词的 BM25 权重，绝大多数维度是 0（文档只含少量词）。这种表示的优点是<strong>精确匹配</strong>——搜"GPT-4o"就只看 GPT-4o 这一维，干脆利落；缺点是<strong>无语义</strong>——"GPT-4"和"GPT-4o"是两个维度，互相看不到。</p>
+    <p>稠密向量是另一种极端：所有维度都有值（稠密），维度数小（768），通过训练每个维度捕捉某种语义特征。优点是<strong>有语义</strong>（"GPT-4"和"GPT-4o"向量接近），缺点是<strong>无精确匹配</strong>（被语义相似性主导，精确词形可能被淹没）。</p>
+    <p>SPLADE 的核心思想：<strong>用 transformer 学一个稀疏的高维表示</strong>——维度数仍是 vocab_size（几万），但每个维度对应一个词项（可解释），值由 transformer 学出来（带语义）。这样既保留了词项的精确匹配（某维度非 0 就是"提到了这个词"），又通过 transformer 的语义理解让"近义词"在某些维度上同时激活。</p>
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+    <pre><code class="language-text">三种表示对比（假设 vocab=5 词：[苹果, 手机, iPhone, 笔记本, Mac]）
+文档："我用 iPhone 办公"
+  BM25稀疏:  [0, 0, 1.2, 0, 0]            # 只 iPhone 维有值
+  稠密向量:   [0.3, 0.7, 0.8, 0.2, 0.4]    # 768维压缩，难解释
+  SPLADE:    [0.5, 0.6, 1.5, 0, 0.3]       # iPhone 强激活，苹果/手机/Mac 弱激活（语义扩展）
+</code></pre>
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+    <h2 class="section" id="sparse-activation"><span class="idx">★</span> 稀疏激活怎么实现</h2>
+    <p>SPLADE 基于 BERT 的 MLM（masked language model）头。MLM 头本来是用来预测每个位置的词项概率的——它输出的是 vocab_size 维的 logits。SPLADE 把这个输出拿来用：对每个 token 位置，取 MLM logits 的 log(1+exp(.))（即 softplus），然后对所有位置取 max 聚合，得到一个 vocab_size 维的稀疏向量。</p>
+    <p>关键在于<strong>稀疏化</strong>：原始 MLM 输出是稠密的（每维都有值），SPLADE 通过训练目标里的<strong>FLOPS 正则</strong>（鼓励大部分维度为 0）和<strong>激活限制</strong>（top-k 或阈值）让它变稀疏。训练目标是对比学习（正样本对得分高、负样本对得分低）+ FLOPS 正则（惩罚激活维度数）。</p>
+    <p>稀疏化后，一个文档可能只在几百到几千个维度上有非零值（vocab 是几万维），这就是 SPLADE 的稀疏向量。它的好处：① 用倒排索引存储和检索（非零维度才存），高效；② 每个非零维度对应一个词项，可解释；③ 训练过的 transformer 让近义词在语义相关维度上同时激活，有语义扩展能力。</p>
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"SPLADE 稀疏向量：学习型 BM25"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="142-vec-multivec.html"><div class="lbl">← 上一章</div><div class="ttl">142 · ColBERT 与多向量检索</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="144-vec-eval-benchmark.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">144 · ANN 基准测试：ann-benchmark 实战</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 143 章 · SPLADE 稀疏向量：学习型 BM25</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    <pre><code class="language-python"># 用官方 SPLADE 库实操
+# pip install torch transformers
+import torch
+from transformers import AutoModelForMaskedLM, AutoTokenizer
+
+model_id = "naver/splade-cocondenser-ensembledistil"
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model = AutoModelForMaskedLM.from_pretrained(model_id)
+
+def splade_encode(text, agg="max"):
+    """把文本编码成 SPLADE 稀疏向量（dict: {vocab_id: weight}）"""
+    inputs = tokenizer(text, return_tensors="pt", truncation=True, max_length=256)
+    with torch.no_grad():
+        logits = model(**inputs).logits      # (1, seq_len, vocab_size)
+    # SPLADE 激活：log(1+exp(logit))，对 seq 维取 max
+    activations = torch.log(1 + torch.exp(logits)).max(dim=1).values  # (1, vocab_size)
+    sparse = activations.squeeze(0)         # (vocab_size,)
+    # 只保留非零维度
+    nonzero = sparse.nonzero().squeeze(-1)
+    return {idx.item(): sparse[idx].item() for idx in nonzero}
+
+doc_vec = splade_encode("iPhone 15 Pro 的 A17 芯片性能强劲")
+print(f"非零维度数: {len(doc_vec)} / vocab={model.config.vocab_size}")
+# 通常几百到几千个非零维度（vocab 几万），稀疏度高
+# 这些非零维度大多对应"iPhone/15/Pro/A17/芯片/性能/强劲"及其近义词
+top_tokens = sorted(doc_vec.items(), key=lambda x: -x[1])[:10]
+for tid, w in top_tokens:
+    print(f"  {tokenizer.decode([tid]):15s} {w:.3f}")
+</code></pre>
+
+    <h2 class="section" id="learning-inverted"><span class="idx">★</span> 学习型倒排索引：为什么 SPLADE 比 BM25 强</h2>
+    <p>SPLADE 用倒排索引存储和检索（和 BM25 一样），但因为是<strong>学出来的</strong>，比 BM25 强几个维度：</p>
+    <ul>
+      <li><strong>语义扩展</strong>：BM25 只匹配文档里出现的词，SPLADE 通过 transformer 让"近义词/相关词"在对应维度也激活。文档说"iPhone"，SPLADE 可能在"苹果手机/Apple"维度也激活一点，查询"苹果手机"能召回。</li>
+      <li><strong>上下文权重</strong>：BM25 的词权重只看词频和文档长度，SPLADE 的权重是 transformer 在上下文里算出来的——同一个词在不同上下文权重不同（"苹果"在"吃苹果"和"苹果手机"里权重不同）。</li>
+      <li><strong>跨语言</strong>：多语言 SPLADE 模型让跨语言的近义词激活，BM25 完全做不到。</li>
+    </ul>
+    <p>所以 SPLADE 是"BM25 + 语义"的合体，被称作<strong>学习型倒排索引（learned sparse index）</strong>。在 BEIR 等基准上，SPLADE 经常超过稠密向量模型，且存储和检索效率高（倒排索引成熟）。</p>
+
+    <h2 class="section" id="dense-sparse-hybrid"><span class="idx">★</span> dense + sparse 混合检索</h2>
+    <p>SPLADE 的真正威力在于和稠密向量<strong>混合</strong>。前面 132 篇讲的混合检索是 BM25 + 稠密向量，把 SPLADE 替换 BM25 通常能再涨几个点——因为 SPLADE 既有 BM25 的精确匹配，又有稠密的语义扩展，融合后两路都更强。这就是为什么 2024 年后的 RAG 系统越来越多用 dense + SPLADE 的组合。</p>
+
+    <pre><code class="language-python"># dense + SPLADE 混合检索（用 Qdrant，原生支持 sparse）
+from qdrant_client import QdrantClient
+from qdrant_client.models import (
+    VectorParams, SparseVectorParams, SparseIndexParams, PointStruct,
+    NamedSparseVector, NamedVector,
+)
+from sentence_transformers import SentenceTransformer
+
+dense_model = SentenceTransformer("BAAI/bge-small-zh-v1.5")
+qdrant = QdrantClient(":memory:")
+
+# 1. 创建支持 dense + sparse 的 collection
+qdrant.create_collection(
+    "kb_hybrid",
+    vectors_config={
+        "dense": VectorParams(size=512, distance="Cosine"),
+    },
+    sparse_vectors_config={
+        "sparse": SparseVectorParams(index=SparseIndexParams()),
+    },
+)
+
+# 2. 插入（同时编码 dense 和 sparse）
+def index_doc(doc_id, text):
+    dense_vec = dense_model.encode(text).tolist()
+    sparse_vec = splade_encode(text)
+    qdrant.upsert("kb_hybrid", [
+        PointStruct(id=doc_id, vector={
+            "dense": dense_vec,
+            "sparse": SparseVector(indices=list(sparse_vec.keys()),
+                                    values=list(sparse_vec.values())),
+        })
+    ])
+
+# 3. 混合查询：两路并行 + RRF 融合
+def hybrid_search(query, top_k=10):
+    dense_q = dense_model.encode(query).tolist()
+    sparse_q = splade_encode(query)
+
+    dense_hits = qdrant.query_points(
+        "kb_hybrid", query=NamedVector(name="dense", vector=dense_q), limit=50).points
+    sparse_hits = qdrant.query_points(
+        "kb_hybrid",
+        query=NamedSparseVector(name="sparse",
+                                vector=SparseVector(indices=list(sparse_q.keys()),
+                                                     values=list(sparse_q.values()))),
+        limit=50).points
+
+    # RRF 融合
+    return rrf_fusion(
+        [[h.id for h in dense_hits], [h.id for h in sparse_hits]],
+        k=60, top_n=top_k)
+
+results = hybrid_search("Acme Corp 云服务营收")
+</code></pre>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> SPLADE vs 其他方案</h2>
+    <ul>
+      <li><strong>vs BM25</strong>：SPLADE 有语义扩展和上下文权重，全面优于 BM25，但需要训练和 GPU 推理。</li>
+      <li><strong>vs 稠密向量</strong>：SPLADE 在精确匹配和长尾词上更强，稠密在语义相似性上更强。两者互补。</li>
+      <li><strong>vs ColBERT</strong>：ColBERT 精度更高（token 级交互）但存储重；SPLADE 用倒排索引存储轻、检索快，精度略低但够用。</li>
+      <li><strong>存储</strong>：SPLADE 是稀疏向量，倒排索引存储高效（只存非零项），比稠密向量省，比 ColBERT 省得多。</li>
+    </ul>
+
+    <h2 class="section" id="when-splade"><span class="idx">★</span> 什么时候用 SPLADE</h2>
+    <ul>
+      <li><strong>需要精确匹配 + 语义</strong>：技术文档、产品规格、法律条款等既要精确又要语义的场景。</li>
+      <li><strong>混合检索升级</strong>：把现有 BM25 + 稠密的 BM25 那路换成 SPLADE，通常召回再涨 3-8 个点。</li>
+      <li><strong>多语言</strong>：多语言 SPLADE 比多语言 BM25 强得多。</li>
+      <li><strong>长尾词召回差</strong>：稠密向量对罕见术语召回不稳，SPLADE 的稀疏激活更稳。</li>
+    </ul>
+    <p>限制：编码要 GPU 推理（CPU 也能但慢），中文场景的开源 SPLADE 模型选择不如英文多（英文有 naver 官方版，中文可用 BGE-M3 的稀疏模式作为替代）。BGE-M3 实际上同时输出稠密、稀疏、多向量三种表示，是当前中文场景 dense+sparse 混合的便捷选择。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>SPLADE 是学习型稀疏向量：用 transformer 的 MLM 头产生 vocab_size 维向量，通过 FLOPS 正则稀疏化，大部分维度为 0。</li>
+      <li>本质是"学习型倒排索引"：用倒排索引存储检索（高效），但权重由 transformer 学出（有语义扩展和上下文权重），全面优于 BM25。</li>
+      <li>真正的威力在 dense+sparse 混合：SPLADE 替换 BM25 和稠密向量 RRF 融合，通常比 BM25+稠密再涨 3-8 个点。</li>
+      <li>vs 其他：优于 BM25（语义），互补稠密（精确匹配强），比 ColBERT 轻量但精度略低。</li>
+      <li>选型：精确+语义场景、混合检索升级、多语言、长尾词召回差时用 SPLADE；中文场景可用 BGE-M3 的稀疏模式替代。</li>
+    </ul>
+    <p>接下来两篇回到工程：144 篇讲怎么用 VectorDBBench/ANN-benchmark 系统化评估向量库，145 篇讲向量库的生产运维。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

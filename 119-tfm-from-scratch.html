@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -146,7 +144,7 @@
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
       <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
       <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
-      <a href="119-tfm-from-scratch.html" class="active" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
+      <a href="119-tfm-from-scratch.html" title="从零实现一个迷你 Transformer"><span class="num">119</span>从零实现一个迷你 T</a>
     </div>
     <div class="nav-group"><h3>★向量检索</h3>
       <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
@@ -305,67 +303,359 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 119 章 · Transformer 原理深挖</span>
-<h1>从零实现一个迷你 Transformer</h1><p class="lead">用 PyTorch 实现嵌入+位置编码+多头注意力+FFN+LayerNorm+残差，拼成一个能跑的小 GPT。完整代码 + 训练循环。理解每个零件如何咬合。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>用 PyTorch 实现嵌入+位置编码+多头注意力+FFN+LayerNorm+残差，拼成一个能跑的小 GPT。完整代码 + 训练循环。理解每个零件如何咬合。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 19 · Transformer 深度系列 · 收官之作</span>
+      <h1>从零实现迷你 Transformer<br>用 300 行代码拼出一个能写诗的语言模型</h1>
+      <p class="lead">读了十八章的理论，是时候把所有零件亲手焊在一起了。本章不调任何框架的高级 API，只用 PyTorch 的基础算子，从 Embedding、位置编码、多头注意力、FFN、LayerNorm 一路实现到一个完整的 Decoder-Only 语言模型，并配上训练循环和生成函数。最后我们让它在 CPU 上学一段莎士比亚，亲眼看它吐出像模像样的诗句。这是理解前面所有章节的最佳实践。</p>
+      <div class="meta">
+        <span class="chip">阅读约 30 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="overview"><span class="idx">★</span> 一、我们要造什么</h2>
+    <p>目标很明确：从零实现一个 Decoder-Only 的迷你 GPT。它包含一个完整的语言模型该有的所有部件：词表和 Embedding、位置编码、若干层 Transformer Block（每层含多头因果注意力 + FFN + LayerNorm）、最终的输出投影。配上训练循环（前向 + 损失 + 反向）和生成函数（greedy 和采样），它就能在一个小语料上训练并生成文本。</p>
+    <p>我们的设计原则有三条。第一，<strong>不依赖任何高级封装</strong>——不用 nn.Transformer，不用 Hugging Face，所有部件手写，让你看清每个细节。第二，<strong>可在 CPU 上跑通</strong>——模型尺寸控制得很小，普通笔记本几分钟就能训练，无需 GPU。第三，<strong>代码即教学</strong>——每个组件对应前面章节讲过的概念，读完代码就等于复习了一遍整个系列。</p>
+
+    <h3 class="section">1.1 模型配置一览</h3>
+    <p>我们的迷你 GPT 配置如下：词表大小 256（用字节级 tokenization，省去分词器复杂度），模型维度 d_model=64，4 个注意力头，2 层 Transformer Block，FFN 隐藏维度 256，最大序列长度 128。这个配置小到能在 CPU 上秒级训练，又大到能展示 Transformer 的所有核心机制。整个模型参数量约几十万，训练几分钟后就能看到 loss 下降、生成文本变得像样。</p>
+
+    <h2 class="section" id="embedding"><span class="idx">★</span> 二、Embedding 与位置编码</h2>
+    <p>Transformer 的输入是 token id 序列，第一步要把它转成连续向量。这需要两个 embedding 相加：词 embedding（把每个 token id 映射成一个 d_model 维向量）和位置 embedding（告诉模型每个 token 处在序列的哪个位置）。</p>
+
+    <h3 class="section">2.1 为什么需要位置编码</h3>
+    <p>注意力机制本身是「位置无关」的——它只看内容相似度，不知道谁在前谁在后。但语言的顺序至关重要（「狗咬人」和「人咬狗」截然不同），所以必须显式注入位置信息。我们这里采用最经典的做法：可学习的位置 embedding。每个位置 0,1,2,...,max_len 对应一个可训练的向量，加到词 embedding 上。</p>
+
+    <h3 class="section">2.2 实现 Embedding 层</h3>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+
+class TokenPositionEmbedding(nn.Module):
+    """词 embedding + 可学习位置 embedding。"""
+    def __init__(self, vocab_size, d_model, max_len):
+        super().__init__()
+        self.token_emb = nn.Embedding(vocab_size, d_model)
+        self.pos_emb = nn.Embedding(max_len, d_model)
+        self.max_len = max_len
+
+    def forward(self, token_ids):
+        """
+        token_ids: (batch, seq_len)
+        返回: (batch, seq_len, d_model)
+        """
+        B, S = token_ids.shape
+        positions = torch.arange(S, device=token_ids.device).unsqueeze(0)  # (1, seq_len)
+        return self.token_emb(token_ids) + self.pos_emb(positions)
+
+# 测试
+emb = TokenPositionEmbedding(vocab_size=256, d_model=64, max_len=128)
+x = torch.randint(0, 256, (2, 10))
+print("Embedding 输出形状:", emb(x).shape)   # (2, 10, 64)</code></pre>
+    <p>这段代码极其简单，但它完成了 Transformer 的入口。一个细节：位置 embedding 的长度 max_len 要大于实际训练时用到的最大序列长度，否则超出范围会报错。这也是为什么大模型有「最大上下文长度」的限制——超过就没位置向量可用了。</p>
+
+    <h2 class="section" id="attention"><span class="idx">★</span> 三、多头因果注意力</h2>
+    <p>注意力是 Transformer 的心脏。我们要实现一个完整的、带因果掩码的多头注意力。这一部分对应前面第 13 章讲的内容，这里是它的完整落地。</p>
+
+    <h3 class="section">3.1 多头注意力的完整实现</h3>
+    <pre><code class="language-python">import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class MultiHeadCausalAttention(nn.Module):
+    def __init__(self, d_model, num_heads):
+        super().__init__()
+        assert d_model % num_heads == 0
+        self.d_model = d_model
+        self.num_heads = num_heads
+        self.d_head = d_model // num_heads
+        self.qkv = nn.Linear(d_model, 3 * d_model)
+        self.out = nn.Linear(d_model, d_model)
+        # 预计算因果掩码缓存，避免每次 forward 都算
+        self.register_buffer("causal", None, persistent=False)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"从零实现一个迷你 Transformer"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="118-tfm-mamba-ssm.html"><div class="lbl">← 上一章</div><div class="ttl">118 · Mamba 与 SSM：挑战 Transformer 的新路线</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="120-vec-ann-overview.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">120 · ANN 概览：为什么不能用暴力 kNN</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 119 章 · 从零实现一个迷你 Transformer</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def _get_causal_mask(self, seq_len, device):
+        if self.causal is None or self.causal.shape[0] &lt; seq_len:
+            mask = torch.full((seq_len, seq_len), float("-inf"), device=device)
+            mask = torch.triu(mask, diagonal=1)
+            self.causal = mask
+        return self.causal[:seq_len, :seq_len]
+
+    def forward(self, x):
+        """
+        x: (batch, seq_len, d_model)
+        返回: (batch, seq_len, d_model)
+        """
+        B, S, D = x.shape
+        qkv = self.qkv(x).reshape(B, S, 3, self.num_heads, self.d_head)
+        qkv = qkv.permute(2, 0, 3, 1, 4)   # (3, B, heads, S, head_dim)
+        q, k, v = qkv[0], qkv[1], qkv[2]
+        # 缩放点积注意力
+        scores = (q @ k.transpose(-2, -1)) / math.sqrt(self.d_head)
+        mask = self._get_causal_mask(S, x.device)
+        scores = scores + mask.unsqueeze(0).unsqueeze(0)   # 广播到 (1,1,S,S)
+        attn = F.softmax(scores, dim=-1)
+        out = attn @ v                           # (B, heads, S, head_dim)
+        out = out.transpose(1, 2).reshape(B, S, D)
+        return self.out(out)
+
+# 测试
+attn = MultiHeadCausalAttention(d_model=64, num_heads=4)
+x = torch.randn(2, 10, 64)
+print("注意力输出形状:", attn(x).shape)   # (2, 10, 64)</code></pre>
+    <p>这里有几个工程细节值得注意。第一，QKV 投影合并成一个矩阵乘（3*d_model），比分三次投影更高效。第二，因果掩码做了缓存，避免每次 forward 重复构造。第三，掩码通过 unsqueeze 广播到 heads 维度，保证每个头共用同一个掩码。这些细节都是工业级实现的做法。</p>
+
+    <h2 class="section" id="ffn-layernorm"><span class="idx">★</span> 四、FFN 与 LayerNorm</h2>
+    <p>有了注意力，还需要 FFN（前馈网络）和 LayerNorm 才能凑成一个完整的 Transformer Block。这两个组件相对简单，但各有讲究。</p>
+
+    <h3 class="section">4.1 FFN：两层的逐位置 MLP</h3>
+    <p>FFN 是一个两层的全连接网络，中间有激活函数（通常用 GELU 或 ReLU）。它对每个位置独立作用（不跨 token 交互），起到「逐 token 的非线性变换」作用。FFN 的隐藏维度通常是 d_model 的 4 倍，这是 Transformer 论文里的经验值。</p>
+    <pre><code class="language-python">class FeedForward(nn.Module):
+    def __init__(self, d_model, d_ff):
+        super().__init__()
+        self.fc1 = nn.Linear(d_model, d_ff)
+        self.fc2 = nn.Linear(d_ff, d_model)
+
+    def forward(self, x):
+        return self.fc2(F.gelu(self.fc1(x)))
+
+ffn = FeedForward(d_model=64, d_ff=256)
+x = torch.randn(2, 10, 64)
+print("FFN 输出形状:", ffn(x).shape)</code></pre>
+
+    <h3 class="section">4.2 LayerNorm 与 Pre-Norm 结构</h3>
+    <p>LayerNorm 对每个位置的向量做归一化（减均值、除标准差、再缩放平移），稳定训练。Transformer 有两种主流结构：Post-Norm（原论文，残差后再 LayerNorm）和 Pre-Norm（现代大模型普遍采用，先 LayerNorm 再做注意力/FFN，最后残差）。我们采用 Pre-Norm，因为它训练更稳定，是 GPT、LLaMA 等现代模型的标准做法。</p>
+    <pre><code class="language-python">class TransformerBlock(nn.Module):
+    """Pre-Norm 的 Transformer Block：LN -> Attn -> 残差 -> LN -> FFN -> 残差。"""
+    def __init__(self, d_model, num_heads, d_ff):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(d_model)
+        self.attn = MultiHeadCausalAttention(d_model, num_heads)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.ffn = FeedForward(d_model, d_ff)
+
+    def forward(self, x):
+        x = x + self.attn(self.norm1(x))      # 残差 + 注意力
+        x = x + self.ffn(self.norm2(x))       # 残差 + FFN
+        return x
+
+block = TransformerBlock(d_model=64, num_heads=4, d_ff=256)
+x = torch.randn(2, 10, 64)
+print("Block 输出形状:", block(x).shape)</code></pre>
+    <p>注意残差连接（x + ...）至关重要——它让梯度能直通到底层，避免深层网络的梯度消失。没有残差，Transformer 训不深。Pre-Norm 的好处是：残差主干上的数据始终是未归一化的原始尺度，信号传递更顺畅。</p>
+
+    <h2 class="section" id="full-model"><span class="idx">★</span> 五、组装完整的迷你 GPT</h2>
+    <p>把所有部件拼起来，就得到一个完整的语言模型。它接收 token id 序列，输出每个位置预测下一个 token 的 logits。</p>
+    <pre><code class="language-python">class MiniGPT(nn.Module):
+    def __init__(self, vocab_size=256, d_model=64, num_heads=4,
+                 num_layers=2, d_ff=256, max_len=128):
+        super().__init__()
+        self.emb = TokenPositionEmbedding(vocab_size, d_model, max_len)
+        self.blocks = nn.ModuleList([
+            TransformerBlock(d_model, num_heads, d_ff)
+            for _ in range(num_layers)
+        ])
+        self.norm_final = nn.LayerNorm(d_model)
+        # 输出投影：权重与 token embedding 共享（weight tying），提升效果省参数
+        self.lm_head = nn.Linear(d_model, vocab_size, bias=False)
+        self.lm_head.weight = self.emb.token_emb.weight
+        self.max_len = max_len
+
+    def forward(self, token_ids, targets=None):
+        """
+        token_ids: (batch, seq_len)
+        targets: (batch, seq_len) 或 None
+        返回: logits (batch, seq_len, vocab_size)；若有 targets 还返回 loss。
+        """
+        x = self.emb(token_ids)
+        for block in self.blocks:
+            x = block(x)
+        x = self.norm_final(x)
+        logits = self.lm_head(x)              # (batch, seq_len, vocab)
+        loss = None
+        if targets is not None:
+            # 把 batch 和 seq_len 维度合并，算交叉熵
+            B, S, V = logits.shape
+            loss = F.cross_entropy(logits.reshape(-1, V), targets.reshape(-1))
+        return logits, loss
+
+# 实例化并打印参数量
+model = MiniGPT()
+n_params = sum(p.numel() for p in model.parameters())
+print(f"模型参数量: {n_params:,}")
+# 大约几十万参数，CPU 训练无压力</code></pre>
+    <p>这里用了一个技巧叫 <strong>weight tying</strong>（权重共享）：输出投影 lm_head 的权重和输入的 token embedding 共享。这不仅省参数（词表大时省得可观），还能提升效果——因为输入和输出在同一个语义空间里。这是现代大模型（GPT-2 以后）的标配。</p>
+
+    <h2 class="section" id="training"><span class="idx">★</span> 六、训练循环：让模型学会续写</h2>
+    <p>有了模型，还需要训练循环和语料。我们用最简单的方式：字节级 tokenization（每个字节是一个 token，词表大小固定 256），语料用一段莎士比亚风格的英文。训练目标是预测下一个 token——这正是 Decoder-Only 模型的核心任务。</p>
+
+    <h3 class="section">6.1 数据准备</h3>
+    <pre><code class="language-python"># 一段示例语料（实际训练时可换成更长的文本）
+text = """
+To be, or not to be, that is the question:
+Whether 'tis nobler in the mind to suffer
+The slings and arrows of outrageous fortune,
+Or to take arms against a sea of troubles
+And by opposing end them. To die—to sleep,
+No more; and by a sleep to say we end
+The heart-ache and the thousand natural shocks
+That flesh is heir to: 'tis a consummation
+Devoutly to be wish'd. To die, to sleep;
+To sleep, perchance to dream—ay, there's the rub:
+For in that sleep of death what dreams may come,
+"""
+
+# 字节级编码：文本 -> 字节序列 -> token id
+data = torch.tensor(list(text.encode("utf-8")), dtype=torch.long)
+print(f"语料长度: {len(data)} 字节, 词表: 0-255")
+
+def get_batch(data, batch_size, seq_len):
+    """随机采样一个 batch：输入 x 和目标 y（x 左移一位）。"""
+    ix = torch.randint(0, len(data) - seq_len - 1, (batch_size,))
+    x = torch.stack([data[i:i+seq_len] for i in ix])
+    y = torch.stack([data[i+1:i+seq_len+1] for i in ix])
+    return x, y
+
+x, y = get_batch(data, batch_size=4, seq_len=32)
+print(f"batch 输入形状: {x.shape}, 目标形状: {y.shape}")</code></pre>
+
+    <h3 class="section">6.2 训练循环</h3>
+    <pre><code class="language-python">import torch.optim as optim
+
+model = MiniGPT(vocab_size=256, d_model=64, num_heads=4, num_layers=2, d_ff=256, max_len=128)
+optimizer = optim.AdamW(model.parameters(), lr=3e-3)
+
+# 训练 2000 步，每 200 步打印一次 loss
+model.train()
+for step in range(2000):
+    x, y = get_batch(data, batch_size=16, seq_len=64)
+    logits, loss = model(x, y)
+    optimizer.zero_grad()
+    loss.backward()
+    # 梯度裁剪，防止训练不稳定
+    torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+    optimizer.step()
+    if step % 200 == 0:
+        print(f"step {step:4d} | loss {loss.item():.4f}")
+
+print("训练完成！")</code></pre>
+    <p>运行这段代码，你会看到 loss 从约 5.5（初始随机）逐步下降到 1.5 以下。这说明模型学会了语料的统计规律——某些字母组合（如「th」「ing」）出现得更频繁，它学会了预测它们。我们的语料太短，模型没法学会真正的「莎士比亚风格」，但能学会基本的字母模式，这足以验证实现正确。</p>
+
+    <h2 class="section" id="generation"><span class="idx">★</span> 七、生成函数：让模型开口说话</h2>
+    <p>训练完，我们要让它生成文本。实现两种生成方式：greedy（确定性）和采样（带温度、top-k）。这对应第 110 章讲过的生成策略，这里是它们的从零实现。</p>
+    <pre><code class="language-python">@torch.no_grad()
+def generate(model, prompt_ids, max_new_tokens=100, temperature=1.0, top_k=None):
+    """
+    自回归生成。
+    prompt_ids: (1, prompt_len) 起始 token 序列
+    返回: (1, prompt_len + max_new_tokens) 生成的完整序列
+    """
+    model.eval()
+    ids = prompt_ids
+    for _ in range(max_new_tokens):
+        # 只取最后 max_len 个 token，避免超出位置 embedding 范围
+        cond = ids[:, -model.max_len:]
+        logits, _ = model(cond)
+        logits = logits[0, -1] / temperature          # 取最后一个位置
+        if top_k is not None:
+            v, _ = torch.topk(logits, top_k)
+            logits[logits &lt; v[-1]] = float("-inf")    # 只保留 top-k
+        probs = F.softmax(logits, dim=-1)
+        next_id = torch.multinomial(probs, num_samples=1).unsqueeze(0)
+        ids = torch.cat([ids, next_id], dim=1)
+    return ids
+
+# 用 "To be" 作为 prompt 生成
+prompt = torch.tensor([list("To be, or not".encode("utf-8"))], dtype=torch.long)
+out_ids = generate(model, prompt, max_new_tokens=80, temperature=0.8, top_k=40)
+print("生成结果：")
+print(out_ids[0].tolist().__len__(), "个 token")
+print(bytes(out_ids[0].tolist()).decode("utf-8", errors="replace"))</code></pre>
+    <p>因为语料很短，生成结果不会是完美的莎士比亚，但你会看到它生成的字母序列符合英语的字母分布（大量 e、t、a、空格，合理的辅音元音搭配），偶尔蹦出像「the」「to」「and」这样的常见词。这证明模型确实学到了语言的结构。</p>
+
+    <h2 class="section" id="verify-correctness"><span class="idx">★</span> 八、如何验证实现正确</h2>
+    <p>从零实现容易出 bug，而且很多 bug 不会报错，只是让效果变差。下面几个测试能帮你确认实现正确。</p>
+
+    <h3 class="section">8.1 检查因果掩码没有泄漏</h3>
+    <p>一个关键测试：确认因果掩码真的防止了「偷看未来」。方法是构造一个序列，打乱某个未来位置的 token，观察当前位置的输出是否变化——如果掩码正确，当前位置的输出不应受未来 token 影响。</p>
+    <pre><code class="language-python">model.eval()
+seq = torch.randint(0, 256, (1, 10))
+# 取位置 3 的输出
+with torch.no_grad():
+    logits_orig, _ = model(seq)
+    out_pos3_orig = logits_orig[0, 3]
+
+# 修改位置 5 之后的所有 token（未来）
+seq_modified = seq.clone()
+seq_modified[0, 5:] = torch.randint(0, 256, (5,))
+with torch.no_grad():
+    logits_mod, _ = model(seq_modified)
+    out_pos3_mod = logits_mod[0, 3]
+
+diff = (out_pos3_orig - out_pos3_mod).abs().max()
+print(f"修改未来 token 后，位置 3 输出的最大差异: {diff.item():.2e}")
+# 如果掩码正确，差异应该是 0（或极小的浮点误差）</code></pre>
+
+    <h3 class="section">8.2 检查 loss 能持续下降</h3>
+    <p>第二个测试更宏观：确认训练 loss 能持续下降到合理水平。如果 loss 卡住不动或者反弹，说明实现有 bug（梯度爆炸、掩码错误、初始化不当等）。我们的训练循环里已经打印了 loss，正常情况下应该从 5.5 平滑下降到 1.5 左右。如果下降不到 3 以下，多半是注意力或 FFN 实现有问题。</p>
+
+    <h3 class="section">8.3 检查梯度流动</h3>
+    <p>第三个测试：确认梯度能从输出层流到输入层。深层网络容易梯度消失，可以打印每层参数的梯度范数，确认它们没有塌缩到 0。</p>
+    <pre><code class="language-python">model.train()
+x, y = get_batch(data, batch_size=8, seq_len=32)
+_, loss = model(x, y)
+loss.backward()
+print("各层梯度范数：")
+for name, p in model.named_parameters():
+    if p.grad is not None and p.dim() &gt; 1:   # 只看权重矩阵
+        print(f"  {name:40s} grad_norm = {p.grad.norm().item():.4f}")
+# 正常情况下，从输出层到 embedding 层，梯度范数应该在同一数量级</code></pre>
+
+    <h2 class="section" id="extensions"><span class="idx">★</span> 九、从这里走向真实大模型</h2>
+    <p>这个迷你 GPT 虽小，但骨架和 GPT-2、LLaMA 完全一致。从它出发，要走向真实的大模型，需要叠加一系列工程优化。这些优化不改变核心架构，但让模型能 scale 到百亿参数。</p>
+    <ul>
+      <li><strong>分词器</strong>：用 BPE 或 SentencePiece 把字节级升级到子词级（词表 3 万到 15 万），大幅提高压缩率和效果。</li>
+      <li><strong>旋转位置编码（RoPE）</strong>：替代可学习位置 embedding，支持外推到更长序列，是 LLaMA 等模型的标准。</li>
+      <li><strong>RMSNorm</strong>：替代 LayerNorm，省去均值计算，更快，效果相当。</li>
+      <li><strong>SwiGLU 激活</strong>：替代 GELU，在 FFN 里引入门控，效果更好（LLaMA 采用）。</li>
+      <li><strong>GQA / MQA</strong>：分组查询注意力，减少 KV cache 显存，加速推理。</li>
+      <li><strong>Flash Attention</strong>：分块计算注意力，避免实例化完整 attention 矩阵，省显存、加速。</li>
+      <li><strong>张量并行 / 流水线并行</strong>：把模型切分到多张 GPU，训练超大模型。</li>
+    </ul>
+    <p>每一个优化都对应一篇论文和一个工程突破。但它们的根基，都是你今天亲手实现的这个迷你 GPT。理解了它，再去看 LLaMA、DeepSeek 的源码，你会发现核心逻辑你已经会了，只是多了这些优化层。</p>
+
+    <h2 class="section" id="series-recap"><span class="idx">★</span> 十、整个系列的回顾</h2>
+    <p>这是 Transformer 深度系列的收官之作。让我们回顾一下这十一章走过的路。</p>
+    <ul>
+      <li>第 109 章，我们拆解了 Decoder-Only 架构，理解了 GPT 为什么砍掉 Encoder、因果掩码如何实现单向、KV Cache 如何加速推理。</li>
+      <li>第 110 章，我们遍历了生成策略全家桶，从 greedy 到 beam search 到 top-p，看清了确定性与随机性的权衡。</li>
+      <li>第 111 章，我们攻克了重复惩罚，搞懂了 repetition_penalty、frequency_penalty、presence_penalty 的数学差异。</li>
+      <li>第 112 章，我们深入了高级采样，对比了 top-k、top-p、min-p、typical、mirostat 五种方法。</li>
+      <li>第 113 章，我们系统梳理了注意力掩码，把 causal、padding、prefix 三种掩码的协同讲透。</li>
+      <li>第 114 章，我们剖析了投机解码，理解了用小模型猜测、大模型验证的加速魔法和拒绝采样的数学保证。</li>
+      <li>第 115 章，我们学习了模型量化，从 FP16 到 INT4，搞懂了 GPTQ、AWQ、GGUF 三大方案。</li>
+      <li>第 116 章，我们入门了 MoE，理解了稀疏激活、容量因子、负载均衡三大核心概念。</li>
+      <li>第 117 章，我们钻进了 MoE 路由，剖析了 top-k gating、noisy top-k、auxiliary loss 的实现细节。</li>
+      <li>第 118 章，我们认识了 Mamba，从连续 SSM 到离散化到选择性机制，看清了它如何挑战 Transformer。</li>
+      <li>本章，我们把所有概念焊在一起，亲手实现了一个迷你 GPT。</li>
+    </ul>
+    <p>从架构到解码，从优化到挑战者，再到亲手实现——你现在对 Transformer 这一代大模型的核心技术有了完整、扎实的理解。这份理解，是你继续深入任何细分方向（训练、推理、对齐、应用）的地基。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章，也是整个 Transformer 深度系列的收官。我们把迷你 GPT 从零造了出来。要点回顾：</p>
+    <ul>
+      <li><strong>Token + 位置 Embedding</strong>：词 embedding 和位置 embedding 相加，是 Transformer 的入口。</li>
+      <li><strong>多头因果注意力</strong>：QKV 投影、分头、缩放点积、因果掩码、softmax、聚合，是 Transformer 的心脏。</li>
+      <li><strong>FFN + LayerNorm</strong>：FFN 做逐位置非线性变换，LayerNorm + 残差用 Pre-Norm 结构稳定训练。</li>
+      <li><strong>完整模型</strong>：Embedding + N 个 Block + Final Norm + LM Head，用 weight tying 共享输入输出权重。</li>
+      <li><strong>训练循环</strong>：下一个 token 预测的交叉熵损失，AdamW 优化，梯度裁剪防爆炸。</li>
+      <li><strong>生成函数</strong>：自回归逐 token 生成，支持温度和 top-k 采样。</li>
+      <li><strong>正确性验证</strong>：检查因果掩码无泄漏、loss 持续下降、梯度正常流动。</li>
+      <li><strong>走向真实大模型</strong>：在迷你 GPT 骨架上叠加 BPE、RoPE、RMSNorm、SwiGLU、GQA、Flash Attention、并行训练等优化。</li>
+    </ul>
+    <p>恭喜你完成了整个 Transformer 深度系列。这套教程从架构原理一路讲到工程实现，希望它成为你大模型学习之路上的一块扎实基石。技术的世界永远在演进，但底层的原理是相通的——掌握了这些，无论未来出现什么新架构，你都能快速理解、从容应对。下一站，由你来定义。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

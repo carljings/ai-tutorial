@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -152,7 +150,7 @@
       <a href="120-vec-ann-overview.html" title="ANN 概览：为什么不能用暴力 kNN"><span class="num">120</span>ANN 概览</a>
       <a href="121-vec-ivf.html" title="IVF 倒排索引：用聚类加速检索"><span class="num">121</span>IVF 倒排索引</a>
       <a href="122-vec-ivf-tuning.html" title="IVF 调参实战：nlist 与 nprobe 的取舍"><span class="num">122</span>IVF 调参实战</a>
-      <a href="123-vec-hnsw.html" class="active" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
+      <a href="123-vec-hnsw.html" title="HNSW 分层小世界图：低延迟之王"><span class="num">123</span>HNSW 分层小世界</a>
       <a href="124-vec-hnsw-insert.html" title="HNSW 插入算法详解"><span class="num">124</span>HNSW 插入算法详</a>
       <a href="125-vec-hnsw-query.html" title="HNSW 查询算法与 ef 调优"><span class="num">125</span>HNSW 查询算法与</a>
       <a href="126-vec-pq.html" title="乘积量化 PQ：把向量压到 1/16"><span class="num">126</span>乘积量化 PQ</a>
@@ -305,43 +303,92 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 123 章 · 向量索引与 RAG 原理深挖</span>
-<h1>HNSW 分层小世界图：低延迟之王</h1><p class="lead">多层跳跃图：上层稀疏快速导航、底层稠密精确搜索。插入时逐层选邻居、查询时从顶层贪心下降。M/efConstruction/efSearch 三参数。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>多层跳跃图：上层稀疏快速导航、底层稠密精确搜索。插入时逐层选邻居、查询时从顶层贪心下降。M/efConstruction/efSearch 三参数。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>HNSW 的核心思想</h2>
-<p>HNSW（Hierarchical Navigable Small World）是当前低延迟近似最近邻（ANN）搜索的事实标准。它的核心思想借鉴了"跳表"（skip list）：用多层图结构，顶层稀疏用于快速跨距离导航，底层稠密用于精确搜索。</p>
-<h3>分层图结构</h3>
-<p>想象你要在一张大地图上找最近的咖啡馆。先看国家级地图（顶层，只有几个大城市节点）快速定位到大致区域，再看省级地图（中层）缩小范围，最后看街道级地图（底层，所有节点）精确找到。这就是 HNSW 的分层逻辑。</p>
-<p>每个节点以概率 p^l 被分配到第 l 层（l 从 0 开始，0 是最稠密的底层）。插入时从顶层开始，逐层向下，在每层用贪心算法找到最近的节点作为该层的邻居。</p>
-<h3>三个关键参数</h3>
-<table class="data-table"><thead><tr><th>参数</th><th>含义</th><th>典型值</th><th>影响</th></tr></thead><tbody><tr><td>M</td><td>每个节点的最大连接数</td><td>16-48</td><td>越大召回越高，内存越大</td></tr><tr><td>efConstruction</td><td>构建时的候选集大小</td><td>200-500</td><td>越大索引质量越好，构建越慢</td></tr><tr><td>efSearch</td><td>查询时的候选集大小</td><td>50-200</td><td>越大召回越高，查询越慢</td></tr></tbody></table>
-<h2><span class="idx"></span>插入算法</h2>
-<pre class="code"><code class="language-python">def hnsw_insert(query, graph):
-    ep = graph.entry_point  # 从入口点开始
-    L = graph.max_level
-    # 1. 从顶层到 efConstruction 层+1: 贪心找最近
-    for lc in range(L, graph.ef_construction_layer, -1):
-        ep = greedy_search(query, ep, layer=lc)  # 只找最近 1 个
-    # 2. 在 efConstruction 层到 0: 维护 ef 个候选
-    for lc in range(min(L, graph.ef_construction_layer), -1, -1):
-        candidates = search_layer(query, ep, ef=efConstruction, layer=lc)
-        neighbors = select_neighbors(candidates, M)  # 启发式选邻居
-        graph.add_node(query, neighbors, layer=lc)
-        ep = candidates
-    # 3. 可能提升 entry_point</code></pre>
-<div class="callout"><strong>💡 要点</strong><br>HNSW 的精妙在于：构建时贪心选邻居保证图连通，启发式去冗余保证图的"小世界"性质（任意两节点跳数少）。查询时只在底层做 ef 搜索，高层纯导航。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"HNSW 分层小世界图：低延迟之王"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="122-vec-ivf-tuning.html"><div class="lbl">← 上一章</div><div class="ttl">122 · IVF 调参实战：nlist 与 nprobe 的取舍</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="124-vec-hnsw-insert.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">124 · HNSW 插入算法详解</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 123 章 · HNSW 分层小世界图：低延迟之王</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 123 · 向量RAG补充</span>
+      <h1>HNSW 原理<br>多层跳表如何实现亚毫秒级向量检索</h1>
+      <p class="lead">当 IVF 还在纠结"训练多久、重建多频繁"时，HNSW（Hierarchical Navigable Small World）凭借图结构的天然增量性，成了当今向量数据库的事实标准。Milvus、Qdrant、Weaviate、pgvector 全部内置 HNSW 作为默认索引。本章拆解它的多层跳表结构，讲清 M、efConstruction、efSearch 三个参数如何决定召回率与延迟，并用 hnswlib 库跑通从建库到查询的完整流程。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="motivation"><span class="idx">1</span> 为什么图结构比聚类更适合增量场景</h2>
+    <p>IVF 的痛点是"聚类中心固定后，新数据如果落在新区域，召回率会持续下降"。图结构绕开了这个问题：它不预设任何中心，而是让每个向量成为图中的一个节点，与它最近的若干邻居建立边。查询时从入口点出发，沿着边不断"贪心"跳向更近的节点，直到无法再改进为止。这种"导航式"搜索天然支持增量插入——新节点只需连到几个近邻，图的连通性就自然维持。</p>
+    <p>HNSW 的核心创新是借鉴跳表（Skip List）的分层思想，把单层图变成多层图。最底层包含所有节点，上层逐层稀疏采样（每个节点以指数衰减的概率出现在更高层）。查询时先在最顶层做"粗导航"快速定位到大致区域，再逐层下降做"细导航"精确逼近目标。这就像用地图找路：先用全国地图定位到城市，再用城市地图定位到街道，最后用街景找到具体门牌。</p>
+    <h2 class="section" id="structure"><span class="idx">2</span> 多层跳表与 NSW 的关键区别</h2>
+    <p>要理解 HNSW，得先理解它的前身 NSW（Navigable Small World）。NSW 是单层图，查询时从随机入口点出发贪心搜索，问题是早期建的边（long-range edge）负责远距离跳跃，后期建的边（short-range edge）负责精确逼近，但两者混在一起，搜索路径又长又容易陷入局部最优。</p>
+    <p>HNSW 用分层解决了这个混乱：上层只保留 long-range 边，负责快速跨区域跳跃；下层保留所有边，负责精确局部搜索。节点 i 的最高层级由一个指数分布随机决定：<code>level = floor(-ln(uniform(0,1)) * mL)</code>，其中 <code>mL = 1/ln(M)</code>。这意味着绝大多数节点只在第 0 层（最底层），只有少数"幸运儿"会出现在高层，形成天然的稀疏骨架。这种结构让搜索复杂度从 NSW 的 O(log N * log N) 降到 O(log N)。</p>
+    <p>一个常被忽略的细节：HNSW 每层的邻居数不是固定的。第 0 层（底层）每个节点最多有 <code>2 * M</code> 个邻居（因为要连更多近距离点保证精度），而第 1 层及以上每层最多 <code>M</code> 个。这个设计兼顾了底层的精度需求和上层的导航效率。</p>
+    <h2 class="section" id="params"><span class="idx">3</span> 三个参数：M、efConstruction、efSearch</h2>
+    <p>HNSW 的行为完全由三个参数控制，理解它们就能调出适合自己数据的索引。</p>
+    <p><strong>M（图的度数）</strong>：每个节点在第 1 层及以上保留的最大邻居数（底层是 2M）。M 越大，图越稠密，召回率越高，但内存占用和构建时间线性增长。推荐范围 8 到 48，常见默认值 16。对于高维向量（768 维以上）或对召回率要求高的场景，M 取 32；对于低维（128 维）或追求低延迟，M 取 8 到 12。</p>
+    <p><strong>efConstruction（构建时搜索宽度）</strong>：建索引时，为每个新节点寻找邻居的候选列表大小。这个值只影响构建速度和索引质量，不影响查询。值越大，建的图质量越高（召回率上限越高），但构建越慢。推荐范围 100 到 500，默认 200。如果你的数据是一次性导入的，把 efConstruction 调到 400 能显著提升最终召回率。</p>
+    <p><strong>efSearch（查询时搜索宽度）</strong>：这是运行时可调的参数，相当于 IVF 的 nprobe。efSearch 越大，搜索越深，召回率越高但延迟越高。关键是它必须大于等于你想要的 top-k。下表是 M=16、efConstruction=200 时典型的权衡曲线（100 万 768 维向量）：</p>
+    <pre><code class="language-text">efSearch=16   recall@10≈0.82  延迟 0.4ms
+efSearch=50   recall@10≈0.95  延迟 0.8ms
+efSearch=100  recall@10≈0.98  延迟 1.5ms
+efSearch=200  recall@10≈0.995 延迟 3.2ms</code></pre>
+    <p>注意 HNSW 在 recall 0.95 时的延迟（0.8ms）比 IVF（2.6ms）低 3 倍，这就是它成为默认索引的原因。但代价是内存：HNSW 需要存储图结构，每个节点的邻居列表用 int32 存储要占 <code>2M * 4</code> 字节，加上原始向量，总内存是原始数据的 1.3 到 1.8 倍。</p>
+    <h2 class="section" id="hnswlib"><span class="idx">4</span> hnswlib 实操：从建库到查询</h2>
+    <p>hnswlib 是 HNSW 作者 Malkov 开源的 C++ 库（带 Python 绑定），是 FAISS 之外最流行的 ANN 库，也是 Milvus、Qdrant 内部 HNSW 实现的基础。下面用它在 100 万向量上构建索引并调参。</p>
+    <pre><code class="language-python">import numpy as np
+import hnswlib
+import time
+
+# 1. 准备数据
+np.random.seed(42)
+N, D = 1_000_000, 768
+data = np.random.randn(N, D).astype('float32')
+labels = np.arange(N)
+
+# 2. 初始化索引
+index = hnswlib.Index(space='cosine', dim=D)
+
+# 3. 构建：M 控制度数，ef_construction 控制建图质量
+index.init_index(max_elements=N, ef_construction=400, M=32)
+
+# 4. 添加数据（支持分批 add，天然增量）
+print("构建 HNSW 索引...")
+t0 = time.time()
+index.add_items(data, labels)
+print(f"构建耗时 {time.time() - t0:.1f}s")
+
+# 5. 设置查询参数并搜索
+index.set_ef(50)  # ef_search，运行时可调，必须 >= k
+queries = np.random.randn(100, D).astype('float32')
+
+t0 = time.time()
+labels_found, distances = index.knn_query(queries, k=10)
+latency = (time.time() - t0) / 100 * 1000
+print(f"ef=50: 延迟 {latency:.2f}ms")
+
+# 6. 评估召回率（对比暴力搜索）
+gt = np.argsort(-(data @ queries.T), axis=0)[:10].T
+recall = sum(len(set(labels_found[i]) & set(gt[i])) for i in range(100)) / 1000
+print(f"recall@10 = {recall:.4f}")
+
+# 7. 持久化
+index.save_index("index.hnsw")
+index2 = hnswlib.Index(space='cosine', dim=D)
+index2.load_index("index.hnsw", max_elements=N)
+
+# 8. 增量插入新数据（HNSW 的杀手锏）
+new_data = np.random.randn(10000, D).astype('float32')
+index2.resize_index(N + 10000)
+index2.add_items(new_data, np.arange(N, N + 10000))</code></pre>
+    <p>这段代码展示了 HNSW 相对 IVF 的三大优势：第一，<code>add_items</code> 天然支持增量，不需要重建；第二，<code>set_ef</code> 运行时切换精度，无需重新建索引；第三，<code>save/load</code> 持久化后可以跨进程加载。注意 <code>resize_index</code> 需要预留空间，生产环境建议初始化时把 max_elements 设为预期的 1.5 倍，避免频繁 resize。</p>
+    <h2 class="section" id="insert-algo"><span class="idx">5</span> 插入算法的内部逻辑</h2>
+    <p>理解插入算法能帮你诊断"为什么我的召回率上不去"。HNSW 插入一个新节点 q 的过程如下：先随机生成 q 的最高层级 l；从最顶层入口点出发，用 ef=1 的贪心搜索下降到第 l+1 层，找到该层的最近节点作为入口；然后从第 l 层开始往下，每一层用 ef_construction 大小的候选列表搜索邻居，从中选出 M 个（底层 2M）建立双向边，如果被连的节点邻居数超限就触发"剪枝"（保留最分散的 M 个）。</p>
+    <p>剪枝策略是 HNSW 召回率的关键。hnswlib 用的是"启发式选邻居"：不只选最近的 M 个，而是选在空间上最分散的 M 个，避免所有邻居挤在一个方向导致搜索路径单一。这也是为什么 ef_construction 要足够大——候选池太小，剪枝没有选择空间，图的质量就上不去。</p>
+    <h2 class="section" id="tuning"><span class="idx">6</span> 生产调参的实战经验</h2>
+    <p>调 HNSW 参数时，建议遵循"先保召回，再压延迟"的原则。第一步固定 ef_construction=400、M=32，扫描 ef_search 找到能达到目标 recall（比如 0.95）的最小值。第二步如果延迟仍超标，尝试降低 M（比如到 16），但要重新建索引验证召回率没掉。第三步，如果内存紧张，考虑用 HNSW+PQ 混合索引（图结构存全精度向量坐标用 PQ 压缩）。</p>
+    <p>一个容易踩的坑：不同 distance metric 下 HNSW 表现差异大。cosine 和 L2 通常表现最好，内积（IP）在向量未归一化时召回率会明显下降，因为 IP 不满足三角不等式，贪心搜索的理论保证失效。解决方案是统一做 L2 归一化后用 cosine 或 L2，等价于 IP 且数值稳定。</p>
+    <h2 class="section" id="summary"><span class="idx">7</span> 本章小结</h2>
+    <p>HNSW 用多层跳表结构把 NSW 的单层图升级为"粗导航 + 细导航"的分层导航，实现了 O(log N) 的搜索复杂度和亚毫秒级延迟，同时天然支持增量插入，这使它成为当今向量数据库的事实标准。三个参数中，M 决定图的稠密度（默认 16，高维用 32），ef_construction 决定建图质量（默认 200，一次性导入用 400），ef_search 决定查询精度与延迟（运行时可调，需 >= k）。相比 IVF，HNSW 在召回率和延迟上都更优，代价是更高的内存占用。掌握 hnswlib 的 API 后，迁移到 Milvus、Qdrant 等生产系统只是配置层面的差异，底层逻辑完全一致。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

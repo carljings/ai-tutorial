@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -159,7 +157,7 @@
       <a href="127-vec-pq-adc.html" title="ADC 与对称距离计算"><span class="num">127</span>ADC 与对称距离计</a>
       <a href="128-vec-lsh.html" title="LSH 局部敏感哈希"><span class="num">128</span>LSH 局部敏感哈希</a>
       <a href="129-vec-scann.html" title="ScaNN 与各向异性量化"><span class="num">129</span>ScaNN 与各向异</a>
-      <a href="130-vec-diskann.html" class="active" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
+      <a href="130-vec-diskann.html" title="DiskANN：内存装不下的亿级索引"><span class="num">130</span>DiskANN</a>
       <a href="131-vec-filtering.html" title="元数据过滤：ANN 与 WHERE 子句"><span class="num">131</span>元数据过滤</a>
       <a href="132-vec-hybrid-search.html" title="混合检索：BM25 + 向量的正确姿势"><span class="num">132</span>混合检索</a>
       <a href="133-vec-rerank.html" title="重排序 Rerank：精排召回结果"><span class="num">133</span>重排序 Rerank</a>
@@ -305,66 +303,216 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 130 章 · 向量索引与 RAG 原理深挖</span>
-<h1>DiskANN：内存装不下的亿级索引</h1><p class="lead">把图存在 SSD，内存只放压缩向量与路由结构。beam search 顺序读盘。在单机能跑十亿级向量的方案。Vamana 构建算法。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">向量索引与 RAG 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>问题背景</h2>
-<p>把图存在 SSD，内存只放压缩向量与路由结构。beam search 顺序读盘。在单机能跑十亿级向量的方案。Vamana 构建算法。</p>
-<p>向量检索是 RAG、语义搜索、推荐系统的基础设施。但"把向量存起来，算相似度"听起来简单，数据量一到百万、千万级，就变成了一个严肃的算法与工程问题。本章我们拆解底层数据结构与算法，看清不同方案的取舍。</p>
-<h2><span class="idx"></span>机制拆解</h2>
-<p>把图存在 SSD，内存只放压缩向量与路由结构。beam search 顺序读盘。在单机能跑十亿级向量的方案。Vamana 构建算法。</p>
-<h3>形式化定义</h3>
-<p>先用数学语言把问题说清楚。向量检索的核心是：给定查询向量 q 和数据库 {x_1, ..., x_N}，找到与 q 最相似的 k 个向量。相似度通常用余弦相似度或内积度量。当 N 达到百万、千万级，暴力计算 q 与所有 x_i 的距离就不可行了。</p>
-<p>这就是 ANN（Approximate Nearest Neighbor，近似最近邻）算法存在的理由。它接受"可能漏掉少数真正最近邻"的代价，换取数量级的速度提升。关键问题变成：如何用数据结构组织向量，让搜索只触及一小部分候选。</p>
-<h3>核心数据结构</h3>
-<p>不同的 ANN 算法对应不同的数据结构：IVF 用聚类质心做"区域划分"，HNSW 用图做"小世界导航"，PQ 用码本做"压缩存储"，LSH 用哈希桶做"相似归并"。它们可以组合使用——最常见的是 IVF + PQ + HNSW 重排的三级流水线。</p>
-<h2><span class="idx"></span>工程实践</h2>
-<p>理论落地为工程时，会遇到一系列现实约束：数据规模、查询延迟、召回要求、内存预算。下面是生产环境里真正需要关注的要点和常见陷阱。</p>
-<pre class="code"><code class="language-python"># 一个完整的向量检索 pipeline 示意
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 130 · 向量检索系列</span>
+      <h1>DiskANN<br>Vamana 图、SSD Beam Search 与内外存混合架构</h1>
+      <p class="lead">当向量库涨到几十亿条，HNSW 的内存（几百 GB 到 TB）成了无法承受之重。DiskANN 是微软研究院提出的解决方案：把图放 SSD，用 Vamana 图的高质量 + beam search 的批量访存，让一台普通服务器（64GB 内存 + 一块 NVMe SSD）就能扛下百亿级向量。本文拆解 Vamana 图构建、SSD beam search 查询、以及内外存混合的精妙设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 20 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="problem"><span class="idx">★</span> HNSW 的内存天花板与 DiskANN 的破局</h2>
+    <p>HNSW 的性能优势建立在一个前提上：<strong>整张图常驻内存</strong>。一张 1 亿节点的 HNSW 图，光存原始向量就要 300GB（768 维 float32），加上图的边（每节点 M=16 个邻居，约 64 字节），再算上优先队列等运行时结构，轻松突破 400GB。这在生产环境意味着一台机器装不下，要上集群——成本、运维复杂度都陡增。</p>
+    <p>DiskANN 的洞察是：<strong>SSD 的随机读取带宽（NVMe 可达 10-50 万 IOPS）足以支撑图遍历，前提是把随机小读转成批量读</strong>。普通 HNSW 查询是"取一个邻居 → 算距离 → 取下一个邻居"的串行随机访问，每次只读几十字节，对 SSD 极不友好（IOPS 浪费）。DiskANN 的核心改造就是用 beam search 把这种串行随机读变成<strong>批量并行读</strong>——一次取一批邻居，把 SSD 的吞吐榨干。</p>
+    <p>这样做的结果是：图可以放 SSD（百亿向量只要几 TB SSD，内存只放压缩后的向量和图的入口点），单机就能搞定。代价是延迟比纯内存 HNSW 高（毫秒到几十毫秒），但对于"内存装不下"的超大规模场景，这是唯一可行解。</p>
+
+    <h2 class="section" id="vamana"><span class="idx">★</span> Vamana 图：比 HNSW 更激进的剪枝</h2>
+    <p>DiskANN 用一种叫 Vamana 的图构建算法（论文里叫它 NSG 的近亲）。Vamana 和 HNSW 的最大区别是：<strong>它是单层的，不分层</strong>。单层图的好处是结构简单、SSD 上的访问模式更规律；坏处是没有"上层快速接近"的机制，所以它通过两个手段弥补：</p>
+    <ol>
+      <li><strong>更激进的 alpha 参数</strong>：Vamana 的邻居选择有个参数 α（类似 HNSW 的启发式但带权重），构建时分两阶段——先用 α=1 构建一遍（等价于 HNSW 启发式），再用 α&gt;1（如 1.2）重新修剪一遍。大 α 允许删除一些短边、保留长边，提升图的全局连通性，减少查询跳数。</li>
+      <li><strong>精心选入口点</strong>：Vamana 选一个"近似质心"（medoid，到所有点距离之和最小的点）作为固定入口，而不是 HNSW 那种"最高层节点"。从质心出发能更快到达任意区域。</li>
+    </ol>
+    <p>Vamana 构建流程（离线，一次性）：</p>
+    <ol>
+      <li>计算 medoid 作为入口点 s。</li>
+      <li>对每个点 p，从 s 出发做一次贪心搜索得到候选邻居集 L。</li>
+      <li>用 α-修剪从 L 里选邻居连边。</li>
+      <li>所有点插完后，把 α 调大再修剪一遍全局图。</li>
+    </ol>
+    <p>这套构建是离线的、一次性的，所以耗时较长（1 亿点要几小时），但构建质量极高——Vamana 图在内存里的 recall-QPS 甚至略优于 HNSW。DiskANN 的工程贡献是把这张高质量图挪到 SSD 上还能跑得动。</p>
+
+    <pre><code class="language-python"># Vamana 风格的简化构建（教学用，真实 DiskANN 用 C++ + SSD 优化）
+import numpy as np
+import heapq
+
+def greedy_search(graph, q, entry, max_visits, L):
+    """从 entry 出发贪心搜索，返回候选集（容量 L）和访问序列"""
+    visited = {entry}
+    cand = [(np.linalg.norm(q - graph[entry]['vec']), entry)]
+    heapq.heapify(cand)
+    result = list(cand)
+    while cand and len(visited) &lt; max_visits:
+        _, c = heapq.heappop(cand)
+        for nb in graph[c]['neighbors']:
+            if nb not in visited:
+                visited.add(nb)
+                d = np.linalg.norm(q - graph[nb]['vec'])
+                if len(result) &lt; L or d &lt; max(result)[0]:
+                    heapq.heappush(cand, (d, nb))
+                    result.append((d, nb))
+                    if len(result) > L:
+                        result.remove(max(result))
+    return result
+
+def prune_with_alpha(q_vec, cand_list, R, alpha):
+    """α-修剪：保留方向多样且满足 alpha 约束的邻居"""
+    cand_list.sort(key=lambda x: x[0])      # 按距离升序
+    selected = []
+    for d, n in cand_list:
+        if len(selected) >= R:
+            break
+        # alpha 约束：n 到 q 的距离 × alpha 必须 < n 到任一已选邻居的距离
+        keep = all(alpha * d &lt; np.linalg.norm(
+                    graph[n]['vec'] - graph[s]['vec']) for _, s in selected)
+        if keep:
+            selected.append((d, n))
+    return selected
+
+# 注意：真实 DiskANN 的构建在 C++ 实现（DiskANN repo），Python 版仅用于理解
+</code></pre>
+
+    <h2 class="section" id="beam-search"><span class="idx">★</span> SSD Beam Search：把随机读变批量读</h2>
+    <p>这是 DiskANN 最有工程价值的部分。在 SSD 上跑 Vamana 图查询，朴素做法是：从入口 s 出发，取 s 的邻居列表（一次 SSD 读），算距离，选最近的下一步，再读它的邻居……每次只读几十字节，SSD 吞吐利用率不到 1%。</p>
+    <p>Beam search 的改造：维护一个宽度为 W 的候选队列，每轮从队列里取 W 个节点的邻居列表，<strong>合并成一次批量 SSD 读</strong>（一次 I/O 把 W 个节点的邻居都取回），算完距离后把新发现的近邻加入队列，淘汰远的。这样把"W 次串行小读"变成"1 次批量读"，SSD 吞吐利用率拉满。</p>
+    <p>具体到 SSD，DiskANN 还做了几个关键优化：</p>
+    <ul>
+      <li><strong>扇区对齐存储</strong>：把图的节点按 SSD 扇区（4KB）对齐打包，一次扇区读能取回多个节点，进一步减少 I/O 次数。</li>
+      <li><strong>SSD 预读（read-ahead）</strong>：访问一个扇区时顺便预取相邻扇区，因为图的访问有局部性。</li>
+      <li><strong>压缩向量缓存</strong>：内存里放一份 PQ 压缩的向量（每向量几十字节），先用压缩向量粗排，只对真正候选去 SSD 读原始向量精排。</li>
+    </ul>
+
+    <pre><code class="language-python"># Beam search 的伪代码 —— 直观感受"批量读"
+def diskann_beam_search(query, entry, k, beam_width, L):
+    """
+    query:      查询向量
+    entry:      固定入口点（medoid）
+    beam_width: W，每轮批量读多少个节点的邻居
+    L:          候选队列容量
+    """
+    visited = {entry}
+    # 候选队列（最小堆，按到 query 的距离）
+    pq = [(dist_memcache(query, entry), entry)]    # 用内存里的压缩向量算
+    result = []
+
+    while pq:
+        # 1. 取出 beam_width 个最近候选
+        batch = []
+        while pq and len(batch) &lt; beam_width:
+            d, n = heapq.heappop(pq)
+            if n not in visited:
+                batch.append(n); visited.add(n)
+
+        # 2. 关键：一次批量 SSD 读，取回所有 batch 节点的邻居列表
+        neighbor_lists = ssd_batch_read(batch)     # 1 次大 I/O 取多个扇区
+
+        # 3. 对每个新邻居，用内存压缩向量算近似距离
+        for nbs in neighbor_lists:
+            for nb in nbs:
+                if nb not in visited:
+                    d_approx = dist_compressed(query, nb)   # 内存 PQ 距离
+                    if len(result) &lt; L or d_approx &lt; result[-1][0]:
+                        heapq.heappush(pq, (d_approx, nb))
+
+        # 4. 更新结果集
+        result.extend([(d, n) for d, n in batch])
+        result = sorted(result)[:L]
+
+    # 5. 对 top-N 用 SSD 上的原始向量精确重排
+    top = [n for _, n in result[:200]]
+    raw_vecs = ssd_batch_read_raw(top)
+    final = sorted(top, key=lambda n: dist_exact(query, raw_vecs[n]))[:k]
+    return final
+</code></pre>
+
+    <h2 class="section" id="hybrid-arch"><span class="idx">★</span> 内外存混合：三层数据布局</h2>
+    <p>DiskANN 把数据按访问频率分三层存储，是它能单机扛百亿的关键：</p>
+    <ul>
+      <li><strong>内存层（小）</strong>：入口点 medoid、PQ 压缩向量（全量，每向量几十字节，百亿也才几百 GB）、导航图骨架。这部分要快，常驻内存。</li>
+      <li><strong>SSD 层（大）</strong>：完整 Vamana 图（节点 + 边）和原始 float 向量，按扇区打包。查询时用 beam search 批量读。</li>
+      <li><strong>可选 SSD 缓存</strong>：高频访问的图区域缓存到内存，进一步降延迟（论文叫"cached beams"）。</li>
+    </ul>
+    <p>这个分层让 DiskANN 在"内存 64GB + SSD 2TB"的廉价配置上就能装下 5-10 亿向量，单查询延迟 5-30ms，QPS 几百到几千。对比纯内存 HNSW 同样规模要 4-8 台高内存机器，TCO 降一个数量级。</p>
+
+    <h2 class="section" id="practice"><span class="idx">★</span> 实战：用 DiskANN 的官方实现</h2>
+
+    <pre><code class="language-python"># DiskANN 官方提供 Python binding (diskannpy)
+# pip install diskannpy   (Linux/Mac，需要支持 AVX 的 CPU)
+import diskannpy as dap
 import numpy as np
 
-class VectorIndex:
-    """演示向量检索索引的抽象接口。"""
-    def __init__(self, dim, metric="cosine"):
-        self.dim = dim
-        self.metric = metric
-        self.vectors = []
-        self.ids = []
+d = 768
+N = 10_000_000   # 一千万（教学规模；真实可上百亿）
+# 注意：真实场景从磁盘流式加载，这里用随机数据演示 API
+xb = np.random.randn(N, d).astype(np.float32)
 
-    def add(self, vec_id, vector):
-        """插入向量。"""
-        assert len(vector) == self.dim
-        self.vectors.append(np.array(vector, dtype=np.float32))
-        self.ids.append(vec_id)
+# 1. 构建 Vamana 图并写入 SSD
+builder = dap.DiskANNBuilder(
+    distance="l2",
+    vector_dtype=np.float32,
+    dimensions=d,
+)
+graph = builder.build(
+    data=xb,
+    index_path="/tmp/diskann_index",       # 输出到 SSD
+    l_build=200,         # 构建时的候选集宽度（类似 efConstruction）
+    r=64,                # 每节点最大邻居数（比 HNSW 的 M 大）
+    max_degree=64,
+)
+# 构建产物：.data（原始向量，扇区对齐）/ .index（图）/ .pq（PQ 压缩向量）
 
-    def search(self, query, k=10):
-        """暴力 kNN（基线，生产用 ANN 索引替代）。"""
-        q = np.array(query, dtype=np.float32)
-        if self.metric == "cosine":
-            # 归一化后点积 = 余弦相似度
-            q = q / np.linalg.norm(q)
-            V = np.array(self.vectors)
-            V = V / np.linalg.norm(V, axis=1, keepdims=True)
-            sims = V @ q
-        else:  # l2
-            sims = -np.linalg.norm(np.array(self.vectors) - q, axis=1)
-        top = np.argsort(sims)[-k:][::-1]
-        return [(self.ids[i], float(sims[i])) for i in top]
+# 2. 加载查询器（内存只放 PQ 压缩向量 + 入口点）
+searcher = dap.DiskANNSearcher(
+    disk_index="/tmp/diskann_index.index",
+    data_path="/tmp/diskann_index.data",
+    vector_dtype=np.float32,
+    dimensions=d,
+)
 
-# 生产中你会用 faiss / milvus / qdrant / pgvector
-# 它们的 search() 内部跑的是 HNSW / IVFPQ 等算法</code></pre>
-<p>这个暴力实现是理解 ANN 价值的基线。把它跑在 100 万向量上，单次查询要几十毫秒；而 HNSW 只要亚毫秒。这就是 ANN 存在的全部理由。</p>
-<table class="data-table"><thead><tr><th>索引类型</th><th>构建时间</th><th>查询延迟</th><th>召回</th><th>内存</th><th>适用场景</th></tr></thead><tbody><tr><td>暴力 kNN</td><td>0</td><td>高</td><td>100%</td><td>中</td><td>小数据集/基准</td></tr><tr><td>IVF</td><td>中</td><td>低</td><td>90-95%</td><td>中</td><td>通用、可调参</td></tr><tr><td>HNSW</td><td>高</td><td>极低</td><td>95-99%</td><td>高</td><td>低延迟、高质量</td></tr><tr><td>IVFPQ</td><td>中</td><td>低</td><td>85-92%</td><td>极低</td><td>海量数据、省内存</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>选索引的决策树：先看数据量（&lt;10万用暴力，&gt;100万必须 ANN）→ 再看延迟要求（亚毫秒选 HNSW）→ 再看内存预算（紧张选 PQ）→ 最后用 recall@k vs QPS 曲线定参数。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<div class="callout"><strong>💡 要点</strong><br>向量检索最大的坑不是算法选择，而是"评估方法不对"。很多人凭感觉调参，但没有建立 recall@k vs QPS 的量化曲线，导致优化方向跑偏。</div>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们深入剖析了"DiskANN：内存装不下的亿级索引"。向量检索是 RAG 系统的地基——检索召回率每提升 1%，端到端问答准确率可能提升 2-3%。掌握这些原理，你就能为自己的数据集选对索引、调对参数、建出高质量的知识库。</p>
-<div class="chapter-nav">
-<a href="129-vec-scann.html"><div class="lbl">← 上一章</div><div class="ttl">129 · ScaNN 与各向异性量化</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="131-vec-filtering.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">131 · 元数据过滤：ANN 与 WHERE 子句</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 130 章 · DiskANN：内存装不下的亿级索引</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+# 3. 查询
+xq = np.random.randn(5, d).astype(np.float32)
+import time
+t0 = time.time()
+ids, dists = searcher.search(
+    query=xq, k=10,
+    l_search=200,        # 查询候选集宽度（类似 efSearch）
+    beam_width=4,        # beam search 宽度，越大 SSD 吞吐越高
+)
+print(f"DiskANN 单次查询: {(time.time()-t0)/5*1000:.1f} ms")
+print("top-10 ids:", ids)
+</code></pre>
+
+    <h3>调参要点</h3>
+    <ul>
+      <li><code>r</code>（邻居度数）：建议 64-128，比 HNSW 大，因为单层图要靠更多边保证连通。</li>
+      <li><code>l_build</code>：构建质量旋钮，200-400 常见，构建慢但图质量高。</li>
+      <li><code>l_search</code>：查询召回旋钮，100-300，和 HNSW 的 efSearch 同理。</li>
+      <li><code>beam_width</code>：SSD 吞吐旋钮，4-8 常见，取决于 SSD 的 IOPS。</li>
+    </ul>
+
+    <h2 class="section" id="when-diskann"><span class="idx">★</span> 什么时候选 DiskANN</h2>
+    <ul>
+      <li>向量规模超过单机内存（&gt;5 亿，或内存预算 &lt;100GB 但数据 &gt;50GB）。</li>
+      <li>延迟要求相对宽松（10-50ms 可接受）。</li>
+      <li>数据相对静态（DiskANN 不擅长高频更新，重建成本高）。</li>
+      <li>成本敏感（不想上集群）。</li>
+    </ul>
+    <p>反过来，规模小、延迟要求极低、数据频繁变动，还是 HNSW 内存方案更合适。DiskANN 和 HNSW 不是替代关系，而是规模分层上的互补。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <ul>
+      <li>DiskANN 解决 HNSW 内存装不下的问题：图放 SSD，单机扛百亿，靠 beam search 把 SSD 随机读榨干。</li>
+      <li>Vamana 图是单层高质量近邻图，用 α 修剪（两阶段，第二阶段 α&gt;1）保证全局连通，从 medoid 入口出发。</li>
+      <li>SSD beam search 把"W 次串行小读"变"1 次批量读"，配合扇区对齐、预读、PQ 内存粗排，让 SSD 吞吐利用率拉满。</li>
+      <li>三层数据布局：内存放 PQ 压缩向量 + 入口点，SSD 放完整图 + 原始向量，可选缓存热区。</li>
+      <li>选型：规模超内存、延迟宽松、数据静态、成本敏感时选 DiskANN；反之选 HNSW。</li>
+    </ul>
+    <p>到这里向量检索的核心算法就讲完了。下一篇我们回到 RAG 工程现场，看向量 + 属性过滤该怎么搭。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 编程实战案例库 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 编程实战案例库 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -59,7 +66,7 @@
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
-      <a href="45-coding-cases.html" class="active" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
+      <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
       <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
       <a href="47-multilingual-nlp.html" title="多语言 NLP"><span class="num">47</span>多语言 NLP</a>
       <a href="48-ai-ethics.html" title="AI 创作与版权伦理"><span class="num">48</span>AI 创作与版权伦理</a>
@@ -295,12 +302,259 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI 编程实战案例库</h1><p class="lead">12个场景——从原型到生产的AI编程全流程</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>12个AI编程实战场景</h2>
-    <table class="data-table"><thead><tr><th>场景</th><th>AI做什么</th><th>效果</th></tr></thead><tbody><tr><td>快速原型</td><td>描述需求→生成可运行原型</td><td>2小时→30分钟</td></tr><tr><td>代码迁移</td><td>Python2→3 / JS→TS</td><td>自动化80%</td></tr><tr><td>Bug修复</td><td>描述bug→AI定位+修复</td><td>省50%调试时间</td></tr><tr><td>测试编写</td><td>生成单元测试+边界用例</td><td>覆盖率60%→85%</td></tr><tr><td>文档生成</td><td>代码→API文档/注释</td><td>省大量手动写文档</td></tr><tr><td>代码审查</td><td>PR自动审查</td><td>7×24全覆盖</td></tr><tr><td>重构</td><td>改善结构不改变行为</td><td>安全且高效</td></tr><tr><td>SQL生成</td><td>自然语言→SQL查询</td><td>非技术人员也能查数据</td></tr><tr><td>正则表达式</td><td>描述→生成复杂正则</td><td>不再需要查语法</td></tr><tr><td>CI/CD</td><td>生成部署脚本/配置</td><td>降低运维门槛</td></tr><tr><td>日志分析</td><td>从日志提取关键信息</td><td>自动化运维</td></tr><tr><td>安全扫描</td><td>发现漏洞+建议修复</td><td>补充专业安全审查</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>12个AI编程场景：原型/迁移/Bug修复/测试/文档/审查/重构/SQL/正则/CI-CD/日志/安全。核心价值：省时间（原型30分钟）+提质量（审查7×24）+降门槛（非技术也能SQL）。最佳实践：描述具体+审查AI输出+保持测试通过。</p>
-    <div class="chapter-nav">
-      <a href="44-career.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 45 章 · AI 编程实战案例库</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 45 · 核心知识系列</span>
+      <h1>AI 编程实战案例库<br>三个真实任务的 prompt 到交付全过程</h1>
+      <p class="lead">看再多"AI 编程技巧"文章，不如跟着真实案例走一遍完整流程。本章拆解三个实战任务——从需求理解、prompt 设计、AI 输出到人工审查，每一步都展示原始交互和审查要点。你会看到 AI 在哪里表现出色、在哪里翻车需要人工介入，以及如何用"提示工程 + 工程审查"的组合拳把 AI 产出变成生产级代码。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> 为什么需要"全过程"案例</h2>
+    <p>大多数 AI 编程教程只展示"完美的结果"——输入一句 prompt，AI 输出完美代码，皆大欢喜。但真实的 AI 编程远非如此顺畅。AI 会误解需求、写出有 bug 的代码、遗漏边界情况、引入安全漏洞。真正有价值的不是"AI 能写出什么"，而是"人怎么审查和修正 AI 的输出，最终把它变成可靠的生产代码"。</p>
+    <p>本章的三个案例覆盖了不同类型和难度：案例一是数据处理脚本（简单但高频），案例二是 Web API 开发（中等复杂度，涉及架构决策），案例三是调试和重构现有代码（需要理解上下文和定位问题）。每个案例都完整展示四个阶段：需求分析 → prompt 设计 → AI 输出 → 人工审查。重点放在"审查"环节——这才是 AI 编程中最考验功力的部分。</p>
+
+    <h2 class="section" id="case-1"><span class="idx">★</span> 案例一：Excel 数据清洗脚本</h2>
+    <p><strong>需求描述</strong>：有一个销售数据 Excel 文件，包含日期、产品名、销售额、地区四列。数据有这些问题：日期格式不统一（有的是 2024-01-15，有的是 2024/1/15，有的是"1月15日"）、产品名有全角和半角混用、销售额有文本和数字混用、地区有错别字（"北京"写成"北景"）。需要写一个脚本清洗并输出标准格式。</p>
+    <p><strong>Prompt 设计</strong>：对于数据清洗这类任务，关键是把规则描述清楚，并给出输入输出示例。模糊的 prompt 会导致 AI 做不必要的假设。</p>
+    <pre><code class="language-text">我需要清洗一个销售数据 Excel 文件。请用 Python 写一个清洗脚本。
+
+【输入数据】sales.xlsx，4 列：日期、产品名、销售额、地区
+【已知问题】
+1. 日期格式混乱：有 "2024-01-15"、"2024/1/15"、"2024年1月15日"、"1月15日"（默认2024年）
+2. 产品名全角半角混用：如 "Ｃｏｋｅ" 和 "Coke" 应统一
+3. 销售额有文本："1,234"、"1234.5元"、"1.2k" 需转为浮点数
+4. 地区错别字：已知 "北景"→"北京"，"上每"→"上海"，"广州"→"广州"
+
+【输出要求】
+- 输出 cleaned_sales.xlsx
+- 日期统一为 YYYY-MM-DD
+- 产品名统一半角
+- 销售额为 float
+- 地区用正确名称
+- 打印清洗统计：处理了多少行、修正了多少个问题
+
+【示例】
+输入行: "2024年1月15日", "Ｃｏｋｅ", "1.2k", "北景"
+期望输出: 2024-01-15, Coke, 1200.0, 北京
+</code></pre>
+    <p><strong>AI 输出</strong>（节选关键部分，AI 使用了 pandas + 正则）：</p>
+    <pre><code class="language-python">import pandas as pd
+import re
+from datetime import datetime
+
+def clean_sales(input_path, output_path):
+    df = pd.read_excel(input_path)
+    stats = {"total": len(df), "date_fixed": 0, "name_fixed": 0,
+             "amount_fixed": 0, "region_fixed": 0}
+    
+    # 1. 日期清洗
+    def parse_date(s):
+        s = str(s).strip()
+        for fmt in ["%Y-%m-%d", "%Y/%m/%d", "%Y年%m月%d日"]:
+            try: return datetime.strptime(s, fmt).strftime("%Y-%m-%d")
+            except: pass
+        m = re.match(r"(\d+)月(\d+)日", s)
+        if m: return f"2024-{int(m.group(1)):02d}-{int(m.group(2)):02d}"
+        return None
+    
+    # 2. 产品名全角转半角
+    def to_halfwidth(s):
+        return "".join(chr(ord(c) - 0xFEE0) if 0xFF01 <= ord(c) <= 0xFF5E 
+                       else c for c in str(s))
+    
+    # 3. 销售额解析（AI 写的版本）
+    def parse_amount(s):
+        s = str(s).replace(",", "").replace("元", "")
+        if "k" in s.lower():
+            return float(s.lower().replace("k", "")) * 1000
+        return float(s)
+    
+    # 4. 地区修正
+    region_map = {"北景": "北京", "上每": "上海"}
+    
+    df["日期"] = df["日期"].apply(parse_date)
+    df["产品名"] = df["产品名"].apply(to_halfwidth)
+    df["销售额"] = df["销售额"].apply(parse_amount)
+    df["地区"] = df["地区"].replace(region_map)
+    
+    df.to_excel(output_path, index=False)
+    print(f"清洗完成: {stats['total']} 行")
+    return df
+</code></pre>
+    <p><strong>人工审查</strong>——这就是关键环节。AI 的输出整体合理，但审查发现了三个问题：<strong>问题一</strong>，<code>parse_amount</code> 没处理空值和异常值，遇到空单元格会 <code>float('') </code> 报错。修正：加 try-except 返回 0.0。<strong>问题二</strong>，<code>stats</code> 字典定义了但从未更新（AI 忘了在每个清洗函数里计数）。修正：在 apply 回调里统计修改次数。<strong>问题三</strong>，日期解析返回 <code>None</code> 时没有后续处理，会导致输出中有 NaT。修正：加一行日志记录无法解析的日期，并填充默认值或标记为异常。这些问题都不是逻辑错误，而是边界情况遗漏——这正是人工审查的核心价值。</p>
+
+    <h2 class="section" id="case-2"><span class="idx">★</span> 案例二：带认证的 REST API</h2>
+    <p><strong>需求描述</strong>：用 FastAPI 开发一个用户管理 API，支持注册、登录、获取用户信息三个接口。需要 JWT 认证、密码加密存储、基本的输入验证。</p>
+    <p><strong>Prompt 设计</strong>：涉及安全和架构的任务，prompt 要明确技术选型和约束，避免 AI 用过时的库或不安全的做法。</p>
+    <pre><code class="language-text">用 FastAPI 开发一个用户管理 API，技术要求：
+
+【功能】
+1. POST /register - 注册（邮箱+密码），密码用 bcrypt 加密
+2. POST /login - 登录，返回 JWT token（有效期 24 小时）
+3. GET /me - 获取当前用户信息（需要 JWT 认证）
+
+【技术约束】
+- Python 3.11+, FastAPI, SQLAlchemy 2.0 (async), Pydantic v2
+- 数据库：SQLite（开发用），但要方便切换 PostgreSQL
+- JWT 库：python-jose
+- 密码：passlib[bcrypt]
+- 必须有输入验证（邮箱格式、密码强度）
+- 必须有错误处理（重复注册、密码错误、token 过期）
+
+请给出完整的项目结构，不要省略 import 和配置。
+</code></pre>
+    <p><strong>AI 输出</strong>：AI 生成了完整的项目结构（models.py、schemas.py、auth.py、main.py、database.py），代码质量整体不错。但人工审查发现了关键安全问题。</p>
+    <p><strong>人工审查</strong>：<strong>问题一（严重）</strong>，JWT 密钥硬编码在了代码里（<code>SECRET_KEY = "your-secret-key"</code>）。这在生产环境是致命漏洞——任何人拿到代码就能伪造 token。修正：改为从环境变量读取，并提供生成随机密钥的指引。<strong>问题二（中等）</strong>，登录接口的密码验证用了普通字符串比较，虽然 passlib 的 <code>verify</code> 内部是安全的，但 AI 没有加速率限制，容易遭暴力破解。修正：加一个简单的失败计数，连续失败 5 次锁定 15 分钟。<strong>问题三（轻微）</strong>，Pydantic 的密码强度验证太弱（只要求 6 位），应至少要求 8 位且包含字母和数字。这些安全问题如果直接上线，后果不堪设想——这就是为什么"AI 生成的代码必须经过安全审查"。</p>
+    <pre><code class="language-python"># 审查后修正的关键安全代码
+
+# 修正1: 密钥从环境变量读取（AI 原来是硬编码！）
+import os
+SECRET_KEY = os.environ.get("JWT_SECRET_KEY")
+if not SECRET_KEY:
+    raise RuntimeError("请设置 JWT_SECRET_KEY 环境变量！")
+    # 生成方式: python -c "import secrets; print(secrets.token_hex(32))"
+
+# 修正2: 登录失败速率限制（防暴力破解，AI 没写）
+from collections import defaultdict
+from time import time
+login_attempts = defaultdict(list)  # {ip: [timestamp,...]}
+LOCKOUT_THRESHOLD = 5
+LOCKOUT_DURATION = 900  # 15分钟
+
+def check_rate_limit(client_ip: str) -> bool:
+    now = time()
+    # 清理 15 分钟前的记录
+    login_attempts[client_ip] = [
+        t for t in login_attempts[client_ip] if now - t < LOCKOUT_DURATION
+    ]
+    if len(login_attempts[client_ip]) >= LOCKOUT_THRESHOLD:
+        return False  # 已锁定
+    return True
+
+# 修正3: 密码强度验证加强（AI 原来只要求6位）
+from pydantic import field_validator
+class UserCreate(BaseModel):
+    email: EmailStr
+    password: str
+    
+    @field_validator("password")
+    def validate_password(cls, v):
+        if len(v) < 8:
+            raise ValueError("密码至少 8 位")
+        if not any(c.isalpha() for c in v) or not any(c.isdigit() for c in v):
+            raise ValueError("密码必须包含字母和数字")
+        return v
+</code></pre>
+
+    <h2 class="section" id="case-3"><span class="idx">★</span> 案例三：调试现有代码 + 重构</h2>
+    <p><strong>需求描述</strong>：有一个现有的 Python 函数，功能是"从一组 URL 中并发抓取页面标题"。但它有两个问题：偶尔会卡死（某些 URL 不响应），而且代码很乱（所有逻辑堆在一个函数里）。需要修复卡死 bug 并重构。</p>
+    <p><strong>Prompt 设计</strong>：调试和重构任务，关键是把原始代码、错误现象、期望行为都给 AI，让它先诊断再修复。</p>
+    <pre><code class="language-text">请帮我调试并重构这个 Python 函数。
+
+【原始代码】
+import requests
+def get_titles(urls):
+    results = []
+    for url in urls:
+        resp = requests.get(url)
+        title = resp.text.split("<title>AI 编程实战案例库 · AI 全栈实战教学</title>")[0]
+        results.append(title)
+    return results
+
+【问题】
+1. 偶尔卡死：某些 URL 请求不返回，程序会一直等
+2. 没有错误处理：某个 URL 失败会导致整个函数崩溃
+3. 是串行的，很慢，应该并发
+4. 解析 title 的方式太脆弱，遇到 &lt;title &gt;（带空格）或没有 title 就报错
+
+【要求】
+1. 并发抓取（用 asyncio + aiohttp）
+2. 每个请求超时 10 秒
+3. 单个 URL 失败不影响其他（返回 None 占位）
+4. 用 BeautifulSoup 解析 title
+5. 重构成清晰的函数结构
+6. 加类型标注和文档字符串
+</code></pre>
+    <p><strong>AI 输出</strong>：AI 输出了一个重构后的 async 版本，结构清晰，使用了 <code>asyncio.gather</code> 并发和 <code>aiohttp.ClientTimeout</code> 超时控制。整体质量很好。但审查仍有发现。</p>
+    <pre><code class="language-python"># AI 重构后的代码（审查前的版本）
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
+from typing import Optional
+
+async def fetch_title(session: aiohttp.ClientSession, url: str) -> Optional[str]:
+    """抓取单个 URL 的页面标题"""
+    try:
+        async with session.get(url, timeout=aiohttp.ClientTimeout(total=10)) as resp:
+            html = await resp.text()
+            soup = BeautifulSoup(html, "html.parser")
+            if tag := soup.find("title"):
+                return tag.text.strip()
+            return None
+    except Exception:
+        return None
+
+async def get_titles(urls: list[str]) -> list[Optional[str]]:
+    """并发抓取多个 URL 的页面标题"""
+    async with aiohttp.ClientSession() as session:
+        tasks = [fetch_title(session, url) for url in urls]
+        return await asyncio.gather(*tasks)
+
+# 使用
+titles = asyncio.run(get_titles(url_list))
+</code></pre>
+    <p><strong>人工审查</strong>：<strong>问题一</strong>，没有限制并发数。如果 urls 有 10000 个，<code>asyncio.gather</code> 会同时发起 10000 个请求，可能被对方服务器封 IP 或把自己内存打爆。修正：用 <code>asyncio.Semaphore</code> 限制并发数（如最多 50）。<strong>问题二</strong>，<code>except Exception</code> 太宽泛，会吞掉编程错误（如 TypeError）。修正：只 catch 网络相关的异常（<code>aiohttp.ClientError</code>、<code>asyncio.TimeoutError</code>），其他异常应该抛出。<strong>问题三</strong>，没有限制响应体大小，如果某个 URL 返回一个 1GB 的 HTML，<code>resp.text()</code> 会把内存撑爆。修正：用 <code>resp.content.read(1024*1024)</code> 限制只读前 1MB。这三个问题都是从"能跑"到"生产级"的差距——AI 解决了"功能正确"，人工审查补上了"鲁棒性和安全性"。</p>
+    <pre><code class="language-python"># 审查后的最终生产级版本
+import asyncio
+import aiohttp
+from bs4 import BeautifulSoup
+from typing import Optional
+
+MAX_CONCURRENCY = 50  # 修正1: 并发限制
+MAX_RESPONSE_SIZE = 1024 * 1024  # 修正3: 限制响应体 1MB
+
+async def fetch_title(session: aiohttp.ClientSession, 
+                      url: str, semaphore: asyncio.Semaphore) -> Optional[str]:
+    """抓取单个 URL 的页面标题，带并发控制和大小限制"""
+    async with semaphore:  # 控制并发
+        try:
+            async with session.get(url, timeout=aiohttp.ClientTimeout(total=10),
+                                   ssl=False) as resp:
+                # 修正3: 只读前 1MB，防止超大响应
+                content = await resp.content.read(MAX_RESPONSE_SIZE)
+                soup = BeautifulSoup(content, "html.parser", from_encoding="utf-8")
+                if tag := soup.find("title"):
+                    return tag.text.strip()
+                return None
+        except (aiohttp.ClientError, asyncio.TimeoutError) as e:
+            # 修正2: 只 catch 网络异常，记录日志便于排查
+            logger.warning(f"抓取 {url} 失败: {e}")
+            return None
+
+async def get_titles(urls: list[str], concurrency: int = MAX_CONCURRENCY) -> list:
+    """并发抓取多个 URL 的页面标题"""
+    semaphore = asyncio.Semaphore(concurrency)
+    headers = {"User-Agent": "Mozilla/5.0"}  # 防止被一些网站拒绝
+    async with aiohttp.ClientSession(headers=headers) as session:
+        tasks = [fetch_title(session, url, semaphore) for url in urls]
+        return await asyncio.gather(*tasks)
+</code></pre>
+
+    <h2 class="section" id="lessons"><span class="idx">★</span> 三个案例的共同教训</h2>
+    <p>纵观这三个案例，AI 编程的输出有明显的规律：<strong>功能逻辑通常正确，但边界情况、安全性和鲁棒性经常缺失</strong>。原因很简单——AI 训练数据中的代码大多是"能跑就行"的示例代码，而非经过生产打磨的工程代码。AI 学会了"怎么实现功能"，但没学会"怎么处理失败"。所以人工审查的重点应该放在以下几类问题上：</p>
+    <p>第一，<strong>边界情况</strong>：空输入、超大数据、非法格式、并发冲突——AI 通常只考虑正常路径。第二，<strong>安全性</strong>：硬编码密钥、SQL 注入、未授权访问、不安全的依赖——AI 不会主动考虑安全。第三，<strong>资源限制</strong>：无超时、无并发控制、无内存限制——AI 不会主动加防护。第四，<strong>错误处理</strong>：过宽的 except、吞掉异常、无日志——AI 的错误处理通常过于粗糙。掌握这套"审查清单"，你就能把 AI 的输出从"demo 级"提升到"生产级"。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>三个实战案例展示了 AI 编程的完整工作流：需求分析（明确输入输出和约束）→ prompt 设计（给出示例和边界条件）→ AI 输出（通常功能正确但粗糙）→ 人工审查（补边界、安全、鲁棒性）。案例一的数据清洗暴露了边界情况遗漏（空值、异常格式），案例二的 API 开发暴露了安全问题（硬编码密钥、无速率限制），案例三的调试重构暴露了资源管理缺失（无并发限制、无大小限制）。共同规律是：AI 擅长"功能实现"，但常缺失"工程严谨性"。人工审查的核心价值在于补齐四类问题：边界情况、安全性、资源限制、错误处理。最佳实践是"AI 快速生成 + 人工严格审查"，用 AI 提升速度，用人的工程经验保证质量。这不是"AI 取代人"，而是"人机协作发挥各自所长"。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

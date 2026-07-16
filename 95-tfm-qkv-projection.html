@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                              <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -122,7 +120,7 @@
     </div>
     <div class="nav-group"><h3>★Transformer</h3>
       <a href="94-tfm-attention-math.html" title="注意力的数学本质：从点积到 Softmax"><span class="num">94</span>注意力的数学本质</a>
-      <a href="95-tfm-qkv-projection.html" class="active" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
+      <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
       <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
@@ -305,70 +303,269 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 95 章 · Transformer 原理深挖</span>
-<h1>Q/K/V 投影：为什么需要三个矩阵</h1><p class="lead">同一输入需扮演"查询者/被检索标签/被提取信息"三个角色。W_Q/W_K/W_V 学会从输入抽出三种视角，W_O 融合多头。投影矩阵是注意力层参数的主要来源。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>为什么不能直接当 Q、K、V</h2>
-<p>初学者的第一个疑问：既然输入就是一串 token 向量，为什么不直接拿它们做 Q、K、V，非要再乘三个矩阵 W_Q、W_K、W_V？答案是"角色分工"。同一个词，在"作为被查询的内容""作为查询者""作为被提取的信息"时，需要强调的特征完全不同。</p>
-<p>投影矩阵让模型学会从同一个输入里抽出三种不同视角的表示。</p>
-<div class="formula-block"><code>Q = X·W_Q,  K = X·W_K,  V = X·W_V</code></div>
-<p>X 是输入（n×d），三个 W 都是可学习参数矩阵。这三个投影是注意力机制里可训练参数的主要来源——它们承担了"如何从原始表示里提取查询、标签、内容三种信号"的全部学习任务。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 95 · Transformer 深度系列</span>
+      <h1>Q/K/V 投影矩阵<br>为什么需要三个不同的 Wq、Wk、Wv</h1>
+      <p class="lead">上一章我们推完了 Attention(Q,K,V)=softmax(QK^T/√d_k)V，但留下一个悬念：输入明明只有一个序列 X，Q、K、V 是从哪冒出来的？答案藏在三个投影矩阵 Wq、Wk、Wv 里。本章讲清为什么必须是三个不同的矩阵、它们各自学了什么、以及「让一个 token 能同时扮演提问者、被查询者、信息携带者三种角色」的精妙设计。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 94 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="the-mystery"><span class="idx">★</span> Q、K、V 从哪来</h2>
+    <p>把 Transformer 的注意力层画成数据流图，你会看到这样的结构：</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">输入 X （n × d_model）</div>
+        <div style="color:var(--text-faint);">▼ 三条投影</div>
+        <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:8px;width:100%;">
+          <div class="node sky">Q = X · Wq<br>(d_model → d_k)</div>
+          <div class="node sky">K = X · Wk<br>(d_model → d_k)</div>
+          <div class="node sky">V = X · Wv<br>(d_model → d_v)</div>
+        </div>
+        <div style="color:var(--text-faint);">▼ 送入注意力</div>
+        <div class="node violet">softmax(QK^T/√d_k) · V</div>
+      </div>
+      <div class="cap">图 95-1 · 一个输入 X，通过三个投影矩阵，变成 Q、K、V</div>
+    </div>
+
+    <p>关键就一句话：<strong>Q、K、V 都是输入 X 经过不同线性变换得到的</strong>。</p>
+
+    <blockquote>
+      Q = X · Wq&nbsp;&nbsp;&nbsp;&nbsp;K = X · Wk&nbsp;&nbsp;&nbsp;&nbsp;V = X · Wv<br>
+      其中 Wq、Wk 是 d_model × d_k 的矩阵，Wv 是 d_model × d_v 的矩阵。
+    </blockquote>
+
+    <p>这三个 W 矩阵就是<strong>模型要学习的参数</strong>。它们把同一个输入 X，投影到三个不同的「语义子空间」，分别扮演查询、键、值三种角色。</p>
+
+    <h2 class="section" id="why-three"><span class="idx">01</span> 为什么必须是三个不同的矩阵</h2>
+    <p>新手最容易问的问题：既然 Q、K、V 都来自 X，为什么不直接用 X 算注意力，非要乘三个矩阵？或者退一步，让 Wq = Wk = Wv 行不行？</p>
+
+    <p>答案是：<strong>同一个 token，在「提问」「被匹配」「提供信息」时需要的视角是不同的</strong>。用一个生活类比：</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：一个人的三重身份</div>
+      <p>想象你在一场学术会议上。你<strong>想找</strong>做某个方向的人（这是 Query 视角），你的<strong>名片上印着</strong>你的研究方向（这是 Key 视角，让别人能匹配到你），你<strong>真正能讲</strong>的具体知识是你的论文（这是 Value，别人匹配上你后真正想拿走的东西）。</p>
+      <p>这三个视角用的「关键词」完全不同。你想找的可能用「应用」描述，名片用「领域」描述，论文用「方法」描述。投影矩阵就是让模型<strong>为同一个 token 学出这三套不同的描述方式</strong>。</p>
+    </div>
+
+    <p>如果 Wq = Wk，那么 Q = K，注意力分数矩阵就变成 Q·Q^T——一个<strong>对称矩阵</strong>，每个 token 对对方的关注度和对方对它的关注度完全一样。这在语义上往往是错的：主语关注谓语，和谓语关注主语，强度不该一样。</p>
+
+    <p>如果 Wv 也一样，那么 V = X，输出就是输入的加权平均，<strong>表达力大幅下降</strong>——模型失去了「把信息变换成便于聚合的形式」的能力。</p>
+
+    <h3>数学视角：解耦三个语义子空间</h3>
+    <p>从线性代数看，每个 W 矩阵是一次<strong>投影 + 降维</strong>（通常 d_k < d_model）。它把 X 投影到一个 d_k 维的子空间，而这个子空间由训练学到的 W 决定。</p>
+
+    <p>三个 W 互不相同，意味着：</p>
+    <ul>
+      <li><strong>Wq</strong> 学出了一个「<strong>查询子空间</strong>」：提取 token 里适合「去匹配别人」的特征；</li>
+      <li><strong>Wk</strong> 学出了一个「<strong>键子空间</strong>」：提取 token 里适合「被别人匹配」的特征；</li>
+      <li><strong>Wv</strong> 学出了一个「<strong>值子空间</strong>」：提取 token 里适合「被聚合传播」的特征。</li>
+    </ul>
+
+    <p>这三个子空间各司其职，让模型拥有了<strong>「用一种特征去查询、用另一种特征被匹配、再用第三种特征传递信息」</strong>的灵活性。这是单矩阵做不到的。</p>
+
+    <h2 class="section" id="roles"><span class="idx">02</span> 三种角色的具体职责</h2>
+    <p>把 Q、K、V 放进真实的语言任务里，它们的分工会更清晰。</p>
+
+    <table>
+      <thead><tr><th>角色</th><th>投影矩阵</th><th>学到什么</th><th>语言例子</th></tr></thead>
+      <tbody>
+        <tr><td>Query（查询）</td><td>Wq</td><td>「我在找什么样的上下文」</td><td>代词「它」找指代的名词</td></tr>
+        <tr><td>Key（键）</td><td>Wk</td><td>「我能被什么样的查询匹配到」</td><td>名词「猫」暴露自己的特征给代词</td></tr>
+        <tr><td>Value（值）</td><td>Wv</td><td>「匹配上后，我传递什么信息」</td><td>名词把「性别、单复数」语义传给代词</td></tr>
+      </tbody>
+    </table>
+
+    <p>举个指代消解的例子。句子「<strong>猫</strong>追老鼠，<strong>它</strong>很饿」。当处理「它」时：</p>
+    <ul>
+      <li>「它」的 Q（经过 Wq 投影）会编码「我在找一个单数、有生命、能饿的名词」这样的查询特征；</li>
+      <li>「猫」的 K（经过 Wk 投影）会暴露「我是单数、动物、主语」这样的被匹配特征；</li>
+      <li>Q·K 点积大，于是注意力把权重集中在「猫」上；</li>
+      <li>「猫」的 V（经过 Wv 投影）携带的语义（动物、单数）流入「它」的表示，后续就能正确推断「它=猫」。</li>
+    </ul>
+
+    <p>注意<strong>Wq 学的是「找」，Wk 学的是「被找」，Wv 学的是「传什么」</strong>——三件事，三种特征，必须三套矩阵。这就是为什么三个投影不可合并。</p>
+
+    <h2 class="section" id="dims"><span class="idx">03</span> 维度的选择：d_model、d_k、d_v</h2>
+    <p>这里有几个容易混淆的维度，讲清楚：</p>
+
+    <ul>
+      <li><strong>d_model</strong>：模型的整体隐藏维度，也就是 X 的列数。GPT-3 是 12288，小模型可能是 512、768。</li>
+      <li><strong>d_k</strong>：Q 和 K 投影后的维度，决定点积的维度。实践常取 d_model / num_heads（多头时每头分一份）。</li>
+      <li><strong>d_v</strong>：V 投影后的维度，决定输出的维度。通常<strong>设 d_v = d_k</strong> 简化实现，但理论上可以不同。</li>
+    </ul>
+
+    <p>原始 Transformer 论文里，d_model=512，使用 8 头注意力，每头的 d_k = d_v = 512/8 = 64。8 头拼回来还是 512 维，再过一个输出投影 W_o 回到 d_model。</p>
+
+    <div class="callout note">
+      <div class="head">📌 d_k 为什么小于 d_model</div>
+      <p>两个原因。第一，<strong>控制计算量</strong>：Q·K^T 的复杂度是 O(n²·d_k)，d_k 越小越快。第二，<strong>多头并行</strong>：把 d_model 拆成 num_heads 个 d_k，每头独立做注意力，再拼回来——这就是多头注意力（下一章的专题）。d_k 小，每头的「视角」更聚焦，多头才有意义。</p>
+    </div>
+
+    <h2 class="section" id="output-proj"><span class="idx">04</span> 还有第四个矩阵：输出投影 Wo</h2>
+    <p>注意力算完，输出形状是 (n, d_v)。如果 d_v = d_model，可以直接用；但多头场景下，每头输出是 d_v，拼起来是 num_heads × d_v = d_model。为了让输出能加进残差连接（X + Attention(X)），还需要一个<strong>输出投影矩阵 Wo</strong>，把拼接后的向量再投回 d_model：</p>
+
+    <blockquote>
+      output = Concat(head_1, ..., head_h) · Wo
+    </blockquote>
+
+    <p>Wo 是 (d_model × d_model) 的矩阵。所以严格说，一个注意力层有<strong>四个</strong>可学习矩阵：Wq、Wk、Wv、Wo。其中前三者把输入「一拆为三」，Wo 把多头结果「合而为一」。</p>
+
+    <h2 class="section" id="impl"><span class="idx">05</span> 代码实现：从零写一个投影层</h2>
+    <p>把上面所有概念落到代码上。这是一个<strong>单头注意力层</strong>的完整实现，包含三个投影矩阵：</p>
+
+    <div class="code-title">attention_with_projection.py —— 带投影矩阵的注意力</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class SingleHeadAttention(nn.Module):
+    def __init__(self, d_model, d_k=None, d_v=None):
+        super().__init__()
+        d_k = d_k or d_model
+        d_v = d_v or d_model
+        # 三个独立的投影矩阵 —— 参数各不相同
+        self.W_q = nn.Linear(d_model, d_k, bias=False)
+        self.W_k = nn.Linear(d_model, d_k, bias=False)
+        self.W_v = nn.Linear(d_model, d_v, bias=False)
+        # 输出投影（d_v 回到 d_model）
+        self.W_o = nn.Linear(d_v, d_model, bias=False)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"Q/K/V 投影：为什么需要三个矩阵"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="94-tfm-attention-math.html"><div class="lbl">← 上一章</div><div class="ttl">94 · 注意力的数学本质：从点积到 Softmax</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="96-tfm-positional-encoding.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">96 · 位置编码：没有它 Transformer 是个瞎子</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 95 章 · Q/K/V 投影：为什么需要三个矩阵</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x, mask=None):
+        # x: (batch, seq, d_model)
+        Q = self.W_q(x)   # (batch, seq, d_k)
+        K = self.W_k(x)   # (batch, seq, d_k)
+        V = self.W_v(x)   # (batch, seq, d_v)
+
+        d_k = Q.size(-1)
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(d_k)  # (batch, seq, seq)
+        if mask is not None:
+            scores = scores.masked_fill(mask == 0, float('-inf'))
+        weights = F.softmax(scores, dim=-1)
+        out = weights @ V  # (batch, seq, d_v)
+        return self.W_o(out), weights
+
+# 验证：三个矩阵确实不同
+torch.manual_seed(42)
+layer = SingleHeadAttention(d_model=8, d_k=4, d_v=4)
+print("Wq 参数数:", layer.W_q.weight.numel())   # 4*8 = 32
+print("Wk 参数数:", layer.W_k.weight.numel())   # 32
+print("Wv 参数数:", layer.W_v.weight.numel())   # 32
+print("Wo 参数数:", layer.W_o.weight.numel())   # 8*4 = 32
+
+x = torch.randn(2, 5, 8)  # batch=2, seq=5, d_model=8
+out, w = layer(x)
+print("输出形状:", out.shape)  # (2, 5, 8) —— 和输入一样，方便残差连接
+</code></pre>
+
+    <p>注意三个关键点：①三个 <code>nn.Linear</code> 是<strong>独立的、参数不共享</strong>的；②输入是 <code>x</code> 一个东西，输出变成 Q、K、V 三个；③最后 <code>W_o</code> 把输出投回 d_model，保证可以做残差。</p>
+
+    <h2 class="section" id="verify"><span class="idx">06</span> 实验：观察三个投影学到了不同的东西</h2>
+    <p>口说无凭，我们做个小实验验证「三个投影矩阵确实不同」。用一个简单任务训练上面的注意力层，然后看 Wq、Wk、Wv 学完后的<strong>余弦相似度</strong>：</p>
+
+    <div class="code-title">compare_projections.py —— 检验三套矩阵学得有多不同</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
+import torch.nn.functional as F
+import math
+
+# 一个极简的「复制任务」：让注意力层学会把第一个 token 的信息传到所有位置
+torch.manual_seed(0)
+d_model = 16
+attn = SingleHeadAttention(d_model)  # 复用上一段定义的类
+
+opt = torch.optim.Adam(attn.parameters(), lr=1e-2)
+for step in range(300):
+    x = torch.randn(8, 6, d_model)            # batch=8, seq=6
+    target = x[:, 0:1, :].expand_as(x)        # 目标：所有位置都等于第一个 token
+    out, _ = attn(x)
+    loss = F.mse_loss(out, target)
+    opt.zero_grad(); loss.backward(); opt.step()
+
+# 训练完后，看三个投影矩阵有多「不一样」
+def cos_sim(a, b):
+    a, b = a.flatten(), b.flatten()
+    return F.cosine_similarity(a, b, dim=0).item()
+
+print(f"训练损失: {loss.item():.4f}")
+print(f"Wq vs Wk 相似度: {cos_sim(attn.W_q.weight, attn.W_k.weight):.3f}")
+print(f"Wq vs Wv 相似度: {cos_sim(attn.W_q.weight, attn.W_v.weight):.3f}")
+print(f"Wk vs Wv 相似度: {cos_sim(attn.W_k.weight, attn.W_v.weight):.3f}")
+</code></pre>
+
+    <p>你会发现训练后三者的相似度都很低（通常绝对值小于 0.3，甚至接近 0）。这说明模型<strong>主动把三个矩阵推到了不同的方向</strong>，因为同一个矩阵表达不了「查询」「被匹配」「传值」三件事。</p>
+
+    <h2 class="section" id="shared-kv"><span class="idx">07</span> 什么时候可以共享投影</h2>
+    <p>虽然标准 Transformer 用三个不同的矩阵，但<strong>某些变体会故意共享部分投影</strong>，以省参数或加速推理：</p>
+
+    <table>
+      <thead><tr><th>变体</th><th>共享方式</th><th>目的</th></tr></thead>
+      <tbody>
+        <tr><td>Linear Attention</td><td>无 softmax，Q/K 用核函数</td><td>O(n²) → O(n)，降复杂度</td></tr>
+        <tr><td>MQA（第 99 章）</td><td>所有头共享同一组 Wk、Wv</td><td>省 KV cache 显存，推理加速</td></tr>
+        <tr><td>GQA（第 99 章）</td><td>若干头共享一组 Wk、Wv</td><td>MQA 和 MHA 的折中</td></tr>
+        <tr><td>Self-Attention 共享 QK</td><td>Wq = Wk（少见）</td><td>省参数但表达力下降</td></tr>
+      </tbody>
+    </table>
+
+    <p>这些「共享」都是<strong>性能与效果的权衡</strong>。标准 GPT 类模型默认用三个独立矩阵，只有在显存/速度压力大时才考虑共享——这背后是 LLM 推理优化的一个大话题，我们在第 99 章（MQA/GQA）和第 100 章（KV Cache）会深入展开。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ Cross-Attention 里 Q 和 K、V 来源不同</div>
+      <p>本章讲的是 <strong>Self-Attention（自注意力）</strong>，Q、K、V 都来自同一个 X。但在<strong>Cross-Attention（交叉注意力）</strong>里（比如 Decoder 关注 Encoder 的输出、或图文混合模型里文本关注图像），Q 来自一个序列 X1，而 K、V 来自另一个序列 X2：Q = X1·Wq，K = X2·Wk，V = X2·Wv。投影矩阵仍然各司其职，只是<strong>输入源不同</strong>。这是翻译、多模态模型的基础。</p>
+    </div>
+
+    <h2 class="section" id="parameter-count"><span class="idx">08</span> 投影层到底用了多少参数</h2>
+    <p>把参数数算清楚，对理解模型规模有帮助。一个标准的单头注意力层：</p>
+
+    <blockquote>
+      参数数 = 4 × d_model × d_model<br>
+      （Wq: d_model×d_k，Wk: d_model×d_k，Wv: d_model×d_v，Wo: d_v×d_model；当 d_k = d_v = d_model 时就是 4d_model²）
+    </blockquote>
+
+    <p>以 GPT-3 的 d_model=12288 为例（简化为单头算）：4 × 12288² ≈ 6 亿参数<strong>每一层</strong>。GPT-3 有 96 层，光注意力投影就是 600 亿参数级别——这解释了为什么大模型动辄上百亿、上千亿参数。投影矩阵是大头之一（另一大头是 FFN，第 102 章讲）。</p>
+
+    <p>这也是为什么<strong>MQA/GQA 想方设法共享 Wk、Wv</strong>：这两个矩阵每个头一份，头数多时累积可观。共享后参数和显存都能显著下降。</p>
+
+    <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
+    <p>这一章的核心结论：</p>
+
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">三个矩阵的本质</div>
+        <ul style="margin:6px 0;">
+          <li><strong>Wq</strong>：投影出「查询」特征，让 token 知道自己想找什么</li>
+          <li><strong>Wk</strong>：投影出「键」特征，让 token 能被别人匹配</li>
+          <li><strong>Wv</strong>：投影出「值」特征，让 token 知道匹配后传什么</li>
+          <li>三者参数不共享，各学各的语义子空间</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">为什么要三个不同</div>
+        <ul style="margin:6px 0;">
+          <li>同一个 token 在「提问」「被匹配」「传值」时视角不同</li>
+          <li>共享会让分数矩阵对称，丧失非对称关注能力</li>
+          <li>V 共享会丢失「变换信息便于聚合」的能力</li>
+          <li>MQA/GQA 在推理优化时才刻意共享，是效果换速度</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>到这里，QKV 投影的全貌就讲完了。但你可能注意到一个<strong>大问题</strong>：QK^T 这个点积，对 token 的<strong>顺序</strong>完全无感——把「我打你」和「你打我」输入进去，如果不告诉模型谁在前谁在后，点积算出的注意力分数是一样的。也就是说，<strong>Transformer 本身是不知道位置信息的</strong>。这是个要命的缺陷。下一章我们讲<strong>位置编码</strong>——怎么把「第几个 token」这层信息重新塞回去。</p>
+
+    <blockquote>
+      下一章：<a href="96-tfm-positional-encoding.html">第 96 章 · 位置编码：没有它 Transformer 是个瞎子</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Transformer 变体深度 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Transformer 变体深度 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -44,7 +51,7 @@
       <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
       <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
       <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
-      <a href="32-transformer-variants.html" class="active" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
+      <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
       <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
     </div>
     <div class="nav-group"><h3>专题</h3>
@@ -295,17 +302,139 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>Transformer 变体深度</h1><p class="lead">从 Mamba 到 MoE——Transformer 的挑战者与进化</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Transformer 不完美——它的挑战者们</h2>
-    <p>Transformer 统治了 NLP，但它有已知缺陷：① 注意力的 O(N²) 复杂度（长序列贵）；② 推理时 KV Cache 膨胀。这些缺陷催生了一系列变体和挑战者。</p>
-    <table class="data-table"><thead><tr><th>方向</th><th>代表</th><th>改进什么</th><th>当前状态</th></tr></thead><tbody><tr><td>高效注意力</td><td>FlashAttention/Linear Attention</td><td>降低O(N²)复杂度</td><td>FlashAttention 已标配</td></tr><tr><td>替代架构</td><td>Mamba/SSM/RWKV</td><td>线性复杂度替代注意力</td><td>Mamba 有潜力但未取代</td></tr><tr><td>稀疏激活</td><td>MoE(Mixtral/DeepSeek)</td><td>只激活部分参数</td><td>已主流（降推理成本）</td></tr><tr><td>长上下文</td><td>RoPE扩展/Ring Attention</td><td>支持10万+token</td><td>已实用</td></tr></tbody></table>
-    <h2><span class="idx"></span>Mamba：线性复杂度的挑战者</h2>
-    <p>Mamba 基于状态空间模型（SSM），核心优势是线性复杂度 O(N)——序列越长优势越大。它用一个"递增状态"替代注意力，不需要存所有历史 token 的 KV。在超长序列（如 DNA/代码）上有优势。但目前还没在通用语言任务上全面超越 Transformer——注意力机制的"全局关注"能力很难被线性模型替代。</p>
-    <h2><span class="idx"></span>MoE：让大模型"分工"</h2>
-    <p>MoE（Mixture of Experts）让模型的 FFN 层变成多个"专家"——每个 token 只经过 1-2 个专家（由路由器选择）。好处：总参数大（如 DeepSeek V3 有 671B 参数）但每次推理只激活一部分（37B）——"大模型的能力，小模型的速度"。Mixtral/DeepSeek/GLM-5 都用了 MoE。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>Transformer 变体四方向：高效注意力（FlashAttention 已标配）、替代架构（Mamba/SSM 线性复杂度，有潜力未取代）、稀疏激活（MoE 已主流——大参数小激活）、长上下文（RoPE/Ring Attention 支持十万+token）。MoE 是当前最重要的进化——让模型"大而快"。</p>
-    <div class="chapter-nav">
-      <a href="31-federated-learning.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 32 章 · Transformer 变体深度</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 32 · 核心知识系列</span>
+      <h1>Transformer 变体<br>突破注意力瓶颈的四种新路线</h1>
+      <p class="lead">标准 Transformer 有一个致命的阿喀琉斯之踵——注意力的计算复杂度是 O(n²)。序列翻倍，计算量翻四倍。这把上下文长度死死锁在了几万 token。于是，一群研究者开始另辟蹊径：Mamba 用状态空间模型实现线性复杂度，RWKV 把注意力改写成 RNN，MoE 让模型"稀疏激活"省下算力，长上下文方案则在工程上把窗口推到百万级。本章带你横向对比这四条突围路线。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="bottleneck"><span class="idx">★</span> O(n²) 之痛：为什么需要新架构</h2>
+    <p>标准 Transformer 的核心是自注意力机制——每个 token 要和序列中所有其他 token 计算注意力分数。一个长度为 n 的序列，注意力矩阵是 n×n，计算量和显存占用都是 O(n²)。当 n=2048 时还好，当 n=128000 时，注意力矩阵就有 160 亿个元素，仅存储就需要数十 GB。</p>
+    <p>这个瓶颈直接限制了模型能"看多远"。一本小说几十万字，但 GPT-4 的上下文最初只有 8K，连一章都放不下。于是学界和工业界从两个方向突围：<strong>改架构</strong>（用非注意力机制降低复杂度）和 <strong>改工程</strong>（在保留注意力的前提下优化长序列计算）。Mamba、RWKV、MoE 属于前者，Ring Attention、YaRN 等长上下文方案属于后者。它们各有取舍，没有银弹。</p>
+
+    <h2 class="section" id="mamba"><span class="idx">★</span> Mamba：状态空间模型的复兴</h2>
+    <p>Mamba 由 Albert Gu 和 Tri Dao 在 2023 年提出，它用状态空间模型（State Space Model, SSM）替代了注意力机制。SSM 的灵感来自控制论——用一个隐状态 h(t) 来压缩历史信息，通过微分方程 <code>h'(t) = A·h(t) + B·x(t)</code> 更新。Mamba 的创新在于让矩阵 A、B 变成"输入相关的"（selective），即根据当前输入动态决定要记住什么、遗忘什么，这解决了早期 SSM 无法做内容检索的问题。</p>
+    <p>Mamba 的最大优势是线性复杂度 O(n)——序列长度翻倍，计算量也只翻倍，而不是翻四倍。而且在推理时，Mamba 的每个 token 生成只需要 O(1) 的计算（更新一个固定大小的隐状态），不像 Transformer 需要 KV cache 线性增长。这让 Mamba 在超长序列任务上极具潜力。Mamba-2 进一步把 SSM 与注意力统一起来，提出了"结构化状态空间对偶"（SSD），在保留线性复杂度的同时缩小了与 Transformer 的质量差距。</p>
+    <pre><code class="language-python"># Mamba 的选择性状态空间更新（简化示意）
+class SelectiveSSM:
+    def __init__(self, d_model, d_state=16):
+        self.d_state = d_state
+        # A 是固定的（HiPPO 矩阵），B/C/Δ 是输入相关的
+        self.A_log = nn.Parameter(torch.log(self.hippo_matrix(d_state)))
+        self.proj_B = nn.Linear(d_model, d_state)
+        self.proj_C = nn.Linear(d_model, d_state)
+        self.proj_delta = nn.Linear(d_model, 1)  # 输入相关的时间步长
+    
+    def forward(self, x):  # x: (batch, seq_len, d_model)
+        # Δ, B, C 随输入动态变化（这就是"选择性"的含义）
+        delta = F.softplus(self.proj_delta(x))   # 决定这一步"走多远"
+        B = self.proj_B(x)                        # 决定写入什么
+        C = self.proj_C(x)                        # 决定读出什么
+        
+        # 离散化 A_bar = exp(Δ · A), 然后递推更新隐状态
+        # h_t = A_bar · h_{t-1} + B_bar · x_t   ← 线性递推，O(n) 复杂度
+        # y_t = C · h_t                          ← 输出
+        h = self.scan(delta, B, C, x)  # 并行扫描，GPU 友好
+        return h
+</code></pre>
+
+    <h2 class="section" id="rwkv"><span class="idx">★</span> RWKV：把注意力伪装成 RNN</h2>
+    <p>RWKV 由开发者 RW（BlinkDL）主导，是一个开源的"注意力替代"架构。它的名字来自四个核心组件：Receptance（接收度）、Weight（位置权重）、Key（键）、Value（值）。RWKV 的巧妙之处在于：它保留了 Transformer 的可并行训练特性，但在推理时退化为 RNN——用一个固定大小的隐状态替代 KV cache，推理复杂度 O(1)。</p>
+    <p>RWKV 的核心是"time mixing"和"channel mixing"两个操作，它们都用到了"token shift"——把前一个 token 的状态混入当前 token 的计算。这种设计让模型既能记住长距离依赖，又不需要 O(n²) 的注意力矩阵。RWKV-7（2025 年版本）在多项基准上已经接近甚至超越同规模的 Transformer，而且推理速度更快、显存占用更稳定。对于需要"流式推理"的场景（如实时聊天、边读边生成），RWKV 的 RNN 特性是天然优势。</p>
+    <pre><code class="language-python"># RWKV 的 time mixing 核心公式（简化）
+def rwkv_time_mixing(x, x_prev, W_r, W_k, W_v, W_o, r_k, eps=1e-5):
+    """x: 当前 token, x_prev: 上一个 token（token shift）"""
+    # 混合当前和上一个 token
+    r = torch.sigmoid(W_r(x_prev))        # 接收度门控
+    k = W_k(x_prev) / (r_k + eps)          # 键（带归一化）
+    v = W_v(x)                             # 值
+    
+    # w = exp(-exp(r_k)) 是指数衰减的位置权重
+    # 这个 w 让模型"记住"历史信息的衰减方式
+    # 关键：这里的"注意力"被改写成了可以用 RNN 递推的形式
+    # 推理时只需维护一个固定大小的 state，不需要 KV cache
+    
+    output = W_o(r * (k * v).sum(dim=-1, keepdim=True))
+    return output, new_state  # new_state 固定大小，不随序列增长
+</code></pre>
+
+    <h2 class="section" id="moe"><span class="idx">★</span> MoE：稀疏激活的算力魔法</h2>
+    <p>混合专家模型（Mixture of Experts, MoE）不是替代注意力，而是在前馈网络（FFN）层引入"路由"机制。标准 Transformer 的每一层用一个 FFN 处理所有 token，而 MoE 把 FFN 拆成多个"专家"（如 8 个、64 个），每个 token 只激活其中 1-2 个专家。这意味着模型的总参数量可以做得很大（如 DeepSeek-V3 有 6710 亿参数），但每次推理只激活一小部分（如 370 亿），实现"大模型的能力 + 小模型的成本"。</p>
+    <p>MoE 的关键组件是路由器（Router/Gate）——一个小的线性层，根据 token 的表示选择最合适的专家。训练时用"负载均衡损失"鼓励 token 均匀分配到各专家，避免某些专家过载、某些闲置。MoE 的挑战在于通信开销——在多卡训练时，专家分布在不同 GPU 上，token 需要跨卡"路由"（all-to-all 通信），这是工程优化的重点。GPT-4 据报道就是 MoE 架构（8 个专家中激活 2 个），DeepSeek-V3 用了 256 个专家激活 8 个的细粒度设计。</p>
+    <pre><code class="language-python">class MoELayer(nn.Module):
+    def __init__(self, d_model, num_experts=8, top_k=2):
+        super().__init__()
+        self.experts = nn.ModuleList([
+            FeedForward(d_model) for _ in range(num_experts)
+        ])
+        self.router = nn.Linear(d_model, num_experts)
+        self.top_k = top_k
+        self.num_experts = num_experts
+    
+    def forward(self, x):  # x: (batch, seq_len, d_model)
+        # 1. 路由器为每个 token 打分
+        router_logits = self.router(x)          # (batch, seq, num_experts)
+        routing_weights = F.softmax(router_logits, dim=-1)
+        
+        # 2. 选 Top-K 个专家（如 8 选 2）
+        topk_weights, topk_indices = torch.topk(routing_weights, self.top_k, dim=-1)
+        topk_weights = topk_weights / topk_weights.sum(dim=-1, keepdim=True)
+        
+        # 3. 只激活选中的专家处理（其余专家不参与计算 → 稀疏）
+        output = torch.zeros_like(x)
+        for i in range(self.top_k):
+            expert_idx = topk_indices[..., i]  # 每个 token 选的第 i 个专家
+            for e in range(self.num_experts):
+                mask = (expert_idx == e)
+                if mask.any():
+                    output[mask] += topk_weights[mask, i:i+1] * self.experts[e](x[mask])
+        
+        return output  # 总参数 = 8×FFN，但每次只算 2×FFN 的计算量
+</code></pre>
+    <pre><code class="language-text"># 负载均衡损失：防止"热门专家"垄断
+def load_balancing_loss(router_logits, topk_indices, num_experts):
+    """鼓励 token 均匀分配到各专家"""
+    # 每个专家被选中的概率（路由器的平均输出）
+    avg_prob = router_logits.softmax(-1).mean(0)  # (num_experts,)
+    # 每个专家实际被选中的频率
+    one_hot = F.one_hot(topk_indices, num_experts).float()
+    avg_freq = one_hot.mean(dim=(0, 1)).sum(-1)   # (num_experts,)
+    # 损失 = α · Σ(prob_i × freq_i)，最小化时鼓励均匀
+    return num_experts * (avg_prob * avg_freq).sum()
+</code></pre>
+
+    <h2 class="section" id="long-context"><span class="idx">★</span> 长上下文工程：把窗口推到百万级</h2>
+    <p>不改架构，只改工程，也能大幅扩展上下文窗口。这里的核心思路是"分块计算 + 位置编码外推"。<strong>Ring Attention</strong> 把超长序列切分成块，分布到多个 GPU 上环形传递，每块只算局部注意力，再通过通信合并全局信息——理论上可以无限扩展（实际受显存限制）。<strong>Flash Attention 2/3</strong> 通过重排内存访问，把注意力的实际计算速度提升 2-4 倍，显存占用从 O(n²) 降到 O(n)。</p>
+    <p>位置编码是另一个关键。<strong>RoPE（旋转位置编码）</strong>是当前主流，但它在训练长度之外会快速衰减。<strong>YaRN</strong> 和 <strong>NTK-aware Scaling</strong> 通过缩放 RoPE 的频率基数，让模型在更长的序列上保持泛化——训练 4K 的模型可以外推到 128K 甚至更长。这就是为什么 Llama 3 能支持 128K 上下文，Gemini 1.5 能支持 200 万 token 的秘密。</p>
+
+    <h2 class="section" id="comparison"><span class="idx">★</span> 四条路线横向对比</h2>
+    <pre><code class="language-text">┌──────────────┬────────────┬────────────┬────────────┬────────────┐
+│    维度      │ Transformer│  Mamba/SSM │   RWKV     │    MoE     │
+│              │  (标准)     │            │            │(可叠加任意)│
+├──────────────┼────────────┼────────────┼────────────┼────────────┤
+│ 训练复杂度   │  O(n²)     │  O(n)      │  O(n)      │  O(n²)×活跃│
+│ 推理复杂度   │  O(n) KV   │  O(1)      │  O(1)      │  O(n)×活跃 │
+│ 长序列质量   │  优（短）   │  良（长）   │  良        │  优        │
+│ 并行训练     │  支持好     │  支持好     │  支持好     │  需 all2all│
+│ 生态成熟度   │  极高       │  发展中     │  开源活跃   │  高        │
+│ 代表模型     │  GPT-4,    │  Mamba-2,  │  RWKV-7   │  DeepSeek, │
+│              │  Llama 3   │  Jamba     │            │  Mixtral   │
+└──────────────┴────────────┴────────────┴────────────┴────────────┘
+</code></pre>
+    <p>这四条路线不是互斥的——Jamba（AI21 Labs）就混合了 Transformer 层和 Mamba 层，DeepSeek-V3 是 MoE + 注意力。未来的"终极架构"很可能是某种混合体：用线性复杂度层处理长序列的全局依赖，用注意力层处理需要精确检索的局部信息，用 MoE 扩大参数量而不增加计算量。架构之争远未结束。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Transformer 的 O(n²) 复杂度是长上下文的根本瓶颈。四条突围路线各有侧重：Mamba 用选择性状态空间模型实现 O(n) 训练和 O(1) 推理，适合超长序列和流式场景；RWKV 把注意力改写成 RNN，推理无需 KV cache，开源生态活跃；MoE 不改注意力而是稀疏激活 FFN，用"大参数量 + 小计算量"提升能力性价比；长上下文工程（Ring Attention、YaRN）在保留注意力架构的前提下把窗口推到百万级。没有"最好的架构"，只有"最适合场景的架构"。理解每种变体的取舍，才能在选型时做出正确判断。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

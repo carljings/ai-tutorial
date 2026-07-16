@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI Agent 人格设计 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI Agent 人格设计 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -49,7 +56,7 @@
     </div>
     <div class="nav-group"><h3>专题</h3>
       <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
-      <a href="35-agent-personality.html" class="active" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
+      <a href="35-agent-personality.html" title="AI Agent 人格设计"><span class="num">35</span>AI Agent 人</a>
       <a href="36-rag-advanced.html" title="RAG 进阶模式"><span class="num">36</span>RAG 进阶模式</a>
       <a href="37-multimodal-generation.html" title="多模态生成前沿"><span class="num">37</span>多模态生成前沿</a>
       <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
@@ -295,47 +302,176 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>AI Agent 人格设计</h1><p class="lead">让 AI 有"性格"——Agent 人格的 prompt 工程</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么 Agent 需要"人格"</h2>
-    <p>同一个 GPT-4，配上不同 system prompt，表现出的"性格"天差地别——可以是严肃专家、幽默助手、严厉教练、温暖朋友。这个"性格"不是模型固有的，是 prompt 设计出来的。Agent 人格设计的本质：**通过 system prompt 精确控制模型的语气、立场、行为边界，让它在特定场景下表现得"像一个特定的角色"**。</p>
-    <div class="callout"><strong>💡 要点</strong><br>人格设计的核心矛盾：**一致性 vs 灵活性**。人格太死板（永远用同样语气）显得机械；太灵活（什么都顺着用户）又失去角色。好的设计是"有稳定内核+在边界内灵活"——就像一个好演员，角色性格稳定，但每场戏的表演自然。</div>
-    <h2><span class="idx"></span>人格设计的四要素</h2>
-    <table class="data-table"><thead><tr><th>要素</th><th>定义什么</th><th>示例</th></tr></thead><tbody><tr><td>身份</td><td>你是谁</td><td>"你是一位资深 Python 开发者"</td></tr><tr><td>语气</td><td>怎么说话</td><td>简洁直接、用代码说话、不啰嗦</td></tr><tr><td>边界</td><td>不做什么</td><td>不猜意图、不确定就说"我不知道"</td></tr><tr><td>价值观</td><td>什么重要</td><td>代码正确性 &gt; 代码美观；安全 &gt; 效率</td></tr></tbody></table>
-    <h2><span class="idx"></span>System Prompt 的工程化</h2>
-    <p>一个生产级的 system prompt 不是一个自然段，而是一份"规格书"——包含角色定义、行为规则（do/don't）、输出格式、安全边界、少样本示例。它本质上是在"编程"模型的行为，只是用的语言是自然语言而非代码。</p>
-    <pre class="code"><code class="language-text">生产级 system prompt 结构（示例）
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 35 · 核心知识系列</span>
+      <h1>Agent 人格设计<br>用 System Prompt 塑造 AI 的灵魂</h1>
+      <p class="lead">同样的底层模型，一个回答像冰冷的机器，另一个像温暖的伙伴——差距全在人格设计里。System Prompt 是 Agent 的"基因"，它定义角色身份、注入价值观、控制语气和行为边界。这不是写几句"你是一个有用的助手"那么简单，而是一门融合心理学、写作和工程的技艺。本章拆解人格设计的四层架构，并给出一份可即用的完整模板。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★</span>
+      </div>
+    </section>
 
-# 角色
-你是一位资深代码审查员，专注 Python。
+    <h2 class="section" id="intro"><span class="idx">★</span> 为什么人格设计如此重要</h2>
+    <p>2023 年，斯坦福的研究者做了一个著名实验"Smallville"——25 个由 LLM 驱动的虚拟角色生活在一个小镇上，每个角色都有自己的性格、关系和日常。结果这些角色自发地组织了情人节派对、讨论了选举、甚至形成了社交动态。这个实验证明了一件事：<strong>LLM 的行为高度依赖人格设定，好的设定能催生逼真、一致、可预测的"虚拟人格"。</strong></p>
+    <p>在产品层面，人格设计的价值更直接。Character.AI 靠丰富的人格设定吸引了千万用户；Duolingo 的猫头鹰教练用"鼓励 + 调侃"的语气让用户坚持学语言；Replika 用"共情倾听者"的人格陪伴孤独的人。人格不是装饰，它直接影响用户信任、留存和情感连接。一个"没有性格"的助手，和一个"有记忆有温度"的伙伴，体验天差地别。</p>
 
-# 行为规则
-- 只审查用户提交的代码，不主动写新代码
-- 按严重程度排序问题：Critical &gt; Warning &gt; Style
-- 每个问题给：位置、问题描述、修复建议、修复后代码
-- 如果代码没有问题，明确说"代码质量良好"
+    <h2 class="section" id="four-layers"><span class="idx">★</span> 人格设计的四层架构</h2>
+    <p>一个好的人格设定不是随意堆砌形容词，而是一个有层次的结构。我把它拆解为四层：身份层、价值观层、行为规范层、表达风格层。每一层解决不同的问题，缺一不可。</p>
+    <p><strong>第一层：身份层（Identity）</strong>——你是谁？这一层定义 Agent 的核心身份：名字、职业、背景故事、专业领域。关键是要具体到有画面感，而不是泛泛而谈。"你是一位有 20 年经验的儿科医生"比"你是一个医疗助手"有力得多。身份层决定了 Agent 的知识边界和视角——儿科医生和肿瘤专家对同一个症状会有不同的解读角度。</p>
+    <p><strong>第二层：价值观层（Values）</strong>——你相信什么？这一层注入 Agent 的核心信念和优先级。价值观决定了在模糊地带的行为选择。比如一个财务顾问 Agent 的价值观可能是"始终把用户长期利益置于短期收益之上"、"宁可保守也不夸大收益"。价值观层是防止"讨好型人格"的关键——没有价值观的 Agent 会过度迎合用户，甚至给出有害建议。</p>
+    <p><strong>第三层：行为规范层（Behavioral Rules）</strong>——你怎么做事？这一层是具体的操作规则：遇到无法回答的问题怎么办？什么时候该追问、什么时候该直接回答？输出格式是什么？这一层需要用条件式的、可操作的规则来描述，类似编程中的 if-then。</p>
+    <p><strong>第四层：表达风格层（Voice & Tone）</strong>——你怎么说话？这一层定义语言风格：用词偏好、句式长短、是否用比喻、是否用表情符号、是否有幽默感。风格层是最能被用户直接感知的，也是最需要和品牌调性一致的。</p>
+    <pre><code class="language-text">四层架构的关系（由内到外）
 
-# 输出格式
-## Critical (必须修)
-- 第 N 行：xxx
-  建议：xxx
-  ```python
-  修复后代码
-  ```
+  ┌─────────────────────────────┐
+  │  第四层：表达风格（最外显）   │  ← 用户直接感知："说话像朋友"
+  │  ┌─────────────────────┐    │
+  │  │ 第三层：行为规范      │    │  ← 决定交互方式："先确认再执行"
+  │  │  ┌─────────────┐    │    │
+  │  │  │ 第二层：价值观│    │    │  ← 决策引擎："用户安全第一"
+  │  │  │  ┌─────┐    │    │    │
+  │  │  │  │ 第一层│    │    │    │  ← 核心基石："我是一个儿科医生"
+  │  │  │  │ 身份 │    │    │    │
+  │  │  │  └─────┘    │    │    │
+  │  │  └─────────────┘    │    │
+  │  └─────────────────────┘    │
+  └─────────────────────────────┘
+  外层依赖内层，内层决定外层的合理性
+</code></pre>
 
-# 边界
-- 不评论代码风格以外的设计决策
-- 不确定的问题标注"建议人工确认"
-- 安全漏洞（SQL注入/XSS）必须报 Critical
+    <h2 class="section" id="values"><span class="idx">★</span> 价值观注入：让 AI 有"原则"</h2>
+    <p>价值观注入是人格设计中最微妙的部分。大模型默认是"讨好型人格"——用户问什么就答什么，哪怕答案有害。价值观层的作用就是给 Agent 划定"不可逾越的底线"。但价值观不能是空泛的口号（"做一个善良的 AI"），必须是可操作的行为准则。</p>
+    <p>好的价值观注入要包含三个要素：<strong>优先级</strong>（当价值观冲突时谁优先）、<strong>触发条件</strong>（什么情况下执行这条价值观）、<strong>具体行动</strong>（执行时做什么）。例如，一个健康咨询 Agent 的价值观可以这样写："当用户的描述涉及自伤倾向时（触发条件），用户安全高于一切（优先级），立即停止常规咨询，提供危机干预热线并建议就医（具体行动）。"这种结构化的价值观，比"关心用户健康"有效得多。</p>
+    <pre><code class="language-text">价值观注入的三要素示例（教育类 Agent）
 
-# 少样本示例
-[输入] def add(a, b): return a+b
-[输出] 代码质量良好。建议加类型注解：
-  def add(a: int, b: int) -&gt; int: return a+b</code></pre>
-    <h2><span class="idx"></span>人格漂移与一致性</h2>
-    <p>长对话中，模型可能"漂移"——前 10 轮很专业，后面越来越随意。这是 context window 里早期 system prompt 被"稀释"了。解法：① 在每 N 轮重新注入 system prompt（提醒角色）；② 把关键规则放在 prompt 最后（近因效应）；③ 用结构化输出约束（强制格式让模型"回到角色"）。</p>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>Agent 人格通过 system prompt 设计，四要素：身份/语气/边界/价值观。生产级 prompt 是一份"规格书"（角色+规则+格式+边界+示例）。核心矛盾是一致性 vs 灵活性。长对话要防"人格漂移"——定期重注入 prompt。人格设计本质是"用自然语言编程模型行为"。</p>
-    <div class="chapter-nav">
-      <a href="34-llm-compiler.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 35 章 · AI Agent 人格设计</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+错误写法（空泛）：
+  "你是一个负责任的老师，关心学生成长。"
+
+正确写法（结构化）：
+  【价值观优先级】学生理解深度 > 回答速度 > 展示知识面
+  
+  【价值观1：诚实优先】
+  - 触发条件：当你不确定答案是否正确时
+  - 行动：明确说"我不确定这个答案"，而不是编造
+  - 举例：学生问一个模糊的历史细节，你应该说"这个细节
+    我需要查证"而不是凭印象回答
+  
+  【价值观2：启发而非灌输】
+  - 触发条件：学生直接要答案时
+  - 行动：先给一个提示或反问，引导学生自己思考
+  - 例外：考试倒计时紧迫时可以直接给答案
+  
+  【价值观3：保护学习动力】
+  - 触发条件：学生回答错误时
+  - 行动：先肯定思路中正确的部分，再指出问题
+  - 禁止：使用"这都不会"、"太简单了"等贬低性表达
+</code></pre>
+
+    <h2 class="section" id="tone"><span class="idx">★</span> 语气控制：风格设定的工程化</h2>
+    <p>语气是最能被用户感知的层面，但也是最难稳定控制的。LLM 有时候"太正式"，有时候"太随意"，原因在于自然语言描述的模糊性。工程化的做法是用<strong>正面指令 + 反面示例</strong>来锚定语气。与其说"用友好的语气"，不如说"用第三人称称呼用户，每段不超过三句话，偶尔使用比喻来解释复杂概念"。</p>
+    <p>一个高级技巧是<strong>few-shot 风格锚定</strong>——在 system prompt 中放 2-3 个理想对话示例，让模型通过模式匹配学习风格。这比纯描述性指令稳定得多。另一个技巧是<strong>温度参数配合</strong>——严肃场景用低温度（0.3），创意场景用高温度（0.8），风格设定和采样参数要协调一致。</p>
+    <pre><code class="language-text">语气控制的关键维度
+
+1. 正式度谱系（formal ←→ casual）
+   "建议您尽快就医" vs "有空去看看医生哈"
+
+2. 简洁度谱系（verbose ←→ concise）
+   "关于这个问题，涉及多个方面..." vs "直接说：会。"
+
+3. 温度谱系（cold ←→ warm）
+   "这是数据：35.5℃" vs "别担心，35.5℃在正常范围"
+
+4. 主动度谱系（passive ←→ proactive）
+   "你想了解什么？" vs "我看到你在看这篇，要不要我总结一下？"
+
+技巧：为每个维度给出明确的定位 + 正反例
+  "语气定位：温暖但简洁。
+   正例：'这个指标偏高一点，但不严重，调整饮食就行。'
+   反例：'亲爱的宝贝不要担心哦，这个完全没问题的呢~'（过于殷勤）"
+</code></pre>
+
+    <h2 class="section" id="template"><span class="idx">★</span> 完整模板：可直接使用的人格设计框架</h2>
+    <p>下面是一个完整的人格设计 system prompt 模板，适用于大多数对话型 Agent 场景。你可以根据具体业务调整每一部分。这个模板综合了上述四层架构，并加入了边界处理、记忆管理、安全约束等工程考量。</p>
+    <pre><code class="language-text">================================================
+Agent 人格设计 System Prompt 完整模板
+================================================
+
+# 【身份】
+你是「小知」，一位有 15 年临床经验的全科医生助理。
+你不是真正的医生，而是帮助用户做健康科普和就诊建议的 AI 助手。
+你的知识更新至 2024 年，对 2024 年后的新药和疗法应标注"需查证"。
+
+# 【核心价值观】（优先级从高到低）
+1. 用户安全 > 信息准确 > 回答有用 > 体验流畅
+2. 永远不替代医生诊断。涉及具体诊断时，必须建议就医。
+3. 当用户描述急症（胸痛、呼吸困难、严重出血等），立即建议拨打 120。
+4. 保护用户隐私，不在回答中引用其他用户的具体信息。
+
+# 【行为规范】
+- 回答前先判断：这是科普问题（可答）还是诊断问题（需建议就医）？
+- 如果用户描述含糊，先追问 1-2 个关键问题再回答（如"症状多久了？"）
+- 涉及用药时，必须提醒"具体用药请遵医嘱"
+- 用"可能性"而非"确诊"的措辞（如"可能是感冒，但不排除..."）
+- 遇到超出知识范围的问题，诚实说"这个问题我需要更多信息"
+
+# 【表达风格】
+- 语气：温暖、专业、不卖弄术语。用用户能懂的话解释医学术语。
+- 长度：每个回答控制在 3-5 句话，复杂问题分段说明。
+- 格式：用要点列表归纳多条建议，关键信息加粗。
+- 禁止：不使用"绝对没事""放心吧 100% 没问题"等绝对化表达。
+
+# 【对话示例】（风格锚定）
+用户：我最近老头晕，是不是贫血？
+小知：头晕确实可能和贫血有关，但也可能是低血压、颈椎问题或睡眠不足。
+你头晕多久了？是偶尔还是持续？站起来的时候会加重吗？这些信息能帮我
+更好地判断。不过要提醒你，如果头晕伴随视力模糊或言语不清，建议尽快
+就医排查。
+
+# 【边界与兜底】
+- 如果用户表现出自伤倾向：停止常规对话，提供心理援助热线 400-161-9995
+- 如果涉及儿童用药：强调"儿童用药必须遵儿科医生指导"
+- 如果连续 3 轮无法解决问题：建议"这个问题比较复杂，建议面诊"
+================================================
+</code></pre>
+    <pre><code class="language-python"># 模板的使用方式（以 OpenAI API 为例）
+import openai
+
+PERSONA_SYSTEM_PROMPT = """（上面模板的完整内容）"""
+
+response = openai.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": PERSONA_SYSTEM_PROMPT},
+        {"role": "user", "content": "我最近头晕，是不是贫血？"},
+    ],
+    temperature=0.4,   # 医疗场景偏低温，保证稳定
+    max_tokens=500,
+)
+print(response.choices[0].message.content)
+
+# 进阶：动态注入用户画像，实现个性化人格适配
+def build_dynamic_prompt(base_persona, user_profile):
+    """根据用户画像微调人格表现"""
+    if user_profile.get("age", 0) > 60:
+        base_persona += "\n注意：用户是老年人，语速放慢，多用鼓励。"
+    if user_profile.get("anxious", False):
+        base_persona += "\n注意：用户情绪焦虑，先安抚情绪再给信息。"
+    return base_persona
+</code></pre>
+
+    <h2 class="section" id="iteration"><span class="idx">★</span> 人格设计的迭代与评估</h2>
+    <p>人格设定不是一次写完就定稿的，它需要持续迭代。评估人格质量有两个维度：<strong>一致性</strong>（同一人格在不同对话中是否保持稳定）和 <strong>符合度</strong>（行为是否符合设计意图）。实践方法是用一批"压力测试"问题（故意诱导 Agent 偏离人格的提问）来检验，看 Agent 是否守住了设定。</p>
+    <p>一个常见误区是"人格设定越复杂越好"。实际上，system prompt 越长，模型越容易顾此失彼，反而降低一致性。经验法则是：核心人格控制在 500-1500 字以内，优先级排序清晰，避免相互矛盾的规则。当发现 Agent 行为偏离时，先检查是否有规则冲突，再考虑增加约束，而不是一味加长 prompt。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>Agent 人格设计的核心是 system prompt 的四层架构：身份层定义"你是谁"（具体到有画面感），价值观层定义"你相信什么"（结构化的优先级和触发条件），行为规范层定义"你怎么做事"（可操作的 if-then 规则），表达风格层定义"你怎么说话"（正反例锚定的语气）。好的价值观注入包含优先级、触发条件、具体行动三要素，能防止"讨好型人格"。语气控制要用正面指令加反面示例，配合 few-shot 锚定。完整模板可以直接套用，但记住人格设定需要持续迭代和压力测试。最终，人格设计的本质是"用语言塑造行为"——你写下的每一个字，都在定义这个 AI 的灵魂。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

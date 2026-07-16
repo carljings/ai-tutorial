@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -132,7 +130,7 @@
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
       <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
-      <a href="105-tfm-attention-bias.html" class="active" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
+      <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
@@ -305,67 +303,276 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 105 章 · Transformer 原理深挖</span>
-<h1>ALiBi 与相对位置偏置：另一种注入位置的方式</h1><p class="lead">不靠编码，直接在注意力分数上加按距离衰减的线性偏置。ALiBi 的外推能力、训练效率。与 RoPE 的对比，何时用哪个。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>不靠编码，直接在注意力分数上加按距离衰减的线性偏置。ALiBi 的外推能力、训练效率。与 RoPE 的对比，何时用哪个。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 105 · Transformer 深度系列</span>
+      <h1>ALiBi 与注意力偏置<br>另一种注入位置的方式</h1>
+      <p class="lead">前面讲的位置编码（正弦余弦、RoPE）都是「改输入或改 Q/K」。ALiBi 走了第三条路：<strong>不动 embedding，也不动 Q/K，只在注意力分数上加一个距离惩罚项</strong>。越远的 token，分数被减得越多。这个极简改动让模型获得了惊人的外推能力——训练 1024，推理 2048 不掉点。本章讲清 ALiBi 的原理、偏置斜率的设计、为什么它能外推，并对比 T5 相对偏置、RoPE 的异同。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+        <span class="chip">前置：第 96、97、104 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="third-way"><span class="idx">★</span> 注入位置的第三条路</h2>
+    <p>把前面章节的位置编码思路归纳一下，有两条已经讲过的路：</p>
+
+    <ul>
+      <li><strong>改输入（加性）</strong>：正弦余弦编码、可学习 PE。把位置向量<strong>加到 embedding 上</strong>。</li>
+      <li><strong>改 Q/K（旋转）</strong>：RoPE。把位置编码成旋转角度，<strong>旋转 Q 和 K</strong>。</li>
+    </ul>
+
+    <p>ALiBi（Attention with Linear Biases，2021）开创了第三条路：<strong>改注意力分数</strong>。完全不动 embedding 和 Q/K/V 的计算，只在算完 QK^T 后，往分数矩阵里<strong>减一个只依赖相对距离的惩罚</strong>。</p>
+
+    <blockquote>
+      ALiBi 注意力 = softmax( QK^T/√d_k − m·|i−j| ) · V<br>
+      其中 |i−j| 是位置 i 和 j 的距离，m 是每个头的斜率（超参）
+    </blockquote>
+
+    <p>就这么简单。多出来的只是一个 <strong>−m·|i−j|</strong> 的项——距离越远，减得越多，那个位置的分数越小，softmax 后权重越低。等价于「<strong>模型天生偏向关注近处</strong>」，且这个偏置是硬编码的，不需要学。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">标准注意力：softmax(QK^T/√d)V</div>
+        <div style="color:var(--text-faint);">▼ ALiBi 加一个距离惩罚</div>
+        <div class="node sky">分数矩阵减去 m·|i−j|</div>
+        <div class="node">距离 0：不减；距离 1：减 m；距离 10：减 10m</div>
+        <div style="color:var(--text-faint);">▼ softmax 自然偏向近处</div>
+        <div class="node violet">天生有「局部偏好」，且可外推</div>
+      </div>
+      <div class="cap">图 105-1 · ALiBi：在分数上加线性距离惩罚，让注意力偏向近处</div>
+    </div>
+
+    <h2 class="section" id="bias-matrix"><span class="idx">01</span> 偏置矩阵长什么样</h2>
+    <p>把 −m·|i−j| 画成一个矩阵，它是一个<strong>沿主对角线对称、向四周线性递减</strong>的矩阵：</p>
+
+    <blockquote>
+      偏置矩阵 B（n×n），B[i][j] = −m·|i−j|：<br><br>
+      &nbsp;&nbsp;[ 0 &nbsp;&nbsp;−m &nbsp;−2m &nbsp;−3m &nbsp;−4m ]<br>
+      &nbsp;&nbsp;[ −m &nbsp;&nbsp;0 &nbsp;&nbsp;−m &nbsp;&nbsp;−2m &nbsp;−3m ]<br>
+      &nbsp;&nbsp;[ −2m &nbsp;−m &nbsp;&nbsp;0 &nbsp;&nbsp;−m &nbsp;&nbsp;−2m ]<br>
+      &nbsp;&nbsp;[ −3m &nbsp;−2m &nbsp;−m &nbsp;&nbsp;0 &nbsp;&nbsp;−m&nbsp; ]<br>
+      &nbsp;&nbsp;[ −4m &nbsp;−3m &nbsp;−2m &nbsp;−m &nbsp;&nbsp;0&nbsp;&nbsp;]
+    </blockquote>
+
+    <p>对角线（自己对自己）是 0，每往外走一步减 m。这个矩阵<strong>只依赖相对距离</strong>，所以它天然表达了相对位置。而且因为它是<strong>线性的</strong>（不是学出来的复杂函数），外推时行为可预测——不管序列多长，每远一步就多减 m，规律不变。</p>
+
+    <h2 class="section" id="slopes"><span class="idx">02</span> 斜率 m 怎么设计：每个头不同</h2>
+    <p>ALiBi 的一个精妙设计：<strong>不同的注意力头用不同的斜率 m</strong>。比如 8 个头，m 从几何序列里取：</p>
+
+    <blockquote>
+      8 个头的斜率：m = 1/2^1, 1/2^2, 1/2^3, ..., 1/2^8<br>
+      &nbsp;&nbsp;= 0.5, 0.25, 0.125, 0.0625, ..., 0.0039
+    </blockquote>
+
+    <p>为什么要不同斜率？这和正弦余弦编码的多频率思想异曲同工：</p>
+    <ul>
+      <li><strong>斜率大的头（m=0.5）</strong>：距离惩罚严厉，几乎只看最近几个 token。负责<strong>近距离</strong>依赖。</li>
+      <li><strong>斜率小的头（m=0.004）</strong>：距离惩罚温和，能看到很远。负责<strong>远距离</strong>依赖。</li>
+      <li><strong>组合起来</strong>：不同头覆盖不同距离尺度，从近到远都有专门负责的头。</li>
+    </ul>
+
+    <p>这种几何序列的斜率设计是 ALiBi 论文的关键经验。对于头数不是 2 的幂的，论文给出了一个生成几何序列的算法（从 2^(-8/n) 起步）。</p>
+
+    <div class="code-title">alibi_bias.py —— 生成 ALiBi 偏置矩阵</div>
+    <pre><code class="language-python">import torch
+import math
+
+def get_alibi_slopes(n_heads):
+    """为 n_heads 个头生成几何序列的斜率。"""
+    def get_slopes_power_of_2(n):
+        start = 2 ** (-(2 ** -(math.log2(n) - 3)))
+        return [start * (2 ** (-i / n)) for i in range(n)]
+    if math.log2(n_heads).is_integer():
+        return get_slopes_power_of_2(n_heads)
+    # 非幂的情况：用最近幂补全（简化版）
+    closest = 2 ** round(math.log2(n_heads))
+    return get_slopes_power_of_2(closest)[:n_heads]
+
+def alibi_bias(n_heads, seq_len):
+    """生成 ALiBi 偏置矩阵：(n_heads, seq_len, seq_len)"""
+    slopes = torch.tensor(get_alibi_slopes(n_heads)).view(n_heads, 1, 1)
+    # 相对距离矩阵 |i - j|
+    positions = torch.arange(seq_len)
+    rel_dist = (positions.unsqueeze(0) - positions.unsqueeze(1)).abs()  # (seq, seq)
+    # 偏置 = -slope * distance
+    bias = -slopes * rel_dist.unsqueeze(0).float()  # (n_heads, seq, seq)
+    return bias
+
+# 看 8 个头的斜率
+slopes = get_alibi_slopes(8)
+print("8 头 ALiBi 斜率:", [f"{s:.4f}" for s in slopes])
+# ['0.5000', '0.2500', '0.1250', '0.0625', '0.0313', '0.0156', '0.0078', '0.0039']
+
+# 看偏置矩阵的一角
+bias = alibi_bias(8, 5)
+print("\n第 0 头（斜率最大）的偏置:")
+print(bias[0])
+# 自己=0，邻居=-0.5，再远=-1.0...
+</code></pre>
+
+    <h2 class="section" id="extrapolation"><span class="idx">03</span> 为什么 ALiBi 能外推</h2>
+    <p>ALiBi 最惊艳的特性是<strong>惊人的外推能力</strong>。论文里的实验：用 1024 长度训练，推理时拉到 2048，性能<strong>几乎不掉</strong>；甚至拉到 8 倍长度（8192）仍有合理性能。这远超正弦余弦编码和 RoPE 的纯外推（它们纯外推时性能断崖式下降）。</p>
+
+    <p>为什么能外推？关键在偏置的<strong>简单性和单调性</strong>：</p>
+
+    <ul>
+      <li><strong>规律可预测</strong>：每远一步多减 m，这个规律在任何长度下都成立。模型学到的「偏置 = 距离惩罚」的认知，能无缝迁移到更长的序列。</li>
+      <li><strong>不依赖绝对位置</strong>：偏置只看 |i−j|，不关心 i、j 的绝对值。无论序列多长，相对距离的语义一致。</li>
+      <li><strong>软约束而非硬编码</strong>：偏置只是调整 softmax 前的分数，不是硬性 mask。远处的 token 仍能被看到（只是分数低），保留了「需要时看远处」的灵活性。</li>
+    </ul>
+
+    <p>对比 RoPE：RoPE 虽然也是相对位置，但它的旋转角度在超出训练范围后变化模式改变，模型没见过那种角度组合，外推受限（需要 NTK/YaRN 补救）。ALiBi 的线性偏置没有这种「模式突变」——永远是线性递减，简单到不会出意外。</p>
+
+    <div class="callout tip">
+      <div class="head">💡 类比：给模型装个「距离直觉」</div>
+      <p>没有位置信息时，模型对远近一视同仁。ALiBi 像给模型装了一个天生的「距离直觉」——本能地更关注近处，但理性上仍能看到远处。这种直觉在任何长度的序列里都适用，因为「越远越次要」是语言的普遍规律，不随长度改变。</p>
+    </div>
+
+    <h2 class="section" id="vs-t5"><span class="idx">04</span> 对比 T5 相对位置偏置</h2>
+    <p>ALiBi 不是第一个「在分数上加偏置」的方案。T5 模型早就有<strong>相对位置偏置（Relative Position Bias）</strong>，做法是：</p>
+
+    <blockquote>
+      T5: 注意力分数 += b[i−j]<br>
+      其中 b 是一个<strong>可学习的、按相对距离分桶</strong>的偏置表
+    </blockquote>
+
+    <p>区别：</p>
+    <ul>
+      <li><strong>T5 的偏置是学出来的</strong>，b 是可学习参数，按相对距离分桶（比如距离 0 一个桶、距离 1~2 一个桶、3~5 一个桶……粗粒度）。</li>
+      <li><strong>ALiBi 的偏置是公式定的</strong>，−m·|i−j|，不学习，线性。</li>
+    </ul>
+
+    <p>T5 偏置的表达力更强（可学习），但<strong>外推性差</strong>——训练时只见过 0~512 的桶，推理时来个距离 1000，没对应的偏置参数。ALiBi 牺牲了一点表达力（固定线性），换来了<strong>任意长度都可外推</strong>。这是「简单即鲁棒」的胜利。</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>偏置形式</th><th>是否学习</th><th>外推性</th></tr></thead>
+      <tbody>
+        <tr><td>T5 相对偏置</td><td>分桶查表 b[i−j]</td><td>是</td><td>差（超范围无参数）</td></tr>
+        <tr><td>ALiBi</td><td>−m·|i−j|</td><td>否（固定）</td><td>极好（线性可延伸）</td></tr>
+        <tr><td>RoPE</td><td>旋转 Q/K</td><td>否（固定）</td><td>中（需 NTK 补救）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="impl"><span class="idx">05</span> 代码：带 ALiBi 的注意力</h2>
+    <div class="code-title">alibi_attention.py —— ALiBi 注意力完整实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn as nn
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
-    """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+class AlibiAttention(nn.Module):
+    def __init__(self, d_model, n_heads):
+        super().__init__()
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.W_qkv = nn.Linear(d_model, 3 * d_model, bias=False)
+        self.W_o = nn.Linear(d_model, d_model, bias=False)
+        # 预计算斜率（每个头一个）
+        slopes = torch.tensor(get_alibi_slopes(n_heads))  # 复用上面的函数
+        self.register_buffer('slopes', slopes.view(n_heads, 1, 1))
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"ALiBi 与相对位置偏置：另一种注入位置的方式"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="104-tfm-softmax-variants.html"><div class="lbl">← 上一章</div><div class="ttl">104 · Softmax 之外：线性注意力的尝试</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="106-tfm-context-length.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">106 · 上下文窗口的物理极限与突破</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 105 章 · ALiBi 与相对位置偏置：另一种注入位置的方式</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    def forward(self, x):
+        B, S, _ = x.shape
+        qkv = self.W_qkv(x).chunk(3, dim=-1)
+        q, k, v = [t.view(B, S, self.n_heads, self.d_k).transpose(1, 2) for t in qkv]
+
+        scores = q @ k.transpose(-2, -1) / math.sqrt(self.d_k)  # (B, H, S, S)
+
+        # 加 ALiBi 偏置
+        positions = torch.arange(S, device=x.device)
+        rel_dist = (positions.view(1, S) - positions.view(S, 1)).abs().float()  # (S, S)
+        bias = -self.slopes * rel_dist.unsqueeze(0)  # (H, S, S)
+        scores = scores + bias.unsqueeze(0)  # 广播到 batch
+
+        weights = F.softmax(scores, dim=-1)
+        out = weights @ v
+        return self.W_o(out.transpose(1, 2).contiguous().view(B, S, -1))
+
+# 验证：偏置让远处权重降低
+torch.manual_seed(0)
+attn = AlibiAttention(d_model=64, n_heads=8)
+x = torch.randn(1, 10, 64)
+# 单独看分数和偏置的影响
+bias = alibi_bias(8, 10)
+print("第 0 头（斜率最大）位置 0 对各位置的偏置:")
+print(bias[0, 0])  # 距离越远，偏置越负 → softmax 后权重越低
+</code></pre>
+
+    <p>注意 ALiBi 的实现极其轻量：相比标准注意力，只多了一个偏置矩阵的加法。没有额外参数（斜率是固定的），没有改 Q/K 计算。这是它能快速普及的工程原因。</p>
+
+    <h2 class="section" id="pros-cons"><span class="idx">06</span> ALiBi 的优缺点</h2>
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">✅</span>
+        <h4>优点</h4>
+        <p>① 外推性极好，无需微调就能扩长度；②实现极简，零额外参数；③天然有局部偏好，符合语言直觉；④训练收敛快（偏置给了好的先验）。</p>
+      </div>
+      <div class="card">
+        <span class="ic">⚠️</span>
+        <h4>缺点</h4>
+        <p>①绝对长度信息完全丢失（只看相对距离），某些需要「全局位置」的任务吃亏；②线性偏置表达力有限，复杂位置模式难表达；③在大规模 LLM 上效果不如 RoPE（见下）。</p>
+      </div>
+    </div>
+
+    <h2 class="section" id="why-not-mainstream"><span class="idx">07</span> 为什么 ALiBi 没成主流</h2>
+    <p>尽管外推性强，ALiBi 在大模型时代<strong>并没有成为主流</strong>。Llama、GLM、Qwen、Mistral 都选了 RoPE 而非 ALiBi。原因：</p>
+
+    <ul>
+      <li><strong>大规模上 RoPE 更好</strong>：实践发现，当模型规模变大（7B+），RoPE 的表达力优势显现，质量略高于 ALiBi。ALiBi 的固定线性偏置成了表达力天花板。</li>
+      <li><strong>RoPE + NTK/YaRN 已能外推</strong>：RoPE 配合 NTK-aware 或 YaRN 微调，外推性也能做到很好，弥补了 ALiBi 原本的优势。</li>
+      <li><strong>ALiBi 偏向局部</strong>：对于需要长距离精确关联的任务（如长文档问答），ALiBi 的「远处惩罚」反而成了阻碍——它会让模型本能地忽视远处的关键信息。</li>
+      <li><strong>生态惯性</strong>：Llama 2 用 RoPE 取得巨大成功后，后续模型跟风 RoPE，工具链和经验都围绕 RoPE 积累，ALiBi 逐渐边缘化。</li>
+    </ul>
+
+    <div class="callout pit">
+      <div class="head">⚠️ ALiBi 的定位</div>
+      <p>ALiBi 不是失败方案——它的外推思想影响了后续很多工作（比如某些长上下文方法借鉴了它的距离偏置）。它更适合<strong>资源有限、需要纯外推、规模不大</strong>的场景。在追求极致质量的大模型竞赛里，RoPE 的表达力胜出。但作为「第三条路」的开创者，ALiBi 的理论价值不容忽视。</p>
+    </div>
+
+    <h2 class="section" id="other-bias"><span class="idx">08</span> 其他注意力偏置方案</h2>
+    <p>「在分数上加偏置」是个通用框架，除了 ALiBi 和 T5，还有：</p>
+
+    <ul>
+      <li><strong>Relative Position Encoding（Shaw 2018）</strong>：最早把相对位置编码进注意力的工作，偏置是学出来的边权。</li>
+      <li><strong>Decoder 需要的 Causal Mask</strong>：其实也是一种「偏置」——把未来位置的分数设成 −∞。本质和 ALiBi 一样是改分数，只是规则不同（硬性 mask vs 软性惩罚）。</li>
+      <li><strong>Log-linear bias</strong>：把 ALiBi 的线性偏置改成对数，让远距离的衰减更平缓。某些长上下文模型尝试过。</li>
+    </ul>
+
+    <p>这些方案的核心思想一致：<strong>位置信息不必塞进 embedding 或 Q/K，直接调注意力分数更直接</strong>。这是和 RoPE 完全不同的哲学——RoPE 让「位置」隐含在 Q/K 的旋转里（点积自动出相对位置），偏置方案则是「位置」显式加在分数上。两种哲学各有优劣。</p>
+
+    <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">ALiBi 核心</div>
+        <ul style="margin:6px 0;">
+          <li>在分数上加 −m·|i−j| 距离惩罚</li>
+          <li>每个头斜率 m 不同（几何序列）</li>
+          <li>偏置是固定的，不学习</li>
+          <li>外推性极好，无需微调扩长度</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">三种位置注入哲学</div>
+        <ul style="margin:6px 0;">
+          <li>加性（正弦余弦）：改 embedding</li>
+          <li>旋转（RoPE）：改 Q/K</li>
+          <li>偏置（ALiBi/T5）：改分数</li>
+          <li>主流选 RoPE，ALiBi 适合纯外推场景</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>位置编码的三条路（加性、旋转、偏置）至此全部讲完。接下来的两章进入工程实战：先讲<strong>上下文长度</strong>这个综合话题——从 4K 到 128K+，背后是位置外推、注意力优化、KV cache 管理的综合战。把前面学到的 RoPE 外推、GQA、Flash Attention、PagedAttention 串起来，看它们怎么组合出百万 token 的长上下文能力。</p>
+
+    <blockquote>
+      下一章：<a href="106-tfm-context-length.html">第 106 章 · 上下文窗口的物理极限与突破</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 应用架构模式 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 应用架构模式 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -55,7 +62,7 @@
       <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
       <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
       <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
-      <a href="41-app-architecture.html" class="active" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
@@ -295,43 +302,243 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 应用架构模式</h1><p class="lead">从单体到微服务——LLM 应用的架构演进</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>LLM 应用的架构选择</h2>
-    <p>一个 LLM 应用的架构不止是"调 API"。要考虑：模型放哪（API vs 本地）、知识库怎么接（RAG 层）、多个模型怎么协调（路由）、缓存怎么设计（语义缓存）、安全怎么保障（过滤层）。这些决策组合出不同的架构模式。</p>
-    <h2><span class="idx"></span>四种主流架构</h2>
-    <table class="data-table"><thead><tr><th>架构</th><th>结构</th><th>适用</th><th>代价</th></tr></thead><tbody><tr><td>直连 API</td><td>App→LLM API</td><td>原型/简单应用</td><td>无控制/无缓存/无安全</td></tr><tr><td>RAG 架构</td><td>App→检索→LLM</td><td>知识密集型应用</td><td>延迟+成本增加</td></tr><tr><td>Agent 架构</td><td>App→Agent→工具循环</td><td>复杂多步任务</td><td>延迟高/不确定性高</td></tr><tr><td>混合路由</td><td>路由器→多模型/多策略</td><td>生产级/高并发</td><td>复杂度高</td></tr></tbody></table>
-    <h3>生产级混合路由架构</h3>
-    <pre class="code"><code class="language-text">生产级 LLM 应用架构
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 41 · 核心知识系列</span>
+      <h1>LLM 应用架构<br>从单体到 Agent 编排的三层演进</h1>
+      <p class="lead">一个能跑的 demo 和一个能扛住生产流量的 AI 系统，中间隔着巨大的架构鸿沟。从把 LLM 调用塞进单个 FastAPI 路由，到拆分成微服务解耦 prompt 管理、向量库、模型调用，再到用 Agent 编排框架协调多步推理和多模型协作。本章用一套可运行的 FastAPI 骨架，带你走通这三层架构的演进路径。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
 
-用户请求
-    │
-    ▼
-[安全过滤] → prompt injection 检测
-    │
-    ▼
-[语义缓存] → 相似请求命中缓存？
-    │  ├── 命中 → 直接返回（省 token）
-    │  └── miss ↓
-    ▼
-[路由器] → 简单→小模型 / 复杂→大模型
-    │
-    ▼
-[RAG 检索] → 向量库召回+rerank
-    │
-    ▼
-[LLM 生成] → 流式输出
-    │
-    ▼
-[输出过滤] → 安全/合规检查
-    │
-    ▼
-[缓存写入] → 存入语义缓存
-    │
-    ▼
-[日志+监控] → 质量/成本/延迟追踪</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM 应用四种架构：直连API（原型）、RAG架构（知识应用）、Agent架构（复杂任务）、混合路由（生产级）。生产级架构核心组件：安全过滤→语义缓存→路由器（大小模型）→RAG检索→LLM生成→输出过滤→缓存写入→监控。每层解决一个工程问题。</p>
-    <div class="chapter-nav">
-      <a href="40-open-source-ecosystem.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 41 章 · LLM 应用架构模式</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    <h2 class="section" id="intro"><span class="idx">★</span> 为什么 LLM 应用需要特殊架构</h2>
+    <p>传统的 Web 应用架构（请求→数据库→响应）已经成熟了几十年。但 LLM 应用引入了几个颠覆性的特征：<strong>延迟高</strong>（LLM 一次调用可能要几秒）、<strong>流式输出</strong>（需要 SSE/WebSocket）、<strong>非确定性</strong>（同样输入可能不同输出）、<strong>外部依赖重</strong>（模型 API、向量库、搜索 API）。这些特征让传统的同步请求-响应模型不再适用，需要专门的架构设计。</p>
+    <p>更复杂的是，一个生产级 LLM 应用通常不只是"调一次 API"——它需要 RAG 检索、多轮对话管理、工具调用、结果缓存、成本控制、安全过滤、可观测性。把这些全塞进一个巨大的函数里，很快就会变成无法维护的"大泥球"。于是架构自然向三层演进：<strong>单体</strong>（快速验证）→ <strong>微服务</strong>（解耦扩展）→ <strong>Agent 编排</strong>（智能协作）。</p>
+
+    <h2 class="section" id="monolith"><span class="idx">★</span> 第一层：单体架构（快速验证）</h2>
+    <p>单体架构是所有项目的起点——一个 FastAPI 应用包揽一切：接收请求、调用 LLM、返回结果。它的优点是简单直接，适合 MVP 验证和早期原型。下面是一个最小可运行的单体 LLM 应用骨架，包含流式输出这个关键特性。</p>
+    <pre><code class="language-python"># app.py — 单体 LLM 应用骨架（FastAPI + 流式输出）
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+from pydantic import BaseModel
+from openai import AsyncOpenAI
+
+app = FastAPI(title="LLM Chat API")
+client = AsyncOpenAI()
+
+SYSTEM_PROMPT = "你是一个有帮助的助手，回答简洁准确。"
+
+class ChatRequest(BaseModel):
+    message: str
+    history: list[dict] = []
+
+@app.post("/chat")
+async def chat(req: ChatRequest):
+    """非流式：等待完整响应后返回"""
+    messages = [{"role": "system", "content": SYSTEM_PROMPT}] + req.history
+    messages.append({"role": "user", "content": req.message})
+    
+    response = await client.chat.completions.create(
+        model="gpt-4o-mini",
+        messages=messages,
+        temperature=0.7,
+    )
+    return {"reply": response.choices[0].message.content}
+
+@app.post("/chat/stream")
+async def chat_stream(req: ChatRequest):
+    """流式：逐 token 返回（LLM 应用的标准模式）"""
+    async def generate():
+        messages = [{"role": "system", "content": SYSTEM_PROMPT}] + req.history
+        messages.append({"role": "user", "content": req.message})
+        
+        stream = await client.chat.completions.create(
+            model="gpt-4o-mini",
+            messages=messages,
+            stream=True,          # 关键：开启流式
+        )
+        async for chunk in stream:
+            if delta := chunk.choices[0].delta.content:
+                yield f"data: {delta}\n\n"   # SSE 格式
+    
+    return StreamingResponse(generate(), media_type="text/event-stream")
+
+# 启动: uvicorn app:app --reload
+# 单体够用的情况：日活 < 1000，单轮对话，无复杂逻辑
+</code></pre>
+    <p>单体架构的问题随着复杂度增长而暴露：prompt 硬编码在代码里（改 prompt 要重新部署）、没有缓存（重复查询浪费成本）、没有异步任务队列（长任务阻塞）、没有可观测性（出问题不知道哪一步错了）。当你的应用超过"单文件 500 行"或"日活破万"，就该考虑拆分了。</p>
+
+    <h2 class="section" id="microservice"><span class="idx">★</span> 第二层：微服务架构（解耦与扩展）</h2>
+    <p>微服务架构的核心思路是把 LLM 应用的不同职责拆分成独立服务：<strong>Prompt 服务</strong>（管理 prompt 模板和版本，支持热更新）、<strong>检索服务</strong>（向量库 + 混合检索 + Rerank）、<strong>模型服务</strong>（LLM 调用 + 降级 + 负载均衡）、<strong>编排服务</strong>（串联各服务，处理业务逻辑）。每个服务可以独立部署、独立扩缩容、独立更新。</p>
+    <p>这种拆分带来几个关键好处：prompt 可以由产品经理通过后台修改，不需要发版；向量库可以单独扩容（检索量大时）；模型调用可以做降级（GPT-4 超时就切 GPT-3.5）；每个服务可以独立监控和排障。下面是一个微服务版的核心编排服务骨架。</p>
+    <pre><code class="language-python"># orchestrator.py — 微服务编排层
+from fastapi import FastAPI
+from pydantic import BaseModel
+import httpx, asyncio, time
+from redis import asyncio as aioredis
+
+app = FastAPI()
+redis = aioredis.from_url("redis://localhost:6379")
+
+class OrchestrationService:
+    def __init__(self):
+        self.prompt_service = "http://prompt-service:8001"
+        self.retrieval_service = "http://retrieval-service:8002"
+        self.model_service = "http://model-service:8003"
+    
+    async def handle_query(self, user_id: str, query: str):
+        # 1. 缓存检查（省钱省时间）
+        cache_key = f"query:{hash(query)}"
+        if cached := await redis.get(cache_key):
+            return {"reply": cached.decode(), "source": "cache"}
+        
+        # 2. 并行获取 prompt 模板 + 检索相关文档
+        async with httpx.AsyncClient() as client:
+            prompt_task = client.post(f"{self.prompt_service}/render",
+                json={"template": "rag_qa", "vars": {"question": query}})
+            retrieval_task = client.post(f"{self.retrieval_service}/search",
+                json={"query": query, "top_k": 5})
+            
+            prompt_resp, retrieval_resp = await asyncio.gather(
+                prompt_task, retrieval_task, return_exceptions=True
+            )
+        
+        # 3. 拼装最终 prompt
+        documents = retrieval_resp.json()["documents"]
+        context = "\n".join(documents)
+        messages = [
+            {"role": "system", "content": prompt_resp.json()["prompt"]},
+            {"role": "user", "content": f"参考资料:\n{context}\n\n问题: {query}"}
+        ]
+        
+        # 4. 调用模型服务（带降级策略）
+        async with httpx.AsyncClient(timeout=30) as client:
+            try:
+                resp = await client.post(
+                    f"{self.model_service}/generate",
+                    json={"messages": messages, "model": "gpt-4o"},
+                )
+                reply = resp.json()["content"]
+            except (httpx.TimeoutException, httpx.HTTPStatusError):
+                # 降级：换便宜模型
+                resp = await client.post(
+                    f"{self.model_service}/generate",
+                    json={"messages": messages, "model": "gpt-4o-mini"},
+                )
+                reply = resp.json()["content"]
+        
+        # 5. 写缓存（5 分钟过期）
+        await redis.setex(cache_key, 300, reply)
+        
+        # 6. 异步记录日志（不阻塞响应）
+        asyncio.create_task(self.log_interaction(user_id, query, reply))
+        
+        return {"reply": reply, "sources": documents}
+
+orchestrator = OrchestrationService()
+
+@app.post("/ask")
+async def ask(user_id: str, query: str):
+    return await orchestrator.handle_query(user_id, query)
+</code></pre>
+    <p>微服务架构的代价是运维复杂度上升——你需要服务发现、配置中心、分布式追踪、日志聚合。但对于中大型 LLM 应用（日活过万、多团队协作），这些投入是值得的。Kubernetes + Istio 或 Docker Compose + Traefik 是常见的部署组合。关键是引入<strong>可观测性三件套</strong>：OpenTelemetry 做分布式追踪、Prometheus + Grafana 做指标监控、ELK/Loki 做日志聚合。特别是 LLM 应用，你需要追踪每次调用的 prompt、token 数、延迟、成本——这些是优化和排障的基础。</p>
+
+    <h2 class="section" id="agent-orchestration"><span class="idx">★</span> 第三层：Agent 编排架构</h2>
+    <p>当应用需要多步推理、工具调用、多模型协作时，微服务的"请求-响应"模式就不够了。Agent 编排架构引入了一个"编排引擎"，它根据用户意图动态决定调用哪些服务、按什么顺序、如何组合结果。这本质上是一个有状态的"工作流引擎"，但它编排的不是固定的 API 调用，而是由 LLM 驱动的动态决策。</p>
+    <p>典型的 Agent 编排架构有四个核心组件：<strong>Planner</strong>（把用户意图分解成任务步骤）、<strong>Executor</strong>（执行每个步骤，可能调用工具或子 Agent）、<strong>Memory</strong>（维护对话历史和任务状态）、<strong>Reflector</strong>（检查执行结果，决定是否重试或调整计划）。这些组件之间的关系可以用状态图（State Graph）来描述，每个节点是一个执行步骤，边是条件跳转。LangGraph 就是这种思路的实现。</p>
+    <pre><code class="language-python"># agent_orchestrator.py — Agent 编排骨架（状态图驱动）
+from typing import TypedDict, Literal
+from langgraph.graph import StateGraph, END
+
+class AgentState(TypedDict):
+    query: str
+    plan: list[str]
+    current_step: int
+    results: list[str]
+    needs_clarification: bool
+
+class AgentOrchestrator:
+    def __init__(self):
+        self.tools = {
+            "search": web_search_tool,
+            "calculator": code_interpreter_tool,
+            "database": sql_query_tool,
+        }
+    
+    async def plan_node(self, state: AgentState) -> AgentState:
+        """规划节点：把用户查询分解为步骤"""
+        plan = await llm.generate(
+            f"把以下问题分解为 1-3 个可执行步骤：\n{state['query']}"
+        )
+        state["plan"] = parse_steps(plan)
+        state["current_step"] = 0
+        state["results"] = []
+        return state
+    
+    async def execute_node(self, state: AgentState) -> AgentState:
+        """执行节点：执行当前步骤（可能调用工具）"""
+        step = state["plan"][state["current_step"]]
+        # LLM 决定这一步用什么工具
+        tool_choice = await llm.generate(f"步骤'{step}'需要什么工具？")
+        
+        if tool := self.tools.get(tool_choice):
+            result = await tool(step)
+        else:
+            result = await llm.generate(step)  # 直接推理
+        
+        state["results"].append(result)
+        state["current_step"] += 1
+        return state
+    
+    def route_node(self, state: AgentState) -> Literal["execute", "summarize"]:
+        """路由节点：决定下一步去哪"""
+        if state["current_step"] < len(state["plan"]):
+            return "execute"
+        return "summarize"
+    
+    async def summarize_node(self, state: AgentState) -> AgentState:
+        """汇总节点：把各步结果合成为最终回答"""
+        summary = await llm.generate(
+            f"根据以下信息回答问题 '{state['query']}'：\n" + 
+            "\n".join(state["results"])
+        )
+        state["results"] = [summary]
+        return state
+    
+    def build_graph(self):
+        """构建状态图：plan → execute ⟷ summarize"""
+        graph = StateGraph(AgentState)
+        graph.add_node("plan", self.plan_node)
+        graph.add_node("execute", self.execute_node)
+        graph.add_node("summarize", self.summarize_node)
+        
+        graph.set_entry_point("plan")
+        graph.add_edge("plan", "execute")
+        graph.add_conditional_edges("execute", self.route_node)
+        graph.add_edge("summarize", END)
+        
+        return graph.compile()
+
+# Agent 编排的适用场景：
+# - 复杂研究任务（需要多步搜索+分析+综合）
+# - 多 Agent 协作（一个写作、一个审查、一个排版）
+# - 长任务管理（带 checkpoint 和恢复）
+# - 人机协作（关键步骤暂停等人工确认）
+</code></pre>
+
+    <h2 class="section" id="infra"><span class="idx">★</span> 横切关注点：每个架构层都需要的基础设施</h2>
+    <p>无论你处于哪一层架构，以下横切关注点都必须考虑，它们是生产级 LLM 应用的"隐形骨架"。</p>
+    <p><strong>成本控制</strong>：LLM 调用是按 token 计费的，一个用户高频使用可能烧掉大量成本。必须实现按用户/按时间的配额限制、token 用量监控、超限告警。Redis 做实时计数，定期同步到数据库做结算。<strong>速率限制</strong>：既要防止单用户滥用，也要防止上游模型 API 被限流。令牌桶算法是常见选择，按用户、按 IP、按 API Key 多维度限流。<strong>异步队列</strong>：长任务（如文档总结、批量处理）不应阻塞 HTTP 请求，用 Celery 或 Arq 放到后台队列异步执行，前端通过 WebSocket 或轮询获取进度。<strong>可观测性</strong>：这是最容易被忽略但最关键的——你需要追踪每个请求经过的每一步、每一步的延迟和 token 消耗。LangSmith、Langfuse、Helicone 等专门为 LLM 应用设计的可观测平台，能帮你快速定位"为什么这次回答质量差"。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>LLM 应用架构遵循"单体→微服务→Agent 编排"三层演进。单体架构（单个 FastAPI 应用）适合 MVP 和原型验证，重点是实现流式输出；微服务架构把 prompt 管理、检索、模型调用、编排拆分成独立服务，支持独立部署和扩缩容，适合中大型应用；Agent 编排架构引入状态图驱动的动态工作流，适合多步推理和复杂任务场景。每一层都需要配套的横切基础设施：成本控制（配额+监控）、速率限制（令牌桶）、异步队列（长任务不阻塞）、可观测性（全链路追踪+质量监控）。选型原则是"够用就好"——不要过早微服务化，也不要在需要 Agent 时还用单体硬撑。架构是演进的，不是一次定型的，关键是保持代码结构能支撑下一步的拆分。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

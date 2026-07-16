@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>LLM 发展简史 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>LLM 发展简史 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -70,7 +77,7 @@
       <a href="53-ai-startup.html" title="AI 创业实战指南"><span class="num">53</span>AI 创业实战指南</a>
       <a href="54-data-annotation.html" title="LLM 数据标注工程"><span class="num">54</span>LLM 数据标注工程</a>
       <a href="55-industry-cases.html" title="AI 垂直行业应用案例"><span class="num">55</span>AI 垂直行业应用案</a>
-      <a href="56-llm-history.html" class="active" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
+      <a href="56-llm-history.html" title="LLM 发展简史"><span class="num">56</span>LLM 历史与里程碑</a>
       <a href="57-paper-readings.html" title="AI 经典论文精读"><span class="num">57</span>AI 经典论文精读</a>
       <a href="58-llm-ops.html" title="LLMOps 工程化入门"><span class="num">58</span>LLM 运维手册</a>
       <a href="59-hardware-guide.html" title="AI 硬件选型与采购指南"><span class="num">59</span>AI 硬件选型与采购</a>
@@ -295,13 +302,156 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 专题深度</span><h1>LLM 发展简史</h1><p class="lead">从ELMo到GPT-4——大模型的十年进化史</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>十年改变世界</h2>
-    <p>2017年 Transformer 诞生，2026年 GPT-4 级模型普及。不到十年，AI从"能做简单分类"进化到"能写代码/做研究/通过律师考试"。这条进化线上的关键节点，定义了今天AI的格局。</p>
-    <table class="data-table"><thead><tr><th>年份</th><th>里程碑</th><th>改变了什么</th></tr></thead><tbody><tr><td>2017</td><td>Transformer (Attention Is All You Need)</td><td>架构革命</td></tr><tr><td>2018</td><td>BERT / GPT-1</td><td>预训练范式确立</td></tr><tr><td>2020</td><td>GPT-3 (175B)</td><td>Scaling + Few-shot</td></tr><tr><td>2020</td><td>Scaling Laws</td><td>大力出奇迹有数学</td></tr><tr><td>2022</td><td>ChatGPT / InstructGPT (RLHF)</td><td>对齐让模型"听话"</td></tr><tr><td>2022</td><td>Chinchilla</td><td>数据vs参数配比</td></tr><tr><td>2023</td><td>GPT-4 / Claude / Gemini</td><td>多模态+推理</td></tr><tr><td>2024</td><td>开源爆发 (Llama3/Qwen2/DeepSeek)</td><td>开源追近闭源</td></tr><tr><td>2025-26</td><td>Agent/推理模型/端侧LLM</td><td>从聊天到自主行动</td></tr></tbody></table>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>LLM十年关键节点：2017 Transformer→2018 BERT/GPT→2020 GPT-3+Scaling Laws→2022 ChatGPT+RLHF+Chinchilla→2023 GPT-4多模态→2024 开源爆发→2025-26 Agent时代。两条主线：架构(Transformer)和规模(Scaling Laws)。对齐(RLHF)让模型从"能续写"变成"能对话"。</p>
-    <div class="chapter-nav">
-      <a href="55-industry-cases.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 56 章 · LLM 发展简史</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 56 · 实战案例系列</span>
+      <h1>LLM 发展史<br>从 ELMo 到推理模型的进化全景</h1>
+      <p class="lead">大语言模型不是一天长成的。从 2018 年 ELMo 把「上下文」这个词带入主流，到 BERT 掀起预训练革命，再到 GPT 系列用「大力出奇迹」证明规模的力量，直到 ChatGPT 让 AI 真正走进大众视野，以及 2024 年推理模型重新定义「思考」——每一次飞跃背后都有清晰的技术脉络。本章用一张时间线和一份关键里程碑表格，帮你把这段不到十年的狂飙史彻底理清。</p>
+      <div class="meta">
+        <span class="chip">阅读约 26 分钟</span>
+        <span class="chip">难度 ★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="prehistory"><span class="idx">★</span> 一、前夜：2018 年之前的世界</h2>
+    <p>在讲大模型之前，得先理解它解决了什么问题。2018 年之前的 NLP（自然语言处理）世界，主流方法是「特征工程 + 浅层神经网络」。词向量（word2vec、GloVe）把词变成向量，但每个词只有一个固定的向量——「苹果」在「吃苹果」和「苹果公司」里是同一个表示，这显然不对。</p>
+    <p>当时的痛点叫「一词多义」：同一个词在不同语境下意思不同，但传统词向量无法区分。ELMo 的出现就是为了解决这个问题——它用一个双向 LSTM，让每个词的向量根据上下文动态变化。这是「上下文相关词向量」的开端，也是预训练范式在 NLP 里崭露头角的时刻。</p>
+
+    <h2 class="section" id="elmo-bert"><span class="idx">★</span> 二、2018：ELMo 与 BERT 的预训练革命</h2>
+    <p>2018 年 2 月，Allen AI 发布 ELMo（Embeddings from Language Models）。它首次让业界意识到：在大规模无标注文本上预训练，再在下游任务上微调，效果远超从零训练。ELMo 在 6 项 NLP 基准测试上刷新纪录，引发轰动。</p>
+    <p>但真正引爆全场的是同年 10 月 Google 发布的 BERT。BERT 做了三个关键创新：</p>
+    <ul>
+      <li><strong>用 Transformer Encoder 代替 LSTM</strong>：完全基于注意力机制，能捕捉超长距离依赖。</li>
+      <li><strong>双向掩码语言模型（MLM）</strong>：随机遮盖 15% 的词让模型预测，双向上下文都能利用。</li>
+      <li><strong>下一句预测（NSP）</strong>：让模型理解句子间的关系（后来证明这个任务作用有限）。</li>
+    </ul>
+    <p>BERT 的意义在于它把「预训练 + 微调」变成了 NLP 的标准范式：你不再需要为每个任务设计专门的架构，只要拿 BERT 微调一下，就能达到甚至超越专门设计的模型。这个范式的胜利，直接奠定了后面大模型时代的方法论基础。</p>
+    <pre><code class="language-python"># BERT 的核心：掩码语言模型，预测被遮盖的词
+from transformers import pipeline
+
+# 用 BERT 做填空题（这就是 MLM 的直观体现）
+unmasker = pipeline("fill-mask", model="bert-base-chinese")
+results = unmasker("巴黎是[MASK]国的首都。")
+for r in results[:3]:
+    print(f"{r['token_str']}: {r['score']:.3f}")
+# 输出：
+# 法: 0.952    ← BERT 知道是"法国"
+# 英: 0.015
+# 德: 0.008</code></pre>
+    <p>看，BERT 看到上下文就能推断出被遮盖的词。这就是双向注意力的威力——它同时利用了「巴黎」「是」「国的首都」这些左右两侧的线索。</p>
+
+    <h2 class="section" id="gpt-series"><span class="idx">★</span> 三、GPT 系列的逆袭：从 GPT-1 到 GPT-3</h2>
+    <p>在 BERT 大放异彩的时候，OpenAI 走了一条不同的路——Decoder-Only 架构 + 自回归生成。当时很多人觉得 OpenAI 走错了，因为早期的 GPT-1 在各项基准上不如 BERT。但 OpenAI 押注的是一个更大的赌注：规模。</p>
+
+    <h3 class="section">3.1 GPT-1（2018）：证明 Decoder-Only 可行</h3>
+    <p>GPT-1 用 1.17 亿参数证明了 Decoder-Only + 无监督预训练 + 有监督微调的范式是可行的。它在 12 项 NLP 任务中有 9 项刷新了当时的最好成绩，但没有 BERT 那么轰动。</p>
+
+    <h3 class="section">3.2 GPT-2（2019）：规模的力量初现</h3>
+    <p>GPT-2 把参数量扩到 15 亿，训练数据用 WebText（4500 万网页）。最震撼的是它展现出了「零样本」（zero-shot）能力——不需要微调，直接用自然语言描述任务，模型就能完成。OpenAI 当时因为「太危险」分阶段发布 GPT-2，这个公关操作反而让 GPT 系列名声大噪。</p>
+
+    <h3 class="section">3.3 GPT-3（2020）：规模法则的胜利</h3>
+    <p>GPT-3 是分水岭。1750 亿参数，比 GPT-2 大了 100 倍。它证明了 scaling law（规模法则）：参数越多、数据越多、算力越多，模型能力就越强，而且这种增长是可预测的。GPT-3 最惊人的是涌现出的「上下文学习」（in-context learning）能力——你给它几个例子，它就能模仿这种模式做新任务，完全不需要更新参数。</p>
+    <pre><code class="language-python"># GPT-3 开创的 few-shot 范式：用例子教模型做任务
+prompt = """将英文翻译成中文：
+English: Hello world
+Chinese: 你好世界
+English: Good morning
+Chinese: 早上好
+English: Thank you very much
+Chinese:"""
+
+# GPT-3 能直接续写出 "非常感谢"，不需要任何微调
+# 这就是 in-context learning 的威力</code></pre>
+
+    <h2 class="section" id="key-milestones"><span class="idx">★</span> 四、关键里程碑对照表</h2>
+    <p>为了让你快速建立全局认知，我把从 2018 到 2026 年的关键模型放在一张表里。这张表是理解整个 LLM 发展史的地图。</p>
+
+    <table>
+      <thead>
+        <tr><th>时间</th><th>模型</th><th>参数规模</th><th>关键贡献</th></tr>
+      </thead>
+      <tbody>
+        <tr><td>2018.02</td><td>ELMo</td><td>9400 万</td><td>上下文相关词向量，预训练范式开端</td></tr>
+        <tr><td>2018.06</td><td>GPT-1</td><td>1.17 亿</td><td>Decoder-Only + 无监督预训练 + 微调</td></tr>
+        <tr><td>2018.10</td><td>BERT</td><td>3.4 亿</td><td>双向 Transformer，MLM 预训练，刷新 11 项纪录</td></tr>
+        <tr><td>2019.02</td><td>GPT-2</td><td>15 亿</td><td>zero-shot 能力初现，WebText 数据集</td></tr>
+        <tr><td>2019.10</td><td>T5</td><td>110 亿</td><td>统一所有 NLP 任务为 text-to-text 范式</td></tr>
+        <tr><td>2020.05</td><td>GPT-3</td><td>1750 亿</td><td>scaling law 证实，in-context learning 涌现</td></tr>
+        <tr><td>2022.01</td><td>InstructGPT</td><td>1750 亿</td><td>RLHF 让模型对齐人类意图，ChatGPT 的技术前身</td></tr>
+        <tr><td>2022.11</td><td>ChatGPT</td><td>~1750 亿</td><td>对话式交互引爆全球，AI 进入大众时代</td></tr>
+        <tr><td>2023.03</td><td>GPT-4</td><td>未公开（推测万亿级）</td><td>多模态，推理能力大幅提升</td></tr>
+        <tr><td>2023.02</td><td>LLaMA</td><td>7B-65B</td><td>开源大模型浪潮，证明小模型也能很强</td></tr>
+        <tr><td>2023.07</td><td>Llama 2</td><td>7B-70B</td><td>开源商用，推动生态爆发</td></tr>
+        <tr><td>2024.05</td><td>GPT-4o</td><td>未公开</td><td>原生多模态，实时语音对话</td></tr>
+        <tr><td>2024.09</td><td>o1</td><td>未公开</td><td>推理模型，思维链显式化，数学/代码大幅提升</td></tr>
+        <tr><td>2024.12</td><td>o3 / DeepSeek-R1</td><td>未公开 / 671B(MoE)</td><td>推理能力开源化，强化学习驱动思考</td></tr>
+        <tr><td>2025</td><td>各类推理模型</td><td>—</td><td>test-time compute 成新维度，Agent 能力突破</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="chatgpt-moment"><span class="idx">★</span> 五、ChatGPT 时刻：为什么它改变了世界</h2>
+    <p>2022 年 11 月 30 日，ChatGPT 上线。5 天后用户破百万，2 个月后月活破亿——这是人类历史上增长最快的消费级应用。但技术上，ChatGPT 并不是 GPT-3.5 的简单升级，它真正的创新在训练方法：RLHF（人类反馈强化学习）。</p>
+    <p>RLHF 解决了一个根本问题：GPT-3 虽然能力强，但它预测的是「互联网上最可能的下一个词」，而不是「最有帮助的回答」。比如你问它「怎么写辞职信」，它可能续写出一篇别人写的辞职信，而不是帮你写一封。RLHF 通过人类标注偏好数据，训练一个奖励模型，再用强化学习优化 GPT，让它输出「人类更喜欢」的回答。</p>
+    <p>这就是 InstructGPT（2022 年 1 月）的核心贡献，也是 ChatGPT 的技术基础。可以说，ChatGPT 的成功 30% 来自模型能力，70% 来自对齐工程——让强大的模型变得有用、诚实、无害。</p>
+
+    <h2 class="section" id="gpt4-multimodal"><span class="idx">★</span> 六、GPT-4 与多模态时代</h2>
+    <p>2023 年 3 月发布的 GPT-4 把大模型推向新高度。除了推理能力的显著提升，最重要的是原生多模态——它能直接看懂图片，理解图表，甚至解释笑话的梗。这背后是训练时就混合了文本和图像数据，而不是事后拼接。</p>
+    <p>2024 年的 GPT-4o（「o」代表 omni）更进一步，实现了实时语音对话——你能跟它像真人一样对话，它能感知你的语气、情绪，并实时回应。这把人机交互的门槛降到了最低。</p>
+
+    <h2 class="section" id="reasoning-models"><span class="idx">★</span> 七、推理模型：重新定义「思考」</h2>
+    <p>2024 年 9 月，OpenAI 发布 o1 模型，开启了推理模型（reasoning model）时代。o1 的核心创新是「思维链显式化」——模型在给出答案前，会先输出一段长长的思考过程，逐步推理。</p>
+    <p>这听起来简单，但意义深远。之前的模型是「System 1」式的快速直觉反应，o1 是「System 2」式的慢思考。在数学竞赛（AIME）、编程题（Codeforces）、博士级科学问题上，o1 的表现远超 GPT-4o。它证明了：除了堆参数，<strong>增加推理时的计算量（test-time compute）</strong>是提升模型能力的另一条独立维度。</p>
+    <pre><code class="language-python"># 推理模型 vs 传统模型的差异（概念演示）
+# 传统模型（GPT-4o）：
+question = "一个水池，进水管3小时注满，出水管5小时放完，同时开多久注满？"
+# 直接给答案：约 7.5 小时（可能对，但缺少推理过程）
+
+# 推理模型（o1 / DeepSeek-R1）：
+# &lt;think&gt;
+# 设水池容量为 1。进水速度 1/3，出水速度 1/5。
+# 同时开的净注水速度 = 1/3 - 1/5 = 5/15 - 3/15 = 2/15
+# 注满时间 = 1 / (2/15) = 15/2 = 7.5 小时
+# &lt;/think&gt;
+# 答案：7.5 小时
+
+# 关键区别：推理模型把思考过程显式化，能自我检查、纠正错误
+# 这让它在复杂数学、代码、逻辑题上的准确率大幅领先</code></pre>
+
+    <h3 class="section">7.1 DeepSeek-R1：开源推理模型的突破</h3>
+    <p>2024 年底到 2025 年初，DeepSeek-R1 的发布震动业界。它用纯强化学习（不依赖大量人类标注的思维链数据）就训练出了接近 o1 的推理能力，并且完全开源。这打破了「推理能力必须靠闭源」的垄断，让开源社区也能玩转慢思考。</p>
+
+    <h3 class="section">7.2 推理模型的本质：test-time compute</h3>
+    <p>推理模型背后的核心洞察是：<strong>推理时多花算力思考，能换来质量的显著提升</strong>。这开辟了模型能力提升的第二维度（第一维度是训练时堆算力）。代价是延迟更高、成本更贵——所以推理模型适合「难题」，简单任务用普通模型更划算。</p>
+
+    <h2 class="section" id="open-source-wave"><span class="idx">★</span> 八、开源浪潮：LLaMA 与生态繁荣</h2>
+    <p>闭源模型（GPT 系列、Claude）固然强大，但开源模型让 AI 民主化成为可能。2023 年 Meta 发布 LLaMA，虽然是研究用途泄露，但瞬间引爆开源社区。llama.cpp、vLLM、Ollama 这些推理框架的出现，让普通开发者也能在本机跑大模型。</p>
+    <p>后续的 Llama 2、Llama 3，以及中国的 Qwen（通义千问）、ChatGLM、DeepSeek、Yi 等开源模型，把开源生态推向了新高度。到 2026 年，顶级开源模型的能力已经接近甚至超越同期的闭源模型，这为大量垂直应用提供了低成本的技术底座。</p>
+
+    <h2 class="section" id="future-trends"><span class="idx">★</span> 九、下一个方向在哪里</h2>
+    <p>回顾这段历史，我们能看到几个清晰的趋势：</p>
+    <ul>
+      <li><strong>从快思考到慢思考</strong>：推理模型证明 test-time compute 是新维度，未来模型会更擅长「想清楚再回答」。</li>
+      <li><strong>从单模态到全模态</strong>：文本、图像、音频、视频的统一理解与生成，是下一代模型的标配。</li>
+      <li><strong>从回答到行动</strong>：Agent 能力——模型不仅能说，还能调工具、执行任务、完成工作流——是 2025 年后的主战场。</li>
+      <li><strong>从通用到专业</strong>：在通用模型之上，针对特定领域（法律、医疗、金融）的深度专业模型会越来越有价值。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 LLM 不到十年的发展史梳理了一遍。核心要点：</p>
+    <ul>
+      <li><strong>2018 双雄</strong>：ELMo 开启上下文词向量，BERT 确立「预训练 + 微调」范式，奠定了整个大模型时代的方法论。</li>
+      <li><strong>GPT 的逆袭</strong>：从被质疑到用规模证明自己，GPT-3 的 scaling law 和 in-context learning 是分水岭。</li>
+      <li><strong>ChatGPT 的真正创新</strong>：不是模型本身，而是 RLHF 让模型对齐人类意图——能力 + 对齐 = 大众级 AI。</li>
+      <li><strong>多模态与 GPT-4</strong>：把视觉、语音纳入统一模型，人机交互门槛降到最低。</li>
+      <li><strong>推理模型</strong>：o1 和 DeepSeek-R1 开辟 test-time compute 新维度，慢思考能力大幅提升。</li>
+      <li><strong>开源生态</strong>：LLaMA、Qwen、DeepSeek 等让 AI 民主化，为垂直应用提供低成本底座。</li>
+    </ul>
+    <p>理解了这段历史，你就能更准确地预判未来。下一章我们会精读 5 篇奠定这个领域的经典论文，从源头理解每一次飞跃背后的技术思想。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

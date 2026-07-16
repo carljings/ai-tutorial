@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -142,7 +140,7 @@
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
-      <a href="115-tfm-quantization.html" class="active" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
+      <a href="115-tfm-quantization.html" title="量化：让大模型跑在消费级显卡上"><span class="num">115</span>量化</a>
       <a href="116-tfm-moe-intro.html" title="MoE 混合专家：用稀疏激活做大模型"><span class="num">116</span>MoE 混合专家</a>
       <a href="117-tfm-moe-routing.html" title="MoE 路由的工程细节"><span class="num">117</span>MoE 路由的工程细</a>
       <a href="118-tfm-mamba-ssm.html" title="Mamba 与 SSM：挑战 Transformer 的新路线"><span class="num">118</span>Mamba 与 SS</a>
@@ -305,67 +303,198 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 115 章 · Transformer 原理深挖</span>
-<h1>量化：让大模型跑在消费级显卡上</h1><p class="lead">INT8/INT4 量化的精度损失与显存收益。GPTQ 训后量化、AWQ 激活感知、GGUF 的 k-quants。为什么 4bit 几乎无损、group-wise 量化。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>INT8/INT4 量化的精度损失与显存收益。GPTQ 训后量化、AWQ 激活感知、GGUF 的 k-quants。为什么 4bit 几乎无损、group-wise 量化。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
-import torch.nn.functional as F
-import math
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 15 · Transformer 深度系列</span>
+      <h1>模型量化全景<br>从 FP16 到 INT4 的精度与效率博弈</h1>
+      <p class="lead">一个 70B 参数的模型在 FP16 下要 140GB 显存，量化到 INT4 只要 35GB——这意味着原本需要 4 张 A100 的模型，现在一张消费级 4090 就能跑。量化是大模型平民化的关键杠杆。本章从最朴素的线性量化讲起，一路覆盖 GPTQ、AWQ、GGUF 三大主流方案的原理差异，用 bitsandbytes 的真实代码带你完成一次 INT8/INT4 量化，并分析精度损失从何而来。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+    <h2 class="section" id="why-quantization"><span class="idx">★</span> 一、为什么必须量化</h2>
+    <p>大模型的显存占用主要由两部分构成：模型权重和 KV cache。权重部分，每个参数在 FP16（半精度浮点）下占 2 字节，一个 7B 模型就要 14GB，一个 70B 模型要 140GB。这远超单张消费级显卡的容量（RTX 4090 是 24GB）。</p>
+    <p>量化的目标就是把每个参数的存储位宽从 16 位压缩到 8 位甚至 4 位。从 FP16 到 INT8，显存直接砍半；到 INT4，再砍一半，只剩原来的四分之一。这意味着 7B 模型能在 8GB 显存上跑，70B 模型能在一张 40GB 显卡上跑。量化是大模型走向端侧、走向消费硬件的必经之路。</p>
+
+    <h3 class="section">1.1 量化的三重收益</h3>
+    <p>除了省显存，量化还有两个附带收益。第一，计算加速：整数运算（INT8 的 GEMM）比浮点运算快，硬件支持更好（尤其是 Ampere 之后的 GPU 有专门的 INT8 Tensor Core）。第二，能耗降低：访存量减少，内存带宽压力小，能效比提升。这三者叠加，使得量化在端侧部署、高并发服务里几乎是必选项。</p>
+    <p>但天下没有免费午餐，量化的代价是<strong>精度损失</strong>。把连续的浮点数映射到有限的整数格点，必然会丢失信息。如何在「显存省一半」和「精度不掉太多」之间找到平衡，就是各种量化算法要解决的核心问题。</p>
+
+    <h2 class="section" id="basic-quantization"><span class="idx">★</span> 二、线性量化：最朴素的方案</h2>
+    <p>最简单的量化是线性量化（也叫对称量化或 min-max 量化）。它的做法是：找到权重的最大绝对值 max_abs，把区间 [-max_abs, max_abs] 线性映射到整数范围 [-127, 127]（INT8）或 [-7, 7]（INT4）。具体公式是：量化值 q = round(w / scale)，其中 scale = max_abs / 127。反量化时 w ≈ q * scale。</p>
+
+    <h3 class="section">2.1 从零实现线性量化</h3>
+    <pre><code class="language-python">import torch
+import numpy as np
+
+def linear_quantize(w, n_bits=8):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    对称线性量化。返回 (量化后的整数权重, scale)。
+    """
+    qmax = 2 ** (n_bits - 1) - 1   # INT8: 127, INT4: 7
+    max_abs = w.abs().max()
+    scale = max_abs / qmax
+    q = torch.round(w / scale).clamp(-qmax, qmax).to(torch.int8 if n_bits==8 else torch.int8)
+    return q, scale
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"量化：让大模型跑在消费级显卡上"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="114-tfm-speculative-decoding.html"><div class="lbl">← 上一章</div><div class="ttl">114 · 投机解码：用小模型加速大模型</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="116-tfm-moe-intro.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">116 · MoE 混合专家：用稀疏激活做大模型</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 115 章 · 量化：让大模型跑在消费级显卡上</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+def linear_dequantize(q, scale):
+    return q.float() * scale
+
+# 测试：构造一个权重矩阵，量化再反量化，看误差
+torch.manual_seed(0)
+w = torch.randn(256, 256) * 0.1     # 模拟一个权重矩阵
+
+q8, scale8 = linear_quantize(w, 8)
+w8 = linear_dequantize(q8, scale8)
+err8 = (w - w8).abs().mean()
+
+q4, scale4 = linear_quantize(w, 4)
+w4 = linear_dequantize(q4, scale4)
+err4 = (w - w4).abs().mean()
+
+print(f"INT8 平均量化误差: {err8:.6f}")
+print(f"INT4 平均量化误差: {err4:.6f}")
+print(f"INT4 误差是 INT8 的 {err4/err8:.1f} 倍")</code></pre>
+    <p>你会看到 INT4 的量化误差远大于 INT8。这就是为什么 INT8 量化基本无痛，而 INT4 量化需要专门的算法来控制误差——朴素线性量化到 INT4 通常会让模型效果明显下降。</p>
+
+    <h3 class="section">2.2 朴素量化的两个痛点</h3>
+    <p>朴素线性量化有两个致命弱点。第一，<strong>离群值</strong>（outlier）会撑大 max_abs，导致大部分正常权重的量化粒度变粗、误差变大。比如一个权重矩阵里 99% 的值在 [-0.1, 0.1]，但有一个值是 2.0，那么 scale 被这个 2.0 拉大，其他值的精度就被牺牲了。</p>
+    <p>第二，<strong>逐层误差累积</strong>。每一层的量化误差会在网络里逐层传播放大，最后几层的输出可能完全失真。所以工业级量化要么逐 channel 量化（让每个通道有独立 scale），要么用校准数据集调整 scale，要么干脆用算法搜索最优量化方式——这就催生了 GPTQ、AWQ 这些方法。</p>
+
+    <h2 class="section" id="gptq"><span class="idx">★</span> 三、GPTQ：基于二阶信息的后训练量化</h2>
+    <p>GPTQ（Generalized Post-Training Quantization）是 2022 年提出的一种 INT4 量化方法，能在几乎不掉点的前提下把模型压到 4bit。它的核心思想是：用一小批校准数据，逐层地、按列地量化权重，并用<strong>二阶信息（Hessian 矩阵）</strong>来补偿量化误差。</p>
+
+    <h3 class="section">3.1 GPTQ 的直觉</h3>
+    <p>把一层权重的每一列想象成一根柱子，GPTQ 不是一次性量化所有柱子，而是一列一列来：量化第 j 列后，立刻计算这列的量化误差对输出的影响（用 Hessian 衡量），然后微调还没量化的后续列，去抵消这个误差。这就好比砌墙时每砌一块砖都拿水平仪校一下，发现歪了就调整后面的砖，保证整面墙不斜。</p>
+    <p>它的数学基础是 OBQ（Optimal Brain Quantization），通过最小化量化前后输出的均方误差来求解每列的最优量化值。GPTQ 的贡献是把 OBQ 做得足够快、足够稳，能扩展到千亿参数模型。</p>
+
+    <h3 class="section">3.2 GPTQ 的使用特点</h3>
+    <p>GPTQ 量化需要一份校准数据集（通常用几百到几千条通用文本），量化过程较慢（7B 模型要几分钟，70B 要小时级），但量化后的模型可以离线保存，推理时直接加载。它的优势是精度保持好，尤其在 4bit 下表现稳定。劣势是量化过程依赖校准数据和较多计算资源，不适合快速试验。</p>
+    <p>GPTQ 模型在社区里非常流行，Hugging Face 上能找到大量 GPTQ 量化版本的开源模型，配合 vLLM、AutoGPTQ 等框架使用。</p>
+
+    <h2 class="section" id="awq"><span class="idx">★</span> 四、AWQ：激活感知的权重量化</h2>
+    <p>AWQ（Activation-aware Weight Quantization）是 MIT-IBM 团队 2023 年提出的方法。它的核心洞察是：<strong>不是所有权重都同等重要，重要性取决于它对应的激活值大小</strong>。那些常被大激活值「激活」的权重，量化误差会被放大传播，需要重点保护。</p>
+
+    <h3 class="section">4.1 AWQ 的核心思想</h3>
+    <p>AWQ 用校准数据跑一遍模型，统计每个权重通道对应的激活幅度。然后给那些「激活大」的通道乘上一个保护系数 s（&gt; 1），让它们在量化时被分配到更精细的整数格点；同时给激活小的通道乘上 1/s 来抵消。这样既保护了关键通道，又不改变整体数值范围。</p>
+    <p>和 GPTQ 相比，AWQ 的量化过程更快（不需要复杂的二阶计算，只需要搜索最佳缩放系数），且推理时<strong>不需要反量化的额外计算</strong>——它直接把权重存成量化形式，推理时即时反量化。这让 AWQ 在速度上往往优于 GPTQ。</p>
+
+    <h3 class="section">4.2 AWQ vs GPTQ 的对比</h3>
+    <p>两者的精度都很接近 FP16，但在不同场景下各有优势。GPTQ 在 perplexity 指标上通常略好一点（尤其 3bit 极限量化时），AWQ 在推理速度和显存友好性上更好。工程选择上：如果追求极致精度选 GPTQ，如果追求部署易用性和速度选 AWQ。两者都有成熟的框架支持（AutoGPTQ、llm-awq）。</p>
+
+    <h2 class="section" id="gguf"><span class="idx">★</span> 五、GGUF：端侧部署的事实标准</h2>
+    <p>GGUF（前身是 GGML）是 llama.cpp 生态使用的模型格式和量化方案。它的设计目标是<strong>让大模型能在 CPU、Mac、手机等没有高端 GPU 的设备上运行</strong>。GGUF 的一大特色是提供了极其丰富的量化粒度选择。</p>
+
+    <h3 class="section">5.1 GGUF 的量化档位</h3>
+    <p>GGUF 用 Q4_K_M、Q5_K_M、Q8_0 这样的命名表示不同的量化方案。以最常用的 Q4_K_M 为例，它用 4bit 量化大部分权重，但对重要的层用更高的位宽保护，平均下来每参数约 4.8 bit。这种「混合位宽」策略在显存和精度之间取得了很好平衡。</p>
+    <p>常见的 GGUF 档位：Q4_0（最快但精度略损）、Q4_K_M（速度精度平衡，最常用）、Q5_K_M（精度更高，显存稍大）、Q8_0（接近 FP16 精度）。在 llama.cpp 里，你可以用 convert 脚本把任意 HF 模型转成这些档位。</p>
+
+    <h3 class="section">5.2 GGUF 的核心优势</h3>
+    <p>GGUF 最大的优势是<strong>CPU 友好</strong>。它的量化格式针对 x86 AVX2/AVX512、ARM NEON 等 CPU 指令集做了极致优化，在纯 CPU 上也能跑到可用的速度（7B 模型在普通笔记本上约 5 到 10 token/s）。这让它成为端侧部署、私有化部署的首选。配合 llama.cpp 的 server 模式，可以在任何机器上轻松搭一个本地大模型服务。</p>
+
+    <h2 class="section" id="bitsandbytes"><span class="idx">★</span> 六、实战：用 bitsandbytes 做 INT8/INT4 量化</h2>
+    <p>理论讲够了，现在上手实操。bitsandbytes 是 Hugging Face 生态里最易用的量化库，一行代码就能把模型量化成 INT8 或 INT4（NF4）。下面演示完整的量化加载和推理流程。</p>
+
+    <h3 class="section">6.1 INT8 量化</h3>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer, BitsAndBytesConfig
+import torch
+
+model_id = "bigscience/bloom-560m"   # 用小模型演示，便于 CPU 跑通
+
+# INT8 量化配置
+bnb_config_8bit = BitsAndBytesConfig(
+    load_in_8bit=True,
+    # 可选：llm_int8_threshold 控制哪些层用更高精度，默认 6.0
+)
+
+tokenizer = AutoTokenizer.from_pretrained(model_id)
+model_8bit = AutoModelForCausalLM.from_pretrained(
+    model_id, quantization_config=bnb_config_8bit, device_map="auto"
+)
+
+# 对比显存占用
+model_fp = AutoModelForCausalLM.from_pretrained(model_id, torch_dtype=torch.float16)
+mem_fp = sum(p.numel() * p.element_size() for p in model_fp.parameters()) / 1e9
+mem_8bit = sum(p.numel() * p.element_size() for p in model_8bit.parameters()) / 1e9
+print(f"FP16 显存: {mem_fp:.2f} GB")
+print(f"INT8 显存: {mem_8bit:.2f} GB")
+print(f"节省: {(1 - mem_8bit/mem_fp)*100:.0f}%")
+
+# 用量化模型推理
+inputs = tokenizer("The capital of France is", return_tensors="pt").to(model_8bit.device)
+out = model_8bit.generate(**inputs, max_new_tokens=10)
+print(tokenizer.decode(out[0], skip_special_tokens=True))</code></pre>
+    <p>你会看到 INT8 模型的显存大约是 FP16 的一半，推理输出质量几乎无差异。bitsandbytes 的 INT8 量化是混合精度——对异常值用 FP16、对常规值用 INT8，这就是它能保持精度的秘密。</p>
+
+    <h3 class="section">6.2 INT4（NF4）量化 + QLoRA 微调</h3>
+    <pre><code class="language-python"># INT4 量化配置（NF4 是 QLoRA 论文提出的 4bit 格式，专为正态分布权重设计）
+bnb_config_4bit = BitsAndBytesConfig(
+    load_in_4bit=True,
+    bnb_4bit_quant_type="nf4",          # NF4 格式
+    bnb_4bit_compute_dtype=torch.float16,  # 计算时反量化到 FP16
+    bnb_4bit_use_double_quant=True,      # 对 scale 本身也量化，再省一点显存
+)
+
+model_4bit = AutoModelForCausalLM.from_pretrained(
+    model_id, quantization_config=bnb_config_4bit, device_map="auto"
+)
+
+mem_4bit = sum(p.numel() * p.element_size() for p in model_4bit.parameters()) / 1e9
+print(f"INT4 显存: {mem_4bit:.2f} GB")
+print(f"相比 FP16 节省: {(1 - mem_4bit/mem_fp)*100:.0f}%")
+
+# 关键：4bit 模型可以直接配合 QLoRA 微调
+# 冻结量化权重，只训练低秩 LoRA adapter
+from peft import LoraConfig, get_peft_model, TaskType
+
+lora_config = LoraConfig(
+    r=8, lora_alpha=16, lora_dropout=0.05,
+    target_modules=["query_key_value"],   # Bloom 的注意力模块名
+    task_type=TaskType.CAUSAL_LM,
+)
+model_4bit = get_peft_model(model_4bit, lora_config)
+model_4bit.print_trainable_parameters()
+# 输出类似：trainable params: 1,572,864 || all params: 562,227,840 || trainable%: 0.28%</code></pre>
+    <p>这段代码演示了 QLoRA 的核心：把大模型量化到 4bit 节省显存，再在上面挂一个低秩 LoRA adapter 做微调。可训练参数只占 0.28%，但效果接近全参数微调。这是在单卡上微调大模型的标准方案。</p>
+
+    <h2 class="section" id="precision-analysis"><span class="idx">★</span> 七、精度损失从何而来</h2>
+    <p>量化后模型效果会下降一点，理解这个损失从哪来，能帮你判断「这个模型能不能量化」。</p>
+    <ul>
+      <li><strong>权重表示误差</strong>：最直接的误差。4bit 只有 16 个格点，权重分布到这些格点上必然有舍入。正态分布的权重用 NF4 能最小化这个误差（NF4 的格点按正态分布密度排布）。</li>
+      <li><strong>异常值保护不足</strong>：某些权重值偏大，是模型效果的关键。朴素量化会牺牲它们。GPTQ/AWQ 都通过特殊机制保护这些值。</li>
+      <li><strong>激活量化误差</strong>：除了权重，激活值也可以量化（W8A8 方案）。但激活的分布比权重更不规则（长尾更严重），量化更难，精度损失更大，所以现在主流是只量化权重（W4A16）。</li>
+      <li><strong>层间误差累积</strong>：每一层的误差向后传播。深网络、小模型对量化更敏感。这也是为什么 70B 模型 INT4 几乎无痛，而 1B 模型 INT4 可能明显掉点。</li>
+    </ul>
+    <p>一个经验法则：<strong>模型越大，量化越安全</strong>。大模型的参数冗余度高，少量精度损失可以靠其他参数补偿。小模型参数紧绷，量化损失更敏感。所以通常 7B 以上的模型 INT4 才比较稳。</p>
+
+    <h2 class="section" id="selection-guide"><span class="idx">★</span> 八、如何选择量化方案</h2>
+    <p>面对众多方案，工程上的选择可以参考这个决策树。</p>
+    <ul>
+      <li><strong>只想快速体验、不在意极致精度</strong>：用 bitsandbytes 的 INT8（load_in_8bit），最简单，质量几乎无损。</li>
+      <li><strong>显存紧张、要跑大模型</strong>：用 bitsandbytes 的 NF4 或 AWQ 的 INT4，显存省四分之三。</li>
+      <strong>要部署生产服务、追求速度和精度平衡</strong>：用 GPTQ 或 AWQ 的 4bit 模型，配 vLLM 推理。</li>
+      <li><strong>要在 CPU、Mac、手机上跑</strong>：用 GGUF 格式（Q4_K_M），配 llama.cpp。</li>
+      <li><strong>要微调但显存不够</strong>：用 NF4 + QLoRA，单卡微调大模型。</li>
+    </ul>
+    <p>最后提醒：量化不是免费的，部署前务必在评测集上对比量化前后的指标（perplexity、下游任务准确率），确认损失在可接受范围内再上线。不同模型对量化的敏感度差异很大，不能盲目套用。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把模型量化的全景梳理了一遍。要点回顾：</p>
+    <ul>
+      <li><strong>量化的意义</strong>：把权重从 FP16 压到 INT8/INT4，显存省一半到四分之三，附带计算加速和能耗降低，是大模型落地的关键。</li>
+      <li><strong>朴素线性量化</strong>：用 max_abs 把浮点映射到整数格点，简单但有离群值和误差累积两个痛点。</li>
+      <li><strong>GPTQ</strong>：基于二阶信息（Hessian）逐列量化并补偿误差，精度保持好，适合生产部署。</li>
+      <li><strong>AWQ</strong>：激活感知，保护大激活对应的权重通道，速度快、易用。</li>
+      <li><strong>GGUF</strong>：端侧 CPU 部署的事实标准，混合位宽，支持 Q4_K_M 等多档位。</li>
+      <li><strong>bitsandbytes</strong>：最易用的库，INT8 几乎无痛，NF4+QLoRA 让单卡微调大模型成为可能。</li>
+      <li><strong>精度损失</strong>：来自权重舍入、异常值保护不足、激活量化、层间累积；模型越大越抗量化。</li>
+    </ul>
+    <p>掌握了量化，你就能让大模型跑在各种硬件上。下一章我们进入一个全新的架构话题——MoE 混合专家。它从另一个维度优化大模型：不是压参数，而是让每个 token 只激活一小部分参数，实现「参数多但计算少」的稀疏激活。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

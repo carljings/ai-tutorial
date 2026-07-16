@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -234,7 +241,7 @@
       <a href="203-fw-others.html" title="其它框架速览：Semantic Kernel / Haystack / Pydantic AI"><span class="num">203</span>其它框架速览</a>
     </div>
     <div class="nav-group"><h3>★Deep Agent</h3>
-      <a href="204-deep-deep-research.html" class="active" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
+      <a href="204-deep-deep-research.html" title="Deep Research agent：长周期的深度研究"><span class="num">204</span>Deep Resea</a>
       <a href="205-deep-gpt-researcher.html" title="GPT Researcher：开源深度研究 agent 源码解析"><span class="num">205</span>GPT Resear</a>
       <a href="206-deep-storm.html" title="STORM：多视角提问的研究 agent"><span class="num">206</span>STORM</a>
       <a href="207-deep-agentic-rag.html" title="Agentic RAG：让 RAG 学会自主决策"><span class="num">207</span>Agentic RA</a>
@@ -295,15 +302,196 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★Deep Agent</span><h1>Deep Research agent：长周期的深度研究</h1><p class="lead">让 AI 像研究员一样做调研——深度研究 Agent 的架构</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>Deep Research：不只是搜索，是"研究"</h2>
-    <p>普通 RAG 是"查一次就答"，Deep Research agent 是"像一个人类研究员一样，规划调研策略、多轮搜索、交叉验证、综合写报告"。OpenAI 的 Deep Research、Google 的 Deep Research、开源的 GPT Researcher 都是这个方向。它解决的是"复杂研究问题"——如"对比2024年主流向量数据库的性能和成本"，需要查多个来源、综合对比、生成结构化报告。</p>
-    <h2><span class="idx"></span>Deep Research 的三段式架构</h2>
-    <table class="data-table"><thead><tr><th>阶段</th><th>做什么</th><th>代表实现</th></tr></thead><tbody><tr><td>Planner</td><td>分解研究问题→子问题→搜索计划</td><td>LLM 规划</td></tr><tr><td>Researcher</td><td>执行搜索→多轮迭代→收集证据</td><td>搜索API+RAG</td></tr><tr><td>Reporter</td><td>综合所有证据→生成结构化报告</td><td>LLM 生成</td></tr></tbody></table>
-    <div class="callout"><strong>💡 要点</strong><br>Deep Research vs 普通 RAG：普通 RAG 是"检索-生成"一步走；Deep Research 是"规划-多轮检索-综合"的迭代循环。它更像人类研究员的工作流——先定方向，再查资料，边查边调整，最后综合。代价是慢（几分钟）和贵（多次 LLM 调用），换来的是研究级深度。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>Deep Research agent 模拟人类研究员：Planner 分解问题→Researcher 多轮搜索→Reporter 综合报告。它不是"查一次就答"，而是迭代式研究，适合需要多源对比的综合分析任务。GPT Researcher 是开源标杆。下一章深入它的源码。</p>
-    <div class="chapter-nav">
-    <a href="203-fw-others.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 204 章 · Deep Research agent：长周期的深度研究</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 204 · 深度应用</span>
+      <h1>深度研究 Agent<br>让 AI 替你做完一份带引用的研究报告</h1>
+      <p class="lead">"帮我研究一下 XX 领域的现状,写份报告"——这种需求过去要分析师花几天。深度研究 Agent(Deep Research Agent)能把多轮搜索、信息综合、报告撰写、引用标注自动化完成。它不是简单的"搜索 + 总结",而是一个有规划、有迭代、有质量把控的研究流水线。本章拆解它的完整架构,并给出可直接运行的代码骨架。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="what-is-deep-research"><span class="idx">★</span> 深度研究与普通问答的本质区别</h2>
+    <p>普通问答(包括 RAG)的模式是"一次检索 + 一次生成":用户提问,系统检索几条相关文档,LLM 基于这些文档回答。它适合"事实性问题"——比如"法国首都是哪里"。但研究型问题远比这复杂,它们有几个本质特征。</p>
+    <p><strong>问题宽泛且开放</strong>。"新能源汽车行业现状"这类问题没有唯一答案,需要从多个维度(市场、技术、政策、竞争)分别调研。<strong>需要多轮检索</strong>。第一轮搜索后,你才会发现需要更深入的子问题(如"固态电池进展"),触发第二轮搜索,如此迭代。<strong>需要综合多方信息</strong>。单一来源往往片面或有偏见,好的研究要交叉验证多个来源。<strong>需要引用溯源</strong>。研究的可信度建立在引用之上,每个论断都应能追溯到具体来源。</p>
+    <p>深度研究 Agent 正是为满足这些特征设计的。它把研究流程拆解成多个步骤,由 Agent 自主规划、迭代、综合,最终产出一份结构化、有引用的报告。这个过程模拟了人类研究员的工作方式,但速度和广度远超人类。</p>
+    <h2 class="section" id="architecture"><span class="idx">★</span> 完整架构:五个核心模块</h2>
+    <p>一个成熟的深度研究 Agent 通常由五个核心模块构成,它们协同完成研究任务。理解这个架构是构建或评估这类系统的前提。</p>
+    <p><strong>模块一:任务规划器(Planner)</strong>。接收用户的高层研究需求,把它拆解成具体的研究子问题和搜索计划。比如"研究固态电池现状"会被拆成"技术原理"、"主要厂商"、"商业化进展"、"技术挑战"等子问题。规划器决定了研究的广度和结构,是质量的第一道关。</p>
+    <p><strong>模块二:搜索执行器(Searcher)</strong>。针对每个子问题,执行多次搜索,获取相关网页或文档。它要能判断搜索结果是否相关、是否需要换关键词重搜。现代实现里,这通常是一个集成了搜索 API(Bing、Google、专用 API)的子 Agent。</p>
+    <p><strong>模块三:信息抽取器(Extractor)</strong>。从每个网页中提取与研究相关的关键信息,过滤掉广告、导航、无关内容。这一步把"长网页"压缩成"结构化要点",为综合做准备。每个要点要保留来源 URL 和位置,为引用打基础。</p>
+    <p><strong>模块四:知识综合器(Synthesizer)</strong>。把分散在多个来源的要点综合成连贯的论述,识别共识与分歧,形成结构化的报告。这是最考验 LLM 能力的环节——它要理解、对比、整合信息,而不是简单拼接。</p>
+    <p><strong>模块五:报告生成器(Writer)</strong>。把综合后的内容组织成可读的报告,带章节结构、引用标注、可能还有图表。报告要兼顾专业性和可读性,并在每个论断后标注引用来源。</p>
+    <p>这五个模块不是线性执行,而是<strong>迭代</strong>的:规划后搜索,搜索后发现新问题会回到规划,综合后发现信息不足会再次搜索。这种循环让 Agent 能逐步深化研究,接近人类研究者的迭代过程。</p>
+    <h2 class="section" id="planner-code"><span class="idx">★</span> 任务规划器:把大问题拆成可搜索的小问题</h2>
+    <p>规划器是整个系统的起点,它的质量直接决定研究的方向。一个好的规划要满足 MECE 原则(相互独立、完全穷尽),覆盖问题的各个方面且不重叠。我们用 LLM 配合结构化输出来实现:</p>
+    <pre><code class="language-python">from pydantic import BaseModel, Field
+from anthropic import Anthropic
+import json
+
+client = Anthropic()
+
+class SubQuestion(BaseModel):
+    question: str = Field(description="具体的、可搜索的子问题")
+    rationale: str = Field(description="为什么这个问题重要")
+    search_keywords: list[str] = Field(description="推荐的搜索关键词")
+
+class ResearchPlan(BaseModel):
+    title: str
+    sub_questions: list[SubQuestion]
+    expected_sections: list[str]
+
+def plan_research(topic: str) -> ResearchPlan:
+    prompt = f"""你是资深行业研究员。把以下研究主题拆解成 4-7 个具体子问题,
+    每个子问题要可直接搜索,覆盖主题的不同方面(技术/市场/政策/竞争/趋势等)。
+    遵循 MECE 原则,避免重叠。主题:{topic}
+
+    输出 JSON, schema:
+    {json.dumps(ResearchPlan.model_json_schema(), ensure_ascii=False, indent=2)}"""
+
+    resp = client.messages.create(
+        model="claude-3-5-sonnet-20241022",
+        max_tokens=2048,
+        messages=[{"role": "user", "content": prompt}],
+    )
+    return ResearchPlan.model_validate_json(resp.content[0].text)
+
+plan = plan_research("2026 年固态电池商业化进展")
+for sq in plan.sub_questions:
+    print(f"- {sq.question}")
+    print(f"  关键词: {sq.search_keywords}")
+</code></pre>
+    <p>规划器的输出是一份结构化的研究蓝图。后续模块都围绕这份蓝图工作。规划的好坏取决于模型能力和提示工程——你可以通过 few-shot 示例教会模型某种研究框架(如 SWOT、PEST、波特五力),让它产出更专业的拆解。</p>
+    <h2 class="section" id="searcher-code"><span class="idx">★</span> 搜索与抽取:把网页变成结构化要点</h2>
+    <p>搜索执行器要解决两个问题:一是真正搜到有用的内容,二是从杂乱的网页里提取干净的信息。搜索可以用 Tavily、Brave、Bing 等专为 AI 设计的搜索 API,它们返回的内容已经过清洗,比直接抓网页好用。抽取则交给 LLM,让它从网页文本里提炼与研究相关的要点。</p>
+    <pre><code class="language-python">import httpx
+from bs4 import BeautifulSoup
+
+class Evidence(BaseModel):
+    claim: str = Field(description="从来源中提取的事实陈述")
+    source_url: str
+    source_title: str
+    relevance: float = Field(description="0-1,与子问题的相关性")
+
+async def search_and_extract(sub_question: SubQuestion) -> list[Evidence]:
+    evidences = []
+    for keyword in sub_question.search_keywords:
+        # 1. 用搜索 API 获取相关结果
+        results = await tavily_search(keyword, max_results=5)
+        for r in results:
+            # 2. 抓取网页正文,过滤掉导航/广告
+            html = await fetch_page(r["url"])
+            text = clean_html(html)              # 去 tag、提取正文
+            text = text[:8000]                    # 截断以适应上下文
+
+            # 3. LLM 从网页中抽取与子问题相关的要点
+            evidences.extend(
+                await llm_extract_evidence(text, sub_question.question, r["url"])
+            )
+    # 去重 + 按相关性排序
+    evidences = dedupe(evidences)
+    return sorted(evidences, key=lambda e: -e.relevance)[:20]
+
+def clean_html(html: str) -> str:
+    soup = BeautifulSoup(html, "html.parser")
+    for tag in soup(["script", "style", "nav", "footer", "aside"]):
+        tag.decompose()
+    return soup.get_text(separator="\n", strip=True)
+</code></pre>
+    <p>这个模块的关键挑战是<strong>信息质量把控</strong>。网上信息良莠不齐,直接综合会引入错误。几个对策:优先权威来源(通过域名白名单,如 .gov、知名媒体);让抽取器评估来源可信度并纳入相关性;对关键论断做交叉验证(多个来源都提到才采信)。</p>
+    <h2 class="section" id="synthesizer"><span class="idx">★</span> 综合与报告:从要点到论述</h2>
+    <p>综合器是整个系统的"大脑",它要把几十上百条来自不同来源的要点,组织成连贯的论述。这要求 LLM 能理解要点之间的关系(支持、矛盾、补充),识别共识和分歧,并按章节组织。</p>
+    <p>综合的一个关键挑战是<strong>长上下文</strong>:所有要点的总量可能远超单个上下文窗口。解决方法是分层综合:先把每个子问题的要点综合成一段小结,再把各小结综合成完整报告。这种"分治"策略既解决了上下文限制,也让综合更有层次。</p>
+    <pre><code class="language-python">async def synthesize_report(topic: str, plan: ResearchPlan,
+                             section_evidences: dict) -> str:
+    # 分两步:先综合每个章节,再合并成完整报告
+
+    # === 第一层:每个子问题综合成一段 ===
+    section_summaries = []
+    for sq, evidences in zip(plan.sub_questions, section_evidences.values()):
+        if not evidences:
+            continue
+        evidence_text = "\n".join(
+            f"[{i+1}] ({e.source_title}) {e.claim} 来源:{e.source_url}"
+            for i, e in enumerate(evidences)
+        )
+        prompt = f"""基于以下来源,围绕问题"{sq.question}"写一段客观的综合论述。
+        要求:标注引用编号 [1] [2] 等;指出来源间的共识与分歧;不要编造未提及的事实。
+
+        来源:
+        {evidence_text}"""
+        summary = await llm_generate(prompt)
+        section_summaries.append({"question": sq.question, "summary": summary,
+                                   "sources": [e.source_url for e in evidences]})
+
+    # === 第二层:把各章节综合成完整报告 ===
+    full_prompt = f"""你是资深研究员,把以下各章节综合成一份关于"{topic}"的完整报告。
+    结构:摘要 → 各章节(保留引用编号)→ 结论与展望 → 参考来源列表。
+    语言专业但可读,每个论断都要有引用支持。
+
+    各章节内容:
+    {format_sections(section_summaries)}"""
+    return await llm_generate(full_prompt, max_tokens=4096)
+</code></pre>
+    <h2 class="section" id="citation"><span class="idx">★</span> 引用与溯源:可信度的基石</h2>
+    <p>深度研究区别于"AI 编故事"的关键,是<strong>每个论断都能溯源</strong>。引用不仅是为了可信,也是为了让用户能验证和深入。一个没有引用的研究报告,价值大打折扣。</p>
+    <p>实现引用有几个要点。第一,<strong>引用编号与来源映射</strong>。在抽取阶段就给每条 evidence 分配编号和来源 URL,综合时保留这些编号,报告末尾列出编号到 URL 的映射。第二,<strong>避免引用错位</strong>。LLM 综合时可能把编号张冠李戴,所以要让模型在综合时显式引用,并对最终报告做引用一致性校验。第三,<strong>标注不确定性</strong>。对于来源稀少或存在分歧的论断,报告应明示"仅单一来源"或"来源存在分歧",不假装确定。</p>
+    <p>一个高级实践是<strong>可点击引用</strong>:把引用做成超链接,用户点击直接跳转到来源网页甚至具体段落。这需要抽取阶段保留来源的具体位置(anchor 或段落定位),工程上略复杂但用户体验极佳。OpenAI 的 Deep Research、Google 的 Gemini Deep Research 都做到了这一点。</p>
+    <h2 class="section" id="iteration"><span class="idx">★</span> 迭代深化:让研究越做越深</h2>
+    <p>单轮的"规划-搜索-综合"往往不够深入,因为第一轮搜索会暴露新的子问题。好的深度研究 Agent 要能<strong>迭代深化</strong>:每轮综合后,识别信息缺口或新出现的子问题,触发下一轮搜索。</p>
+    <p>实现迭代有两种触发机制。<strong>主动触发</strong>:综合阶段让 LLM 评估"当前信息是否充分回答了所有子问题",列出信息缺口,据此规划下一轮搜索。<strong>用户驱动</strong>:产出初版报告后,用户可以追问某个部分,Agent 针对性地深挖,更新对应章节。后者更可控,适合交互式研究场景。</p>
+    <p>迭代要设置<strong>终止条件</strong>避免无限循环:可以是固定轮数(如最多 3 轮),也可以是"信息增益阈值"(新一轮搜索没带来新信息就停止)。实践上,2-3 轮迭代通常能达到不错的深度,更多轮的边际收益递减。</p>
+    <h2 class="section" id="full-skeleton"><span class="idx">★</span> 串联成完整系统</h2>
+    <p>把前面的模块串起来,就是一个可运行的深度研究 Agent。下面是主循环的骨架,展示了规划、搜索、综合、可选迭代的完整流程:</p>
+    <pre><code class="language-python">async def deep_research(topic: str, max_iterations: int = 2) -> str:
+    # 1. 规划
+    plan = plan_research(topic)
+    print(f"研究计划: {plan.title}, 共 {len(plan.sub_questions)} 个子问题")
+
+    all_evidences = {}
+    for iteration in range(max_iterations):
+        # 2. 对每个子问题搜索并抽取
+        for sq in plan.sub_questions:
+            evidences = await search_and_extract(sq)
+            # 合并到已有证据池(去重)
+            all_evidences[sq.question] = merge_evidences(
+                all_evidences.get(sq.question, []), evidences
+            )
+
+        # 3. 中间综合,发现信息缺口
+        draft = await synthesize_report(topic, plan, all_evidences)
+        if iteration < max_iterations - 1:
+            gaps = await identify_gaps(plan, all_evidences, draft)
+            if not gaps:
+                break   # 信息充分,提前终止
+            # 把缺口转化为新的子问题,加入计划
+            plan.sub_questions.extend(gaps_to_subquestions(gaps))
+            print(f"第 {iteration+1} 轮发现 {len(gaps)} 个信息缺口,继续深挖")
+
+    # 4. 最终报告生成 + 引用列表
+    final_report = await generate_final_report_with_citations(topic, plan, all_evidences)
+    return final_report
+
+# 一行调用,自动完成完整研究
+report = await deep_research("2026 年固态电池商业化进展与主要厂商对比")
+print(report)
+</code></pre>
+    <h2 class="section" id="quality"><span class="idx">★</span> 质量控制与常见问题</h2>
+    <p>深度研究 Agent 最容易出问题的几个地方,需要专门的对策。</p>
+    <p><strong>幻觉与编造</strong>。LLM 可能在综合时"脑补"来源里没有的内容。对策是严格约束"只基于提供的 evidence 综合不编造",并在最终报告上做事实核查——让另一个 LLM 检查每句话是否能找到来源支持。</p>
+    <p><strong>来源质量参差</strong>。SEO 垃圾、AI 生成的低质内容会污染研究。对策是来源白名单(优先权威媒体、学术、官方)、黑名单(已知低质域名),以及让抽取器评估来源可信度并加权。</p>
+    <p><strong>信息时效性</strong>。研究常涉及最新进展,过时的信息会误导。对策是搜索时限定时间范围(如最近一年),并在报告里标注信息的时间。</p>
+    <p><strong>成本控制</strong>。多轮搜索 + 多次综合,token 消耗会迅速膨胀。对策是分层处理(先用便宜模型抽取,用强模型综合)、缓存(相同查询不重复搜索)、以及合理的迭代轮数上限。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>深度研究 Agent 把研究流程自动化,由规划器、搜索器、抽取器、综合器、报告生成器五个模块协同完成,并通过迭代不断深化研究。它与普通问答的本质区别在于:多轮迭代搜索、多方信息综合、严格引用溯源。</p>
+    <p>我们给出了完整架构和可运行的代码骨架,涵盖任务拆解、搜索抽取、分层综合、引用标注、迭代深化。核心难点在信息质量把控(防幻觉、筛来源)和长上下文处理(分层综合)。</p>
+    <p>构建深度研究 Agent 的关键认知:它不是一个"更强的 RAG",而是一个有规划、有迭代、有质量门控的研究流水线。把每个模块做扎实,比堆砌花哨的 Agent 框架更重要。OpenAI Deep Research、Gemini Deep Research 的出现,标志着这类系统正从研究走向主流——掌握它的架构,你就掌握了 AI 时代"自动化知识工作"的核心范式。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

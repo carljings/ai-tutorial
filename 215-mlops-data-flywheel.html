@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-      <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -247,7 +254,7 @@
       <a href="212-mlops-monitoring.html" title="线上监控与告警"><span class="num">212</span>线上监控与告警</a>
       <a href="213-mlops-model-registry.html" title="模型注册与版本管理"><span class="num">213</span>模型注册与版本管理</a>
       <a href="214-mlops-experiment-tracking.html" title="实验追踪：让每次实验可复现"><span class="num">214</span>实验追踪</a>
-      <a href="215-mlops-data-flywheel.html" class="active" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
+      <a href="215-mlops-data-flywheel.html" title="数据飞轮：从线上反馈到模型迭代"><span class="num">215</span>数据飞轮</a>
     </div>
     <div class="nav-group"><h3>★Agent交互设计</h3>
       <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
@@ -295,38 +302,123 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ ★LLMOps工程化</span><h1>数据飞轮：从线上反馈到模型迭代</h1><p class="lead">让线上数据自动反哺训练——飞轮效应</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>数据飞轮：越用越聪明的正循环</h2>
-    <p>数据飞轮是 LLMOps 的终极目标：线上用户反馈→标注/筛选→补充训练数据→微调→上线→更好的模型吸引更多用户→更多反馈。这个循环转起来，模型就持续进化，形成竞争壁垒。我们已在第 231 章讲了闭环方法论，本章聚焦工程实现。</p>
-    <div class="callout"><strong>💡 要点</strong><br>飞轮 vs 闭环：闭环是"发现问题→修复"的反应式流程；飞轮是"用得越多→数据越多→模型越好→用得更多"的正循环。飞轮是主动的、系统性的，不只是修 bug。</div>
-    <h2><span class="idx"></span>飞轮的工程实现</h2>
-    <pre class="code"><code class="language-text">数据飞轮工程流水线
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 215 · MLOps系列</span>
+      <h1>数据飞轮<br>让生产数据自动喂养下一代模型</h1>
+      <p class="lead">最好的训练数据从哪里来?不是 Kaggle,不是公开数据集,而是你自己的线上系统每天产生的真实流量。数据飞轮(Data Flywheel)的理念是:模型上线后,它的预测结果和用户反馈构成新的训练数据,反哺下一代模型,新模型上线又产生更高质量的数据——如此循环,模型越用越准。这是数据驱动型公司拉开差距的根本机制。</p>
+      <div class="meta">
+        <span class="chip">阅读约 21 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+    <h2 class="section" id="flywheel-concept"><span class="idx">★</span> 数据飞轮:飞轮为什么能转起来</h2>
+    <p>物理上的飞轮,启动时费力,但一旦转起来,惯性会让它越转越快、越转越省力。数据飞轮是同一个道理的隐喻:前期积累训练数据、打磨模型成本很高,但一旦闭环建立,系统会自我强化,数据质量和模型性能螺旋上升。</p>
+    <p>一个完整的数据飞轮由五个环节组成,首尾相接形成闭环:<strong>生产数据收集 → 数据筛选与标注 → 模型训练 → 模型评估 → 模型部署 → 回到数据收集</strong>。每个环节都为下一环节提供输入,任何一个环节断裂,飞轮就会停转。</p>
+    <p>飞轮之所以能"加速",关键在于两个正反馈机制。第一,<strong>模型越好,收集到的数据质量越高</strong>。一个准确的推荐模型,能让用户产生更多有意义的点击行为(而不是乱点或流失),这些行为反过来是更干净的训练信号。第二,<strong>数据越多,模型越能捕捉长尾</strong>。随着数据积累,模型能覆盖更多小众场景,提升整体体验,吸引更多用户,产生更多数据。</p>
+    <p>理解了这两个反馈,你就理解了为什么头部公司的模型看起来"不可追赶":不是他们的算法多先进,而是他们的飞轮已经转起来了,后来者很难从零启动一个同等质量的闭环。但这并不意味着小团队没机会——恰恰相反,小团队如果能针对自己的垂直场景把飞轮转起来,反而能在那个场景里建立护城河。</p>
+    <h2 class="section" id="five-stages"><span class="idx">★</span> 五个环节的拆解</h2>
+    <p>我们逐一拆解飞轮的五个环节,看每个环节要解决什么问题、用什么技术。这能帮你诊断自己团队的飞轮卡在哪。</p>
+    <p><strong>环节一:生产数据收集</strong>。模型上线后,要把每个请求的输入、模型输出、以及最终的用户反馈(点击、购买、停留时长、违约与否)都记录下来。这听起来简单,工程上却有很多坑:日志要能关联同一次请求(需要 request_id 贯穿)、要处理隐私脱敏、要保证不丢数据、要控制成本(高流量场景需要采样)。这一步的基础是数据管道(Kafka、Flume、日志服务),它的可靠性直接决定飞轮能否转起来。</p>
+    <p><strong>环节二:数据筛选与标注</strong>。原始日志里大部分是噪声,需要筛选出对训练有价值的样本。常用的策略包括:困难样本挖掘(模型预测错的)、不确定性采样(模型没把握的)、多样性采样(覆盖特征空间不同区域)。筛选后,如果任务需要标签,就要进入标注流程——主动学习(Active Learning)在这里发挥作用,优先标注那些"对模型提升最大"的样本,降低标注成本。</p>
+    <p><strong>环节三:模型训练</strong>。用新数据训练或增量训练模型。这里的关键决策是:全量重训练还是增量更新?全量重训练质量高但成本大、周期长;增量更新快但容易累积偏差。深度学习模型还可以用 continual learning 技术,在不遗忘旧知识的前提下学习新数据。</p>
+    <p><strong>环节四:模型评估</strong>。新模型必须经过严格评估才能上线。除了 offline 指标,更重要的是 online A/B 测试:用真实流量验证新模型是否真的好。A/B 测试的设计本身就是一门学问(分流策略、显著性检验、网络效应处理),是飞轮的"质检关卡"。</p>
+    <p><strong>环节五:模型部署</strong>。新模型通过 A/B 测试后,通过模型注册中心发布上线,开始服务真实流量,产生新数据,完成闭环。部署策略(蓝绿、金丝雀、影子)决定了上线的风险控制能力。</p>
+    <h2 class="section" id="feedback-types"><span class="idx">★</span> 反馈类型:显式、隐式、延迟</h2>
+    <p>飞轮转动的燃料是"反馈"——即模型预测是否正确的信号。不同任务的反馈类型差异巨大,直接决定了飞轮的转速。</p>
+    <p><strong>显式反馈</strong>是用户主动给出的评价,如评分、点赞/点踩、举报。这种信号质量高、含义明确,但稀缺(用户很少主动反馈)。典型场景是内容推荐里的"不感兴趣"按钮。</p>
+    <p><strong>隐式反馈</strong>是从用户行为中推断的信号,如点击、停留、购买、分享。这种信号丰富,但含义模糊(点击不代表喜欢,可能是误点)。需要通过 dwell time、转化率等指标来"清洗"信号。绝大多数商业系统的飞轮主要靠隐式反馈驱动。</p>
+    <p><strong>延迟反馈</strong>是标签要等很久才能拿到的反馈,如贷款违约(几个月后)、用户流失(数月后)。延迟反馈是飞轮的最大敌人——它让你无法快速知道模型表现,严重拖慢转速。应对策略是用代理指标(如"7 天逾期"代替"90 天违约")或重要性采样来加速。</p>
+    <p>设计飞轮时,要先盘点自己业务能获得什么类型的反馈,据此决定飞轮的节奏。一个点击流丰富的推荐系统可能每天转一圈,一个延迟反馈严重的风控系统可能一个月才转一圈——这都正常,关键是把闭环走通。</p>
+    <h2 class="section" id="collection-code"><span class="idx">★</span> 数据收集:把预测和反馈关联起来</h2>
+    <p>飞轮的第一步是把生产数据可靠地收集起来。核心难点是"关联":模型的某次预测,要能和后续的用户反馈对应上。这需要在预测时给每个请求分配唯一的 request_id,并贯穿到反馈收集。下面是一个最小化的数据收集实现:</p>
+    <pre><code class="language-python">import uuid, json, time
+from datetime import datetime
 
-[线上服务] → 记录所有交互(query/response/feedback)
-    │
-    ▼
-[数据管道] → 每日批处理
-    ├── 提取高质量交互(thumbs up) → 正样本
-    ├── 提取低质量交互(thumbs down) → 负样本/RLHF
-    └── 聚类去重 → 多样化采样
-    │
-    ▼
-[数据质量门] → 人工抽检 + LLM-as-judge 过滤
-    │
-    ▼
-[增量训练] → LoRA 微调（每日/每周）
-    │
-    ▼
-[评估] → golden set 回归测试
-    │
-    ▼
-[灰度发布] → 5%流量验证 → 全量
+class PredictionLogger:
+    """记录模型预测,并预留 feedback 字段待回流"""
 
-关键：飞轮要"自动转"——从反馈到上线，
-      尽量少人工干预，否则转不快。</code></pre>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>数据飞轮是"线上反馈→训练数据→微调→上线→更多反馈"的正循环，让模型越用越聪明。工程实现：数据管道（提取正负样本）→ 质量门 → LoRA 增量训练 → 评估 → 灰度。关键是自动化——飞轮转得快靠工程，不是靠人。</p>
-    <div class="chapter-nav">
-    <a href="214-mlops-experiment-tracking.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 215 章 · 数据飞轮：从线上反馈到模型迭代</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+    def __init__(self, sink):
+        self.sink = sink  # 可以是 Kafka producer / 文件 / 数据库
+
+    def log_prediction(self, model_version, features, prediction, scores):
+        request_id = str(uuid.uuid4())
+        record = {
+            "request_id": request_id,
+            "model_version": model_version,
+            "features": features,
+            "prediction": prediction,
+            "scores": scores,
+            "ts_predict": datetime.utcnow().isoformat(),
+            "feedback": None,        # 待用户行为回流后填充
+            "ts_feedback": None,
+        }
+        self.sink.send(record)
+        return request_id   # 返回给业务层,用于后续 join feedback
+
+    def log_feedback(self, request_id, label, reward=None):
+        """用户行为回流时,按 request_id 更新反馈"""
+        record = {
+            "request_id": request_id,
+            "label": label,          # 0/1 或真实标签
+            "reward": reward,        # 可选:停留时长、转化金额等
+            "ts_feedback": datetime.utcnow().isoformat(),
+        }
+        self.sink.send_to_feedback_topic(record)
+
+
+# 在模型服务里使用
+logger = PredictionLogger(sink=kafka_producer)
+request_id = logger.log_prediction(
+    model_version="rec-v7",
+    features={"user_id": "u123", "item_id": "i456", "hour": 20},
+    prediction="click",
+    scores={"click": 0.78, "skip": 0.22},
+)
+# request_id 同时返回给前端,埋在点击事件里
+</code></pre>
+    <p>稍后在用户行为日志里,通过 request_id 把"点击与否"这个反馈 join 回预测记录,就形成了完整的(特征,预测,标签)三元组,这就是飞轮的原料。这一步工程上最容易被忽视,却是飞轮能否启动的前提。</p>
+    <h2 class="section" id="active-learning"><span class="idx">★</span> 主动学习:聪明地选择要标注的样本</h2>
+    <p>如果任务需要人工标注(显式标签),全量标注成本通常无法承受。主动学习的思路是:让模型自己挑出"最值得标注"的样本交给人工,从而用最少的标注成本获得最大的模型提升。</p>
+    <p>常见的样本选择策略有几种。<strong>不确定性采样</strong>:选模型最没把握的样本(预测概率接近 0.5 的二分类、熵最大的多分类)。<strong>多样性采样</strong>:保证选出的样本覆盖特征空间的不同区域,避免集中在某一处。<strong>代表性采样</strong>:选能代表大量未标注样本的"原型",如聚类中心。<strong>预期模型改变</strong>:选加入训练后最能改变模型的样本。</p>
+    <p>这些策略可以组合使用,典型做法是先用多样性采样保证覆盖,再用不确定性采样聚焦难点。下面是一个简单的不确定性采样实现:</p>
+    <pre><code class="language-python">import numpy as np
+
+def uncertainty_sampling(model, X_unlabeled, n=100):
+    """选择模型熵最高的 n 个样本送标注"""
+    proba = model.predict_proba(X_unlabeled)
+    # 多分类熵:entropy = -sum(p * log p)
+    entropy = -np.sum(proba * np.log(proba + 1e-12), axis=1)
+    top_idx = np.argsort(entropy)[-n:][::-1]
+    return X_unlabeled.iloc[top_idx], entropy[top_idx]
+
+# 飞轮的"标注"环节
+unlabeled = load_recent_unlabeled_pool()
+to_label, scores = uncertainty_sampling(current_model, unlabeled, n=500)
+labeled = send_to_annotation_platform(to_label)   # 人工或 LLM 标注
+new_train_data = pd.concat([existing_train, labeled])
+# 进入下一轮训练
+</code></pre>
+    <p>主动学习的收益是巨大的:实测中,精心设计的采样策略往往能在标注 20% 数据的情况下,达到接近全量标注的模型效果。这意味着同样的标注预算,飞轮能转得更快。</p>
+    <h2 class="section" id="continual-learning"><span class="idx">★</span> 持续学习:避免灾难性遗忘</h2>
+    <p>飞轮的高阶问题是:用新数据训练时,如何不"忘掉"旧知识?这就是持续学习(Continual Learning)要解决的灾难性遗忘(Catastrophic Forgetting)问题——神经网络用新数据微调后,在旧数据上的表现可能大幅下降。</p>
+    <p>几种主流的缓解方法。<strong>经验回放(Experience Replay)</strong>:在新数据训练时,混入一部分旧数据(或从旧数据生成的回放样本),让模型在学新不忘旧。这是最简单也最有效的方法。<strong>弹性权重巩固(EWC)</strong>:为每个参数计算"重要性",重要参数变化时施加惩罚,保护关键知识。<strong>渐进式网络(Progressive Networks)</strong>:为每个新任务增加新的网络分支,冻结旧参数,避免冲突。</p>
+    <p>工业实践里,经验回放是最常用的——它简单、效果好、易于工程化。关键是合理设置新旧数据的混合比例(如 80% 新 + 20% 旧),并对回放的旧样本做权重衰减(更久远的样本权重更低,反映分布的时效性)。</p>
+    <h2 class="section" id="pitfalls"><span class="idx">★</span> 飞轮常见的卡点与对策</h2>
+    <p>飞轮听起来很美,实际落地常遇到几个卡点,识别它们是启动飞轮的前提。</p>
+    <p><strong>卡点一:反馈稀疏或缺失</strong>。有些业务天然没有反馈(如一次性预测),飞轮无法启动。对策是设计"代理反馈",比如用下游业务指标近似,或引入主动采集机制(用户调研、抽样人工评估)。</p>
+    <p><strong>卡点二:数据质量问题</strong>。日志丢失、字段错乱、隐私未脱敏,都会污染训练数据。飞轮对数据质量比一次性训练更敏感——错误的反馈会让模型越学越偏。对策是建立数据质量监控和校验管道,在数据进入训练前做严格的 schema 校验和异常检测。</p>
+    <p><strong>卡点三:工程链路断裂</strong>。收集、训练、部署分散在不同团队,任何一个环节人工介入都会拖慢转速。对策是把链路尽可能自动化:从数据到训练用调度系统(如 Airflow),从评估到部署用 CI/CD,把人的参与降到审批节点。</p>
+    <p><strong>卡点四:评估体系不健全</strong>。新模型没经过严格评估就上线,可能把飞轮带偏。对策是坚持 A/B 测试,用统计显著的结果作为唯一上线标准,避免"凭感觉"迭代。</p>
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>数据飞轮是把生产数据回流为训练数据、驱动模型持续进化的闭环机制。它由数据收集、筛选标注、训练、评估、部署五个环节组成,通过"模型越好→数据越好→模型更好"的正反馈不断加速。</p>
+    <p>反馈类型决定了飞轮的转速:显式反馈质量高但稀缺,隐式反馈丰富但含噪,延迟反馈是飞轮的最大敌人。工程实现上,关键是把预测和反馈通过 request_id 关联起来,用主动学习降低标注成本,用经验回放避免灾难性遗忘。</p>
+    <p>飞轮的本质是"用系统化的工程,把数据这个最重要的资产持续转化为模型能力"。它不是一蹴而就的项目,而是一种需要长期投入的机制。但一旦转起来,它带来的复利效应,是任何对手都无法用钱瞬间买到的——这正是数据驱动型公司最深的护城河。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

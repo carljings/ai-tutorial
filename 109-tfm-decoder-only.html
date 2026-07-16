@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -136,7 +134,7 @@
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
-      <a href="109-tfm-decoder-only.html" class="active" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
+      <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
       <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
@@ -305,67 +303,171 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 109 章 · Transformer 原理深挖</span>
-<h1>为什么 Decoder-Only 一统天下</h1><p class="lead">Encoder-Decoder（T5）、Encoder-only（BERT）、Decoder-only（GPT/GLM）三架构对比。统一为 next-token prediction 的简洁性、scaling 友好、in-context learning 涌现。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>Encoder-Decoder（T5）、Encoder-only（BERT）、Decoder-only（GPT/GLM）三架构对比。统一为 next-token prediction 的简洁性、scaling 友好、in-context learning 涌现。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 09 · Transformer 深度系列</span>
+      <h1>Decoder-Only 架构<br>为什么 GPT 系列都选择了「单向」</h1>
+      <p class="lead">当你在对话框里敲下一行字，模型从左到右一个 token 一个 token 地吐出回答——这背后是 Decoder-Only 架构在运转。它把 Transformer 砍掉了一半，却撑起了 GPT、LLaMA、Qwen 这一代大语言模型的半壁江山。本章我们把因果掩码这把「单向锁」彻底拆开，看清它和 Encoder-Decoder 到底差在哪。</p>
+      <div class="meta">
+        <span class="chip">阅读约 22 分钟</span>
+        <span class="chip">难度 ★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="why-decoder-only"><span class="idx">★</span> 一、从一篇论文说起：砍掉 Encoder 之后发生了什么</h2>
+    <p>2017 年的《Attention Is All You Need》提出的是完整的 Encoder-Decoder：左半边 Encoder 负责把输入「读进去」，右半边 Decoder 负责「写出来」，两者之间靠 cross-attention 连接。这套结构天生为翻译任务设计——输入是一段源语言，输出是一段目标语言，长度可以不一样。</p>
+    <p>但 2018 年 OpenAI 的 GPT-1 做了一个大胆的减法：既然语言模型本质上就是「给定前文，预测下一个词」，那为什么还要 Encoder？于是它只保留了 Decoder，去掉 cross-attention，让模型自己看着自己前面的 token 去预测下一个。这个决定，后来被证明是这一代大模型最关键的架构选择之一。</p>
+    <p>打个比方：Encoder-Decoder 像是「同声传译」，一边听一边译；Decoder-Only 则像是「续写小说」，作者只盯着自己已经写下的段落，琢磨下一句该是什么。后者天然契合「生成」这件事。</p>
+
+    <h3 class="section">1.1 三种 Transformer 变体的家族合影</h3>
+    <p>在深入 Decoder-Only 之前，我们先把三种主流变体摆在一起看一眼，理解它们各自的定位：</p>
+    <ul>
+      <li><strong>Encoder-Only</strong>（BERT 代表）：双向注意力，每个 token 都能同时看到左右所有 token。适合「理解」类任务，比如文本分类、句向量、命名实体识别。但没法直接生成文本。</li>
+      <li><strong>Decoder-Only</strong>（GPT 代表）：单向注意力，每个 token 只能看到它左边的 token。既能理解（通过前文推断语义）又能生成，是当前大模型的绝对主流。</li>
+      <li><strong>Encoder-Decoder</strong>（T5、BART 代表）：Encoder 双向读入，Decoder 单向生成并交叉参考 Encoder 输出。在翻译、摘要这种「输入→输出」任务上表现优异，但训练和推理效率不如 Decoder-Only 灵活。</li>
+    </ul>
+    <p>有趣的是，研究表明在同等参数量和数据量下，Decoder-Only 的 scaling law（规模法则）曲线更陡——也就是说，参数越多、数据越多，它的能力增长得越快。这也是为什么这一轮大模型竞赛几乎全都押注 Decoder-One。</p>
+
+    <h2 class="section" id="causal-mask"><span class="idx">★</span> 二、因果掩码：Decoder-Only 的核心机关</h2>
+    <p>Decoder-Only 之所以能做到「只能看左边」，靠的就是一块叫做 causal mask（因果掩码）的东西。它本质上是一个上三角矩阵，把「未来」的位置全部挡住，只让每个位置参与对它之前位置的注意力计算。</p>
+    <p>用一句话概括它的作用：在计算第 t 个位置的注意力时，禁止它看到第 t+1、t+2……这些「未来」的 token。这样模型在训练时虽然能并行处理整句话，但每个位置的预测都严格只依赖历史，不会偷看答案。</p>
+
+    <h3 class="section">2.1 掩码长什么样</h3>
+    <p>假设序列长度是 4，那么 causal mask 是一个 4×4 的矩阵，0 表示允许关注，负无穷表示禁止关注：</p>
+    <pre><code class="language-python">[[0,     -inf, -inf, -inf],     # 位置 0 只能看位置 0
+ [0,      0,   -inf, -inf],     # 位置 1 能看 0、1
+ [0,      0,    0,   -inf],     # 位置 2 能看 0、1、2
+ [0,      0,    0,    0  ]]     # 位置 3 能看 0、1、2、3</code></pre>
+    <p>在注意力计算里，这个掩码会加到 QK^T 的注意力分数上，再做 softmax。被 -inf 覆盖的位置经过 softmax 后会变成 0，相当于完全从注意力权重里消失了。这就是「未来不可见」的数学实现。</p>
+
+    <h3 class="section">2.2 用 PyTorch 手写 causal mask</h3>
+    <p>下面这段代码完整演示了如何构造并应用 causal mask，你可以直接跑起来观察掩码前后的注意力分布变化。</p>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
-import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+def causal_mask(seq_len):
+    """构造一个上三角为 -inf 的因果掩码。"""
+    # triu 返回上三角（含对角线）为 1 的矩阵，我们保留对角线，所以 diagonal=1
+    mask = torch.triu(torch.ones(seq_len, seq_len), diagonal=1)
+    # 把上三角的 1 换成 -inf，0 保持不变
+    mask = mask.masked_fill(mask == 1, float('-inf'))
+    return mask
+
+# 模拟一组注意力分数（4 个位置互相打分）
+torch.manual_seed(0)
+scores = torch.randn(4, 4) * 2      # QK^T 的结果（简化）
+print("原始分数：\n", scores)
+
+mask = causal_mask(4)
+print("\n因果掩码：\n", mask)
+
+masked_scores = scores + mask
+attn = F.softmax(masked_scores, dim=-1)
+print("\n施加掩码后的注意力权重：\n", attn)
+# 注意 attn 是一个下三角矩阵，上三角全是 0</code></pre>
+    <p>运行后你会看到，attn 矩阵的上三角部分全是 0——这意味着位置 0 的注意力完全集中在自己，位置 1 只能分配给 0 和 1，以此类推。这就是「单向」的物理含义。</p>
+
+    <h3 class="section">2.3 为什么训练时也能并行</h3>
+    <p>这里有个精妙之处：虽然推理时必须一个一个 token 地生成（因为第 t+1 个 token 要等第 t 个算出来），但训练时却可以一次性把整句话喂进去并行计算。原因就在于 causal mask 让每个位置的损失都只由它之前的 token 决定。</p>
+    <p>训练时，我们把「我喜欢吃苹果」整句话一次性输入模型，模型会同时预测 5 个位置的下一个词：给定空预测「我」，给定「我」预测「喜欢」……每个位置的预测都是合法的，没有信息泄漏。这种 teacher forcing 式的训练让 GPU 利用率极高，是大模型能高效训练的关键。</p>
+
+    <h2 class="section" id="compare-encoder-decoder"><span class="idx">★</span> 三、与 Encoder-Decoder 的正面对决</h2>
+    <p>为了把两者的差异讲透，我们从五个维度做一次对比。这也是面试和系统设计时最常被追问的点。</p>
+
+    <h3 class="section">3.1 注意力的方向</h3>
+    <p>Encoder 用的是双向自注意力（bidirectional self-attention），每个 token 可以同时关注句子里的所有 token。Decoder-Only 用的是单向自注意力（unidirectional self-attention），只能关注左侧。</p>
+    <p>这个差异直接影响模型对上下文的理解方式。双向注意力更擅长做「全局语义编码」，因为每个词都能借左右邻居来消除歧义；单向注意力则更像人类阅读——逐字往后看，理解是渐进式的。</p>
+
+    <h3 class="section">3.2 参数和结构的复杂度</h3>
+    <p>Decoder-Only 的每一层只有两个子模块：masked self-attention 和 feed-forward network（FFN）。而 Encoder-Decoder 的 Decoder 层多了一个 cross-attention 子模块，参数更多、计算更重。这也是 Decoder-Only 在工程上更讨喜的原因之一——结构简单，更容易堆深、更容易做张量并行。</p>
+
+    <h3 class="section">3.3 任务适配性</h3>
+    <p>Encoder-Decoder 在输入和输出形态不同的任务上（翻译、语音转文字）依然有优势，因为 Encoder 和 Decoder 可以分别处理两种模态。但当前的趋势是：用 prompt 把所有任务都统一成「续写」，于是 Decoder-Only 就成了万能锤子。</p>
+    <p>比如做翻译，Decoder-Only 的做法是给一个 prompt：「请把下面英文翻译成中文：The cat sat on the mat. 翻译：」，模型接着续写「猫坐在垫子上。」。翻译、摘要、问答、写代码，全都变成了同一个生成范式。</p>
+
+    <h3 class="section">3.4 一个直观对比实验</h3>
+    <p>下面这段代码用 Hugging Face 的两个小模型（GPT-2 是 Decoder-Only，T5 是 Encoder-Decoder），跑同一个 prompt，让你直观感受它们的生成行为差异。</p>
+    <pre><code class="language-python">from transformers import AutoModelForCausalLM, AutoTokenizer
+import torch
+
+# 用 Decoder-Only 模型（GPT-2）做续写
+model_name = "gpt2"
+tokenizer = AutoTokenizer.from_pretrained(model_name)
+model = AutoModelForCausalLM.from_pretrained(model_name)
+model.eval()
+
+prompt = "The future of artificial intelligence is"
+ids = tokenizer(prompt, return_tensors="pt").input_ids
+
+with torch.no_grad():
+    # 用 greedy 解码，看模型最自然的续写
+    out = model.generate(ids, max_new_tokens=15, do_sample=False)
+
+print("Decoder-Only 续写结果：")
+print(tokenizer.decode(out[0], skip_special_tokens=True))
+
+# 对比：打印第 1 个生成 token 的 logits 形状，体会「每步只预测下一个词」
+with torch.no_grad():
+    logits = model(ids).logits
+print(f"\nlogits 形状: {logits.shape}  -> (batch, seq_len, vocab_size)")
+print("取最后一个位置的 logits，就是下一个 token 的概率分布。")
+next_token_id = logits[0, -1].argmax()
+print(f"预测的下一个 token: {tokenizer.decode(next_token_id)}")</code></pre>
+    <p>你会看到，模型在每个位置都输出一个完整的词表概率分布，但我们只关心最后一个位置——因为它对应「下一个 token」。这正是 Decoder-Only 推理的核心：每一步都从序列末尾取出下一个词的概率。</p>
+
+    <h2 class="section" id="kv-cache"><span class="idx">★</span> 四、Decoder-Only 的推理加速神器：KV Cache</h2>
+    <p>既然 Decoder-Only 推理时每一步只新增一个 token，那前 N-1 个 token 的 Key 和 Value 向量其实不用重复算。于是工程上引入了 KV Cache：把已经算过的 K、V 缓存下来，下一步只算新 token 的 K、V 追加进去。</p>
+    <p>这把推理的计算复杂度从 O(n²) 降到了每步 O(n)，是 Decoder-Only 模型能高效服务的关键。不过 KV Cache 会占用大量显存——序列越长、层数越多、注意力头越多，缓存就越大，这也是长上下文模型的主要瓶颈之一。</p>
+
+    <h3 class="section">4.1 KV Cache 占用估算</h3>
+    <p>下面这段代码帮你算清楚一个 Decoder-Only 模型在不同上下文长度下的 KV Cache 显存占用，这对部署调优很实用。</p>
+    <pre><code class="language-python">def kv_cache_bytes(num_layers, num_kv_heads, head_dim, seq_len, batch, dtype_bytes=2):
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    估算 KV Cache 的显存占用（字节）。
+    公式：2(K和V) * layers * kv_heads * head_dim * seq_len * batch * dtype
+    """
+    return (2 * num_layers * num_kv_heads * head_dim * seq_len * batch * dtype_bytes)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"为什么 Decoder-Only 一统天下"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="108-tfm-embedding.html"><div class="lbl">← 上一章</div><div class="ttl">108 · Token Embedding 与 Tie Weights</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="110-tfm-generation-strategy.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">110 · 解码策略：贪心/采样/beam 的取舍</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 109 章 · 为什么 Decoder-Only 一统天下</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+def to_gb(b):
+    return b / (1024 ** 3)
+
+# 以 LLaMA-2 7B 为例：32 层，GQA 下 kv_heads=32, head_dim=128
+config = dict(num_layers=32, num_kv_heads=32, head_dim=128, batch=1, dtype_bytes=2)
+for seq_len in [512, 2048, 8192, 32768]:
+    b = kv_cache_bytes(seq_len=seq_len, **config)
+    print(f"上下文 {seq_len:>6} tokens: KV Cache = {to_gb(b):.2f} GB")</code></pre>
+    <p>你会看到，上下文拉到 32K 时，光 KV Cache 就要吃掉好几个 GB 的显存，这还没算模型权重。这就是为什么 GQA（分组查询注意力）、量化、PagedAttention 这些技术会成为 Decoder-One 模型的标配优化。</p>
+
+    <h2 class="section" id="scaling"><span class="idx">★</span> 五、为什么 Decoder-Only 赢得了规模竞赛</h2>
+    <p>除了结构简单，Decoder-Only 还有一个深层优势：它和自回归语言建模的训练目标完美契合。这个目标是「预测下一个 token」，一个统一、无监督、可以无限制造数据的任务——只要有人类写的文本，就有训练信号。</p>
+    <p>相比之下，Encoder-Only 的 MLM（掩码语言模型）要随机遮挡 15% 的 token 来预测，训练信号稀疏，而且遮盖破坏了句子的自然分布。T5 的 span corruption 也有类似问题。而 Decoder-Only 的下一个 token 预测，每个位置都有监督信号，数据效率高得多。</p>
+    <p>再加上 scaling law 的发现——Chinchilla 法则告诉我们，只要参数和数据按比例增长，损失就能可预测地下降——Decoder-Only 就成了「大力出奇迹」的最佳载体。GPT-3、PaLM、LLaMA、Qwen、DeepSeek，无一例外。</p>
+
+    <h3 class="section">5.1 统一接口：一切皆续写</h3>
+    <p>Decoder-Only 的另一个哲学胜利是它把所有任务都统一成了「续写」。无论是做问答、翻译、写代码还是数学推理，都只需要构造合适的 prompt，让模型顺着续写下去。这种统一性带来了惊人的通用性——一个模型，一套训练方式，却涌现出多任务能力。</p>
+    <p>这正是 instruction tuning（指令微调）和 RLHF 能够生效的基础。因为模型已经在「续写」这件事上训练得足够好，我们只需要用指令数据教它「续写出符合人类意图的回答」即可。</p>
+
+    <h2 class="section" id="limitations"><span class="idx">★</span> 六、Decoder-Only 也不是万能的</h2>
+    <p>讲了这么多优点，也要公平地看看它的短板，避免盲目崇拜。</p>
+    <ul>
+      <li><strong>长文本理解偏弱</strong>：单向注意力让前面 token 的语义信息要层层向后传递，长距离依赖容易衰减。虽然现在有 RoPE、长上下文微调来缓解，但天然不如双向注意力直接。</li>
+      <li><strong>推理成本高</strong>：自回归生成意味着无法像 Encoder 那样一次性给出全部输出，延迟和 token 数成正比。Beam search、speculative decoding 都是为了缓解这个问题。</li>
+      <li><strong>特定任务不如专用结构</strong>：比如需要强双向理解的句子相似度任务，Encoder-Only（如 BERT）的句向量质量通常更好。所以实际系统里，常常见到 Decoder-Only 做生成、Encoder-Only 做召回的混合架构。</li>
+    </ul>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>这一章我们把 Decoder-Only 架构从头到脚拆了一遍。核心要点回顾：</p>
+    <ul>
+      <li><strong>架构选择</strong>：Decoder-Only 砍掉了 Encoder 和 cross-attention，只保留 masked self-attention + FFN，结构更简洁。</li>
+      <li><strong>因果掩码</strong>：causal mask 是一个上三角为 -inf 的矩阵，确保每个位置只能关注左侧，是「单向」的数学实现，也是训练时不发生信息泄漏的保证。</li>
+      <li><strong>训练并行</strong>：虽然推理是串行的，但训练可以靠 causal mask 一次性并行计算所有位置的损失。</li>
+      <li><strong>KV Cache</strong>：缓存已算过的 K、V，把推理每步复杂度从 O(n²) 降到 O(n)，是 Decoder-Only 高效服务的关键，也是长上下文的主要显存瓶颈。</li>
+      <li><strong>统一范式</strong>：把所有任务统一成「续写」，配合下一个 token 预测目标，让 Decoder-Only 在 scaling law 下表现最优，成为这一代大模型的赢家。</li>
+    </ul>
+    <p>理解了 Decoder-Only，你就理解了 GPT 系列的骨架。下一章我们会进入这个架构最日常的战场——生成策略，看看 greedy、beam search、top-k、top-p 这些控制输出质量的旋钮到底怎么调。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

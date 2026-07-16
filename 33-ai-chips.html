@@ -1,7 +1,14 @@
 <!DOCTYPE html>
-<html lang="zh-CN"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0"><title>AI 芯片与算力 · AI 全栈实战教学</title><link rel="stylesheet" href="assets/style.css"></head><body>
-<div class="progress" id="progress"></div><button class="to-top" id="toTop" aria-label="返回顶部">↑</button><div class="layout">
-    <aside class="sidebar">
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>AI 芯片与算力 · AI 全栈实战教学</title>
+<link rel="stylesheet" href="assets/style.css">
+</head>
+<body>
+<div class="layout">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -11,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -45,7 +52,7 @@
       <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
       <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
       <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
-      <a href="33-ai-chips.html" class="active" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
+      <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
     </div>
     <div class="nav-group"><h3>专题</h3>
       <a href="34-llm-compiler.html" title="LLM 编译器与推理引擎"><span class="num">34</span>LLM 编译器与推理</a>
@@ -295,17 +302,105 @@
       <a href="248-kb-overview.html" title="知识库搭建全景：从朴素 RAG 到 Agentic RAG 与知识图谱"><span class="num">248</span>知识库搭建全景</a>
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
-  </aside>  <main class="content">
-    <section class="hero"><span class="eyebrow">◆ 原理深挖</span><h1>AI 芯片与算力</h1><p class="lead">GPU/NPU/TPU——AI 底层硬件的原理与选型</p><div class="meta"><span class="chip">深度进阶</span><span class="chip">★★★</span></div></section>
-    <h2><span class="idx"></span>为什么 AI 需要专用芯片</h2>
-    <p>AI 训练/推理的核心运算是大规模矩阵乘法（GEMM）。CPU 不擅长这个（核心少、向量计算弱），GPU 擅长（数千核心并行做矩阵运算）。这就是为什么 AI = GPU。但 GPU 也不是为 AI 设计的（它最初为图形渲染设计），所以又催生了更专用的 AI 芯片（TPU/NPU）。</p>
-    <table class="data-table"><thead><tr><th>芯片</th><th>设计目标</th><th>AI性能</th><th>代表</th></tr></thead><tbody><tr><td>CPU</td><td>通用计算（低延迟串行）</td><td>弱（核心少）</td><td>Intel/AMD</td></tr><tr><td>GPU</td><td>图形渲染（大规模并行）</td><td>强（AI主力）</td><td>NVIDIA A100/H100</td></tr><tr><td>TPU</td><td>专为AI（矩阵乘加速）</td><td>极强（但绑Google）</td><td>Google TPU</td></tr><tr><td>NPU</td><td>端侧AI推理</td><td>中等（低功耗）</td><td>华为昇腾/Apple Neural Engine</td></tr></tbody></table>
-    <h2><span class="idx"></span>GPU 为什么适合 AI</h2>
-    <p>GPU 有数千个并行计算核心，专门做"同一操作应用到大量数据"——这正好是矩阵乘法。一个 4096×4096 的矩阵乘，CPU 要逐行算，GPU 可以几千行同时算。这就是 GPU 的"并行优势"。A100 有 6912 个 CUDA 核心 + 432 个 Tensor Core（专门加速矩阵乘的单元），峰值算力达 312 TFLOPS（FP16）。</p>
-    <h2><span class="idx"></span>显存带宽：AI 的隐形瓶颈</h2>
-    <div class="callout"><strong>💡 要点</strong><br>LLM 推理的真正瓶颈不是"算力"而是"显存带宽"。生成每个 token 要读全量 KV Cache，这个读取量远大于计算量。A100 显存带宽 2TB/s，H100 是 3.4TB/s——这就是为什么 H100 推理比 A100 快不止算力比例的原因。</div>
-    <h2><span class="idx"></span>本章小结</h2>
-    <p>AI 芯片四类：CPU（弱）、GPU（AI主力，并行矩阵乘）、TPU（Google专用AI）、NPU（端侧低功耗）。GPU 适合AI因为数千核心并行做矩阵乘。LLM推理的隐形瓶颈是显存带宽（读KV Cache）而非算力——这就是 H100 比 A100 快的关键。</p>
-    <div class="chapter-nav">
-      <a href="32-transformer-variants.html"><div class="lbl">← 上一章</div>
-    <footer><p>AI 全栈实战教学 · 第 33 章 · AI 芯片与算力</p></footer>  </main></div><script src="assets/main.js"></script></body></html>
+  </aside>
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 33 · 核心知识系列</span>
+      <h1>AI 芯片与算力<br>GPU、TPU、NPU 的架构之争与算力经济学</h1>
+      <p class="lead">每一轮 AI 浪潮背后都是算力的军备竞赛。H100 一卡难求，B200 价格堪比跑车，国产 NPU 加速突围。但芯片之争不只是"谁的 TOPS 数字大"——存储带宽、互联拓扑、Roofline 模型才是决定实际训练速度的隐形战场。本章带你穿透 FLOPS 的迷雾，理解 GPU/TPU/NPU 的架构差异和存储层级的设计哲学。</p>
+      <div class="meta">
+        <span class="chip">阅读约 24 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="intro"><span class="idx">★</span> 算力即权力：AI 时代的硬通货</h2>
+    <p>2024 年，Meta 买了 35 万张 H100，微软、Google、Amazon 各押注数百亿美元建设数据中心。Sam Altman 说算力将是"未来的石油"。这种狂热的背后是一个冷酷的事实：训练 GPT-4 估计消耗了 2-3 万张 A100 跑数月，电费和硬件折旧数以亿计。算力不仅决定了"能训多大的模型"，更直接决定了国家的 AI 竞争力——这就是为什么芯片出口管制成了大国博弈的核心战场。</p>
+    <p>但"算力"这个词太模糊了。一张 H100 的 FP16 算力是 989 TFLOPS，但实际训练大模型时可能只能用到 40-50%。瓶颈不在计算单元，而在"喂数据的速度"——存储带宽和芯片间通信。理解这一点，你就能明白为什么 NVIDIA 不卖 GPU 芯片而是卖 DGX 整机，为什么 HBM（高带宽内存）比计算核心更稀缺。</p>
+
+    <h2 class="section" id="gpu-tpu-npu"><span class="idx">★</span> GPU、TPU、NPU 的架构哲学</h2>
+    <p>这三类芯片虽然都用于 AI 计算，但设计哲学截然不同。</p>
+    <p><strong>GPU（图形处理器）</strong>本是用来渲染 3D 图形的，其架构是"数百到数千个小核心"的众核设计（SIMT 模型）。NVIDIA 的 CUDA 生态让 GPU 通用化——Tensor Core 的引入让矩阵乘法（AI 的核心运算）速度飙升。GPU 的优势是灵活性：同一个 GPU 可以跑训练、推理、图形渲染、科学计算，配合 CUDA 这个极其成熟的软件栈，开发者迁移成本几乎为零。这也是 NVIDIA 市值登顶的根本原因——不只是硬件强，更是生态壁垒深。</p>
+    <p><strong>TPU（张量处理单元）</strong>是 Google 为机器学习专门设计的 ASIC（专用集成电路）。与 GPU 的"灵活众核"不同，TPU 采用<strong>脉动阵列（Systolic Array）</strong>架构——一个由计算单元组成的二维网格，数据从一侧流入、经过计算后从另一侧流出，像心脏跳动一样有节奏。这种设计对矩阵乘法极其高效（流水线化、数据复用最大化），但牺牲了通用性。TPU 特别适合大规模推理（Google 内部搜索、翻译全部跑在 TPU 上），但在训练的灵活性上不如 GPU。</p>
+    <p><strong>NPU（神经网络处理器）</strong>通常指移动端和边缘侧的 AI 加速器。Apple 的 Neural Engine、华为昇腾、高通 Hexagon 都属于此类。NPU 的特点是低功耗优先——在手机上跑推理，能耗比（TOPS/W）远比峰值算力重要。国产 NPU（昇腾 910B、寒武纪、摩尔线程）正在高端训练卡市场追赶，虽然 CUDA 生态仍是最大壁垒。</p>
+    <pre><code class="language-text">三类芯片架构对比
+
+┌────────┬──────────────┬──────────────┬──────────────┐
+│ 维度   │    GPU       │    TPU       │    NPU       │
+├────────┼──────────────┼──────────────┼──────────────┤
+│ 设计   │ 通用并行(SIMT)│ 专用脉动阵列 │ 混合架构     │
+│ 擅长   │ 训练+推理+图形│ 大规模推理   │ 边缘推理     │
+│ 灵活性 │ 极高         │ 低(ASIC)     │ 中等         │
+│ 能耗比 │ 中           │ 高           │ 极高         │
+│ 生态   │ CUDA(垄断)   │ XLA/JAX      │ 各家私有     │
+│ 代表   │ H100, B200   │ TPU v5e/v5p  │ 昇腾, Apple NE│
+└────────┴──────────────┴──────────────┴──────────────┘
+</code></pre>
+
+    <h2 class="section" id="memory"><span class="idx">★</span> 存储层级：HBM、DDR、SRAM 的金字塔</h2>
+    <p>理解 AI 芯片的性能，存储比计算更重要。AI 训练是一个"内存密集型"任务——每次矩阵乘法需要的权重和激活值都要从内存搬到计算单元，这个搬运过程往往比计算本身更慢。存储层级从快到慢、从小到大形成金字塔：<strong>SRAM（片上缓存）</strong>最快但极小（H100 的 SRAM 只有 50MB），<strong>HBM（高带宽内存）</strong>是 GPU 上的主存（H100 有 80GB），<strong>DDR（系统内存）</strong>容量大但慢（CPU 侧，数百 GB），<strong>NVMe SSD</strong>最慢但容量最大。</p>
+    <p>HBM 是当前 AI 芯片的"命门"。它通过 3D 堆叠技术把多层 DRAM 芯片和逻辑芯片封装在一起，用 TSV（硅通孔）连接，带宽是传统 DDR 的 10 倍以上（H100 的 HBM3 带宽 3.35 TB/s）。但 HBM 制造极其困难——全球只有 SK Hynix、Samsung、Micron 三家能量产，产能远跟不上 AI 需求，这就是 H100 一卡难求的核心原因之一。</p>
+    <pre><code class="language-python"># 模拟存储层级对训练速度的影响
+memory_hierarchy = {
+    "SRAM (片上缓存)":  {"size": "50 MB",   "bandwidth": "30 TB/s",  "latency": "1 ns"},
+    "HBM3 (GPU显存)":   {"size": "80 GB",   "bandwidth": "3.4 TB/s", "latency": "100 ns"},
+    "DDR5 (系统内存)":  {"size": "1 TB",    "bandwidth": "0.2 TB/s", "latency": "80 ns"},
+    "NVMe SSD":        {"size": "8 TB",    "bandwidth": "0.007 TB/s","latency": "100 μs"},
+}
+# 关键洞察：SRAM 比 HBM 快 10 倍，但容量小 1600 倍
+# 大模型权重放不下 SRAM → 只能放 HBM → 每次计算都要搬运
+# 搬运速度 < 计算速度 → 计算单元在"等数据" → 这就是"内存墙"
+
+# 优化策略：减少搬运次数
+# 1. Flash Attention：把注意力矩阵分块在 SRAM 中计算，避免写回 HBM
+# 2. 模型并行：把大模型切分到多卡，减少单卡搬运量
+# 3. ZeRO 优化：只存一份优化器状态，省去冗余拷贝
+</code></pre>
+
+    <h2 class="section" id="roofline"><span class="idx">★</span> Roofline 模型：一眼看出性能瓶颈</h2>
+    <p>Roofline 模型是分析 AI 芯片性能的经典工具，它用一个简单的公式把"计算能力"和"存储带宽"统一在一个图上。核心思想是：一个运算的性能上限取决于两个约束中的较小者——峰值算力或峰值带宽。</p>
+    <pre><code class="language-python"># Roofline 模型核心公式
+# Attained_FLOPS = min(Peak_FLOPS, Peak_Bandwidth × Arithmetic_Intensity)
+#
+# 其中 Arithmetic_Intensity (AI) = FLOPS / Bytes
+# 即"每搬运一个字节的数据，能做多少次浮点运算"
+
+def roofline(peak_flops, peak_bandwidth, arith_intensity):
+    """计算给定算术强度下的性能上限"""
+    memory_bound = peak_bandwidth * arith_intensity
+    compute_bound = peak_flops
+    return min(memory_bound, compute_bound)
+
+# H100 示例参数
+peak_flops = 989e12       # 989 TFLOPS (FP16)
+peak_bandwidth = 3.35e12  # 3.35 TB/s (HBM3)
+
+# 不同任务的算术强度和实际性能
+tasks = {
+    "大矩阵乘法 (GEMM)":  {"AI": 50,  "峰值利用率": "60-70%"},
+    "注意力计算 (Attention)": {"AI": 5,   "峰值利用率": "30-50%"},  # 内存密集
+    "LayerNorm + 激活":  {"AI": 2,   "峰值利用率": "10-20%"},  # 严重内存受限
+    "激活函数逐元素":    {"AI": 1,   "峰值利用率": "<10%"},     # 几乎全在等数据
+}
+
+for task, info in tasks.items():
+    perf = roofline(peak_flops, peak_bandwidth, info["AI"])
+    print(f"{task}: AI={info['AI']}, 上限={perf/1e12:.0f} TFLOPS, {info['峰值利用率']}")
+# 启示：算术强度越低的操作，越容易被"内存墙"卡住
+# Flash Attention 的核心价值：把注意力的有效算术强度从 5 提到 20+
+</code></pre>
+    <p>Roofline 模型告诉我们一个关键洞察：<strong>不是所有操作都能跑满芯片算力。</strong>矩阵乘法（GEMM）算术强度高，可以逼近峰值算力；但注意力、LayerNorm、激活函数这些"小运算"算术强度低，性能瓶颈在带宽而非算力。这就是为什么 Flash Attention（通过减少中间结果的 HBM 往返）能带来 2-4 倍的实际加速——它不是让计算更快，而是让计算"不用等数据"。</p>
+
+    <h2 class="section" id="interconnect"><span class="idx">★</span> 芯片互联：多卡训练的隐形战场</h2>
+    <p>训练百亿参数以上的模型，单卡显存放不下，必须多卡甚至多机协同。这时，芯片之间的通信带宽就成了关键瓶颈。NVIDIA 的 NVLink 提供 900 GB/s 的卡间带宽（H100），是 PCIe 5.0（64 GB/s）的 14 倍。InfiniBand 网络提供 400 Gb/s 的机间带宽，延迟低至微秒级。这就是为什么 DGX/HGX 整机（内置 NVLink 互联）比"自己买显卡拼服务器"贵得多——互联拓扑本身就是核心竞争力。</p>
+    <p>通信开销在大模型训练中占比惊人。在千卡规模训练时，梯度同步的通信可能占总时间的 30-50%。这就是各种并行策略（数据并行 DP、张量并行 TP、流水线并行 PP）的用武之地——它们通过切分计算和通信，最小化等待时间。DeepSeek 提出的 FP8 训练 + 自研通信压缩，把万卡训练的 MFU（模型算力利用率）推到了 50% 以上，这在工程上是顶尖水平。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>AI 芯片的性能不能只看 TFLOPS 数字。GPU 用灵活性（CUDA 生态）称霸通用计算，TPU 用脉动阵列在大规模推理上极致高效，NPU 在边缘侧追求能耗比。存储层级是真正的性能瓶颈——HBM 带宽决定大模型能跑多快，SRAM 容量决定能否用 Flash Attention 这类优化。Roofline 模型揭示了"算术强度"这个关键指标：算力再高，算术强度低的操作仍会被"内存墙"卡住。芯片互联（NVLink、InfiniBand）是多卡训练的隐形战场，通信效率直接决定 MFU。理解这些底层原理，你才能在选卡、调优、做架构决策时做出正确判断，而不是被 FLOPS 营销话术忽悠。</p>
+
+</main>
+
+</div>
+<script src="assets/main.js"></script>
+</body>
+</html>

@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -50,7 +50,7 @@
       <a href="28-coding-paradigm.html" title="AI 编程范式演进"><span class="num">28</span>AI 编程范式演进</a>
       <a href="29-memory-systems.html" title="LLM 记忆系统深度"><span class="num">29</span>LLM 记忆系统深度</a>
       <a href="30-product-design.html" title="AI 产品设计"><span class="num">30</span>AI 产品设计</a>
-      <a href="31-federated-learning.html" class="active" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
+      <a href="31-federated-learning.html" title="联邦学习与隐私计算"><span class="num">31</span>联邦学习与隐私计算</a>
       <a href="32-transformer-variants.html" title="Transformer 变体深度"><span class="num">32</span>Transforme</a>
       <a href="33-ai-chips.html" title="AI 芯片与算力"><span class="num">33</span>AI 芯片与算力</a>
     </div>
@@ -303,128 +303,165 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-
-  <main class="content">
+<main class="content">
     <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 31 · 专题深度 · 全书终章</span>
-      <h1>联邦学习与隐私计算<br>数据不动模型动</h1>
-      <p class="lead">医疗、金融等敏感行业的数据不能集中训练。<strong>联邦学习（Federated Learning）</strong>让数据留在本地、只传模型更新，实现「可用不可见」。本章讲清联邦学习的原理、差分隐私、安全多方计算、以及它在 LLM 时代的应用。</p>
-      <div class="meta"><span class="chip">阅读约 30 分钟</span><span class="chip">难度 ★★★★</span><span class="chip">前置：第 02、15 章</span></div>
+      <span class="eyebrow">◆ CHAPTER 31 · 核心知识系列</span>
+      <h1>联邦学习<br>数据不出域也能联合训练的隐私保护术</h1>
+      <p class="lead">医院的病例数据不能出院，银行的交易记录不能外传，手机里的照片不能上传——但 AI 又需要海量数据才能训练得好。这个矛盾困了行业十年。联邦学习给出了优雅的答案：让模型去数据那里，而不是让数据来模型这里。本章拆解 FedAvg 算法、梯度隐私攻击的惊悚真相，以及差分隐私与安全聚合如何构筑防线。</p>
+      <div class="meta">
+        <span class="chip">阅读约 25 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+      </div>
     </section>
 
-    <h2 class="section" id="problem"><span class="idx">★</span> 问题：数据孤岛与隐私墙</h2>
-    <p>AI 需要数据，但最有价值的数据往往<strong>不能共享</strong>：</p>
-    <ul>
-      <li>医院的患者数据（隐私+法规）；</li>
-      <li>银行的交易数据（机密）；</li>
-      <li>手机上的个人数据（隐私）；</li>
-      <li>跨企业的商业数据（竞争）。</li>
-    </ul>
-    <p>这导致「<strong>数据孤岛</strong>」——每家都有数据，但没法合起来训练更强的模型。联邦学习打破这堵墙。</p>
+    <h2 class="section" id="intro"><span class="idx">★</span> 数据孤岛与隐私悖论</h2>
+    <p>AI 的发展受限于三个字：数据、数据、数据。但现实世界中，最有价值的数据恰恰是被法律和商业逻辑锁死的：医疗机构的电子病历受 HIPAA 保护，银行的风控数据受银监监管，个人手机数据受 GDPR 约束。这些数据分散在无数"孤岛"中，无法集中训练。让所有医院把数据传到一个中心服务器？法律不允许。各自训练再拼模型？精度远不如联合训练。</p>
+    <p>2016 年，Google 在手机输入法 Gboard 上首创了联邦学习（Federated Learning）——手机本地训练模型，只把"模型更新"（梯度）上传到云端聚合，原始数据永远不离开设备。这个思路看似完美：数据隐私保住了，模型也能从百万设备的多样性中学习。但很快，研究人员发现了一个可怕的漏洞：梯度本身可能泄露原始数据。于是，一场围绕"梯度隐私"的攻防战开始了。</p>
 
-    <h2 class="section" id="federated"><span class="idx">01</span> 联邦学习：数据不动模型动</h2>
-    <p>核心思想：<strong>不把数据传到中央，而是把模型传到数据那里</strong>。</p>
-    <div class="diagram">
-      <div class="flow" style="flex-direction:column;">
-        <div class="node accent">中央服务器：分发初始模型</div>
-        <div style="color:var(--text-faint);">▼ 各方在本地用私有数据训练</div>
-        <div style="display:flex;gap:8px;">
-          <div class="node violet">医院A<br>本地训练<br>（数据不出院）</div>
-          <div class="node violet">医院B<br>本地训练<br>（数据不出院）</div>
-          <div class="node violet">医院C<br>本地训练<br>（数据不出院）</div>
-        </div>
-        <div style="color:var(--text-faint);">▼ 只传模型梯度（不含原始数据）</div>
-        <div class="node sky">中央：聚合梯度，更新全局模型</div>
-        <div style="color:var(--text-faint);">▼ 分发新模型，循环</div>
-        <div class="node accent">各方共享强模型，但数据从未离开本地</div>
-      </div>
-      <div class="cap">图 31-1 · 联邦学习：数据留在本地，只传模型更新</div>
-    </div>
+    <h2 class="section" id="fedavg"><span class="idx">★</span> FedAvg 算法：联邦学习的基石</h2>
+    <p>FedAvg（Federated Averaging）是联邦学习最基础的算法，由 Google 团队在 2017 年提出。它的流程可以用一句话概括：<strong>各参与方在本地用自有数据训练若干步，然后把模型参数上传到中心服务器，服务器做加权平均后下发新模型，循环往复。</strong></p>
+    <pre><code class="language-python">import torch
+from collections import OrderedDict
 
-    <h2 class="section" id="math"><span class="idx">02</span> FedAvg 算法</h2>
-    <p>最经典的联邦学习算法 <strong>FedAvg</strong>：</p>
-    <div class="diagram">
-      <div class="cap" style="font-size:15px;color:var(--accent);font-family:var(--mono);line-height:1.8;">
-        每轮 t：<br>
-        1. 服务器选一部分客户端 C₁...Cₖ<br>
-        2. 分发当前模型 w<sub>t</sub> 给它们<br>
-        3. 每个客户端 Cᵢ 在本地数据上训练，得到 w<sub>t+1</sub><sup>i</sup><br>
-        4. 服务器聚合：w<sub>t+1</sub> = Σ (nᵢ/n) · w<sub>t+1</sub><sup>i</sup>（按数据量加权平均）<br>
-        <span style="color:var(--text-faint);">nᵢ = 客户端 i 的样本数，n = 总样本数</span>
-      </div>
-    </div>
+class FedAvgServer:
+    def __init__(self, global_model, num_clients):
+        self.global_model = global_model
+        self.num_clients = num_clients
 
-    <h2 class="section" id="privacy"><span class="idx">03</span> 隐私增强：差分隐私与安全多方计算</h2>
-    <p>光传梯度还不够——梯度可能<strong>反推</strong>出原始数据（梯度泄露攻击）。需要额外保护：</p>
-    <div class="grid cols-2">
-      <div class="card"><span class="ic">📊</span><h4>差分隐私（DP）</h4><p>给梯度加噪声，让攻击者无法确定某条数据是否参与了训练。数学保证：ε 越小越隐私但越不准。</p></div>
-      <div class="card"><span class="ic">🔐</span><h4>安全多方计算（MPC）</h4><p>多方一起算，但谁也看不到对方的输入。用秘密分享、混淆电路等技术。</p></div>
-      <div class="card"><span class="ic">🧮</span><h4>同态加密（HE）</h4><p>在加密数据上直接计算，结果解密后等于明文计算结果。最强但最慢。</p></div>
-      <div class="card"><span class="ic">🖥️</span><h4>可信执行环境（TEE）</h4><p>用硬件安全区（如 Intel SGX）保护计算。快但信任硬件厂商。</p></div>
-    </div>
+    def aggregate(self, client_updates, client_weights):
+        """FedAvg 核心：按数据量加权平均各客户端的模型参数"""
+        aggregated = OrderedDict()
+        for key in self.global_model.state_dict().keys():
+            # 对每个参数做加权平均：θ_new = Σ(w_i * θ_i) / Σw_i
+            weighted_sum = sum(
+                w * client_update[key]
+                for w, client_update in zip(client_weights, client_updates)
+            )
+            aggregated[key] = weighted_sum / sum(client_weights)
+        self.global_model.load_state_dict(aggregated)
+        return self.global_model
 
-    <h2 class="section" id="llm-federated"><span class="idx">04</span> 联邦学习 × 大模型</h2>
-    <p>大模型时代，联邦学习主要用于<strong>微调</strong>（而非预训练，因为预训练太贵）：</p>
-    <ul>
-      <li><strong>联邦 LoRA</strong>：各方在本地数据上训 LoRA，只传 LoRA 参数（小），聚合后分发；</li>
-      <li><strong>跨机构微调</strong>：多家医院各自微调一个医疗模型，不共享患者数据；</li>
-      <li><strong>个性化联邦</strong>：各方有自己的 LoRA（个性化），共享一个基座。</li>
-    </ul>
-    <p>这和第 26 章的 LoRA 天然契合——LoRA 参数小，适合联邦传输。</p>
+def client_local_train(global_model, local_data, local_epochs=3):
+    """客户端本地训练：在自己数据上跑若干轮梯度下降"""
+    model = copy.deepcopy(global_model)
+    optimizer = torch.optim.SGD(model.parameters(), lr=0.01)
+    for epoch in range(local_epochs):
+        for x, y in local_data:
+            loss = torch.nn.functional.cross_entropy(model(x), y)
+            optimizer.zero_grad(); loss.backward(); optimizer.step()
+    return model.state_dict()  # 返回更新后的参数（不返回数据！）
 
-    <h2 class="section" id="challenges"><span class="idx">05</span> 联邦学习的挑战</h2>
-    <table>
-      <thead><tr><th>挑战</th><th>解法</th></tr></thead>
-      <tbody>
-        <tr><td>通信开销</td><td>梯度压缩、稀疏化、减少通信轮次</td></tr>
-        <tr><td>数据异构（Non-IID）</td><td>个性化联邦、正则化</td></tr>
-        <tr><td>客户端不可靠</td><td>容错聚合、异常检测</td></tr>
-        <tr><td>隐私 vs 精度权衡</td><td>调 ε、分层保护</td></tr>
-      </tbody>
-    </table>
+# 每轮联邦训练
+for round_num in range(100):
+    selected = random.sample(clients, k=10)              # 随机选 10 个客户端
+    updates = [client_local_train(global_model, c.data) for c in selected]
+    weights = [len(c.data) for c in selected]            # 按样本数加权
+    global_model = server.aggregate(updates, weights)    # 聚合 + 下发
+</code></pre>
+    <p>FedAvg 看似简单，但有几个关键设计：第一，<strong>客户端采样</strong>。每轮只随机选一部分客户端参与，降低通信和计算开销。第二，<strong>本地多轮训练</strong>。每个客户端在被选中后，在本地数据上跑若干个 epoch 才上传，减少通信轮次。第三，<strong>加权平均</strong>。聚合时按各客户端的数据量加权，避免数据量小的客户端被平均稀释。FedAvg 的收敛性已被理论证明，在数据非独立同分布（Non-IID）的场景下依然有效。</p>
 
-    <h2 class="section" id="summary"><span class="idx">06</span> 全书最终小结</h2>
-    <div class="grid cols-2">
-      <div class="callout note">
-        <div class="head">📌 本章要点</div>
-        <ul style="margin:6px 0;">
-          <li>联邦学习：<strong>数据不动模型动</strong>，打破数据孤岛；</li>
-          <li>FedAvg 是经典算法：本地训练 + 加权聚合；</li>
-          <li>隐私增强：差分隐私/MPC/同态加密/TEE；</li>
-          <li>LLM 时代：联邦 LoRA 微调是主战场。</li>
-        </ul>
-      </div>
-      <div class="callout tip">
-        <div class="head">🎓 全册 31 章完</div>
-        <p>从 Token 到联邦学习，你走完了 AI 全栈最完整的旅程：</p>
-        <ul style="font-size:13px;margin:6px 0;">
-          <li><strong>基石</strong>（1-2、12、14、17、22-23、27）</li>
-          <li><strong>工程</strong>（3-5、11、16、19、21、25、28）</li>
-          <li><strong>知识</strong>（6-7、13、20、29）</li>
-          <li><strong>技能</strong>（8、21）</li>
-          <li><strong>数据</strong>（18、26、31）</li>
-          <li><strong>评估与安全</strong>（9、15、24）</li>
-          <li><strong>产品</strong>（30）</li>
-        </ul>
-      </div>
-    </div>
+    <h2 class="section" id="gradient-attack"><span class="idx">★</span> 梯度隐私攻击：令人不寒而栗的真相</h2>
+    <p>很多人以为"不传数据只传梯度"就安全了。大错特错。2019 年，MIT 和 Cornell 的研究团队发表了著名的 DLG（Deep Leakage from Gradients）攻击论文，证明：<strong>仅凭一个批次的梯度，就能近乎完美地还原出对应的原始训练数据。</strong></p>
+    <p>DLG 攻击的原理很巧妙：攻击者（服务器）随机初始化一组"虚拟数据"和"虚拟标签"，用它们前向传播计算虚拟梯度，然后最小化虚拟梯度与真实梯度之间的距离。当两者足够接近时，虚拟数据就收敛到了真实数据。对于图像数据，还原结果几乎与原图一模一样；对于文本数据，逐 token 还原的准确率也极高。</p>
+    <pre><code class="language-python"># DLG 攻击的简化原理：从梯度反推原始数据
+def dlg_attack(model, real_grad, input_shape, num_steps=300):
+    """从真实梯度反演出原始输入数据"""
+    # 1. 随机初始化虚拟数据和标签
+    dummy_data = torch.randn(input_shape, requires_grad=True)
+    dummy_label = torch.randn(label_shape, requires_grad=True)
+    optimizer = torch.optim.LBFGS([dummy_data, dummy_label])
+    
+    for step in range(num_steps):
+        def closure():
+            optimizer.zero_grad()
+            # 2. 用虚拟数据计算虚拟梯度
+            pred = model(dummy_data)
+            loss = criterion(pred, dummy_label)
+            dummy_grad = torch.autograd.grad(loss, model.parameters())
+            
+            # 3. 最小化虚拟梯度与真实梯度的差距
+            grad_diff = sum(
+                ((dg - rg) ** 2).sum()
+                for dg, rg in zip(dummy_grad, real_grad)
+            )
+            grad_diff.backward()
+            return grad_diff
+        
+        optimizer.step(closure)
+        # 随着迭代，dummy_data 逐渐收敛到真实训练样本
+    
+    return dummy_data  # 还原出的原始图像/文本
+</code></pre>
+    <p>这意味着，在原始 FedAvg 中，恶意服务器完全可以偷窥每个客户端的训练数据。梯度不仅不是"安全的"，反而是一条"泄露数据的后门"。这一发现直接推动了联邦学习隐私保护技术的爆发——如果梯度会泄露数据，就必须在梯度上加保护。</p>
 
-    <blockquote>
-      全册 31 章完。<br><br>
-      这是一份写给 AI 时代工程师的完整地图。从「模型是什么」到「怎么训出来」，从「怎么包成产品」到「怎么安全部署」——你现在已经掌握了全栈 AI 工程的每一块拼图。<br><br>
-      <strong>技术会过时，但工程思维和底层原理会长存。</strong> 愿这份地图，陪你走过 AI 时代的每一次技术浪潮。<br><br>
-      <strong>去创造吧。世界正等待你用 AI 重新定义。</strong>
-    </blockquote>
+    <h2 class="section" id="dp"><span class="idx">★</span> 差分隐私：用噪声换取数学证明的安全</h2>
+    <p>差分隐私（Differential Privacy, DP）是隐私保护的"金标准"——它提供了可证明的数学保证。核心思想是：在查询结果中加入恰到好处的随机噪声，使得攻击者无法判断任何一个特定个体是否在数据集中。形式化定义：如果加入或移除任何一个样本，查询结果的分布几乎不变，那么这个查询就是满足差分隐私的。</p>
+    <p>在联邦学习中，差分隐私应用在客户端上传的梯度上：每个客户端先对本地梯度做裁剪（限制范数，防止个别样本主导），再添加高斯噪声，最后上传。这样即使服务器执行 DLG 攻击，还原出的也是带噪声的模糊数据，无法识别个体。代价是模型精度下降——噪声越大，隐私越强但精度越低，这是一个需要调参的 trade-off。</p>
+    <pre><code class="language-python">def dp_local_update(model, data, clip_bound=1.0, noise_multiplier=1.0):
+    """差分隐私保护的本地梯度计算（DP-SGD）"""
+    gradients_per_sample = []
+    for x, y in data:
+        # 逐样本计算梯度（而非批量平均）
+        loss = criterion(model(x.unsqueeze(0)), y.unsqueeze(0))
+        grads = torch.autograd.grad(loss, model.parameters())
+        gradients_per_sample.append(grads)
+    
+    # 1. 梯度裁剪：限制每个样本梯度的 L2 范数
+    clipped = []
+    for grads in gradients_per_sample:
+        total_norm = torch.sqrt(sum(g.pow(2).sum() for g in grads))
+        scale = min(1.0, clip_bound / (total_norm + 1e-6))
+        clipped.append([g * scale for g in grads])
+    
+    # 2. 聚合 + 加噪
+    avg_grad = [torch.stack(g).mean(0) for g in zip(*clipped)]
+    sensitivity = clip_bound  # 裁剪后的敏感度上界
+    noise_std = noise_multiplier * sensitivity
+    noisy_grad = [g + torch.randn_like(g) * noise_std for g in avg_grad]
+    
+    # 3. 用加噪梯度更新模型
+    optimizer.step(grads=noisy_grad)
+    return noisy_grad  # 上传的是加噪后的梯度
+</code></pre>
+    <p>差分隐私的强度由参数 <code>ε</code>（epsilon）衡量——ε 越小隐私越强。工业实践通常取 ε=1~10，配合裁剪阈值和噪声乘数调节。Google 在 Gboard 中使用了联邦学习 + 差分隐私，用户输入的数据在离开手机前就被噪声"模糊化"了。</p>
 
-    <div class="chapter-nav">
-      <a href="30-product-design.html"><div class="lbl">← 上一章</div><div class="ttl">30 · AI 产品设计</div></a>
-      <a href="index.html" class="next"><div class="lbl">回到目录 ↑</div><div class="ttl">全册 31 章完结</div></a>
-    </div>
-    <footer>
-      <p>AI 全栈实战教学 · 第 31 章 · 联邦学习与隐私计算 · 全册终章</p>
-      <p>参考：FedAvg · 差分隐私 · 联邦 LoRA · Google/Microsoft 联邦学习</p>
-    </footer>
-  </main>
+    <h2 class="section" id="secure-agg"><span class="idx">★</span> 安全聚合：多方计算的加密盾牌</h2>
+    <p>差分隐私保护了"梯度内容"，但服务器仍然能看到每个客户端上传了梯度这个事实本身。安全聚合（Secure Aggregation）解决的是另一个层面的问题：<strong>让服务器只能看到所有客户端梯度的总和，而看不到任何一个单独的梯度。</strong></p>
+    <p>安全聚合基于密码学中的安全多方计算（MPC）技术。核心思想是：每个客户端在上传梯度前，加上一个只有自己知道的"随机掩码"；这些掩码的巧妙设计使得：当服务器把所有掩码梯度相加时，掩码两两抵消，结果恰好是真实梯度的总和。而服务器无法从任何单个掩码梯度中还原原始梯度，因为掩码是随机的。</p>
+    <pre><code class="language-python"># 安全聚合的简化原理（实际实现用 Diffie-Hellman 密钥协商）
+def secure_aggregate_protocol(clients, server):
+    """客户端两两协商掩码，服务器只能看到总和"""
+    
+    # 阶段1：密钥协商 —— 每对客户端建立共享密钥
+    for i, j in combinations(clients, 2):
+        shared_key[i][j] = diffie_hellman(client_i, client_j)
+        # s_ij = s_ji（对称），用于生成互反的掩码
+    
+    # 阶段2：掩码加噪
+    masked_updates = {}
+    for client_i in selected_clients:
+        mask = 0
+        for client_j in selected_clients:
+            if i < j:
+                mask += pseudo_random(shared_key[i][j])   # 正掩码
+            elif i > j:
+                mask -= pseudo_random(shared_key[j][i])   # 负掩码
+        masked_updates[i] = client_i.grad + mask           # 加上掩码
+    
+    # 阶段3：服务器求和（掩码两两抵消）
+    total = sum(masked_updates.values())  
+    # = Σ(grad_i + mask_i) = Σgrad_i + Σmask_i = Σgrad_i + 0
+    # 服务器只拿到总和，看不到任何单个梯度
+    
+    return total / len(selected_clients)  # 平均梯度
+</code></pre>
+    <p>安全聚合的代价是通信开销增加（需要多轮交互）和容错复杂（如果某个客户端中途掉线，其掩码无法抵消）。Google 的生产级实现用了掩码消除、掉线恢复等大量工程优化。最理想的做法是<strong>差分隐私 + 安全聚合组合</strong>：安全聚合保证服务器看不到个体梯度，差分隐私保证即使看到总和也无法反推个体，双重保险。</p>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>联邦学习的核心洞察是"数据不动模型动"——FedAvg 让各参与方本地训练、只上传梯度，服务器加权聚合后下发新模型。但梯度并非天生安全，DLG 攻击证明仅凭梯度就能还原原始数据。于是我们有了两道防线：差分隐私在梯度上加噪声，提供数学可证明的隐私保证（代价是精度下降）；安全聚合用密码学让服务器只能看到梯度总和，看不到个体（代价是通信开销）。生产级联邦学习系统通常同时使用两者。联邦学习的意义远超技术本身——它为"数据可用不可见"提供了可行的工程方案，正在医疗、金融、广告等隐私敏感领域加速落地。</p>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

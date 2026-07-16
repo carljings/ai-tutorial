@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="zh-CN" data-theme="dark">
+<html lang="zh-CN">
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
@@ -7,10 +7,8 @@
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                                      <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -20,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -131,7 +129,7 @@
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
-      <a href="104-tfm-softmax-variants.html" class="active" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
+      <a href="104-tfm-softmax-variants.html" title="Softmax 之外：线性注意力的尝试"><span class="num">104</span>Softmax 之外</a>
       <a href="105-tfm-attention-bias.html" title="ALiBi 与相对位置偏置：另一种注入位置的方式"><span class="num">105</span>ALiBi 与相对位</a>
       <a href="106-tfm-context-length.html" title="上下文窗口的物理极限与突破"><span class="num">106</span>上下文窗口的物理极限</a>
       <a href="107-tfm-tokenization.html" title="Tokenizer：文字如何变成模型能吃的 Token"><span class="num">107</span>Tokenizer</a>
@@ -305,67 +303,264 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
-  <main class="content">
-<section class="hero"><span class="eyebrow">◆ 第 104 章 · Transformer 原理深挖</span>
-<h1>Softmax 之外：线性注意力的尝试</h1><p class="lead">softmax 注意力 O(n²) 是长序列瓶颈。线性注意力把 softmax 拆成 φ(Q)φ(K)^T，利用结合律降到 O(n)。Performer 用随机特征近似 softmax。性能与效果的权衡。</p>
-<div class="meta"><span class="chip">原理深挖</span><span class="chip">Transformer 原理深挖</span><span class="chip">★★★ 进阶</span></div></section>
-<h2><span class="idx"></span>机制本质</h2>
-<p>softmax 注意力 O(n²) 是长序列瓶颈。线性注意力把 softmax 拆成 φ(Q)φ(K)^T，利用结合律降到 O(n)。Performer 用随机特征近似 softmax。性能与效果的权衡。</p>
-<h2><span class="idx"></span>深入理解：三个层次</h2>
-<p>要彻底掌握这个机制，需要从三个层面思考。</p>
-<h3>数学层：它在算什么</h3>
-<p>每个机制都能用一个或几个公式精确描述。公式不是装饰，而是把"直觉"凝练成"可计算、可验证、可优化"的形式。看懂公式，你才能预判参数变化的效果、才能 debug 数值异常。</p>
-<p>Transformer 家族的公式有个共同特点：它们都是"加权和"的不同变体。注意力是按相关性加权的 V，FFN 是按激活值加权的专家/隐藏单元，MoE 是按门控加权的专家。理解了"加权求和"这个母模式，整个家族就豁然开朗。</p>
-<h3>设计层：为什么这么设计</h3>
-<p>每个设计决策都是对某个痛点的回应。√d_k 是对 softmax 饱和的回应、多头是对"单一关注模式不够"的回应、残差是对梯度消失的回应。理解了痛点，决策就顺理成章；不理解痛点，决策就成了"背公式"。</p>
-<p>现代大模型的每一处设计都是权衡（trade-off）的结果。理解了权衡的动机——计算量 vs 效果、显存 vs 速度、训练稳定 vs 最终性能——你才能在面对新场景时做出正确取舍，而不是机械套用。</p>
-<h3>工程层：怎么高效实现</h3>
-<p>同一个数学公式，不同的实现可以差几个数量级的速度。标准注意力 vs FlashAttention 是同一个公式，但后者快 2-4 倍、省 5-10 倍显存。这就是工程层的价值。</p>
-<h2><span class="idx"></span>代码实现</h2>
-<pre class="code"><code class="language-python">import torch
+<main class="content">
+    <section class="hero">
+      <span class="eyebrow">◆ CHAPTER 104 · Transformer 深度系列</span>
+      <h1>Softmax 变体<br>线性、稀疏、PAL 与 Latent Attention</h1>
+      <p class="lead">标准 softmax 注意力的 O(n²) 复杂度，是长上下文的硬天花板。Flash Attention 用工程手段省了显存，但计算量仍是平方级。要从根上解决，必须改 softmax 本身。本章梳理四条路线：稀疏注意力（只算重要的，跳过无关的）、线性注意力（用核函数把 softmax 换成可交换的线性运算，复杂度降到 O(n)）、Perceiver 的 PAL（把序列压缩成少量 latent token）、以及 DeepSeek 的 MLA（压缩 KV 维度）。每条路都有取舍。</p>
+      <div class="meta">
+        <span class="chip">阅读约 28 分钟</span>
+        <span class="chip">难度 ★★★★★</span>
+        <span class="chip">前置：第 94、101 章</span>
+      </div>
+    </section>
+
+    <h2 class="section" id="quadratic"><span class="idx">★</span> O(n²) 的诅咒</h2>
+    <p>把前面章节的结论再强调一次：标准注意力 softmax(QK^T/√d_k)V 的<strong>计算量和显存都是 O(n²)</strong>（n 是序列长度）。序列翻倍，开销变 4 倍。</p>
+
+    <blockquote>
+      n=4K → 分数矩阵 16M 元素；n=32K → 1B 元素；n=128K → 16B 元素。光存这个矩阵就要几十 GB。
+    </blockquote>
+
+    <p>Flash Attention 解决了「存不下」（显存 O(n)），但<strong>计算量还是 O(n²·d)</strong>。序列足够长时，算力也吃不消。要从根上突破，必须<strong>减少需要计算的注意力对数</strong>，或者<strong>用数学技巧绕开 softmax 的不可交换性</strong>。这就是本章几条路线的出发点。</p>
+
+    <div class="diagram">
+      <div class="flow" style="flex-direction:column;">
+        <div class="node accent">O(n²) 标准注意力</div>
+        <div style="color:var(--text-faint);">▼ 四条突破路线</div>
+        <div style="display:grid;grid-template-columns:repeat(2,1fr);gap:8px;width:100%;">
+          <div class="node sky">稀疏：只算「重要」的对，跳过无关的</div>
+          <div class="node sky">线性：核函数替代 softmax，O(n)</div>
+          <div class="node sky">PAL：序列压缩成少量 latent token</div>
+          <div class="node sky">MLA：压缩 KV 维度（DeepSeek）</div>
+        </div>
+      </div>
+      <div class="cap">图 104-1 · 降低注意力复杂度的四条路线</div>
+    </div>
+
+    <h2 class="section" id="sparse"><span class="idx">01</span> 稀疏注意力：只算重要的</h2>
+    <p>观察真实注意力的权重矩阵，会发现<strong>大部分权重集中在少数几个对上</strong>，其余接近 0。也就是说，n×n 个对里，真正「有信息」的可能只有一小部分。稀疏注意力的思路：<strong>只算这些重要的对，跳过无关的</strong>。</p>
+
+    <p>怎么决定哪些对重要？几种策略：</p>
+
+    <ul>
+      <li><strong>局部窗口（Local/Window）</strong>：每个 token 只关注前后 w 个 token（如 w=512）。语言里大部分依赖是局部的，这个简单策略就能砍掉大部分计算。Longformer、BigBird 用它。</li>
+      <li><strong>分块（Blockwise）</strong>：把序列切成块，只在块内做完整注意力，块间用少量「全局 token」连接。</li>
+      <li><strong>可学习稀疏（如 Routing/Reformer）</strong>：用哈希或聚类，让「可能相关」的 token 分到一组，只在组内算。</li>
+      <li><strong>动态稀疏</strong>：先粗算一遍分数，只对 top-k 高分的对做精确注意力。</li>
+    </ul>
+
+    <p>GPT-3 训练时用了<strong>交替的稀疏 + 稠密注意力</strong>：部分层稠密（保证表达力），部分层稀疏（省计算）。Longformer 则是局部窗口 + 少量全局 token 的组合，能处理 32K+ 文档。</p>
+
+    <div class="callout pit">
+      <div class="head">⚠️ 稀疏的代价：信息丢失</div>
+      <p>稀疏注意力假设「无关的对可以忽略」，但这不总是对的。有些长距离依赖（比如文档开头的主语和结尾的代词）权重虽小但语义关键，稀疏掉就丢了。而且稀疏模式不规则时，GPU 难以高效并行（不规则访存），实际加速往往打折。这是稀疏路线没有全面取代标准注意力的原因。</p>
+    </div>
+
+    <h2 class="section" id="linear"><span class="idx">02</span> 线性注意力：用核函数绕开 softmax</h2>
+    <p>这是数学上最优雅的路线。标准注意力的瓶颈在 softmax——它让 QK^T 必须先算完（不可分解）。线性注意力的洞察：<strong>把 softmax 替换成一个可分解的核函数 φ，就能利用矩阵乘的结合律换序，把 O(n²) 降到 O(n)</strong>。</p>
+
+    <p>推导如下。标准注意力：</p>
+    <blockquote>
+      Attn(Q,K,V) = softmax(QK^T)V ≈ [ Σ_j exp(q_i·k_j) · v_j ] / [ Σ_j exp(q_i·k_j) ]
+    </blockquote>
+
+    <p>把 exp(q·k) 替换成核函数 φ(q)·φ(k)（exp 是 Mercer 核的一种，但计算上不可分解；换成 ELU+1、ReLU 等就成了可分解的线性核）：</p>
+
+    <blockquote>
+      线性注意力 = [ Σ_j φ(q_i)·φ(k_j)·v_j ] / [ Σ_j φ(q_i)·φ(k_j) ]<br>
+      &nbsp;&nbsp;= φ(q_i)·[ Σ_j φ(k_j)⊗v_j ] / [ φ(q_i)·Σ_j φ(k_j) ]
+    </blockquote>
+
+    <p>关键：<strong>方括号里的 Σ_j φ(k_j)⊗v_j 和 Σ_j φ(k_j) 只依赖 K、V，不依赖 Q</strong>。可以预先算好（一个 d×d 矩阵）。于是计算变成：对每个 q_i，做几次矩阵乘，<strong>不需要 Q×K^T 这个 n×n 矩阵</strong>。复杂度从 O(n²d) 降到 O(nd²)。</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>复杂度</th><th>质量</th><th>代表</th></tr></thead>
+      <tbody>
+        <tr><td>标准 softmax</td><td>O(n²d)</td><td>最好</td><td>所有主流 LLM</td></tr>
+        <tr><td>线性注意力（ELU/ReLU 核）</td><td>O(nd²)</td><td>明显下降</td><td>Linformer, Performer</td></tr>
+        <tr><td>Performer（FAVOR+）</td><td>O(nd²) 用随机特征近似 softmax</td><td>下降</td><td>Google</td></tr>
+      </tbody>
+    </table>
+
+    <p>问题：<strong>质量下降明显</strong>。softmax 的指数放大效应是注意力表达力的关键，用线性核替代后，「软选择」退化成「平均」，区分度大减。在短序列上甚至比标准注意力还慢（d² 项开销）。所以线性注意力在 LLM 主流里没普及，更多用在<strong>超长序列、对质量要求不极端</strong>的场景（如长视频、生物序列）。</p>
+
+    <div class="code-title">linear_attention.py —— 线性注意力实现</div>
+    <pre><code class="language-python">import torch
+import torch.nn.functional as F
+
+def linear_attention(Q, K, V):
+    """线性注意力：用 ELU+1 作为核函数，复杂度 O(nd^2)。
+    利用矩阵乘结合律避免 n×n 矩阵。
+    """
+    # φ(x) = ELU(x) + 1，保证非负（核函数要求）
+    phi_Q = F.elu(Q) + 1   # (B, n, d)
+    phi_K = F.elu(K) + 1   # (B, n, d)
+
+    # 关键：先算 K^T V (d×d)，再乘 Q
+    # 标准是 Q (K^T V)，线性是 (Q K^T) V —— 换序省掉 n×n
+    KV = phi_K.transpose(-2, -1) @ V   # (B, d, d)
+    Z = phi_Q @ (phi_K.sum(dim=1, keepdim=True).transpose(-2, -1))  # 归一化项
+    output = (phi_Q @ KV) / (Z + 1e-6)
+    return output
+
+# 对比复杂度
+n, d = 8192, 64
+Q = torch.randn(1, n, d); K = torch.randn(1, n, d); V = torch.randn(1, n, d)
+# 标准：n×n = 8192² ≈ 67M 元素的中间矩阵
+# 线性：只有 d×d = 4096 元素，省了 1.6 万倍中间内存
+out = linear_attention(Q, K, V)
+print("线性注意力输出形状:", out.shape)
+</code></pre>
+
+    <h2 class="section" id="pal"><span class="idx">03</span> PAL：把序列压成 latent token</h2>
+    <p>Perceiver（DeepMind 2021）走的是另一条路：<strong>不去优化注意力的实现，而是减少要 attend 的 token 数</strong>。它引入一组固定的「latent token」（比如 256 或 512 个），让原始输入序列（可能几万个 token）和这组 latent 做 cross-attention，把信息压缩进 latent。后续层只在 latent 之间做注意力。</p>
+
+    <blockquote>
+      Perceiver: 输入 (n 个 token) × latent (m 个) → cross-attention → 压缩成 m 个 latent<br>
+      后续层：m 个 latent 之间做 self-attention，复杂度 O(m²)，与原始 n 无关
+    </blockquote>
+
+    <p>m 通常远小于 n（比如 256 vs 10000），所以后续计算极便宜。代价是：信息被「有损压缩」进 m 个 latent，细节会丢失。Perceiver 在多模态（图像、音频、点云这种超长输入）里很有用——把几十万像素压成几百 latent，让 Transformer 能处理。</p>
+
+    <p>类似的思路在 Set Transformer（ISAB）、Funnel-Transformer 里也有。本质都是「<strong>用一组小规模的锚点 token 去汇总大规模输入</strong>」。</p>
+
+    <h2 class="section" id="mla"><span class="idx">04</span> MLA：压缩 KV 维度（DeepSeek）</h2>
+    <p>DeepSeek-V2 引入了 <strong>MLA（Multi-head Latent Attention）</strong>，是近年来最有创意的注意力变体之一。它的思路：<strong>不压缩 token 数，而是压缩 KV 的特征维度</strong>。</p>
+
+    <p>具体做法：①把每个 token 的 K、V 向量<strong>压缩</strong>成一个低维的 latent 向量 c（比如从 d 维压到 d_c 维，d_c 远小于 d）；②存进 KV cache 的只是这个低维 latent；③需要用时，从 latent <strong>解压</strong>（上投影）回完整的 K、V。</p>
+
+    <blockquote>
+      MLA: K = W_K^U · (W_K^D · x)，V = W_V^U · (W_V^D · x)<br>
+      cache 只存 W_K^D · x 和 W_V^D · x（低维 latent），不存完整 K、V
+    </blockquote>
+
+    <p>效果：<strong>KV cache 显存大幅下降</strong>（DeepSeek-V2 比 MHA 省 ~93%，比 GQA 还省），同时效果接近 MHA。DeepSeek-V2 / V3 凭借 MLA 实现了极高的推理效率，是国产大模型里工程创新的代表。</p>
+
+    <div class="callout note">
+      <div class="head">📌 MLA 和 GQA 的区别</div>
+      <p>GQA 是「减少 KV 的头数」（横向压缩）；MLA 是「减少 KV 的维度」（纵向压缩）。两者正交，理论上可以叠加。MLA 的精妙在于压缩后的 latent 能在需要时无损地（通过学习的上投影）恢复出 K、V，比简单量化更优雅。代价是<strong>推理时多一次上投影矩阵乘</strong>，但相对省下的 cache 显存，这点开销微不足道。</p>
+    </div>
+
+    <h2 class="section" id="comparison"><span class="idx">05</span> 四条路线横向对比</h2>
+    <table>
+      <thead><tr><th>方案</th><th>核心思路</th><th>复杂度</th><th>质量</th><th>局限</th></tr></thead>
+      <tbody>
+        <tr><td>标准 softmax</td><td>全对全</td><td>O(n²d)</td><td>最好</td><td>长序列爆炸</td></tr>
+        <tr><td>稀疏注意力</td><td>只算局部/重要对</td><td>O(n·w·d) 或更低</td><td>中（丢长距）</td><td>规则稀疏 GPU 不友好</td></tr>
+        <tr><td>线性注意力</td><td>核函数替代 softmax</td><td>O(nd²)</td><td>下降明显</td><td>表达力损失大</td></tr>
+        <tr><td>PAL（Perceiver）</td><td>压成 latent token</td><td>O(nm + m²)</td><td>视 m 而定</td><td>有损压缩</td></tr>
+        <tr><td>MLA（DeepSeek）</td><td>压缩 KV 维度</td><td>O(n²d_c)，cache 省</td><td>接近 MHA</td><td>实现复杂</td></tr>
+        <tr><td>Flash Attention</td><td>工程优化（非数学改）</td><td>O(n²d) 同</td><td>完全一致</td><td>仍 O(n²) 计算</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="why-softmax-still"><span class="idx">06</span> 为什么 softmax 还没被取代</h2>
+    <p>看上面表格会发现一个反直觉的事实：<strong>2026 年主流大模型仍然用标准 softmax + Flash Attention</strong>，几乎没有用线性、稀疏、PAL 这些「看起来更先进」的方案。为什么？</p>
+
+    <ul>
+      <li><strong>softmax 的表达力难以替代</strong>：指数放大让注意力能做「明确的软选择」，这是语言理解的关键。所有替代方案都有质量损失，而在追求极致质量的 LLM 竞赛里，哪怕 1% 的损失都难以接受。</li>
+      <li><strong>Flash Attention 已经足够好</strong>：它让标准注意力在 32K~128K 上下文下可行（显存 O(n)、计算虽 O(n²) 但常数小），削弱了换方案的动机。</li>
+      <li><strong>GPU 硬件偏爱稠密矩阵乘</strong>：标准注意力是规整的 GEMM，Tensor Core 极度优化。稀疏/线性方案的不规则访存反而跑不满算力。</li>
+      <li><strong>工程成熟度</strong>：标准注意力 + Flash Attention 的工具链（CUDA kernel、量化、分布式）极其成熟，新方案的生态远跟不上。</li>
+    </ul>
+
+    <div class="callout tip">
+      <div class="head">💡 趋势：混合而非取代</div>
+      <p>真正在生产里落地的，往往是<strong>混合方案</strong>：大部分层用标准 softmax + Flash Attention（保证质量），少数层用稀疏或线性（拉长上下文）。比如 GPT-3 训练时稠密稀疏交替，GLM-4-Long 在超长上下文用滑动窗口 + 全局 token。MLA 这种「保持 softmax 但压缩 KV」的思路，因为不牺牲质量，反而比纯线性/稀疏更有前景。</p>
+    </div>
+
+    <h2 class="section" id="code-sparse"><span class="idx">07</span> 代码：实现一个滑动窗口稀疏注意力</h2>
+    <div class="code-title">sliding_window.py —— 局部窗口稀疏注意力</div>
+    <pre><code class="language-python">import torch
 import torch.nn.functional as F
 import math
 
-def scaled_dot_product_attention(Q, K, V, mask=None):
-    """缩放点积注意力的最小实现。
-    Q, K, V: (batch, heads, seq, d_k)
+def sliding_window_attention(Q, K, V, window_size=512):
+    """滑动窗口稀疏注意力：每个 token 只 attend 前后 window 个 token。
+    用 mask 实现稀疏（实际生产用 block-sparse kernel 更高效）。
     """
-    d_k = Q.size(-1)
-    # 1. 相关性分数: QK^T
-    scores = torch.matmul(Q, K.transpose(-2, -1)) / math.sqrt(d_k)
-    # 2. 应用掩码（因果/填充）
-    if mask is not None:
-        scores = scores.masked_fill(mask == 0, float('-inf'))
-    # 3. 归一化成权重
-    attn = F.softmax(scores, dim=-1)
-    # 4. 加权聚合 V
-    out = torch.matmul(attn, V)
-    return out, attn
+    B, H, N, D = Q.shape
+    scores = Q @ K.transpose(-2, -1) / math.sqrt(D)  # (B, H, N, N)
 
-# 验证形状
-Q = K = V = torch.randn(2, 8, 16, 64)  # batch=2, heads=8, seq=16, d_k=64
-out, attn = scaled_dot_product_attention(Q, K, V)
-print(out.shape)   # (2, 8, 16, 64)
-print(attn.shape)  # (2, 8, 16, 16) - 每行是注意力权重分布</code></pre>
-<p>注意第四步的形状：注意力矩阵 attn 是 (seq, seq)，它编码了"每个位置对每个位置的关注程度"。可视化这个矩阵是理解模型行为的最直接手段——你会看到模型"在看哪里"。</p>
-<h2><span class="idx"></span>工程权衡与调优</h2>
-<p>在生产环境部署时，有几个关键旋钮需要注意。维度的选择影响显存和效果：d_k 太小表达力不足，太大显存爆炸。注意力的实现方式影响速度：标准实现 vs FlashAttention 可以差数倍。掩码的设计影响功能边界：因果掩码让模型自回归、双向掩码让模型理解全句。</p>
-<table class="data-table"><thead><tr><th>设计点</th><th>选项</th><th>影响</th><th>典型选择</th></tr></thead><tbody><tr><td>d_k</td><td>32/64/128</td><td>表达力 vs 显存</td><td>64 (d_model/h)</td></tr><tr><td>头数 h</td><td>8/16/32</td><td>并行度 vs 每头维度</td><td>与 d_model 配比</td></tr><tr><td>注意力实现</td><td>标准/Flash</td><td>显存 vs 兼容性</td><td>Flash 优先</td></tr><tr><td>位置编码</td><td>正弦/RoPE/ALiBi</td><td>外推 vs 效果</td><td>RoPE</td></tr></tbody></table>
-<div class="callout"><strong>💡 要点</strong><br>调优心法：先保证正确性（数值稳定、形状对齐），再追求效率（选对实现、控制显存），最后才考虑极致优化。过早优化是万恶之源——一个能跑的正确实现，胜过一个很快但有 bug 的实现。</div>
-<h2><span class="idx"></span>常见陷阱</h2>
-<p>陷阱一：数值不稳定。softmax 遇到很大的输入会溢出（inf），导致 NaN。除了 √d_k 缩放，有些实现用 log-sum-exp 技巧进一步稳定。如果你训练时 loss 突然变 NaN，第一个怀疑的就是数值问题。</p>
-<p>陷阱二：形状错配。多头注意力涉及大量 reshape/transpose，稍不注意就把 (batch, heads, seq, d) 和 (batch, seq, heads, d) 搞混。建议每一步都 print 形状，用小 batch 跑通后再放大。</p>
-<p>陷阱三：掩码方向。因果掩码应该是上三角为 -inf（屏蔽未来），但初学者经常搞反，导致模型"作弊"看到答案，训练 loss 极低但推理全错。</p>
-<h2><span class="idx"></span>与其它机制的关系</h2>
-<p>注意力不是孤立存在的。它和位置编码配合才有"顺序感"，和残差+LayerNorm 配合才能堆深，和 FFN 配合才有"记忆"，和多头配合才能多角度关注。理解了这些配合，Transformer 的完整图景就清晰了。</p>
-<p>从演进看，注意力也在不断被优化：MQA/GQA 让 KV cache 更省、FlashAttention 让计算更快、线性注意力让长序列可行。这些优化都建立在"理解注意力本质"的基础上——所以本章的基础打牢，后续的学习会事半功倍。</p>
-<h2><span class="idx"></span>本章小结</h2>
-<p>本章我们从数学到代码完整剖析了"Softmax 之外：线性注意力的尝试"。掌握这个机制，你就掌握了现代大模型最核心的积木之一。后续章节会在此基础上叠加更多机制——多头、RoPE、FlashAttention——它们都是对这个基础积木的优化或扩展。</p>
-<p>建议你立即动手：把本章的代码在自己的环境跑一遍，修改参数观察输出变化，画一画注意力矩阵的可视化。实践是检验理解的唯一标准。</p>
-<div class="chapter-nav">
-<a href="103-tfm-layernorm.html"><div class="lbl">← 上一章</div><div class="ttl">103 · LayerNorm 与残差：让深层 Transformer 可训练</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="105-tfm-attention-bias.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">105 · ALiBi 与相对位置偏置：另一种注入位置的方式</div></a></div>
-<footer><p>AI 全栈实战教学 · 第 104 章 · Softmax 之外：线性注意力的尝试</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
-  </main>
+    # 构造窗口 mask：位置 (i,j) 在 |i-j| <= window 内为 1
+    positions = torch.arange(N, device=Q.device)
+    rel = (positions.unsqueeze(0) - positions.unsqueeze(1)).abs()  # (N, N)
+    mask = (rel <= window_size).float().view(1, 1, N, N)
+
+    scores = scores.masked_fill(mask == 0, float('-inf'))
+    weights = F.softmax(scores, dim=-1)
+    return weights @ V
+
+# 对比：标准 vs 稀疏在长序列上的中间矩阵规模
+N = 8192
+# 标准：完整 N×N mask，8192² = 67M 元素
+# 稀疏（window=512）：每行只有 ~1024 个非零，但用 dense mask 实现仍占 N×N
+# 真正省内存要用 block-sparse kernel，这里只是演示逻辑
+Q = torch.randn(1, 8, N, 64); K = torch.randn(1, 8, N, 64); V = torch.randn(1, 8, N, 64)
+out = sliding_window_attention(Q, K, V, window_size=256)
+print("稀疏注意力输出:", out.shape)
+</code></pre>
+
+    <p>注意：上面用 dense mask 实现<strong>只是演示逻辑</strong>，实际中间矩阵还是 N×N。真正的稀疏注意力要用 block-sparse kernel（如 Triton 写的）跳过 0 块的计算。这就是为什么稀疏注意力工程实现复杂——数学简单，但要榨出性能需要大量 kernel 工程。</p>
+
+    <h2 class="section" id="future"><span class="idx">08</span> 注意力变体的未来</h2>
+    <p>总结一下当前态势和趋势：</p>
+
+    <div class="grid cols-2">
+      <div class="card">
+        <span class="ic">🏆</span>
+        <h4>当下主流</h4>
+        <p>标准 softmax + Flash Attention + GQA。质量、效率、工程成熟度的最佳平衡。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🚀</span>
+        <h4>上升中的方案</h4>
+        <p>MLA（DeepSeek）：保持质量同时大幅压缩 KV。QK-Norm：稳定超深训练。可能成为新主流。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🎯</span>
+        <h4>特定场景</h4>
+        <p>稀疏注意力用于超长文档（Longformer）。线性注意力用于流式/在线推理（RWKV, Mamba 的灵感来源）。</p>
+      </div>
+      <div class="card">
+        <span class="ic">🔮</span>
+        <h4>长远方向</h4>
+        <p>状态空间模型（Mamba, 第 118 章）试图用线性 RNN 彻底替代注意力，是另一条值得关注的路线。</p>
+      </div>
+    </div>
+
+    <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
+    <div class="grid cols-2">
+      <div class="callout note">
+        <div class="head">四条降复杂度路线</div>
+        <ul style="margin:6px 0;">
+          <li>稀疏：只算局部/重要对（Longformer）</li>
+          <li>线性：核函数替代 softmax（Performer）</li>
+          <li>PAL：压成 latent token（Perceiver）</li>
+          <li>MLA：压缩 KV 维度（DeepSeek）</li>
+        </ul>
+      </div>
+      <div class="callout tip">
+        <div class="head">现实选择</div>
+        <ul style="margin:6px 0;">
+          <li>主流仍是标准 softmax + Flash Attention</li>
+          <li>softmax 表达力难以无损替代</li>
+          <li>GPU 偏爱稠密 GEMM</li>
+          <li>MLA 是「保质量降成本」的最有前景方向</li>
+        </ul>
+      </div>
+    </div>
+
+    <p>本章讨论的变体，都还在「改 softmax 本身」的框架内。但还有一条完全不同的注入位置的路线——<strong>不用位置编码，而是在注意力分数上加偏置</strong>。ALiBi（Attention with Linear Biases）就是代表，它用一个简单的距离惩罚项，实现了惊人的外推能力。下一章讲这种「注意力偏置」思路。</p>
+
+    <blockquote>
+      下一章：<a href="105-tfm-attention-bias.html">第 105 章 · ALiBi 与相对位置偏置：另一种注入位置的方式</a>
+    </blockquote>
+
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>
