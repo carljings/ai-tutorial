@@ -314,7 +314,9 @@
       </div>
     </section>
 
-    <h2 class="section" id="embedding-basics"><span class="idx">★</span> 一、embedding 在代码检索里扮演什么角色</h2>
+    <p><strong>补充说明：</strong>embedding模型选型建议是快速发展的领域，建议定期关注Hugging Face博客、arXiv最新论文和主流开源社区动态，保持知识的持续更新。实践比理论更重要——每学一个新概念，就动手写一个小demo验证。</p>
+
+<h2 class="section" id="embedding-basics"><span class="idx">★</span> 一、embedding 在代码检索里扮演什么角色</h2>
     <p>回顾上一章，Continue 的检索是向量 + tf-idf 的混合方案。embedding 模型负责把代码块和查询都映射到同一个向量空间，让「语义相似」的代码在这个空间里距离更近。比如「用户登录验证」这个查询，理想情况下应该和包含 <code>def authenticate(user, password)</code> 的代码块向量接近——虽然字面只有「用户」二字相关，但语义上都是「登录验证」。</p>
     <p>embedding 模型的质量，直接决定了向量检索这一半的召回质量。一个差的 embedding 模型可能把「登录」和「注销」映射得很近（因为都是认证相关），但你要找的是 login 代码不是 logout 代码——这就会产生噪声。好的 embedding 模型能在「相关」和「精确」之间找到平衡。</p>
     <p>对代码场景，embedding 模型有两个特殊挑战：第一，代码是「结构化+自然语言」的混合（标识符是结构化、注释是自然语言）；第二，代码的语义强依赖上下文（同一段代码在不同上下文里语义不同）。通用文本 embedding 模型不一定能处理好这些。</p>
