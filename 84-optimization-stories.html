@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 优化案例集 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 优化案例集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 优化案例集 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 优化案例集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,18 +315,6 @@
     </section>
 
     <h2 class="section" id="case-overview"><span class="idx">★</span> 一、四个案例概览</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、四个案例概览</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、案例 1：推理速度优化（7.5 倍提升）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、案例 2：内存优化（降 75%）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、案例 3：成本优化（降 85%）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、案例 4：精度优化（82% → 94%）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、四个案例的共同经验</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <pre><code class="language-text">四个优化案例：
 
 案例 1：推理速度优化
@@ -672,6 +656,79 @@ accuracy_comparison = {
       <li><strong>优化有天花板</strong>：prompt 优化的精度天花板约 90%，突破要靠微调。</li>
       <li><strong>权衡是常态</strong>：速度 vs 质量、成本 vs 效果、通用 vs 专业，永远在做平衡。</li>
     </ul>
+
+    <h2 class="section" id="deep84"><span class="idx">深</span> 优化案例复盘：从问题到方案的推导</h2>
+
+    <p>真实的优化案例比抽象的方法论更有学习价值——它展示了<strong>如何从现象定位瓶颈、如何权衡方案、效果如何量化</strong>。下面复盘一个典型的“延迟过高”优化案例。</p>
+
+    <h3>延迟优化的诊断闭环</h3>
+    <p>优化不是“上来就试方法”，而是<strong>先量化定位，再对症下药</strong>。下面是一个真实优化过程的诊断脚本。</p>
+
+    <pre><code># 场景：客服 LLM 响应 P99 延迟 8s，目标降到 2s
+def latency_breakdown(request):
+    """分阶段计时，找出延迟大头。"""
+    t = {}
+    t["input_preprocess"] = time_step(preprocess, request)   # 输入处理
+    t["retrieve"] = time_step(rag.retrieve, request)         # RAG 检索
+    t["prefill"] = time_step(llm.prefill, request)           # 首 token
+    t["decode"] = time_step(llm.decode, request)             # 逐 token
+    t["postprocess"] = time_step(postprocess, request)       # 后处理
+    total = sum(t.values())
+    for k,v in t.items():
+        print(f"{k:18s} {v*1000:6.0f}ms  {v/total:4.0%}")
+    return t
+
+# 诊断结果(假设):
+#   input_preprocess     50ms   1%
+#   retrieve            800ms  10%   ← 检索慢
+#   prefill            1500ms  19%   ← 长 prompt
+#   decode             5500ms  69%   ← 大头！生成太慢
+#   postprocess         150ms   2%
+# 结论：decode 是绝对大头，优先攻生成速度；其次 prefill</code></pre>
+
+    <p>这个分阶段计时是优化的第一步——<strong>不量化就不知道攻哪里</strong>。本例 69% 时间在 decode，所以优化方向是提速生成，而非纠结检索或预处理。</p>
+
+    <table>
+      <thead><tr><th>瓶颈阶段</th><th>典型占比</th><th>优化手段</th><th>预期收益</th></tr></thead>
+      <tbody>
+        <tr><td><strong>检索</strong></td><td>5~15%</td><td>缓存、索引调优、异步</td><td>30~50%</td></tr>
+        <tr><td><strong>Prefill</strong></td><td>15~25%</td><td>缩短prompt、Prefix Cache</td><td>30~60%</td></tr>
+        <tr><td><strong>Decode</strong></td><td>60~75%</td><td>量化、小模型、投机解码、限长</td><td>2~4×</td></tr>
+        <tr><td><strong>后处理</strong></td><td>2~5%</td><td>通常不值得优化</td><td>有限</td></tr>
+      </tbody>
+    </table>
+
+    <h3>方案权衡与组合优化</h3>
+    <p>定位到 decode 是大头后，怎么优化要<strong>权衡多个方案的成本和副作用</strong>。本例的决策过程：方案一是<strong>量化</strong>（INT4，提速 2~3×，精度损失 &lt;1%，几乎无副作用）→ 首选，立即做。方案二是<strong>限制生成长度</strong>（max_tokens 砍半，延迟减半，但可能截断有用内容）→ 配合“先摘要再详述”的 prompt 设计，让短回答也有用。方案三是<strong>小模型路由</strong>（简单问题走小模型，延迟和成本都大降，但复杂问题仍走大模型）→ 引入分类器判断难度。方案四是<strong>投机解码</strong>（draft model 猜，大模型验，提速 2~3×，但增加实现复杂度）→ 作为进阶。<strong>组合后实测</strong>：量化+限长+路由，P99 从 8s 降到 1.8s，达到目标，且业务质量（赞踩比）未降。<strong>关键教训</strong>：第一，永远先量化再优化，本例如果盲目优化检索（只占 10%），收益有限；第二，<strong>组合优化有乘法效应</strong>，但每加一个都要验证不破坏其他指标（尤其质量）；第三，<strong>记录优化前后的基线</strong>，既证明价值，也防止后续改动悄悄倒退。<strong>优化是无止境的</strong>，要设定明确目标（如 P99 &lt; 2s），达标就停，避免过度优化——把精力转向更高价值的质量或功能改进，是更理性的工程判断。</p>
+
+    <h2 class="section" id="deep84b"><span class="idx">深</span> 优化案例 FAQ 与复盘</h2>
+    <p>优化案例最有学习价值，这些问题展示推导过程。</p>
+    <h3>Q1：优化做了一堆，怎么向上证明价值？</h3>
+    <p><strong>量化对比+讲清因果</strong>。优化前后基线对比（如「P99 从 8s 降到 1.8s，成本降 40%，质量不变」），用数字说话。讲清<strong>因果链</strong>：诊断发现 decode 占 69%→攻生成速度→量化+路由组合→达目标。<strong>记录每步优化的贡献</strong>，既证明价值也防后续倒退。<strong>算 ROI</strong>：投入 N 人天，省 M 元/月，X 个月回本。<strong>避免「优化了但没度量」</strong>——没基线对比的优化无法证明价值，老板不认。养成「优化前先建基线」的习惯，是工程专业的体现。</p>
+    <pre><code># 优化 ROI 量化报告
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：优化到什么程度该停？</h3>
+    <p><strong>达标就停，转向更高价值的事</strong>。设明确目标（P99<2s），达标后别过度优化（2s→1.5s 用户无感但投入大）。<strong>判断标准</strong>：收益是否用户可感知或商业可量化，不能就停。<strong>80/20 法则</strong>：用 20% 投入拿到 80% 收益后，剩下 20% 收益要花 80% 投入，通常不值。<strong>转向</strong>：性能够用后，把精力转向质量、功能、新场景，ROI 更高。<strong>记录「未做的优化」</strong>（还有什么可优化但暂不做及原因），供未来需要时捡起。优化是手段不是目的——服务业务价值才是目的，别陷入「为优化而优化」。</p>
+    <h3>对比速查：优化瓶颈与手段</h3>
+    <table>
+      <thead><tr><th>瓶颈阶段</th><th>典型占比</th><th>优化手段</th><th>收益</th></tr></thead>
+      <tbody>
+        <tr><td>检索</td><td>5-15%</td><td>缓存/索引调优</td><td>30-50%</td></tr>
+        <tr><td>Prefill</td><td>15-25%</td><td>缩短prompt/前缀缓存</td><td>30-60%</td></tr>
+        <tr><td>Decode</td><td>60-75%</td><td>量化/小模型/投机</td><td>2-4x</td></tr>
+        <tr><td>后处理</td><td>2-5%</td><td>通常不值得</td><td>有限</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章通过四个真实优化案例展示了 LLM 工程的优化方法论。核心要点：</p>

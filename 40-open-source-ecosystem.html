@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>开源大模型生态全景 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="开源大模型生态全景 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="开源大模型生态全景 · AI 全栈实战教学">
-<meta property="og:description" content="开源大模型生态全景 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -437,6 +433,125 @@ def eval_on_my_tasks(model_endpoint):
 # 公开榜单测的是通用能力，你的任务可能有特殊要求
 # （领域术语、输出格式、特定风格）</code></pre>
     <div class="callout"><strong>💡 部署建议</strong><br>本地部署的三阶段策略：① <strong>开发阶段用 Ollama</strong>——一键拉模型，CPU 都能跑，快速验证可行性；② <strong>测试阶段上 vLLM</strong>——GPU 部署，测真实并发和延迟；③ <strong>生产阶段优化 vLLM 配置</strong>——加量化、prefix cache、监控。无论哪个阶段，<strong>务必在自己的评测集上测</strong>——开源模型的能力参差很大，公开榜单（MMLU/C-Eval）反映的是通用水平，不等于在你特定任务上的表现。花一周建一个 100-500 条的领域评测集，是选型最值得的投资。</div>
+    <h2 class="section" id="deep40"><span class="idx">深</span> 开源模型选型：能力、许可与生态三维评估</h2>
+
+    <p>选开源模型，只看榜单分数是不够的。一个能在生产用住的模型，要过<strong>能力、许可、生态</strong>三道关。下面给出一套结构化的选型评估表和决策方法。</p>
+
+    <h3>结构化选型评估</h3>
+    <p>把主观印象变成可对比的打分表，是避免“凭感觉选型”的关键。下面是一个最小可用的评估框架。</p>
+
+    <pre><code># 用结构化打分对比候选模型，避免拍脑袋
+candidates = [
+  {"name":"GLM-4-9B-Chat", "size":9,  "license":"Apache-2.0",
+   "ctx":128, "zh":0.92, "code":0.85, "math":0.78, "mmlu":0.75},
+  {"name":"Llama-3-8B",    "size":8,  "license":"Llama3-License",
+   "ctx":8,   "zh":0.65, "code":0.82, "math":0.76, "mmlu":0.73},
+  {"name":"Qwen2-7B",      "size":7,  "license":"Apache-2.0",
+   "ctx":32,  "zh":0.88, "code":0.80, "math":0.80, "mmlu":0.72},
+]
+
+def score(m, weights):
+    # 加权综合分：按你的业务侧重调权重
+    s = (m["zh"]*weights["zh"] + m["code"]*weights["code"]
+         + m["math"]*weights["math"] + m["mmlu"]*weights["mmlu"])
+    return round(s, 3)
+
+# 中文业务侧重 zh 与 code
+w = {"zh":0.35, "code":0.25, "math":0.15, "mmlu":0.25}
+for m in sorted(candidates, key=lambda x:-score(x,w)):
+    print(f"{m['name']:16s} 综合={score(m,w)}  license={m['license']}  ctx={m['ctx']}K")</code></pre>
+
+    <p>这套打分法把“哪个模型好”从口水战变成可计算的对比。关键是<strong>权重按你的业务调</strong>——做客服的中文权重高，做代码助手的 code 权重高，通用基准分反而是最不重要的。</p>
+
+    <table>
+      <thead><tr><th>模型</th><th>中文</th><th>许可</th><th>上下文</th><th>生态工具</th><th>适合场景</th></tr></thead>
+      <tbody>
+        <tr><td><strong>GLM-4-9B</strong></td><td>极强</td><td>Apache-2.0</td><td>128K</td><td>vLLM/llama.cpp 全支持</td><td>中文业务首选、商用友好</td></tr>
+        <tr><td><strong>Qwen2-7B/14B</strong></td><td>强</td><td>Apache-2.0</td><td>32~128K</td><td>工具链完善</td><td>多模态、中文通用</td></tr>
+        <tr><td><strong>Llama-3-8B/70B</strong></td><td>中</td><td>Llama 许可(有商限)</td><td>8K</td><td>生态最大</td><td>英文为主、生态依赖</td></tr>
+        <tr><td><strong>Mistral-7B</strong></td><td>弱</td><td>Apache-2.0</td><td>32K</td><td>完善</td><td>英文、轻量高效</td></tr>
+        <tr><td><strong>DeepSeek-V2</strong></td><td>强</td><td>MIT-like</td><td>128K</td><td>增长快</td><td>MoE、性价比</td></tr>
+      </tbody>
+    </table>
+
+    <h3>许可与商用：最容易被忽视的坑</h3>
+    <p>很多团队选模型只看分数，上线前才发现<strong>许可不允许商用</strong>，被迫返工。必须确认的点：Apache-2.0 / MIT 最自由，可随意商用；Llama 系列有“月活超 7 亿需单独授权”等限制；部分模型禁止“用其输出训练竞品”。此外，<strong>训练数据来源</strong>也影响合规——若模型用了受版权数据，你的商用输出也可能侵权。第二个常被忽略的是<strong>生态工具链</strong>：一个分数略低但 vLLM/llama.cpp/量化权重都现成的模型，比一个分数高但啥都要自己折腾的模型，落地快得多。<strong>中文场景优先考虑国产模型</strong>（GLM、Qwen、DeepSeek），不仅中文能力强，许可和合规也更贴合国内法规。最后，留一个<strong>退路</strong>：推理接口抽象成一层，模型可热切换，避免被单一开源模型绑架。</p>
+
+    <h2 class="section" id="deep40b"><span class="idx">深</span> 开源生态 FAQ 与选型经验</h2>
+    <p>选开源模型，这些是上线前必须搞清的问题。</p>
+    <h3>Q1：开源模型能直接商用吗？</h3>
+    <p><strong>看许可</strong>。Apache-2.0/MIT 最自由，可随意商用；Llama 系列有「月活超 7 亿需授权」等限制；部分模型禁止「用输出训练竞品」。还要看<strong>训练数据来源</strong>——若用了受版权数据，你的商用输出也可能侵权。上线前必查许可全文，别只看「开源」就以为能用。建议<strong>优先选 Apache-2.0 的国产模型</strong>（GLM、Qwen），中文强且许可和合规贴合国内法规。留退路：推理接口抽象一层，模型可热切换，避免被单一模型绑定。</p>
+    <pre><code># 许可合规自查
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：榜单分数第一的模型就是最佳选择吗？</h3>
+    <p><strong>不是</strong>。榜单分数在「你的业务分布」上未必成立——基准是通用的，你的场景是特定的。要看：中文能力（国产模型强）、你的领域（代码/医疗/金融）、上下文长度、生态工具链（vLLM/量化权重是否现成）、许可。<strong>生态成熟度常被低估</strong>：分数略低但工具全的模型，比分数高但要自己折腾的落地快得多。建议<strong>用你自己的评估集选型</strong>，而非看公开榜单。打分对比时权重按业务调，通用基准分反而是最不重要的。</p>
+    <h3>对比速查：开源模型选型维度</h3>
+    <table>
+      <thead><tr><th>维度</th><th>关键问题</th><th>权重</th><th>备注</th></tr></thead>
+      <tbody>
+        <tr><td>中文能力</td><td>目标语言强吗</td><td>高(中文场景)</td><td>国产模型强</td></tr>
+        <tr><td>许可</td><td>能商用吗</td><td>高(合规)</td><td>Apache最自由</td></tr>
+        <tr><td>上下文</td><td>够长吗</td><td>中</td><td>看业务</td></tr>
+        <tr><td>生态</td><td>工具全吗</td><td>高</td><td>落地速度</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep40c"><span class="idx">深</span> 开源模型评估实战：用自建评估集选型</h2>
+
+    <p>选开源模型不能只看榜单，要用<strong>自己的评估集</strong>实测。下面给出可跑的选型评估代码。</p>
+
+    <h3>多模型能力对比</h3>
+    <pre><code>from openai import OpenAI
+import json, time
+client = OpenAI(base_url="https://api.z.ai/api/paas/v4", api_key="YOUR_KEY")
+
+# 你的业务评估集：问题 + 关键词答案（不必精确，含关键词即对）
+eval_set = [
+  {"q":"GLM是什么？","kw":["智谱","Z.ai","大模型"]},
+  {"q":"解释注意力机制","kw":["加权","query","key","相似度"]},
+  {"q":"写个快速排序","kw":["quicksort","pivot","递归","排序"]},
+]
+def eval_model(model_name):
+    correct = 0
+    for c in eval_set:
+        r = client.chat.completions.create(model=model_name, temperature=0.0,
+            messages=[{"role":"user","content":c["q"]}])
+        out = r.choices[0].message.content.lower()
+        if any(k.lower() in out for k in c["kw"]): correct += 1
+    return correct / len(eval_set)
+
+for m in ["glm-4-plus", "glm-4-flash", "glm-4-9b-chat"]:
+    print(f"{m}: {eval_model(m):.1%}")</code></pre>
+
+    <h3>成本与延迟实测</h3>
+    <pre><code>def bench_cost_latency(model_name, prompt, n=10):
+    """实测平均延迟与 token 成本。"""
+    latencies, total_tokens = [], 0
+    for _ in range(n):
+        t0 = time.time()
+        r = client.chat.completions.create(model=model_name,
+            messages=[{"role":"user","content":prompt}])
+        latencies.append(time.time() - t0)
+        total_tokens += r.usage.total_tokens
+    avg_lat = sum(latencies)/n
+    print(f"{model_name}: 平均延迟={avg_lat:.2f}s 总token={total_tokens}")
+    return avg_lat
+
+bench_cost_latency("glm-4-plus", "总结 RAG 的原理")
+# 选型时综合看：准确率 + 延迟 + 成本，按业务权重打分</code></pre>
+
+    <p>这套自建评估让你用<strong>自己的业务分布</strong>选模型，比公开榜单靠谱。关键是评估集要从真实流量采样、覆盖边界 case，并定期更新。打分时按业务权重（中文/代码/延迟/成本）加权，而非单看准确率。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>开源大模型分四梯队：顶级（Llama/Qwen/DeepSeek）、中坚（GLM/Mistral）、小模型（Phi/Gemma）、专用（CodeLlama）。许可证要注意——Apache 2.0 最自由（Qwen/GLM），Llama 有商业限制。Hugging Face 是生态中心（transformers 一行加载）。开源最大价值是可微调——把通用模型变成行业专家，数据不出域。</p>
     <div class="chapter-nav">

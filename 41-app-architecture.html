@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 应用架构模式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 应用架构模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 应用架构模式 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 应用架构模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,17 +315,6 @@
     </section>
 
     <h2 class="section" id="intro"><span class="idx">★</span> 为什么 LLM 应用需要特殊架构</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么 LLM 应用需要特殊架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第一层：单体架构（快速验证）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第二层：微服务架构（解耦与扩展）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第三层：Agent 编排架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>横切关注点：每个架构层都需要的基础设施</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>传统的 Web 应用架构（请求→数据库→响应）已经成熟了几十年。但 LLM 应用引入了几个颠覆性的特征：<strong>延迟高</strong>（LLM 一次调用可能要几秒）、<strong>流式输出</strong>（需要 SSE/WebSocket）、<strong>非确定性</strong>（同样输入可能不同输出）、<strong>外部依赖重</strong>（模型 API、向量库、搜索 API）。这些特征让传统的同步请求-响应模型不再适用，需要专门的架构设计。</p>
     <p>更复杂的是，一个生产级 LLM 应用通常不只是"调一次 API"——它需要 RAG 检索、多轮对话管理、工具调用、结果缓存、成本控制、安全过滤、可观测性。把这些全塞进一个巨大的函数里，很快就会变成无法维护的"大泥球"。于是架构自然向三层演进：<strong>单体</strong>（快速验证）→ <strong>微服务</strong>（解耦扩展）→ <strong>Agent 编排</strong>（智能协作）。</p>
 

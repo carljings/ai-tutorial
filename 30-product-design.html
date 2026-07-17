@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 产品设计 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 产品设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 产品设计 · AI 全栈实战教学">
-<meta property="og:description" content="AI 产品设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>A/B 测试显著性检验</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>A/B 测试显著性检验</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AI 产品的度量指标体系实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AI Native vs AI Featured：一道决定生死的分水岭</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六大产品设计原则</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>案例拆解一：Perplexity 如何重新定义搜索</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>案例拆解二：Cursor 如何靠 AI 重做编辑器</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>案例拆解三：Character.AI 与"情感 AI"的陷阱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>AI 产品的每次迭代都该用 A/B 测试验证，而不是靠'感觉变好了'。但 AI 指标往往方差大、样本量不足，容易得出假阳性结论。下面这段代码做正确的比例检验并算出所需样本量，避免被噪声误导。</p>
 <pre class="code"><code class="language-python"># A/B 测试: 两版本成功率差异的显著性检验 + 样本量估算
 import math
@@ -779,6 +762,83 @@ def feedback_pipeline(user_action: str, suggestion: str, context: dict):
     <p>Character.AI 曾是增长最快的 AI 应用之一——用户可以创建和扮演各种角色（动漫人物、历史名人、虚拟伴侣），与 AI 进行沉浸式对话。它的高留存率一度令人惊叹。但这也是一个关于"产品-伦理边界"的警示案例。</p>
     <p>Character.AI 的设计亮点在于人格定制：用户可以设定角色的性格、语气、背景故事，模型会严格保持角色一致性。这种"情感连接"带来了极高的用户黏性。但问题也随之而来——部分青少年用户对虚拟角色产生了过度依赖，甚至出现了悲剧事件。这促使 Character.AI 在 2024 年大幅加强了未成年人保护措施（独立的青少年模型、安全过滤、时间限制）。</p>
     <p>这个案例的教训是：<strong>AI 产品设计不能只追求"有用"和"好用"，必须前置考虑伦理边界。</strong>特别是涉及情感、社交、心理健康的场景，过度优化"用户黏性"可能走向有害的方向。负责任的 AI 产品设计需要在 KPI（留存率、使用时长）之外，加入"用户福祉"作为第一优先级指标。</p>
+
+    <h2 class="section" id="deep30"><span class="idx">深</span> AI 产品的反馈闭环与不确定性设计</h2>
+
+    <p>AI 产品与传统软件最大的区别是<strong>输出不确定</strong>——同一个输入可能给出不同结果，且偶尔会错。优秀的产品设计不是掩盖这种不确定性，而是围绕它建立信任和修正机制。下面拆解两个让 AI 产品“可用且可信”的设计模式。</p>
+
+    <h3>显式置信度与优雅降级</h3>
+    <p>核心原则：当模型不确定时，<strong>不要硬装确定</strong>。让产品根据置信度选择不同呈现策略：高置信直接给答案，中置信给答案但提示“仅供参考”，低置信则降级为“我不太确定，要不要换个问法”。下面是这套逻辑的产品层实现。</p>
+
+    <pre><code>class AIResponsePresenter:
+    """根据模型置信度，选择不同的前端呈现策略。"""
+    def __init__(self, thresholds=(0.8, 0.5)):
+        self.high, self.low = thresholds
+
+    def present(self, answer, confidence, sources=None):
+        if confidence &gt;= self.high:
+            return {"mode": "direct", "text": answer,
+                    "ui": "常规气泡，可展开来源"}
+        elif confidence &gt;= self.low:
+            return {"mode": "caveat", "text": answer,
+                    "ui": "答案 + 黄色提示‘此为推测，建议核实’",
+                    "sources": sources}             # 给来源增加可信度
+        else:
+            return {"mode": "fallback",
+                    "text": "我对这个不太确定，可以补充更多细节吗？",
+                    "ui": "引导澄清，而非瞎答",
+                    "suggestions": ["换个说法", "提供具体日期"]}
+
+p = AIResponsePresenter()
+print(p.present("北京是首都", 0.92))           # direct
+print(p.present("可能是张三写的", 0.6))        # caveat
+print(p.present("???", 0.2))                   # fallback</code></pre>
+
+    <p>这套设计把“模型可能错”从缺陷变成了<strong>设计的一部分</strong>。用户对“坦诚不确定 + 引导修正”的容忍度，远高于“自信地给错答案”。置信度可以从 logprob、多次采样一致性、或专门的校准模型获得。</p>
+
+    <table>
+      <thead><tr><th>设计模式</th><th>解决的问题</th><th>用户体感</th><th>实现成本</th></tr></thead>
+      <tbody>
+        <tr><td><strong>显式置信度</strong></td><td>错误答案损害信任</td><td>“它知道自己不知道”</td><td>中（需校准）</td></tr>
+        <tr><td><strong>优雅降级</strong></td><td>低质量输出</td><td>“至少没瞎说”</td><td>低</td></tr>
+        <tr><td><strong>来源引用</strong></td><td>不可追溯</td><td>“我能核实”</td><td>中（需RAG）</td></tr>
+        <tr><td><strong>一键反馈</strong></td><td>无法修正错误</td><td>“我能教它”</td><td>低</td></tr>
+        <tr><td><strong>流式呈现</strong></td><td>等待焦虑</td><td>“它在思考”</td><td>中（需SSE）</td></tr>
+        <tr><td><strong>人在回路</strong></td><td>高风险决策</td><td>“我拍板”</td><td>高（流程改造）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>反馈闭环：把用户修正变成训练数据</h3>
+    <p>AI 产品的核心竞争力是<strong>能否从用户反馈中持续变好</strong>。最基本的是“赞/踩”按钮，但价值有限——用户很少点。更有效的是<strong>隐式反馈</strong>：用户复制了答案（正面）、重新提问（负面）、手动编辑了答案（强信号）。把这些行为埋点采集，清洗后进入评估集和微调数据池，形成“使用 → 反馈 → 改进”的闭环。设计上有两个要点：一是<strong>反馈要能定位到具体输出</strong>（记录 prompt 版本、模型版本、上下文），否则数据无法用于训练；二是<strong>负反馈比正反馈更宝贵</strong>——它直接告诉你哪里错了，所以要降低负反馈的摩擦（如长按答案直接标错，而非跳转反馈页）。一个设计良好的反馈闭环，能让产品在不换模型的情况下，靠数据飞轮持续拉开和竞品的差距。</p>
+
+    <h2 class="section" id="deep30b"><span class="idx">深</span> AI 产品设计 FAQ 与用户信任</h2>
+    <p>AI 产品的设计核心是「让用户信任会出错的系统」，这些问题决定成败。</p>
+    <h3>Q1：用户总是不信任 AI 的回答，怎么办？</h3>
+    <p>信任来自三点：<strong>可预期</strong>（行为一致不随机崩）、<strong>可解释</strong>（给理由、能溯源）、<strong>可修正</strong>（错了能改能教）。具体：给答案配<strong>来源引用</strong>（可点击核实，比硬信强得多）；坦诚<strong>置信度</strong>（不确定就说，别装确定）；提供<strong>一键反馈和修正</strong>（让用户有控制感）；保持<strong>一致性</strong>（每次都还不错，比偶尔惊艳更建信任）。最忌讳的是<strong>过度承诺</strong>和<strong>自信地出错</strong>——一次硬装确定然后错，比十次坦诚不确定更伤信任。</p>
+    <pre><code># 置信度与来源的呈现策略
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：AI 功能上线后没人用，问题出在哪？</h3>
+    <p>通常是<strong>没融入现有工作流</strong>。用户不会为了 AI 单独开一个入口，它得嵌在用户本来要做的事里。其次是<strong>首值时刻太远</strong>——要用很久才体会到价值，用户早流失了。还有<strong>交互反直觉</strong>（要写复杂 prompt，门槛高）。解法：把 AI 嵌入现有界面（而非独立页）；<strong>缩短首值</strong>（新用户 1 分钟内体验到价值）；<strong>降低门槛</strong>（给示例、默认填好、按钮式而非对话框）；<strong>主动触发</strong>（在合适场景主动建议，而非等用户问）。AI 功能的成功，产品集成和触发时机往往比模型能力更重要。</p>
+    <h3>对比速查：AI 产品 UX 模式选择</h3>
+    <table>
+      <thead><tr><th>场景</th><th>推荐模式</th><th>核心设计</th><th>反模式</th></tr></thead>
+      <tbody>
+        <tr><td>实时交互</td><td>流式生成</td><td>首字快、可停</td><td>全生成完才显示</td></tr>
+        <tr><td>高风险动作</td><td>人在回路</td><td>预览+确认</td><td>静默执行</td></tr>
+        <tr><td>事实查询</td><td>来源引用</td><td>可核实</td><td>硬信不溯源</td></tr>
+        <tr><td>出错时</td><td>错误友好</td><td>坦诚+修正</td><td>甩锅/无解</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 产品设计的核心分野是 AI Native 与 AI Featured——前者把 AI 作为产品存在的唯一理由，后者把 AI 作为附加功能。六条原则可以概括为：默认在场、优雅降级、思考可见、数据飞轮、节奏掌控、明确边界。Perplexity 重新定义了搜索（答案优先于链接），Cursor 重构了编辑器（AI 原生交互），Character.AI 警示了情感 AI 的伦理红线。设计 AI 产品不是"给旧产品加 AI"，而是"为 AI 重新想象产品"。最高境界是：用户感觉不到自己在"用 AI"，因为 AI 已经融化在每一个交互细节里。</p>

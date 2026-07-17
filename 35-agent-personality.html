@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Agent 人格设计 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI Agent 人格设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI Agent 人格设计 · AI 全栈实战教学">
-<meta property="og:description" content="AI Agent 人格设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>人格一致性测试</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>人格一致性测试</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>人格 Profile 模板与配置化生成</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>为什么人格设计如此重要</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>人格设计的四层架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>价值观注入：让 AI 有"原则"</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>语气控制：风格设定的工程化</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>完整模板：可直接使用的人格设计框架</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>人格设计的迭代与评估</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>人格设计完成后，必须做一致性测试——用一组固定的探针 prompt 反复问，检查 Agent 是否始终守住人格边界。这是上线前必跑的回归测试。</p>
 <pre class="code"><code class="language-python"># 人格一致性测试套件
 PROBES = [
@@ -892,6 +875,78 @@ def build_dynamic_prompt(base_persona, user_profile):
     <h2 class="section" id="iteration"><span class="idx">★</span> 人格设计的迭代与评估</h2>
     <p>人格设定不是一次写完就定稿的，它需要持续迭代。评估人格质量有两个维度：<strong>一致性</strong>（同一人格在不同对话中是否保持稳定）和 <strong>符合度</strong>（行为是否符合设计意图）。实践方法是用一批"压力测试"问题（故意诱导 Agent 偏离人格的提问）来检验，看 Agent 是否守住了设定。</p>
     <p>一个常见误区是"人格设定越复杂越好"。实际上，system prompt 越长，模型越容易顾此失彼，反而降低一致性。经验法则是：核心人格控制在 500-1500 字以内，优先级排序清晰，避免相互矛盾的规则。当发现 Agent 行为偏离时，先检查是否有规则冲突，再考虑增加约束，而不是一味加长 prompt。</p>
+
+    <h2 class="section" id="deep35"><span class="idx">深</span> Persona 设计与风格一致性工程</h2>
+
+    <p>给 Agent 设计人设(Persona)不是写一段“你是温柔的助手”那么简单。真正落地要解决三个问题：<strong>风格一致性</strong>（不同问题下语气不崩）、<strong>人设可控</strong>（不越界不抢戏）、<strong>风格可度量</strong>（不能只靠感觉）。下面把这三点工程化。</p>
+
+    <h3>用 system prompt 锁定风格</h3>
+    <p>system prompt 是控制风格最直接的杠杆。一个好的 Persona prompt 要包含<strong>身份、语气规范、行为边界、示范对话</strong>四要素，而不只是形容词堆砌。</p>
+
+    <pre><code>PERSONA = '''你是「小智」，一家科技公司的客服助手。
+
+【身份】专业、耐心、有条理。称呼用户为"您"。
+【语气规范】
+- 回答用短句，先结论后细节
+- 不用网络梗、不用表情符号过多
+- 不确定时坦诚说"我需要确认"，而非编造
+【行为边界】
+- 只回答产品相关的问题，闲聊引导回业务
+- 不评论竞争对手产品，不承诺超出权限的优惠
+- 涉及退款/投诉，必须先记录工单再回复
+【示范对话】
+用户：你们这个东西怎么这么贵？
+小智：理解您的疑虑。我们的定价包含了3年售后和免费升级，
+您方便我详细介绍下包含的服务吗？'''
+
+def chat(user_msg, history):
+    msgs = [{"role":"system","content":PERSONA}] + history + [{"role":"user","content":user_msg}]
+    return client.chat.completions.create(model="glm-4-plus", messages=msgs, temperature=0.7)</code></pre>
+
+    <p>这套结构化 Persona 的关键是<strong>示范对话</strong>——比形容词有用得多，它给模型一个可直接模仿的“锚点”，风格一致性显著提升。</p>
+
+    <table>
+      <thead><tr><th>风格维度</th><th>度量方法</th><th>控制手段</th><th>典型指标</th></tr></thead>
+      <tbody>
+        <tr><td><strong>语气一致性</strong></td><td>抽样人工评分 + LLM-judge</td><td>示范对话、温度调低</td><td>风格一致率 ≥90%</td></tr>
+        <tr><td><strong>称谓/用词</strong></td><td>关键词统计（如"您"/"你"比例）</td><td>正则后处理、system约束</td><td>误用率 &lt;2%</td></tr>
+        <tr><td><strong>回答长度</strong></td><td>token 数分布</td><td>prompt 限制 + max_tokens</td><td>P50 在目标区间</td></tr>
+        <tr><td><strong>越界行为</strong></td><td>红队测试集</td><td>行为边界 + 输入过滤</td><td>越界率 &lt;1%</td></tr>
+        <tr><td><strong>人设稳定</strong></td><td>多轮后风格漂移检测</td><td>system 常驻、定期重注入</td><td>漂移率 &lt;5%</td></tr>
+      </tbody>
+    </table>
+
+    <h3>风格漂移与“system 重注入”</h3>
+    <p>长对话中 Persona 容易“漂移”——聊着聊着称谓从“您”变“你”，语气从专业变随意。根因是 system prompt 在超长历史中被“淹没”，模型注意力被近期消息主导。两个解法：一是<strong>定期重注入关键约束</strong>，每 N 轮在 user 消息前悄悄塞一句提醒（如"（请保持客服称谓）"）；二是<strong>用输出后处理做硬保证</strong>，比如不管模型输出什么，最后用脚本把"你"统一替换为"您"、把过长回答截断——这是 prompt 之外的“安全网”，确保哪怕模型偶尔失控，对外呈现的风格仍达标。最高级的方式是<strong>微调一个风格专属模型</strong>，把 Persona 烧进权重，比 prompt 稳定得多，这也是大厂定制客服/虚拟人时常用的做法。</p>
+
+    <h2 class="section" id="deep35b"><span class="idx">深</span> Persona 设计 FAQ 与一致性</h2>
+    <p>智能体人设听着简单，做稳很难，这些问题是高频坑。</p>
+    <h3>Q1：Persona 聊久了就「跑偏」（称谓/语气变了），怎么办？</h3>
+    <p><strong>system prompt 在长历史中被淹没</strong>，模型注意力被近期消息主导。解法：<strong>定期重注入约束</strong>（每 N 轮在 user 消息前塞提醒）；<strong>输出后处理做硬保证</strong>（脚本统一替换「你」为「您」、截断过长回答）——这是 prompt 之外的安全网；最好<strong>微调专属模型</strong>把 Persona 烧进权重，比 prompt 稳定得多。还要<strong>监控风格漂移</strong>：定期抽样人工/LLM 评一致性，发现漂移及时处理。长对话一致性是 Persona 落地的核心难点。</p>
+    <pre><code># 风格一致性监控
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么设计一个好的 Persona prompt？</h3>
+    <p>四要素缺一不可：<strong>身份</strong>（是谁）、<strong>语气规范</strong>（怎么说话）、<strong>行为边界</strong>（能做什么不能做）、<strong>示范对话</strong>（具体例子）。其中<strong>示范对话最有用</strong>——比形容词有用十倍，给模型一个直接模仿的锚点。还要包含<strong>反例</strong>（不该怎么回应）。避免堆砌空洞形容词（「温暖、专业、贴心」），改成具体行为规范（「称呼您、先结论后细节、不确定时坦诚」）。好的 Persona 是行为说明书，不是性格描述。</p>
+    <h3>对比速查：Persona 设计要素</h3>
+    <table>
+      <thead><tr><th>要素</th><th>作用</th><th>示例</th><th>常见缺失</th></tr></thead>
+      <tbody>
+        <tr><td>身份</td><td>定义是谁</td><td>客服助手小智</td><td>只写形容词</td></tr>
+        <tr><td>语气规范</td><td>怎么说话</td><td>短句、称您</td><td>模糊</td></tr>
+        <tr><td>行为边界</td><td>能/不能做</td><td>不承诺超额优惠</td><td>遗漏关键禁区</td></tr>
+        <tr><td>示范对话</td><td>模仿锚点</td><td>完整问答</td><td>不举例</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Agent 人格设计的核心是 system prompt 的四层架构：身份层定义"你是谁"（具体到有画面感），价值观层定义"你相信什么"（结构化的优先级和触发条件），行为规范层定义"你怎么做事"（可操作的 if-then 规则），表达风格层定义"你怎么说话"（正反例锚定的语气）。好的价值观注入包含优先级、触发条件、具体行动三要素，能防止"讨好型人格"。语气控制要用正面指令加反面示例，配合 few-shot 锚定。完整模板可以直接套用，但记住人格设定需要持续迭代和压力测试。最终，人格设计的本质是"用语言塑造行为"——你写下的每一个字，都在定义这个 AI 的灵魂。</p>

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A2A 协议：Agent 间通信标准 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学">
-<meta property="og:description" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="why-a2a"><span class="idx">★</span> 为什么需要 A2A 协议</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么需要 A2A 协议</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>A2A 的核心概念</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Agent Card 实例解析</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>用 FastAPI 实现一个 A2A Agent</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>实现一个编排 Agent 调用多 Agent</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>任务委派的几种模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>工程考量:异步、容错、安全</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>A2A 与 MCP 的关系</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>过去一年,Agent 框架百花齐放:LangChain、AutoGen、CrewAI、LangGraph……每个框架都能搭出强大的 Agent,但它们之间是孤岛。用 LangChain 写的 Agent 很难直接调用一个用 AutoGen 写的 Agent,更不用说跨组织、跨厂商的 Agent 协作了。这就像互联网早期,每家网络用自己的协议,无法互联。</p>
     <p>A2A 协议要解决的就是这个"互联"问题。它定义了一套标准的 HTTP/JSON-RPC 接口,让任何 Agent 只要实现这套接口,就能被其他 Agent 发现和调用,无论它底层用什么框架。这带来了几个重要的能力。</p>
     <p><strong>能力组合</strong>:一个编排 Agent 可以根据任务,动态调用"代码 Agent"、"搜索 Agent"、"数据库 Agent"等专职 Agent,组合完成复杂任务,而无需把这些能力都塞进一个巨型 Agent。<strong>解耦演进</strong>:每个 Agent 可以独立开发、独立部署、独立升级,互不影响。<strong>跨框架协作</strong>:团队 A 用 LangGraph,团队 B 用 CrewAI,只要都遵循 A2A,就能无缝协作。<strong>安全边界</strong>:Agent 之间的调用是显式的网络请求,便于审计、限流、权限控制。</p>
@@ -526,6 +509,7 @@ async def orchestrator(user_request: str):
     <p><strong>路由模式(Routing)</strong>:编排 Agent 根据任务类型,把任务路由到唯一一个最合适的 Agent。比如根据问题语言路由到"中文 Agent"或"英文 Agent"。适合分类明确的任务,简单高效。</p>
     <p><strong>辩论/投票模式(Debate)</strong>:多个 Agent 对同一问题给出答案,通过比较或投票选最优。适合需要高可靠性的决策场景,成本高但质量好。</p>
     <p>实际系统往往是几种模式的组合:外层流水线,内层并行扇出,关键节点用辩论兜底。设计时要从任务结构出发选择模式,而不是为了用多 Agent 而用。</p>
+    <p>判断"是否真的需要多 Agent"有一个简单的检验标准,叫<strong>"能力边界检验"</strong>。问自己三个问题:这个任务是否需要多种截然不同的专长(如写代码 + 做设计 + 查资料)?是否需要不同的工具集或数据访问权限?是否某个子任务做不好会污染整个结果?如果三个都是肯定,多 Agent 才有价值;如果任务本质上是"一种能力 + 一些工具调用",那单个 Agent 配合 MCP 工具就够了,强行拆成多 Agent 只会增加通信开销和失败点。多 Agent 的复杂度是真实成本——每个 Agent 都要维护 prompt、记忆、错误处理,Agent 之间的每次调用都有网络延迟和失败概率。这种复杂度只有在"能力组合"确实必要 时才物有所值。</p>
     <h2 class="section" id="considerations"><span class="idx">★</span> 工程考量:异步、容错、安全</h2>
     <p>把 A2A 从 demo 推向生产,有几个工程问题必须解决。</p>
     <p><strong>异步任务管理</strong>:LLM 调用可能耗时几十秒到几分钟,同步等待会超时。A2A 支持异步任务:发送任务立即返回 task_id,客户端轮询或通过 webhook 接收完成通知。对长任务,推送(SSE 或 webhook)比轮询更高效。</p>

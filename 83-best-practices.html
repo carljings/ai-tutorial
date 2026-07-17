@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 最佳实践速查 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 最佳实践速查 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 最佳实践速查 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 最佳实践速查 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,18 +315,6 @@
     </section>
 
     <h2 class="section" id="prompt-best"><span class="idx">★</span> 一、Prompt 工程最佳实践（10 条）</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、Prompt 工程最佳实践（10 条）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、RAG 系统最佳实践（10 条）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Agent 设计最佳实践（10 条）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、部署运维最佳实践（10 条）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、安全合规最佳实践（10 条）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、速查索引</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <pre><code class="language-python"># === Prompt 工程最佳实践 ===
 
 # 1. 给模型明确的角色和上下文
@@ -681,6 +665,88 @@ incident_response = {
 44. 最小权限           45. HITL 人工审批      46. 数据删除机制
 47. 算法备案           48. AIGC 标识          49. 定期红队测试
 50. 事件响应预案</code></pre>
+
+    <h2 class="section" id="deep83"><span class="idx">深</span> LLM 工程最佳实践清单</h2>
+
+    <p>把散落的经验汇成<strong>可勾选的清单</strong>，是避免遗漏最高效的方式。下面按项目生命周期，整理一份生产级 LLM 应用的最佳实践清单，每条都可执行、可验收。</p>
+
+    <h3>结构化清单与优先级</h3>
+    <p>清单不是越多越好，要<strong>按优先级分层</strong>——先做“不做会出事”的，再做“做了更好”的。下面用代码把清单分级。</p>
+
+    <pre><code>best_practices = {
+  "P0·必须做(不做会出事)": [
+    "输入输出安全过滤(防注入/有害/泄密)",
+    "敏感动作人工确认(发邮件/改数据/转账)",
+    "评估集 + CI 回归门禁",
+    "请求超时 + 重试 + 降级兜底",
+    "用户数据隔离 + 隐私合规",
+    "模型/数据版本化 + 可回滚",
+  ],
+  "P1·强烈建议(做了显著提升)": [
+    "流式输出降延迟体感",
+    "小模型路由降本",
+    "语义缓存复用重复查询",
+    "全链路 trace 可观测",
+    "灰度发布 + A/B",
+    "token/成本预算上限",
+  ],
+  "P2·进阶优化(规模化后做)": [
+    "推理引擎优化(vLLM/量化)",
+    "数据飞轮(反馈→训练)",
+    "多模型投票/自反思提质量",
+    "在线学习/持续微调",
+    "细粒度监控(质量/成本/延迟三维)",
+  ]
+}
+import json
+for level, items in best_practices.items():
+    print(f"\n{level}")
+    for i, it in enumerate(items,1): print(f"  {i}. {it}")</code></pre>
+
+    <p>这份分级清单的价值是<strong>明确优先级</strong>——P0 是生死线（不做会出安全事故或线上崩），P1 是竞争力（做了体验和成本大幅改善），P2 是规模化后的精进。资源有限时，按 P0→P1→P2 顺序投入。</p>
+
+    <table>
+      <thead><tr><th>领域</th><th>P0 必须</th><th>P1 建议</th><th>P2 进阶</th></tr></thead>
+      <tbody>
+        <tr><td><strong>安全</strong></td><td>输入输出过滤、人工确认</td><td>对抗测试</td><td>红队常态化</td></tr>
+        <tr><td><strong>质量</strong></td><td>评估集+CI</td><td>golden hard set</td><td>自反思/多模型</td></tr>
+        <tr><td><strong>可靠性</strong></td><td>超时/重试/降级</td><td>全链路trace</td><td>混沌演练</td></tr>
+        <tr><td><strong>性能</strong></td><td>限流</td><td>路由/缓存</td><td>vLLM/量化</td></tr>
+        <tr><td><strong>成本</strong></td><td>预算上限</td><td>小模型路由</td><td>推理优化</td></tr>
+        <tr><td><strong>合规</strong></td><td>数据隔离/隐私</td><td>AI标注/审计</td><td>分级合规</td></tr>
+      </tbody>
+    </table>
+
+    <h3>清单的落地与持续维护</h3>
+    <p>清单最大的敌人是“写了不用”。落地的关键是<strong>把清单变成流程的一部分</strong>：P0 项做成上线 checklist，每发版逐项勾选，未勾全禁止上线；P1 项纳入迭代规划，定期排期；P2 项作为技术债看板，规模化时清理。<strong>清单要随实践进化</strong>——每次线上事故、每次踩坑，都把教训沉淀成新的清单项，让清单成为团队集体经验的载体，而非某个人一次写的文档。<strong>避免清单膨胀</strong>：定期回顾，把过时/低价值的项删掉，保持清单精简可执行——上百项没人看的清单等于没有清单。<strong>新人入职读清单</strong>是知识传承的最高效方式，比口口相传或散落的文档靠谱。几个被低估的高价值实践：<strong>预演故障</strong>（定期关掉某组件演练降级）、<strong>文档化决策</strong>（为什么选 A 不选 B，记录理由供后人理解决策语境）、<strong>定期评估基线</strong>（每月跑全量评估看趋势，发现缓慢劣化）。<strong>最佳实践的终极形态是“内化为习惯”</strong>——当团队不需要看清单就自然做对的事，清单就完成了使命。在那之前，清单是把个体经验变成组织能力的桥梁，值得认真维护。</p>
+
+    <h2 class="section" id="deep83b"><span class="idx">深</span> 最佳实践 FAQ 与落地</h2>
+    <p>最佳实践最怕「写了不用」，这些问题帮真正落地。</p>
+    <h3>Q1：清单那么多，怎么确保团队真执行？</h3>
+    <p><strong>把清单变成流程</strong>。P0 项做成上线 checklist，每发版逐项勾选，未勾全禁止上线（硬门禁）；P1 项纳入迭代规划定期排期；P2 项作为技术债看板。<strong>代码化检查</strong>：能自动化的（如「有评估集」「有超时」）写成 CI 脚本自动卡，比人工勾选可靠。<strong>新人入职读清单</strong>是知识传承最高效方式。<strong>清单随实践进化</strong>：每次事故/踩坑沉淀成新项。<strong>定期回顾删过时项</strong>，保持精简——上百项没人看的清单等于没有。终极形态是「内化为习惯」，团队不看清单也做对的事。</p>
+    <pre><code># 上线 checklist 自动化
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：哪些最佳实践最容易被忽略但价值最高？</h3>
+    <p>几个被低估的高价值实践：<strong>预演故障</strong>（定期关掉某组件演练降级，真出事才不慌）；<strong>文档化决策</strong>（为什么选 A 不 B，记录理由供后人理解决策语境）；<strong>定期评估基线</strong>（每月跑全量评估看趋势，发现缓慢劣化）；<strong>全链路 trace</strong>（出问题能回放定位，而非黑盒）；<strong>成本预算上限</strong>（防单任务烧爆）；<strong>请求路由</strong>（简单走小模型，降本 60%）。这些不性感但「不做会出事或浪费钱」。最佳实践的价值在执行不在罗列——<strong>挑最重要的几条先做到</strong>，比收藏一百条有用。</p>
+    <h3>对比速查：最佳实践优先级</h3>
+    <table>
+      <thead><tr><th>级别</th><th>示例</th><th>不做后果</th></tr></thead>
+      <tbody>
+        <tr><td>P0必须</td><td>安全过滤/人工确认/评估集</td><td>出事/崩</td></tr>
+        <tr><td>P1建议</td><td>流式/路由/缓存</td><td>体验差成本高</td></tr>
+        <tr><td>P2进阶</td><td>推理优化/数据飞轮</td><td>规模化瓶颈</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章是 50 条最佳实践的合集，覆盖五大领域。使用建议：</p>

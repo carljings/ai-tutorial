@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>实验追踪：让每次实验可复现 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="实验追踪：让每次实验可复现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="实验追踪：让每次实验可复现 · AI 全栈实战教学">
-<meta property="og:description" content="实验追踪：让每次实验可复现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="what-is-tracking"><span class="idx">★</span> 实验追踪到底在追踪什么</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>实验追踪到底在追踪什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>没有追踪会怎样:三个真实痛点</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>MLflow 核心概念:Experiment、Run、Artifact</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>MLflow 实操:从记录到对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>让实验真正可复现的三个细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>进阶:把追踪和超参数搜索结合</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>工具选型:不只是 MLflow</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>很多人对实验追踪的理解停留在"记一下 loss 和 accuracy",其实远远不止。一次完整的实验追踪,应该能把一个模型"再生产"出来所需的所有信息都记录在案。具体来说,它追踪五类信息。</p>
     <p><strong>代码版本</strong>:这次实验用的是哪个 Git commit,有没有未提交的本地改动。这是可复现的第一道防线——代码变了,实验结果就失去意义。</p>
     <p><strong>运行环境</strong>:Python 版本、依赖库版本、CUDA/cuDNN 版本、硬件配置。深度学习里同样代码在不同环境跑出不同结果,十有八九是环境差异,所以环境必须记录。</p>
@@ -419,6 +402,7 @@ for r in runs:
     <p><strong>第一,固定随机种子</strong>。Python、NumPy、PyTorch、TensorFlow 都有各自的随机数源,必须全部固定。很多人只固定了 torch.manual_seed,却忘了 numpy.random.seed 和 Python 的 random.seed,结果在数据处理阶段就引入了不确定性。CUDA 的非确定性操作(cuDNN)也要通过 torch.backends.cudnn.deterministic = True 关闭。</p>
     <p><strong>第二,数据指纹而不是路径</strong>。记录 data/train.csv 这种路径是没用的,因为文件内容可能变了。应该记录数据的哈希(如 md5 或 sha256),或者用 DVC 锁定数据版本。复现时验证当前数据哈希与记录一致,才算严格可复现。</p>
     <p><strong>第三,环境锁定</strong>。requirements.txt 不够精确(版本号是范围),应该用 pip freeze 的精确版本,或更现代的 conda env export、poetry.lock、Docker 镜像。深度学习尤其要锁 CUDA 版本,不同 CUDA 跑出的结果可能微妙不同。把环境快照作为 artifact 一起记录,是最稳妥的做法。</p>
+    <p>一个特别容易被忽视的细节是<strong>数据处理的确定性</strong>。即使固定了种子,如果数据加载用了多进程 shuffle,或者读文件顺序依赖文件系统返回顺序,不同运行之间仍然会有微妙差异。解决方法:对 shuffle 用固定 seed 的生成器,并在记录里写明"这次实验用的是确定性数据加载"。这些细节看起来吹毛求疵,但当你在三个月后被要求复现一个模型给审计人员看时,它们就成了救命稻草。可复现性不是"装个工具"就能实现的,而是一种贯穿数据、代码、环境、随机性的工程纪律。</p>
     <h2 class="section" id="hyperopt"><span class="idx">★</span> 进阶:把追踪和超参数搜索结合</h2>
     <p>实验追踪的真正威力,在系统化的超参数搜索中才完全释放。手动网格搜索很快就会因为组合爆炸而不可行,这时需要用更智能的搜索算法,如贝叶斯优化、Hyperband、ASHA。这些算法会产生大量 run,没有追踪系统根本无法管理。</p>
     <p>MLflow 与 Optuna、Ray Tune 都有良好集成。下面是用 Optuna 做贝叶斯优化的例子,每次 trial 自动在 MLflow 里开一个嵌套 run,搜索结束后所有结果都在追踪系统里可查:</p>
@@ -453,6 +437,139 @@ print(f"Best params: {study.best_params}")
     <p><strong>TensorBoard</strong>是 TensorFlow/PyTorch 生态的原生工具,轻量、免费,适合单机实验记录。但它的多实验对比、团队协作、模型注册能力都很弱,只适合个人探索阶段。</p>
     <p><strong>Neptune.ai、Comet、ClearML</strong>等也都是商业或开源的替代品,功能大同小异。选型时主要考虑:是否需要团队协作(选 W&B)、是否要自部署(选 MLflow 或 ClearML)、是否深度绑定某个框架(选 TensorBoard 临时用)。</p>
     <p>对大多数团队的建议是:个人或小项目用 TensorBoard,团队工程化用 MLflow,有预算且重视协作体验再考虑 W&B。重点不是工具,而是养成"每次实验都记录"的习惯。</p>
+    
+    <h2 class="section"><span class="idx"></span>实验追踪的可复现性保障</h2>
+    <p>实验追踪（experiment tracking）的终极目标是<strong>"可复现"</strong>——三个月后回头看某次实验，能准确知道当时用了什么数据、什么参数、什么代码，并能重新跑出相同结果。这看似基本，但实践中极难做到，因为影响结果的变量太多，任何一个没记录都会让复现失败。可复现性是机器学习"科学性"的根基。</p>
+<p>复现失败最常见的根因有几个。<strong>随机性未固定</strong>——随机种子没设或没记录，每次跑结果不同。<strong>环境未捕获</strong>——依赖库版本（PyTorch、CUDA、各种包）变了，数值结果就不同。<strong>数据版本丢失</strong>——用了哪个版本的数据没记录，数据后来更新了找不回。<strong>代码漂移</strong>——实验用的代码后来改了，git 上没标记对应 commit。<strong>隐藏参数</strong>——有些影响结果的参数（如数据加载的线程数影响顺序）没意识到要记录。这些坑任何一个都会让"复现"变成"差不多但不一样"。</p>
+<p>保障可复现性的工程实践是<strong>"全量自动捕获 + 严格固定"</strong>。自动捕获：实验启动时自动记录 git commit、依赖版本（lockfile）、环境信息（GPU 型号、CUDA 版本）、数据指纹（hash）、所有参数。严格固定：随机种子全程固定（训练、数据增强、采样都要）、数据加载设确定性顺序、禁用非确定性操作。理想状态是"相同的 commit + lockfile + 数据 hash + 参数 → 完全相同的指标"，差异应在浮点误差量级。</p>
+<table class="data-table"><thead><tr><th>复现要素</th><th>要记录/固定的</th><th>不做的后果</th></tr></thead><tbody>
+<tr><td>随机性</td><td>所有种子</td><td>每次结果不同</td></tr>
+<tr><td>环境</td><td>依赖 lockfile/CUDA</td><td>数值不一致</td></tr>
+<tr><td>数据</td><td>数据 hash/版本</td><td>找不回原数据</td></tr>
+<tr><td>代码</td><td>git commit</td><td>代码变了无法回溯</td></tr>
+<tr><td>参数</td><td>全部超参（含隐藏的）</td><td>缺关键参数</td></tr>
+<tr><td>硬件</td><td>GPU 型号</td><td>跨硬件数值差异</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 可复现性保障：全量捕获 + 严格固定
+import random, numpy as np, torch, hashlib, json, subprocess, sys
+
+class ReproducibleExperiment:
+    def __init__(self, seed=42):
+        # 严格固定所有随机源
+        self.seed = seed
+        random.seed(seed)
+        np.random.seed(seed)
+        torch.manual_seed(seed)
+        torch.cuda.manual_seed_all(seed)
+        # 强制确定性（牺牲一点性能换可复现）
+        torch.backends.cudnn.deterministic = True
+        torch.backends.cudnn.benchmark = False
+
+    def capture_run(self, config, dataset):
+        """捕获本次运行的全部复现信息"""
+        run = {
+            "seed": self.seed,
+            "config": config,
+            # 代码版本
+            "git_commit": subprocess.check_output(
+                ["git","rev-parse","HEAD"]).decode().strip(),
+            "git_dirty": bool(subprocess.check_output(
+                ["git","status","--porcelain"]).decode().strip()),  # 有未提交改动=不可复现
+            # 环境
+            "python": sys.version,
+            "torch": torch.__version__,
+            "cuda": torch.version.cuda,
+            "gpu": torch.cuda.get_device_name(0) if torch.cuda.is_available() else "cpu",
+            "requirements_hash": self._hash_requirements(),
+            # 数据指纹
+            "data_hash": hashlib.sha256(
+                json.dumps(dataset.fingerprint()).encode()).hexdigest()[:16],
+            "data_version": dataset.version,
+        }
+        if run["git_dirty"]:
+            print("⚠ 警告：有未提交代码，本次实验不可复现！请先 commit。")
+        return run
+
+    def _hash_requirements(self):
+        try:
+            with open("requirements.lock") as f:
+                return hashlib.sha256(f.read().encode()).hexdigest()[:16]
+        except FileNotFoundError:
+            return "NO_LOCKFILE"   # 无 lockfile = 不可复现
+
+    def verify_reproducible(self, run_a, run_b):
+        """验证两次运行是否真复现（指标应在浮点误差内）"""
+        for metric in ["loss","accuracy"]:
+            diff = abs(run_a.metrics[metric] - run_b.metrics[metric])
+            if diff > 1e-4:
+                return False, f"{metric} 差异 {diff} 超浮点误差"
+        return True, "可复现"
+# 实践：每次实验 capture_run() 存到追踪系统，
+# 复现时按记录的 commit/lockfile/数据/参数重跑，verify 确认一致</code></pre>
+
+    <h2 class="section"><span class="idx"></span>实验对比与统计显著性</h2>
+    <p>实验追踪不仅要记录单次实验，更要<strong>对比多次实验</strong>得出可靠结论。"模型 A 比 B 好"不能只看一次跑的指标——ML 实验有随机性，一次的差异可能是噪声。可靠的对比需要多次运行 + 统计显著性检验，否则容易得出错误结论（把噪声当改进）。</p>
+<p>统计显著性的核心是<strong>"区分真实差异和随机波动"</strong>。标准做法是：每个配置跑多次（如 5 次，不同种子），得到指标分布，用统计检验（t-test、bootstrap）判断两个配置的差异是否显著。如果 p 值大（差异不显著），说明"看起来 A 好一点"可能只是运气，不能下结论。很多论文/实践里的"提升 0.5%"其实不显著，是噪声。</p>
+<p>对比时要警惕几个陷阱。<strong>多重比较</strong>：对比很多配置时，总会有某个"看起来好"的（纯概率），要用 Bonferroni 校正。<strong>挑选最优</strong>：在验证集上挑最好的配置，再到测试集评估——会有乐观偏差（overfit 到验证集）。<strong>不同种子不同结果</strong>：A 在种子 1 赢 B，种子 2 输 B——说明差异不显著。诚实的实验报告要给出"均值±标准差"和显著性 p 值，而非单一的"最好结果"。</p>
+<table class="data-table"><thead><tr><th>对比要素</th><th>正确做法</th><th>常见错误</th></tr></thead><tbody>
+<tr><td>运行次数</td><td>多种子多次（≥5）</td><td>只跑一次</td></tr>
+<tr><td>结果报告</td><td>均值±标准差</td><td>只报最好值</td></tr>
+<tr><td>显著性</td><td>统计检验（p值）</td><td>看数值大小下结论</td></tr>
+<tr><td>多重比较</td><td>Bonferroni 校正</td><td>挑最好的</td></tr>
+<tr><td>验证/测试</td><td>分离评估</td><td>验证集挑后测试集报</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 实验对比 + 统计显著性检验
+import numpy as np
+from scipy import stats
+
+class ExperimentComparison:
+    def __init__(self, tracker):
+        self.tracker = tracker
+
+    def compare(self, config_a, config_b, metric="accuracy", n_runs=5):
+        """对比两个配置：各跑多次，统计检验"""
+        scores_a = self._run_multiple(config_a, metric, n_runs)
+        scores_b = self._run_multiple(config_b, metric, n_runs)
+        # 描述统计
+        mean_a, std_a = np.mean(scores_a), np.std(scores_a)
+        mean_b, std_b = np.mean(scores_b), np.std(scores_b)
+        # 统计检验：差异是否显著
+        t_stat, p_value = stats.ttest_ind(scores_a, scores_b)
+        # 效应量：差异的实际大小（非仅显著性）
+        pooled_std = np.sqrt((std_a**2 + std_b**2) / 2)
+        effect_size = (mean_a - mean_b) / pooled_std if pooled_std > 0 else 0
+        return {
+            "A": f"{mean_a:.4f} ± {std_a:.4f}",
+            "B": f"{mean_b:.4f} ± {std_b:.4f}",
+            "delta": f"{mean_a-mean_b:+.4f}",
+            "p_value": p_value,
+            "significant": p_value < 0.05,   # 显著性
+            "effect_size": effect_size,       # 实际意义
+            "conclusion": self._conclude(mean_a, mean_b, p_value, effect_size),
+        }
+
+    def _conclude(self, ma, mb, p, effect):
+        if p >= 0.05:
+            return "差异不显著（可能是噪声），不能下结论"
+        if abs(effect) < 0.1:
+            return "统计显著但效应太小，实际无意义"
+        return f"{'A' if ma>mb else 'B'} 显著更优（效应量 {abs(effect):.2f}）"
+
+    def _run_multiple(self, config, metric, n):
+        """同配置多种子多次运行"""
+        scores = []
+        for seed in range(42, 42+n):
+            result = self.tracker.run(config, seed=seed)
+            scores.append(result.metrics[metric])
+        return scores
+
+# 多重比较校正（对比很多配置时）
+def bonferroni_correct(p_values, alpha=0.05):
+    """对比多个配置时，阈值要除以对比数"""
+    n = len(p_values)
+    corrected_alpha = alpha / n
+    return [p < corrected_alpha for p in p_values]
+# 不校正：对比20个配置，总有1个"显著"（纯概率 = 0.05×20≈1）</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>实验追踪记录的是让模型可复现的全部信息:代码版本、运行环境、数据版本、超参数、指标与产物。没有追踪,团队会陷入复现失败、对比困难、知识无法沉淀的三大痛点。</p>
     <p>MLflow 是最主流的开源方案,核心概念是 Experiment、Run、Artifact。我们演示了从基础记录到结合 Optuna 做超参数搜索的完整流程。让实验真正可复现,还要注意固定随机种子、用数据指纹而非路径、锁定精确环境这三个细节。</p>

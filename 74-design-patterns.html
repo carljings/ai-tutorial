@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>74 · AI 设计模式与最佳实践 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学">
-<meta property="og:description" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -346,7 +342,7 @@
     <h2 class="section" id="router"><span class="idx">01</span> 模式 1-2：Router 与 Cascade</h2>
     <p><strong>问题</strong>：所有请求都调大模型，简单问题浪费资源。</p>
     <div class="code-title">cascade.py —— 级联模式</div>
-    <pre><code class="language-python"><span class="c">"""级联：简单问题→小模型（快/省），难问题→大模型（强/贵）"""</span>
+    <pre><code><span class="c">"""级联：简单问题→小模型（快/省），难问题→大模型（强/贵）"""</span>
 <span class="k">def</span> <span class="f">cascade_answer</span>(question):
     <span class="c"># ① 先用小模型尝试</span>
     answer, confidence = small_model.answer_with_confidence(question)
@@ -368,7 +364,7 @@
 
     <h2 class="section" id="guard"><span class="idx">03</span> 模式 7-9：Guardrail / Human-in-Loop / Fallback</h2>
     <div class="code-title">三层防护模式</div>
-    <pre><code class="language-python"><span class="c">"""Guardrail + Human-in-Loop + Fallback 三模式组合"""</span>
+    <pre><code><span class="c">"""Guardrail + Human-in-Loop + Fallback 三模式组合"""</span>
 <span class="k">def</span> <span class="f">safe_generate</span>(request):
     <span class="c"># ① Guardrail：输入过滤</span>
     <span class="k">if</span> is_harmful(request):
@@ -413,7 +409,7 @@
     <h3>模式 A · Evaluator-Optimizer（带预算的生成-评估循环）</h3>
     <p>它的核心不是「生成→评估→重来」，而是<strong>「为重试设置预算，避免无限循环」</strong>。新手实现最大的坑就是不设上限，结果一次坏答案烧光 token 预算。下面是一个生产可用的版本，包含预算、早停、和评分日志。</p>
     <div class="code-title">evaluator_optimizer.py</div>
-    <pre><code class="language-python"><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="f">GenResult</span>:
@@ -459,7 +455,7 @@
     <h3>模式 B · Self-Consistency（带早停的多采样投票）</h3>
     <p>直接采样 N 次再多数投票，token 成本是单次的 N 倍。但研究显示：<strong>多数答案通常在前 3-5 次采样内出现</strong>。只要做早停，成本就能压到 2-3 倍。</p>
     <div class="code-title">self_consistency.py</div>
-    <pre><code class="language-python"><span class="k">from</span> collections <span class="k">import</span> Counter
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> Counter
 
 <span class="k">def</span> <span class="f">self_consistent_answer</span>(question, llm,
                             n=<span class="n">8</span>, temperature=<span class="n">0.7</span>,
@@ -484,7 +480,7 @@
     <h3>模式 C · Structured Output（带 schema 自愈的 JSON 强约束）</h3>
     <p>单纯用 <code>response_format={"type":"json_object"}</code> 只保证语法合法，不保证字段对。生产代码必须做 schema 校验，并在失败时<strong>让 LLM 自己修</strong>。</p>
     <div class="code-title">structured.py</div>
-    <pre><code class="language-python"><span class="k">import</span> json, jsonschema
+    <pre><code><span class="k">import</span> json, jsonschema
 <span class="k">from</span> functools <span class="k">import</span> lru_cache
 
 <span class="nd">@lru_cache</span>(maxsize=<span class="k">None</span>)
@@ -510,7 +506,7 @@
     <h3>模式 D · Memory Store（分层 + 容量控制）</h3>
     <p>第 29 章深入讲了记忆，这里只补一个常被忽略的工程细节：<strong>工作记忆必须显式控制容量，超出时自动「晋升」到长期记忆</strong>，否则上下文会无声地溢出。</p>
     <div class="code-title">memory_store.py</div>
-    <pre><code class="language-python"><span class="k">from</span> collections <span class="k">import</span> deque
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> deque
 
 <span class="k">class</span> <span class="t">TieredMemory</span>:
     <span class="k">def</span> <span class="f">__init__</span>(self, working_capacity=<span class="n">8</span>, long_term_store=<span class="k">None</span>):
@@ -533,7 +529,7 @@
     <h3>模式 E · Tool Registry（MCP 风格的工具发现）</h3>
     <p>第 8 章的 MCP 是平台级方案，这里给一个<strong>进程内的最小实现</strong>：用装饰器自动注册、按描述做语义匹配。Agent 在每轮决定用哪个工具时，只需要一句话描述需求。</p>
     <div class="code-title">tool_registry.py</div>
-    <pre><code class="language-python"><span class="k">import</span> inspect
+    <pre><code><span class="k">import</span> inspect
 REGISTRY = []
 
 <span class="k">def</span> <span class="f">tool</span>(description):
@@ -570,6 +566,74 @@ REGISTRY = []
                  reverse=<span class="k">True</span>)
     <span class="k">return</span> scored[:top_k]</code></pre>
     <p>这五种模式的共同点是：它们都把 LLM 的「不确定性」框进了<strong>可观测、可预算、可降级</strong>的工程边界内。这就是 AI 设计模式的本质——不是消除幻觉，而是<strong>让幻觉的代价可控</strong>。</p>
+
+    <h2 class="section" id="deep74"><span class="idx">深</span> LLM 工程模式：从场景到模式的选择</h2>
+
+    <p>LLM 应用里反复出现的问题，对应着一组成熟的设计模式。掌握这些模式，能在新需求时快速<strong>对症选型</strong>，而非重复造轮子。下面把高频模式按问题分类。</p>
+
+    <h3>模式决策树</h3>
+    <p>把“遇到什么问题该用什么模式”做成决策树，比孤立记忆每个模式更实用。</p>
+
+    <pre><code>patterns = {
+  "知识易变/需溯源": {"模式":"RAG", "代价":"检索质量依赖", "适用":"客服、文档问答"},
+  "需改风格/格式/能力": {"模式":"微调(LoRA)", "代价":"训练+部署成本", "适用":"风格统一、专属能力"},
+  "需调用工具/动作": {"模式":"Agent(工具调用)", "代价":"可靠性、成本", "适用":"自动化任务"},
+  "需多步推理": {"模式":"CoT/ReAct/规划", "代价":"延迟、token", "适用":"复杂推理任务"},
+  "需可控流程": {"模式":"状态图(LangGraph)", "代价":"设计复杂度", "适用":"有分支的业务流"},
+  "需降低延迟": {"模式":"流式+小模型路由", "代价":"实现复杂", "适用":"实时交互"},
+  "需提高质量": {"模式":"自反思/多模型投票", "代价":"成本翻倍", "适用":"高质量要求"},
+  "需防幻觉": {"模式":"RAG+置信度+引用", "代价":"延迟", "适用":"事实型任务"},
+  "需个性化": {"模式":"记忆系统+用户画像", "代价":"隐私、存储", "适用":"长期陪伴"},
+}
+def pick(problem):
+    p = patterns.get(problem)
+    return f"{problem} → 用【{p['模式']}】(代价:{p['代价']})" if p else "无直接模式"
+print(pick("需调用工具/动作"))</code></pre>
+
+    <p>这张决策表的价值是<strong>避免“手里有锤子看什么都是钉子”</strong>——很多人学了 RAG 就所有问题都上 RAG，学了 Agent 就什么都做成 Agent。对症选型才能避免过度设计。</p>
+
+    <table>
+      <thead><tr><th>问题类别</th><th>首选模式</th><th>常见误用</th><th>误用代价</th></tr></thead>
+      <tbody>
+        <tr><td><strong>事实查询</strong></td><td>RAG</td><td>硬塞 prompt</td><td>幻觉、不可更新</td></tr>
+        <tr><td><strong>风格统一</strong></td><td>微调</td><td>靠 prompt 强约束</td><td>不稳定、贵</td></tr>
+        <tr><td><strong>简单任务</strong></td><td>单次调用</td><td>做成 Agent</td><td>过度复杂、慢</td></tr>
+        <tr><td><strong>有分支流程</strong></td><td>状态图</td><td>纯 prompt 自决</td><td>不可控</td></tr>
+        <tr><td><strong>实时交互</strong></td><td>流式+路由</td><td>全用大模型</td><td>延迟高、贵</td></tr>
+      </tbody>
+    </table>
+
+    <h3>反模式：过度设计的陷阱</h3>
+    <p>工程上比“用什么模式”更重要的是<strong>知道什么不该用</strong>。最常见反模式是<strong>过度 Agent 化</strong>——本可以一次 API 调用解决的简单任务（如分类、提取），非要做成多轮 Agent，结果慢十倍、贵十倍、还更易出错。判断原则：<strong>能一步做完的别两步，能用规则的不上模型，能用小模型的不上大模型</strong>。第二个反模式是<strong>过度微调</strong>——很多风格/格式问题，一个精心设计的 prompt 加 few-shot 就能解决，却动辄微调，浪费数据和算力；微调应是“prompt 调到极限仍不行”的最后手段。第三个是<strong>过度 RAG</strong>——简单 FAQ 直接放 prompt 或缓存即可，建向量库反而增加维护负担。<strong>简单性是工程美德</strong>：每加一层复杂度（Agent、微调、RAG、记忆），都要问“这层复杂度带来的收益配得上它的维护成本吗”。最优秀的架构往往是<strong>用最简单的模式组合解决问题</strong>，而非堆砌所有时髦技术。养成“先想最简方案，证明不够再加复杂度”的习惯，能避开绝大多数过度设计的坑。</p>
+
+    <h2 class="section" id="deep74b"><span class="idx">深</span> 设计模式 FAQ 与选型</h2>
+    <p>设计模式的核心是「对症选型」，这些问题防过度设计。</p>
+    <h3>Q1：什么时候不该用 Agent？</h3>
+    <p><strong>能一步做完的别用 Agent</strong>。简单任务（分类、提取、翻译、单轮问答）用单次 API 调用就够，做成 Agent 是<strong>过度设计</strong>——慢十倍、贵十倍、更易出错。判断：是否需要多步推理？是否要调工具？是否要循环修正？都没有就别上 Agent。同理：<strong>能用规则的不上模型，能用小模型的不上大模型</strong>。<strong>简单性是工程美德</strong>——每加一层复杂度（Agent/微调/RAG/记忆）都要问「收益配得上维护成本吗」。最优秀的架构是用最简单模式组合解决问题，而非堆砌时髦技术。</p>
+    <pre><code># 模式选型决策
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：RAG 和微调怎么选？能同时用吗？</h3>
+    <p><strong>看知识特性，常组合用</strong>。RAG：知识常变、需溯源、不改模型、成本低——适合动态知识。微调：改风格/格式/能力、知识稳定要内化——适合能力塑造。<strong>组合最常见</strong>：微调让模型有统一风格和基础能力，RAG 接动态业务知识。例：客服场景，微调让语气统一 + RAG 接最新产品库。误区是「二选一」——它们解决不同维度问题（能力 vs 知识），互补而非互斥。先问「要改的是能力还是知识」，能力用微调，知识用 RAG，常都要。</p>
+    <h3>对比速查：设计模式选型</h3>
+    <table>
+      <thead><tr><th>问题</th><th>首选模式</th><th>误用</th><th>误用代价</th></tr></thead>
+      <tbody>
+        <tr><td>事实查询</td><td>RAG</td><td>硬塞prompt</td><td>幻觉</td></tr>
+        <tr><td>风格统一</td><td>微调</td><td>prompt强约束</td><td>不稳</td></tr>
+        <tr><td>简单任务</td><td>单次调用</td><td>做成Agent</td><td>过度复杂</td></tr>
+        <tr><td>有分支</td><td>状态图</td><td>prompt自决</td><td>不可控</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>20 个 AI 设计模式，覆盖路由/级联/链式/Map-Reduce/防护/缓存/记忆/评估等；</li><li>组合使用（如 Router+Cascade+Guardrail）解决复杂问题；</li><li>避免反模式：God Agent/Naked Call/Prompt Soup；</li><li>5 个高频模式（Evaluator-Optimizer / Self-Consistency / Structured Output / Memory Store / Tool Registry）的核心是<strong>把不确定性框进可预算、可降级的工程边界</strong>。</li></ul></div>

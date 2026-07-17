@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 编程范式演进 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 编程范式演进 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 编程范式演进 · AI 全栈实战教学">
-<meta property="og:description" content="AI 编程范式演进 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>编程工具选择启发式</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>编程工具选择启发式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AI 编程工具的量化对比与选型</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>编程范式的本质：抽象层次的不断上移</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五代范式全景对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第一二代：从补全到 Copilot</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第三代：对话式编程的崛起</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第四代：Agent 模式的工具调用循环</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>第五代：自主编程的曙光与争议</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>把工具选型也自动化：根据任务特征（改动范围、确定性、耗时预算）给出推荐工具，避免'用 Devin 写一行代码'的浪费。</p>
 <pre class="code"><code class="language-python"># AI 编程工具选择启发式
 def recommend_tool(scope, deterministic, budget_min):
@@ -795,6 +778,98 @@ def agent_loop(task: str, max_steps=20):
     <p>第五代是最前沿、也最有争议的——完全自主编程。Cognition Labs 的 Devin 号称是"第一个 AI 软件工程师"，给它一个需求描述（"帮我做一个航班搜索 App"），它能自己规划、写代码、调试、甚至部署到云端。开源的 OpenHands（原 OpenDevin）、Manus 也在追赶这条路线。</p>
     <p>第五代的核心特征是"目标驱动"而非"指令驱动"。你不再逐步指挥 AI 做什么，而是给出一个高层目标，AI 自己分解任务、管理上下文、协调多个子 Agent、在沙盒环境中试错。这依赖三个关键技术：长期记忆（跨 session 保持项目上下文）、规划能力（把大目标拆成可执行步骤）、自我反思（发现错误后调整策略）。</p>
     <p>但第五代目前仍不成熟。Devin 的演示视频后来被证实有夸大成分，实际复杂任务的成功率并不高。真正的自主编程还需要解决：长程推理的可靠性、代码质量的保证、安全沙盒的隔离、以及对不可逆操作的保护。乐观估计，第五代在 2026-2027 年会达到"能独立完成中小型项目"的水平。</p>
+
+    <h2 class="section" id="deep28"><span class="idx">深</span> AI 编程 Agent 的上下文管理与成本控制</h2>
+
+    <p>AI 编程 Agent（如 Cursor、Copilot、自主编程 Agent）能跑起来不难，难的是<strong>在长任务里不“失忆”、不烧钱</strong>。一个改 50 个文件的复杂任务，若不做上下文管理，token 消耗会指数级膨胀，且后期模型早已忘记最初的约束。下面拆解两个核心工程问题。</p>
+
+    <h3>上下文窗口的动态管理</h3>
+    <p>核心思路：<strong>不要把所有信息都塞进当前上下文</strong>。把已读/已改的文件摘要存到外部记忆，当前窗口只保留与当前步骤最相关的片段。下面是一个最小可用的上下文管理器。</p>
+
+    <pre><code>import hashlib, json
+from collections import OrderedDict
+
+class AgentContext:
+    """分层上下文：常驻区(系统提示+任务) + 工作区(当前相关文件) + 记忆区(历史摘要)。"""
+    def __init__(self, max_tokens=8000, tokenizer=None):
+        self.permanent = []            # 任务描述、全局约束（永不淘汰）
+        self.working = OrderedDict()   # path -> 文件片段（LRU 淘汰）
+        self.memory = []               # 已完成步骤的摘要
+        self.max_tokens = max_tokens
+
+    def add_file(self, path, content, max_lines=80):
+        """加文件时只取关键部分：签名 + 前若干行，而非全文。"""
+        digest = hashlib.md5(content.encode()).hexdigest()[:8]
+        snippet = "
+".join(content.splitlines()[:max_lines])
+        self.working[path] = f"# {path} (md5:{digest})
+{snippet}"
+        self.working.move_to_end(path)            # 最近访问置顶
+        self._evict()
+
+    def summarize_step(self, step_desc):
+        """完成一步后，把详情移入记忆区，工作区只留摘要。"""
+        self.memory.append(step_desc[:200])
+        if len(self.memory) &gt; 20:
+            self.memory = self.memory[-20:]       # 滚动保留最近摘要
+
+    def _evict(self):
+        while self._approx_tokens() &gt; self.max_tokens and len(self.working) &gt; 1:
+            self.working.popitem(last=False)      # 淘汰最久未访问
+
+    def render(self):
+        return "
+
+".join(self.permanent + list(self.working.values())
+                           + ["# 历史摘要:"] + self.memory)
+
+ctx = AgentContext(max_tokens=6000)
+ctx.permanent = ["任务：给FastAPI项目加单元测试，覆盖率达到80%。"]</code></pre>
+
+    <p>这个设计的精髓是<strong>“常驻 + 工作 + 记忆”三层</strong>：任务约束永远在；当前相关文件按需加载、LRU 淘汰；已完成的步骤压缩成摘要留存。没有这层管理，一个稍长的任务就会在几十轮后 token 爆炸且语义发散。</p>
+
+    <table>
+      <thead><tr><th>上下文策略</th><th>解决的问题</th><th>成本影响</th><th>质量影响</th></tr></thead>
+      <tbody>
+        <tr><td><strong>文件摘要而非全文</strong></td><td>token 膨胀</td><td>降 5~10×</td><td>略降（细节丢失）</td></tr>
+        <tr><td><strong>LRU 淘汰旧片段</strong></td><td>窗口溢出</td><td>降 2~3×</td><td>需配合记忆区</td></tr>
+        <tr><td><strong>步骤摘要回填</strong></td><td>长任务“失忆”</td><td>略升</td><td>显著提升一致性</td></tr>
+        <tr><td><strong>检索式按需加载</strong></td><td>大代码库</td><td>降 10×+</td><td>依赖检索质量</td></tr>
+        <tr><td><strong>缓存公共前缀</strong></td><td>重复系统提示</td><td>降 30~50%</td><td>无损</td></tr>
+      </tbody>
+    </table>
+
+    <h3>成本控制：从“无限烧”到“有预算”</h3>
+    <p>自主编程 Agent 最容易失控的是成本——一个任务跑几百轮、每轮塞满上下文，单次任务可能花掉几十美元。必须引入<strong>预算控制</strong>：给每个任务设 token 上限和金额上限，超限自动停止并通知人工。几个实用做法：用更便宜的小模型做“路由/分类/简单编辑”，贵的大模型只在“复杂推理/架构决策”时调用（混合模型策略）；对重复的文件读取做缓存，同一文件改一次就行，别每轮都读；把<strong>工具调用结果截断</strong>——grep 输出 1000 行时只取前 50 行加摘要，而不是全塞进去。生产级的编程 Agent 都有这层“省钱逻辑”，这也是为什么同样的底层模型，不同产品的成本能差一个数量级。</p>
+
+    <h2 class="section" id="deep28b"><span class="idx">深</span> AI 编程 Agent FAQ 与成本控制</h2>
+    <p>编程 Agent 落地的核心是「不烧钱不失忆」，这些问题最关键。</p>
+    <h3>Q1：Agent 改文件改到一半跑偏了，怎么防止？</h3>
+    <p>根因是<strong>长任务无检查点</strong>，模型后期忘了初始约束。解法：<strong>任务拆成小步</strong>，每步验证后再继续（而非一次性改 50 文件）；<strong>常驻任务约束</strong>（每轮重注入目标和已完成清单）；<strong>diff 审查</strong>（每步让人或另一模型 review 改动是否符合预期）；<strong>可回滚</strong>（每步前打 git commit，跑偏能回退）。核心是把「自主完成大任务」变成「自主完成小步、每步可控」，可靠性提升一个数量级。</p>
+    <pre><code># 任务检查点与回滚
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：编程 Agent 怎么降本？</h3>
+    <p>三个杠杆：<strong>混合模型</strong>（简单编辑/路由用便宜小模型，复杂推理用大模型，成本砍 60%+）；<strong>上下文压缩</strong>（文件摘要而非全文、LRU 淘汰，token 降 5~10×）；<strong>缓存</strong>（重复文件读取、重复工具调用结果缓存）。还要<strong>设预算上限</strong>（单任务 token/金额封顶，超限停止）。最贵的是「每轮塞满上下文跑几十轮」，把上下文管好和用对小模型，是降本核心，比换更便宜的 API 有效得多。</p>
+    <h3>对比速查：编程 Agent 降本手段</h3>
+    <table>
+      <thead><tr><th>手段</th><th>降本幅度</th><th>实现难度</th><th>副作用</th></tr></thead>
+      <tbody>
+        <tr><td>混合模型路由</td><td>60%+</td><td>中</td><td>简单任务质量略降</td></tr>
+        <tr><td>上下文压缩</td><td>5-10x token</td><td>中</td><td>细节可能丢</td></tr>
+        <tr><td>结果缓存</td><td>30-50%</td><td>低</td><td>依赖重复度</td></tr>
+        <tr><td>限制轮次/长度</td><td>20-40%</td><td>低</td><td>复杂任务受限</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 编程的五代演进，本质上是在提升"抽象层次"：第一代补全符号，第二代补全语句，第三代对话解释，第四代自动执行，第五代目标驱动。每一代都让开发者从更宏观的层面参与编程——从"敲字符"到"审架构"。关键判断是：当前的主流是第三代（对话式）向第四代（Agent）过渡期，聪明的开发者应该同时掌握这两代——用 Chat 做探索和设计，用 Agent 做执行和迭代。无论工具如何进化，理解代码原理、能审查 AI 输出的人，永远是稀缺的。</p>

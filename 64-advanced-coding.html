@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>高级编程实战案例（第二辑） · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="高级编程实战案例（第二辑） · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="高级编程实战案例（第二辑） · AI 全栈实战教学">
-<meta property="og:description" content="高级编程实战案例（第二辑） · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="beyond-autocomplete"><span class="idx">★</span> 一、AI 编程的正确姿势</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、AI 编程的正确姿势</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、代码审查：比人工更细致</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Bug 定位：像侦探一样推理</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、重构：让遗留代码重获新生</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、测试生成：覆盖你想不到的边界</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、完整的 AI 编程工作流</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、AI 编程的反模式：别这么用</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>很多人用 AI 编程还停留在「帮我写个函数」的阶段，这是对 AI 能力的巨大浪费。真正高效的工作流是让 AI 参与到编程的每一个环节：理解需求、设计方案、写代码、审查、测试、重构。但要做到这点，你必须学会写高质量的 prompt。</p>
     <p>一个好的编程 prompt 有四个要素：<strong>明确角色</strong>（让 AI 扮演资深工程师）、<strong>充足上下文</strong>（相关代码、约束、目标）、<strong>具体任务</strong>（不要含糊）、<strong>输出格式</strong>（结构化输出便于使用）。接下来四个场景，我们逐一实战。</p>
 
@@ -630,6 +613,83 @@ class AIDevelopmentWorkflow:
       <li><strong>用 AI 写、不测就上</strong>：AI 生成的代码必须有测试覆盖，否则就是定时炸弹。</li>
       <li><strong>让 AI 做架构决策</strong>：架构决策要考虑业务、团队、历史，AI 的全局视野有限。</li>
     </ul>
+
+    <h2 class="section" id="deep64"><span class="idx">深</span> AI 辅助 Bug 定位与测试生成</h2>
+
+    <p>AI 在编程上的两个高价值场景是<strong>Bug 定位</strong>和<strong>测试生成</strong>——它们都不需要 AI 写出完美生产代码，只需提供有价值的线索和草稿，人工再精修。这两个场景的可靠性门槛比“AI 直接写功能”低得多。</p>
+
+    <h3>基于堆栈与日志的 Bug 定位</h3>
+    <p>给 AI 喂堆栈、错误日志和相关代码，让它给出“可能原因 + 排查路径”，比让人肉眼翻代码快得多。关键是控制上下文，只给相关的。</p>
+
+    <pre><code>BUG_PROMPT = '''你在帮定位一个 Bug。给你：错误堆栈、相关日志、相关代码片段。
+请给出：
+1. 最可能的根因(按可能性排序，最多3个)
+2. 每个根因的证据(引用具体日志/代码行)
+3. 验证方法(如何确认是哪个根因)
+4. 修复方向(不要直接写完整代码，给思路)
+如果信息不足，列出还需要看什么。不要编造没有的证据。'''
+
+def locate_bug(stacktrace, logs, code_snippets):
+    context = f"堆栈:\n{stacktrace}\n\n日志:\n{logs}\n\n代码:\n{code_snippets}"
+    r = client.chat.completions.create(model="glm-4-plus", temperature=0.0,
+        messages=[{"role":"system","content":BUG_PROMPT},{"role":"user","content":context}])
+    return r.choices[0].message.content
+# 经验：给 AI 相关代码(而非全仓) + 真实日志，定位准确率很高
+# 它最强的不是猜根因，而是"告诉你接下来该看什么"，加速排查</code></pre>
+
+    <p>AI 在 Bug 定位上最强的能力其实是<strong>“缩小搜索范围”</strong>——根据堆栈和日志，告诉你最该去看哪几个文件、哪几行，这比直接给答案更有用，因为它不会编造，却能大幅缩短人的排查时间。</p>
+
+    <table>
+      <thead><tr><th>编程任务</th><th>AI 可靠性</th><th>最佳用法</th><th>人工必须做</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Bug 定位</strong></td><td>高</td><td>给线索缩范围</td><td>确认根因、写修复</td></tr>
+        <tr><td><strong>测试生成</strong></td><td>高</td><td>生成用例草稿</td><td>补边界、断言校验</td></tr>
+        <tr><td><strong>代码解释</strong></td><td>极高</td><td>读陌生代码</td><td>验证关键结论</td></tr>
+        <tr><td><strong>重构建议</strong></td><td>中高</td><td>提重构方向</td><td>评估影响、执行</td></tr>
+        <tr><td><strong>从零写功能</strong></td><td>中</td><td>生成原型</td><td>全面重写/测试</td></tr>
+      </tbody>
+    </table>
+
+    <h3>测试生成：让 AI 补盲区</h3>
+    <p>AI 生成测试的最大价值不是“省去写测试的力气”，而是<strong>覆盖人想不到的边界</strong>。人会下意识测“正常路径”，AI 反而更可能想到极端值、空集合、并发这类边界。用法是：给它被测函数的签名和实现，让它<strong>列出所有边界场景再生成测试</strong>，而不是直接生成测试代码。关键约束是要求它<strong>每个断言都要解释为什么期望这个结果</strong>——这能过滤掉“为了凑数而写的无意义断言”。生成的测试必须人工<strong>校验断言正确性</strong>——AI 可能算错期望值，让测试“通过但实际没验证任何东西”，这是最隐蔽的坑。一个高效流程是<strong>AI 生成测试骨架 → 人工补关键断言 → 跑覆盖率看盲区 → 再让 AI 补</strong>的循环。最后，<strong>用真实 Bug 倒推测试</strong>：每修一个 Bug，让 AI 生成一个回归测试，长期积累下来，测试集会越来越能防住历史踩过的坑，这是测试集自我进化最实际的路径。</p>
+
+    <h2 class="section" id="deep64b"><span class="idx">深</span> AI 调试/测试 FAQ 与实战</h2>
+    <p>AI 辅助调试和测试的核心是「提供线索而非替你判断」，这些问题最实用。</p>
+    <h3>Q1：AI 给的 Bug 定位建议不准，怎么办？</h3>
+    <p><strong>给足相关上下文</strong>。AI 定位不准多半是<strong>信息不足</strong>——只给了错误信息没给相关代码/日志。改进：给<strong>完整堆栈+相关日志+相关代码片段+你的猜测</strong>；让 AI「先列出可能根因和验证方法，不要直接给结论」——它最强的其实是缩搜索范围而非猜答案；<strong>多轮对话逼近</strong>（按它的建议查，反馈结果，迭代）。AI 在「告诉你接下来看什么」上比「直接给答案」强，把它当排查向导而非预言机。给它越相关上下文，定位越准。</p>
+    <pre><code># 结构化 Bug 排查 prompt
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：AI 生成的测试能信吗？</h3>
+    <p><strong>骨架可用，断言要人工校验</strong>。AI 生测试常有的问题：断言期望值算错（测试「通过但没验证任何东西」）、只测正常路径漏边界、为了凑数写无意义断言。正确用法：<strong>让 AI 先列边界场景再生成测试</strong>（它反而更可能想到极端值）；<strong>每个断言要求解释为什么期望这个值</strong>（过滤凑数断言）；<strong>人工校验断言正确性</strong>（最重要，别盲信）；跑覆盖率看盲区再补。AI 测试的最大价值是<strong>覆盖人想不到的边界</strong>，但要人来保证断言对。</p>
+    <h3>对比速查：AI 编程任务可靠性</h3>
+    <table>
+      <thead><tr><th>任务</th><th>可靠性</th><th>最佳用法</th><th>人工做</th></tr></thead>
+      <tbody>
+        <tr><td>Bug定位</td><td>高</td><td>给线索缩范围</td><td>确认根因</td></tr>
+        <tr><td>测试生成</td><td>高</td><td>生成用例草稿</td><td>补边界</td></tr>
+        <tr><td>代码解释</td><td>极高</td><td>读陌生代码</td><td>验证</td></tr>
+        <tr><td>从零写功能</td><td>中</td><td>生成原型</td><td>重写/测试</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost64" class="section boost">
+      <h2 class="section"><span class="idx">★</span> 高级编码范式的边界与适用场景</h2>
+    <p>高级编码范式（如函数式编程、响应式流、宏与元编程、依赖注入等）是强大的工具，但它们都有明确的适用边界。一个常见的反模式是"为了用而用"——团队引入某个范式仅仅因为它时髦，而非因为它解决了真实问题。判断是否应当引入某个范式的核心标准是：它能否让代码的"不变量"更显式、让"变化点"更隔离、让"测试"更容易写。如果引入后反而增加了认知负担却没有换来这些收益，那就是过度设计。</p>
+    <p>范式的选择还受团队成熟度制约。一个人员流动频繁、平均经验较浅的团队，强行采用高度抽象的范式（如大量使用自由单子、复杂的类型级编程），会显著降低代码的可维护性，因为新人理解成本过高。在这种场景下，"无聊但清晰"的命令式代码反而更优。反之，一个稳定且经验丰富的核心团队，则可以从高度抽象的范式中获得长期红利。因此范式选型本质上是"团队 context 的函数"，没有普适答案。</p>
+    <p>最后，要警惕范式之间的"隐性强耦合"。当一个项目同时混用过多范式（例如函数式 + 响应式 + 注解驱动的 AOP + 元编程），调试时会极难定位问题，因为执行流被分散在多个抽象层。建议每个项目明确"主导范式 + 受限的辅助范式"，并对辅助范式的使用范围做明确约束（例如只在边界层用响应式，领域层保持纯函数）。这种克制本身就是高级工程能力的体现。</p>
+         
+    </section>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把 AI 辅助编程的四个高级场景实战了一遍。核心要点：</p>

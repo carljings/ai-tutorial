@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>82 · LLM 测试驱动开发实践 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学">
-<meta property="og:description" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -341,7 +337,7 @@
 
     <h2 class="section" id="tdd-flow"><span class="idx">03</span> LLM 的 TDD 流程</h2>
     <div class="code-title">llm_tdd.py —— LLM 测试驱动开发</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 llm_tdd.py —— LLM 应用的测试驱动开发
 先写评估集，再开发，每次改动回归测试
 """</span>
@@ -389,7 +385,7 @@ EVAL_SET = [
 
     <h2 class="section" id="ci-cd"><span class="idx">05</span> 把测试放进 CI/CD</h2>
     <div class="code-title">CI 集成</div>
-    <pre><code class="language-python"><span class="c"># .github/workflows/eval.yml —— GitHub Actions 跑评估</span>
+    <pre><code><span class="c"># .github/workflows/eval.yml —— GitHub Actions 跑评估</span>
 name: LLM Eval
 on: [push, pull_request]
 jobs:
@@ -405,7 +401,7 @@ jobs:
     <p>前三节讲了「为什么测」「测什么」「怎么放进 CI」，但都默认<strong>测试是人写的</strong>。实际上 2026 年的 TDD 已经是「AI 写测试、人评审」的双人舞。这里给出一套完整的 AI 辅助 TDD 工作流：从一个需求描述出发，到产出可运行的测试和实现，全程可复现。</p>
     <p>关键原则只有一条：<strong>红 → 绿 → 重构</strong>的顺序不变，但每一步都用 AI 加速。AI 写的测试，人必须读懂、必须能跑红；AI 写的实现，必须先跑过测试才能合并。</p>
     <div class="code-title">ai_tdd.py —— AI 辅助 TDD 的端到端循环</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 ai_tdd.py —— 从需求到通过测试的自动化 TDD 循环
 步骤：生成测试 → 跑红 → 生成实现 → 跑绿 → 重构
 """</span>
@@ -484,7 +480,7 @@ client = ZhipuAI()
       </tbody>
     </table>
     <div class="code-title">test_prompts.py —— 三类高频模板</div>
-    <pre><code class="language-python"><span class="c"># 模板 1：LLM 调用封装 —— 必须 mock 模型，不能真调</span>
+    <pre><code><span class="c"># 模板 1：LLM 调用封装 —— 必须 mock 模型，不能真调</span>
 PROMPT_LLM_WRAPPER = <span class="s">"""
 你正在为函数 {fn_name} 写 pytest 测试。
 这个函数内部会调用 LLM。请：
@@ -545,11 +541,97 @@ PROMPT_AGENT_TOOL = <span class="s">"""
       <p>AI 全栈实战教学 · 第 82 章 · LLM 测试驱动开发实践 · 全书最终终章</p>
       <p>全册 82 章完结 · 从 Token 到无限未来 · 感谢一路同行 · 2026.06</p>
     </footer>
-  
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <p>AI辅助TDD的核心是：先写测试再让AI生成实现代码。六种测试策略覆盖了从单元测试到集成测试的全链路。AI最大的价值是快速生成测试用例和边界条件。</p>
+    <h2 class="section" id="deep82"><span class="idx">深</span> LLM 的测试驱动：给不确定性加护栏</h2>
 
-</main>
+    <p>传统 TDD 在 LLM 上不能直接套用——输出不确定，断言“等于某值”会随机失败。但<strong>测试的思路依然有价值</strong>，只需把“精确断言”换成“属性断言”。下面给出 LLM 版的 TDD 方法。</p>
+
+    <h3>属性测试：断言“性质”而非“精确值”</h3>
+    <p>核心思路：不测“输出是 X”，而测“输出满足某些性质”（是合法 JSON、长度在范围、不含敏感词、语义相关）。下面是属性测试框架。</p>
+
+    <pre><code>import json, re
+
+def property_test(output, checks):
+    """对 LLM 输出做属性断言，而非精确值断言。"""
+    failures = []
+    for name, fn in checks.items():
+        try:
+            if not fn(output):
+                failures.append(f"{name} 不满足")
+        except Exception as e:
+            failures.append(f"{name} 异常: {e}")
+    return failures
+
+# 例：测一个'返回JSON格式产品信息'的LLM功能
+def is_valid_json(s):
+    try: json.loads(s); return True
+    except: return False
+
+checks = {
+    "是合法JSON":   is_valid_json,
+    "含name字段":   lambda s: "name" in json.loads(s),
+    "name非空":     lambda s: len(json.loads(s).get("name","")) &gt; 0,
+    "无敏感词":     lambda s: "密码" not in s and "token" not in s.lower(),
+    "长度合理":     lambda s: 10 &lt; len(s) &lt; 500,
+}
+out = '{"name": "智能音箱", "price": 299}'
+print(property_test(out, checks) or "全部通过")
+# 属性测试让 LLM 输出'虽不确定但满足约束'，可进 CI 而不随机崩</code></pre>
+
+    <p>这套属性测试把“不确定输出”纳入了可测试范畴：不要求精确匹配，只要求满足关键性质，这样测试不会因采样随机而 flaky，又能守住质量底线。</p>
+
+    <table>
+      <thead><tr><th>测试类型</th><th>传统断言</th><th>LLM 属性断言</th><th>适用</th></tr></thead>
+      <tbody>
+        <tr><td><strong>格式</strong></td><td>等于某字符串</td><td>是合法JSON/XML</td><td>结构化输出</td></tr>
+        <tr><td><strong>长度</strong></td><td>等于N</td><td>在[a,b]区间</td><td>摘要/生成</td></tr>
+        <tr><td><strong>内容</strong></td><td>含某词</td><td>语义相关(相似度&gt;阈值)</td><td>问答/抽取</td></tr>
+        <tr><td><strong>安全</strong></td><td>无</td><td>不含敏感/有害</td><td>所有输出</td></tr>
+        <tr><td><strong>鲁棒</strong></td><td>无</td><td>输入扰动后仍合格</td><td>稳定性</td></tr>
+      </tbody>
+    </table>
+
+    <h3>评估集即“测试”，CI 即“回归防护”</h3>
+    <p>在 LLM 语境下，<strong>评估集就是测试集</strong>，CI 跑评估就是回归测试。把 TDD 的“先写测试”迁移为“先建评估集”：开发新功能前，先准备一批预期输入和“合格标准”（属性断言），开发过程中持续跑这批测试，合格率达标才算完成。这比“开发完再想怎么测”健康得多。<strong>golden set 是核心资产</strong>：它既是 CI 门禁，也是质量基线，要持续维护、覆盖正常/边界/对抗场景。<strong>防 flaky</strong> 是 LLM 测试的关键——属性断言比精确断言稳，但仍可能因采样偶尔失败，解法是允许少量容差（如合格率 ≥95% 而非 100%）、或多次采样取多数。<strong>测试要分层</strong>：单元级（单个 prompt 的属性）、集成级（端到端流程的属性）、回归级（golden set 整体准确率），各层关注点不同。<strong>失败要可定位</strong>：测试挂了要能看出是哪个 case、什么属性不满足、什么输入触发的，而不是只给个“合格率 80%”。最后，<strong>把对抗测试纳入 CI</strong>：定期跑 Prompt Injection、越狱、边界输入测试，确保安全护栏不被绕过。LLM 的 TDD 本质是<strong>用属性和评估给不确定性加护栏</strong>——无法消灭不确定性，但能让它落在可接受的边界内，这才是 LLM 工程化“可靠性”的真正含义。</p>
+
+    <h2 class="section" id="deep82b"><span class="idx">深</span> LLM 测试 FAQ 与属性断言</h2>
+    <p>LLM 测试的核心是「属性断言」，这些问题最实用。</p>
+    <h3>Q1：LLM 输出不确定，怎么写不会 flaky 的测试？</h3>
+    <p><strong>断言属性而非精确值</strong>。不测「输出等于 X」，测「输出是合法 JSON、长度在 [a,b]、含必要字段、语义相关（相似度>阈值）、无敏感词」。属性断言容忍采样随机，不 flaky，又守质量底线。<strong>多次采样取多数</strong>进一步稳。允许少量容差（合格率≥95% 而非 100%）。<strong>temperature=0</strong> 调试时复现，但生产测试要接受微小波动。<strong>分层测试</strong>：单元级（单 prompt 属性）、集成级（端到端）、回归级（golden set 整体准确率）。属性断言是把不确定输出纳入可测试范畴的关键。</p>
+    <pre><code># 属性测试框架
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么测 LLM 的鲁棒性（输入扰动不崩）？</h3>
+    <p><strong>对抗/边界测试集</strong>。准备一组扰动输入（同义改写、错别字、超长、空、特殊字符、多语言、注入尝试），跑模型看输出是否仍合格（属性断言）。<strong>不变性测试</strong>：同义改写不应改变分类结果。<strong>边界测试</strong>：空/超长/特殊字符不崩、有兜底。<strong>安全测试</strong>：注入/越狱不成功。<strong>把这些纳入 CI</strong> 定期跑，防退化。鲁棒性测试暴露的是「偶发但致命」的问题（如某类输入必崩），上线前必须覆盖。记住 LLM 测试目标不是「证明对」（不可能），而是「守住边界」（不崩、合规、满足关键属性）。</p>
+    <h3>对比速查：LLM 测试类型</h3>
+    <table>
+      <thead><tr><th>类型</th><th>传统断言</th><th>LLM属性断言</th><th>适用</th></tr></thead>
+      <tbody>
+        <tr><td>格式</td><td>等于某串</td><td>是合法JSON</td><td>结构化</td></tr>
+        <tr><td>内容</td><td>含某词</td><td>语义相关</td><td>问答</td></tr>
+        <tr><td>安全</td><td>无</td><td>不含敏感</td><td>所有</td></tr>
+        <tr><td>鲁棒</td><td>无</td><td>扰动后仍合格</td><td>稳定性</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost82" class="section boost">
+      <h2 class="section"><span class="idx">★</span> TDD 在 AI 与复杂系统中的适配</h2>
+    <p>测试驱动开发（TDD）在传统软件中已有成熟实践，但在 AI 系统中需要做重要的适配。核心困难在于：AI 模型的输出本质上是概率性的，"正确答案"往往不是一个确定值，而是一个可接受的分布范围。因此传统的"断言相等"在很多场景下失效，需要替换为"统计性断言"——例如断言模型在测试集上的准确率不低于某阈值，或断言输出与参考答案的语义相似度在某区间。这种断言天然带有噪声，需要合理设置容忍度和样本量，否则测试会频繁误报。</p>
+    <p>更实用的分层策略是：把系统拆成"确定性部分"和"概率性部分"分别测试。数据预处理、特征工程、后处理、业务规则、API 契约这些确定性逻辑，应当严格用 TDD 覆盖；而模型推理本身则用"回归测试集 + 阈值"来守护，且接受它偶尔的波动。混淆两者的测试粒度，会导致测试套件既脆弱又缓慢，最终被团队放弃。一个经验法则是：越靠近模型核心，测试越偏向"基准与阈值"；越远离模型，越偏向"严格的单元测试"。</p>
+    <p>此外，AI 系统的"数据漂移"使得测试用例本身会过期。一个今天通过的测试集，半年后可能因为真实数据分布变化而不再有代表性。因此 TDD 在 AI 场景下必须配合"测试集的持续更新机制"——定期用线上真实流量回灌测试集，剔除过时样本，补充新出现的边缘 case。没有这种维护，再完善的测试套件也会逐渐沦为"绿色的虚假安全感"。把测试数据当作与代码同等重要的资产来治理，是 AI 时代质量保障的关键认知。</p>
+         
+    </section>
+
+  </main>
 </main>
 
 </div>

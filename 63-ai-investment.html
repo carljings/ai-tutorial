@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 投资与估值 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 投资与估值 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 投资与估值 · AI 全栈实战教学">
-<meta property="og:description" content="AI 投资与估值 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>Runway 与烧钱速率</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>Runway 与烧钱速率</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AI 公司估值模型实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>一、AI 公司估值的底层逻辑</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、开源 vs 闭源：两种估值哲学</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、三层结构：基础设施、应用层、中间件</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、单位经济模型：AI 应用的生死线</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、AI 应用的护城河在哪里</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、市场周期与估值波动</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>AI 公司最该盯的不是估值，而是<strong>runway（资金跑道）</strong>——按当前烧钱速度还能活几个月。下面这段代码算清现金流跑道和盈亏平衡点，是创业团队活下去的命脉计算。</p>
 <pre class="code"><code class="language-python"># AI 创业公司 runway 与盈亏平衡分析
 def runway(cash, monthly_burn, revenue=0, growth=0.0):
@@ -906,6 +889,82 @@ market_phases = {
         "趋势": "基础设施和应用层继续走强，纯模型层公司承压",
     },
 }</code></pre>
+
+    <h2 class="section" id="deep63"><span class="idx">深</span> AI 辅助代码审查：从可用到可靠</h2>
+
+    <p>用 AI 做代码审查听起来美好，落地却有个核心难题：<strong>AI 会“一本正经地瞎提意见”</strong>。不解决这个问题，AI 审查要么被开发者无视，要么引入错误修改。下面给出让 AI 审查可靠的工程方法。</p>
+
+    <h3>结构化代码审查 Prompt</h3>
+    <p>关键是把“审查”从模糊指令变成<strong>结构化检查清单</strong>，并要求 AI 给出可验证的依据，而非泛泛评价。</p>
+
+    <pre><code>REVIEW_PROMPT = '''审查以下代码变更(diff)。按检查清单逐项给出结论：
+1. 逻辑正确性：是否有边界、空值、并发、资源泄漏问题？
+2. 安全性：是否有注入、越权、敏感信息泄漏？
+3. 性能：是否有 N+1 查询、不必要的全量加载、热路径上的重计算？
+4. 可维护性：命名是否清晰、是否有重复代码、抽象是否合理？
+
+要求：
+- 每条意见必须指向具体代码行，并说明"为什么是问题"
+- 区分【必须修复】和【建议优化】，不要混为一谈
+- 没有问题的检查项明确写"无问题"，不要凑数
+- 不确定的地方直说"不确定"，不要编造
+
+输出 JSON: {"must_fix":[...], "suggest":[...], "notes":"..."}'''
+
+def review_diff(diff_text):
+    r = client.chat.completions.create(model="glm-4-plus", temperature=0.0,
+        messages=[{"role":"system","content":REVIEW_PROMPT},
+                  {"role":"user","content":diff_text}])
+    import json
+    return json.loads(r.choices[0].message.content)
+
+# 关键：审查结果进 CI，必须修复项阻断合并，建议项仅提示</code></pre>
+
+    <p>这套结构化 prompt 把 AI 审查从“玄学”变工程：意见有依据、分级清晰、可进 CI 流程。<code>temperature=0</code> 和“不确定就说”的约束，能显著降低幻觉式瞎提意见。</p>
+
+    <table>
+      <thead><tr><th>审查类型</th><th>AI 擅长</th><th>AI 易错</th><th>人工兜底</th></tr></thead>
+      <tbody>
+        <tr><td><strong>风格/规范</strong></td><td>极好</td><td>极少</td><td>无需</td></tr>
+        <tr><td><strong>常见模式bug</strong></td><td>好(空值/资源泄漏)</td><td>偶发误报</td><td>复核 must_fix</td></tr>
+        <tr><td><strong>跨文件逻辑</strong></td><td>中</td><td>易漏上下文</td><td>必须人工</td></tr>
+        <tr><td><strong>业务正确性</strong></td><td>弱</td><td>不懂业务</td><td>必须人工</td></tr>
+        <tr><td><strong>安全漏洞</strong></td><td>好(已知模式)</td><td>新型攻击</td><td>需安全专家</td></tr>
+        <tr><td><strong>性能问题</strong></td><td>中</td><td>误判热点</td><td>结合 profile</td></tr>
+      </tbody>
+    </table>
+
+    <h3>AI 审查与人工审查的分工</h3>
+    <p>AI 审查最大的价值不是“取代人”，而是<strong>过滤掉低级问题，让人集中精力在高价值判断上</strong>。最佳实践是分层：AI 先扫一遍，把风格、空指针、资源泄漏这类“机械性问题”标出来并自动修复；人工审查只看 AI 标记的 must_fix 和它覆盖不到的<strong>业务正确性、架构合理性、跨模块影响</strong>。几个落地要点：第一，<strong>AI 审查结果必须可追溯</strong>——记录它提了什么、人是否采纳，用于持续优化 prompt；第二，<strong>别让 AI 审查成为噪声</strong>——如果误报率高，开发者会全部无视，所以初期要把阈值调严、只报高置信度问题，逐步建立信任；第三，<strong>AI 审查要和静态分析工具配合</strong>而非替代——linter 和 SonarQube 能精确发现的，不必让 AI 重复，AI 的优势在于它们覆盖不到的语义级问题。最后记住：<strong>AI 审查是助手不是裁判</strong>，最终合并决定权在人，AI 提供的是“多一双眼睛”而非“替你拍板”。</p>
+
+    <h2 class="section" id="deep63b"><span class="idx">深</span> AI 辅助编程 FAQ 与可靠性</h2>
+    <p>AI 辅助编程的核心是「可靠」，这些问题决定它帮不帮倒忙。</p>
+    <h3>Q1：AI 生成的代码能直接合并吗？</h3>
+    <p><strong>不能盲合并</strong>。AI 代码常有问题：幻觉调用不存在的 API、边界 case 漏处理、安全漏洞（注入、越权）、性能问题。<strong>必须人工 review</strong>，重点查：API 是否真实存在、边界/空值/并发处理、安全（输入校验、权限）、是否有测试。建议<strong>AI 生成+人工审查+自动测试</strong>三结合：AI 写草稿，人审逻辑，自动化测试（单测/lint/静态分析）兜底机械问题。<strong>结构化 review prompt</strong>能让 AI 先自审一遍，但不能替代人。把 AI 当「快速出草稿的初级工程师」，终审权在人。</p>
+    <pre><code># AI 代码的安全审查
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：AI 辅助编程会让我变菜吗？</h3>
+    <p><strong>取决于怎么用</strong>。盲目复制粘贴会退化基础能力（不思考、不验证）。正确用法是<strong>把 AI 当放大器而非替代</strong>：用它快速出原型、查 API、解释陌生代码，但<strong>理解每一行为什么</strong>，review 并改进。风险是<strong>过度依赖导致「不查就不会」</strong>——要主动保留「不查 AI 也能写」的练习。AI 时代真正值钱的是<strong>系统设计、调试复杂问题、判断 AI 输出对错</strong>这类高阶能力，这些反而要强化。把 AI 用好且保持深度思考的人，会比不用或滥用的人都强。</p>
+    <h3>对比速查：AI 辅助编程可靠性</h3>
+    <table>
+      <thead><tr><th>任务</th><th>AI擅</th><th>AI易错</th><th>人工必须</th></tr></thead>
+      <tbody>
+        <tr><td>代码解释</td><td>极好</td><td>少</td><td>验证</td></tr>
+        <tr><td>测试生成</td><td>好</td><td>断言错</td><td>校验断言</td></tr>
+        <tr><td>Bug定位</td><td>好</td><td>漏上下文</td><td>确认根因</td></tr>
+        <tr><td>业务逻辑</td><td>弱</td><td>不懂业务</td><td>必须</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们从投资视角拆解了 AI 行业的估值逻辑。核心要点：</p>

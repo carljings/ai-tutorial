@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OCR 与文档智能：把纸面变数据 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OCR 与文档智能：把纸面变数据 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OCR 与文档智能：把纸面变数据 · AI 全栈实战教学">
-<meta property="og:description" content="OCR 与文档智能：把纸面变数据 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="ocr-vs-di"><span class="idx">★</span> OCR 和文档智能的区别</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>OCR 和文档智能的区别</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>PaddleOCR:工业级开箱即用的基线</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>TrOCR:基于 Transformer 的端到端识别</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LayoutLMv3:融合文字、版式、图像的多模态王者</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LLM + OCR:文档智能的新范式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>场景一:发票自动录入</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>场景二:合同关键条款抽取</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>场景三:财务报表结构化</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>先厘清两个常被混淆的概念。OCR(Optical Character Recognition,光学字符识别)的任务是把图像中的文字像素转换成机器可编辑的字符——输入一张图片,输出一段文字。它的关注点是"认字",不关心字与字之间的关系、不关心字段含义。</p>
     <p>文档智能(Document Intelligence,有时叫 Document Understanding)更进一步,它要理解文档的<strong>结构</strong>和<strong>语义</strong>。比如看到一张发票,它要识别出" invoice_no: 发票号码 12345678"、"amount: 价税合计 ¥1,000.00"、"date: 开票日期 2026-07-01"这样的键值对;看到一份合同,它要提取出甲方、乙方、签订日期、关键条款。这需要同时理解文字内容、文字位置(版式)、以及它们的语义关系。</p>
     <p>一句话概括:OCR 解决"图里有字"的问题,文档智能解决"这些字是什么意思、属于哪个字段"的问题。业务价值几乎全在后者的结构化提取上——客户要的不是一堆文字,而是能直接进数据库的字段。这也是为什么近年来研究热点从纯 OCR 转向了"版面理解 + 文本理解"的多模态文档智能。</p>

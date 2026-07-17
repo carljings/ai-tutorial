@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent 评估与可观测性 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Agent 评估与可观测性 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Agent 评估与可观测性 · AI 全栈实战教学">
-<meta property="og:description" content="Agent 评估与可观测性 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,17 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="why-observability"><span class="idx">★</span> 为什么 Agent 比普通服务更需要可观测性</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么 Agent 比普通服务更需要可观测性</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LLM 调用追踪与 OpenTelemetry</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Token 成本监控：从计费到预算控制</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>错误率告警：把被动救火变成主动响应</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LangSmith 集成：调试与评测一体化</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>传统微服务的可观测性聚焦于"请求耗时、错误率、资源占用"这三板斧，因为服务的逻辑是确定的——同样的输入几乎一定走同样的代码路径。但 Agent 完全不同：它是模型驱动的，每一次执行可能走完全不同的工具调用序列，模型输出本身具有随机性，错误既可能是代码异常，也可能是模型生成了不合规的内容或陷入了无限循环。这种"非确定性 + 多步组合"让传统监控手段力不从心。</p>
     <p>举个具体场景：一个客服 Agent 在某次对话中给用户报了错误订单号。要定位根因，你需要回看完整的调用链——它先调用了 <code>search_user</code>，再调了 <code>get_order</code>，最后调了 <code>reply</code>。是 <code>search_user</code> 返回了错误的用户？是 <code>get_order</code> 取错了订单？还是模型在 <code>reply</code> 里编造了号？没有完整的 trace，你只能靠日志一行行翻，而生产环境的日志量让你绝望。</p>
     <p>Agent 可观测性的三大支柱因此被重新定义：第一是<strong>调用追踪（Tracing）</strong>，记录每次 LLM 调用、工具调用、子 Agent 调用的输入输出和耗时，组织成树状的执行轨迹；第二是<strong>成本监控（Cost）</strong>，按用户、按租户、按场景统计 token 消耗和折算金额；第三是<strong>质量监控（Quality）</strong>，追踪幻觉率、拒答率、人工反馈分布等业务指标。下面我们逐个展开。</p>
@@ -499,6 +484,124 @@ client = Client()
 #     ...
 </code></pre>
     <p>LangSmith 的真正威力在于把"调试、评测、监控"三件事拧成一股绳：线上 trace 可以一键变成评测样本，评测样本可以驱动 prompt 迭代，迭代结果又通过 trace 验证。这种闭环让 Agent 系统的演进有了量化依据，而不是靠"感觉这个 prompt 更好"。如果你在做严肃的 Agent 产品，LangSmith（或开源替代如 Langfuse、Arize Phoenix）几乎是必备基建。</p>
+    
+    <h2 class="section"><span class="idx"></span>Agent 可观测性的三大支柱：trace、metrics、logs</h2>
+    <p>Agent 系统的复杂度远超传统应用——一次用户请求可能触发几十次模型调用、工具调用、子 agent 协作，任何一环出问题都会影响最终结果。没有好的可观测性，agent 系统就是个黑盒，出问题只能瞎猜。可观测性的三大支柱——trace（追踪）、metrics（指标）、logs（日志）——在 agent 场景有特殊的应用方式。</p>
+<p><strong>Trace</strong> 是 agent 可观测性的核心。它把一次请求的完整执行路径记录下来：从用户输入开始，经过的每一次 LLM 调用（输入/输出/token/延迟）、每一次工具调用（参数/返回/耗时）、每一个子 agent 的边界。trace 要支持<strong>"树形结构"</strong>——主 agent 调用子 agent 形成嵌套，trace 要能体现这种父子关系。好的 trace 让你能"回放"任意一次请求的完整过程，定位是哪一步出了问题。这是 agent 排障最核心的工具。</p>
+<p><strong>Metrics</strong> 从个体 trace 聚合成系统级指标。关键指标分几类：性能类（端到端延迟、各环节延迟分布）、成本类（每次请求的 token/费用、模型调用次数）、质量类（用户满意度、任务成功率）、可靠性类（错误率、超时率、重试率）。metrics 用于监控整体健康度和发现系统性问题（如某时段延迟突增）。<strong>Logs</strong> 记录离散事件，用于补充 trace 的细节——trace 是结构化的主骨架，log 是细节血肉。三者结合，从宏观到微观全覆盖。</p>
+<table class="data-table"><thead><tr><th>支柱</th><th>记录内容</th><th>粒度</th><th>用途</th></tr></thead><tbody>
+<tr><td>Trace</td><td>完整执行路径</td><td>单次请求</td><td>排障回放</td></tr>
+<tr><td>Metrics</td><td>聚合指标</td><td>系统级</td><td>监控告警</td></tr>
+<tr><td>Logs</td><td>离散事件</td><td>事件级</td><td>细节补充</td></tr>
+<tr><td>Spans</td><td>trace 内的步骤</td><td>步骤级</td><td>定位慢环节</td></tr>
+<tr><td>Events</td><td>用户/业务事件</td><td>业务级</td><td>业务分析</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Agent 可观测性：trace + metrics + logs
+from opentelemetry import trace, metrics
+from opentelemetry.trace import SpanKind
+import logging, time, json
+
+logger = logging.getLogger("agent")
+tracer = trace.get_tracer("agent")
+meter = metrics.get_meter("agent")
+
+# 关键指标
+req_counter = meter.create_counter("agent.requests")
+latency_hist = meter.create_histogram("agent.latency")
+token_counter = meter.create_counter("agent.tokens")
+error_counter = meter.create_counter("agent.errors")
+
+class TracedAgent:
+    def handle(self, user_input):
+        # 顶层 span：整个请求
+        with tracer.start_as_current_span("agent.handle", kind=SpanKind.SERVER) as root:
+            root.set_attribute("user_input", user_input[:100])
+            req_counter.add(1)
+            t0 = time.time()
+            try:
+                result = self._run(user_input, root)
+                root.set_attribute("success", True)
+                return result
+            except Exception as e:
+                root.set_attribute("success", False)
+                root.record_exception(e)
+                error_counter.add(1, {"type":type(e).__name__})
+                logger.exception("agent 处理失败")   # log 补充细节
+                raise
+            finally:
+                latency_hist.record(time.time()-t0)
+
+    def _run(self, user_input, parent_span):
+        # 嵌套 span：LLM 调用（trace 体现父子关系）
+        with tracer.start_as_current_span("llm.call"):
+            resp = self.llm.generate(user_input)
+            token_counter.add(resp.usage.total_tokens)
+            # log 记录细节（trace 不存全部，太占空间）
+            logger.debug("LLM 调用", extra={"in":len(user_input),"out":len(resp)})
+        # 嵌套 span：工具调用
+        with tracer.start_as_current_span("tool.search"):
+            results = self.search(resp.tool_input)
+        return resp
+
+# trace 可回放：用 trace_id 查某次请求的完整路径
+# GET /trace/{trace_id} → 树形展示 agent→llm→tool 的调用链 + 每步耗时</code></pre>
+
+    <h2 class="section"><span class="idx"></span>Agent 评测与回归体系</h2>
+    <p>光观测生产还不够——agent 每次改动（换模型、改 prompt、加工具）都可能引入退化。建立评测与回归体系，能在改动后快速发现质量变化，是 agent 持续迭代的守护网。这比传统软件的测试更难，因为 agent 输出是概率性的，不能简单断言"输入 X 必出 Y"。</p>
+<p>评测体系的核心是<strong>"黄金集 + 多维评分"</strong>。黄金集是一批精心标注的 (输入, 期望特征) 对——期望不是固定输出，而是"答案应该满足的特征"（含某些关键事实、不含某些错误、调用对的工具、格式正确等）。每次改动后跑黄金集，用多维评分（事实正确性、格式合规、工具选择、用户满意度代理指标）评估是否退化。评分可以用规则（确定性高的特征）+ LLM-as-judge（语义特征）。</p>
+<p>回归的工程实践是<strong>"分级门禁"</strong>。核心指标（如事实正确率）退化则阻塞发布；次要指标退化则报警但不阻塞；非核心指标波动则仅记录。这样既守住关键质量，又不被评估噪声卡死迭代。还要做<strong>"版本对比"</strong>——新版本 vs 旧版本在同一黄金集上的表现对比，差在哪里一目了然。长期积累黄金集和评测结果，形成 agent 质量演进的趋势线。</p>
+<table class="data-table"><thead><tr><th>评测维度</th><th>评估方法</th><th>门禁级别</th></tr></thead><tbody>
+<tr><td>事实正确性</td><td>规则+核查</td><td>阻塞（核心）</td></tr>
+<tr><td>工具选择正确</td><td>规则匹配</td><td>阻塞（核心）</td></tr>
+<tr><td>格式合规</td><td>规则校验</td><td>阻塞</td></tr>
+<tr><td>语义质量</td><td>LLM judge</td><td>报警（噪声大）</td></tr>
+<tr><td>延迟/成本</td><td>指标对比</td><td>报警</td></tr>
+<tr><td>用户满意度</td><td>反馈代理</td><td>记录</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Agent 评测与回归体系
+import json, statistics
+
+class AgentRegression:
+    def __init__(self, golden_set, scorer):
+        self.golden = golden_set   # [(input, expected_features)]
+        self.scorer = scorer       # 多维评分器
+        self.baseline = None       # 上线版本的分数
+
+    def evaluate(self, agent_version):
+        """跑黄金集，返回多维分数"""
+        scores = {dim:[] for dim in ["factual","tool","format","semantic","latency"]}
+        for inp, expected in self.golden:
+            output = agent_version.run(inp)
+            result = self.scorer.score(output, expected)
+            for dim in scores: scores[dim].append(result[dim])
+        # 聚合：取均值
+        summary = {dim:statistics.mean(vals) for dim,vals in scores.items()}
+        summary["overall"] = statistics.mean(summary.values())
+        return summary
+
+    def gate(self, new_scores, baseline=None):
+        """分级门禁：判断能否发布"""
+        baseline = baseline or self.baseline
+        blocking = ["factual","tool","format"]   # 核心维度
+        results = {"block":[], "warn":[], "ok":[]}
+        for dim, score in new_scores.items():
+            if dim == "overall": continue
+            delta = score - baseline.get(dim, score)
+            if dim in blocking and delta < -0.02:
+                results["block"].append(f"{dim} 退化 {delta:+.2f}")
+            elif delta < -0.05:
+                results["warn"].append(f"{dim} 下降 {delta:+.2f}")
+            else:
+                results["ok"].append(f"{dim} {delta:+.2f}")
+        can_release = len(results["block"]) == 0
+        return can_release, results
+
+# 使用：每次改 prompt/换模型，跑回归
+reg = AgentRegression(golden_set, scorer)
+new_scores = reg.evaluate(new_agent_version)
+can_release, report = reg.gate(new_scores)
+# → ("block": ["factual 退化 -0.05"]) → 不能发布，先修
+# → ("ok": [...], "warn": ["semantic -0.06"]) → 可发布，关注语义</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>可观测性是 Agent 系统从 demo 走向生产的分水岭，本章搭建了完整的可观测性体系。首先我们解释了 Agent 因"非确定性 + 多步组合"而比普通服务更需要可观测性，重新定义了三大支柱：调用追踪、成本监控、质量监控。其次，LLM 调用追踪基于 OpenTelemetry 标准，通过 OpenLLMetry 自动 instrumentation 给所有主流 SDK 装上符合 GenAI 语义约定的 span，实现跨语言、跨后端的全链路追踪。第三，Token 成本监控分调用级记账、聚合统计、预算控制三层，价目表应从配置中心动态加载，并在单次调用成本突增时告警以抓住隐性浪费。第四，错误率告警遵循"信噪比优先"原则，用多级阈值覆盖调用异常、模型异常、业务异常、成本异常四类，部署后必须用混沌测试验证告警链路。最后，LangSmith 在通用追踪之上补齐了 LLM 专项的调试与评测能力，能把线上 trace 一键转为评测样本，形成"调试-评测-监控"闭环。把这些组件组合起来，你的 Agent 系统就有了"行车记录仪 + 仪表盘 + 自动刹车"，足以支撑 7x24 小时稳定运行与持续迭代。</p>
 

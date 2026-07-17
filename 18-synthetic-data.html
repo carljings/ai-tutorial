@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>18 · 合成数据工程 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="18 · 合成数据工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="18 · 合成数据工程 · AI 全栈实战教学">
-<meta property="og:description" content="18 · 合成数据工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -669,7 +665,7 @@
     <p>合成数据最大的风险是<strong>质量参差</strong>。第 2 章第 15 节给了雏形，这里展开完整的过滤流水线：</p>
 
     <div class="code-title">synthetic_pipeline.py —— 完整的合成数据质量流水线</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 synthetic_pipeline.py —— 合成数据生成 + 多层质量过滤
 确保「喂给模型的每条数据都是高质量的」
 """</span>
@@ -798,7 +794,7 @@ client = ZhipuAI()
     <h2 class="section" id="pipeline"><span class="idx">★</span> 实战：用 LLM 生成合成训练数据的完整 pipeline</h2>
     <p>前面讲了 Self-Instruct、Evol-Instruct 等技术，这里把它们<strong>串成一个可运行的 pipeline</strong>：用强模型生成指令-回答对，再用规则+模型做质量过滤与去重，最终产出可用于 SFT 的数据集。这是 Phi、Qwen 等模型快速提升能力的核心工程。</p>
     <div class="code-title">synthetic_pipeline.py · Self-Instruct + 质量过滤 + 去重</div>
-    <pre><code class="language-python"><span class="c">"""合成 SFT 数据 pipeline：种子 → 扩增 → 过滤 → 去重 → 导出。"""</span>
+    <pre><code><span class="c">"""合成 SFT 数据 pipeline：种子 → 扩增 → 过滤 → 去重 → 导出。"""</span>
 <span class="k">import</span> json, random, hashlib
 <span class="k">from</span> openai <span class="k">import</span> OpenAI
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM Agent 框架对比深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM Agent 框架对比深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM Agent 框架对比深度 · AI 全栈实战教学">
-<meta property="og:description" content="LLM Agent 框架对比深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="intro"><span class="idx">★</span> Agent 框架的三个抽象层级</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>Agent 框架的三个抽象层级</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LangChain：大而全的工具箱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>LangGraph：状态图驱动的精细控制</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AutoGen：多 Agent 对话的先驱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>CrewAI：角色扮演的多 Agent 协作</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>OpenAI Agents SDK：官方极简主义</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五大框架横向对比与选型</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>所有 Agent 框架本质上都在解决同一个问题：如何把"LLM 调用 + 工具使用 + 状态管理"封装成可复用的抽象。但不同框架选择了不同的抽象层级，这决定了它们的易用性和灵活性。<strong>低层框架</strong>（如 LangChain 的核心）提供细粒度的组件（Prompt、Memory、Tool、Chain），需要你自己组装。<strong>中层框架</strong>（如 LangGraph）提供"状态图"抽象，让你用节点和边描述 Agent 的工作流。<strong>高层框架</strong>（如 CrewAI）提供"角色"和"任务"抽象，用最自然的语言描述多 Agent 协作。</p>
     <p>选型的核心原则是：<strong>抽象层级越高，上手越快但灵活性越低</strong>。如果你做的是标准的多步推理 Agent，高层框架能帮你省大量代码；如果你需要精细控制每一步的行为（如自定义路由、人在环路、复杂的错误恢复），中层或低层框架更合适。下面逐一拆解五大框架。</p>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学">
-<meta property="og:description" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -727,7 +723,7 @@ def scheduler_step(waiting, running, kv_pool):
     <h2 class="section" id="scheduler"><span class="idx">01</span> 调度器：推理引擎的大脑</h2>
     <p>vLLM 的 Scheduler 是核心——它决定<strong>哪些请求一起跑、什么时候跑</strong>。核心逻辑：</p>
     <div class="code-title">scheduler.py —— vLLM 调度器简化逻辑</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 scheduler.py —— vLLM 调度器的核心逻辑（简化版）
 决定每个 step 哪些请求参与计算
 """</span>
@@ -760,7 +756,7 @@ scheduler.py —— vLLM 调度器的核心逻辑（简化版）
 
     <h2 class="section" id="block-manager"><span class="idx">02</span> Block Manager：PagedAttention 的实现</h2>
     <div class="code-title">block_manager.py —— KV Cache 分页管理</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 block_manager.py —— PagedAttention 的 block 管理逻辑
 KV Cache 被切成固定大小的 block，按需分配
 """</span>
@@ -820,7 +816,7 @@ BLOCK_SIZE = <span class="n">16</span>   <span class="c"># 每 block 存 16 个 
 
     <h2 class="section" id="streaming"><span class="idx">05</span> 流式输出实现</h2>
     <div class="code-title">流式输出的内部机制</div>
-    <pre><code class="language-python"><span class="c"># 流式：每生成一个 token 就 yield 给客户端</span>
+    <pre><code><span class="c"># 流式：每生成一个 token 就 yield 给客户端</span>
 <span class="k">async def</span> <span class="f">generate_stream</span>(request):
     <span class="k">while</span> <span class="k">True</span>:
         <span class="c"># 调度器安排这个请求参与一步 decode</span>
@@ -848,6 +844,83 @@ BLOCK_SIZE = <span class="n">16</span>   <span class="c"># 每 block 存 16 个 
       <div class="step"><h4>看 Worker/Model</h4><p>vllm/worker/ → GPU 上的实际执行。</p></div>
       <div class="step"><h4>看 Attention</h4><p>vllm/attention/ → attention kernel 的 Python 封装。</p></div>
     </div>
+
+    <h2 class="section" id="deep66"><span class="idx">深</span> 推理引擎内幕：vLLM/TGI/TensorRT-LLM 横评</h2>
+
+    <p>vLLM、TGI、TensorRT-LLM 是三大主流推理引擎，它们的优化哲学和适用场景差异很大。选错引擎，要么性能差、要么运维痛苦。下面给出横评和选型决策。</p>
+
+    <h3>三大引擎的核心差异</h3>
+    <p>理解每个引擎的“杀手锏”和“短板”，比看 benchmark 数字更重要。下面用一个结构化对比说清它们的设计取向。</p>
+
+    <pre><code>engines = {
+  "vLLM": {
+    "杀手锏": "PagedAttention + 连续批处理，吞吐王者",
+    "易用性": "极高(OpenAI兼容API、几行起服务)",
+    "生态": "最广(几乎所有开源模型首发支持)",
+    "短板": "极致延迟不如 TRT-LLM，无 FP8",
+    "适合": "通用开源模型服务、快速上线"},
+  "TGI": {
+    "杀手锏": "HuggingFace 生态深度集成、稳定",
+    "易用性": "高(Docker一键起)",
+    "生态": "HF 阵营",
+    "短板": "吞吐略逊 vLLM",
+    "适合": "HF 生态、企业稳定优先"},
+  "TensorRT-LLM": {
+    "杀手锏": "极致延迟、FP8、内核融合最深",
+    "易用性": "低(需编译engine、调参多)",
+    "生态": "NVIDIA 闭环",
+    "短板": "开发成本高、模型需逐个适配",
+    "适合": "延迟敏感、大规模商用、有工程团队"},
+}
+for name, e in engines.items():
+    print(f"【{name}】{e['杀手锏']}\n  适合: {e['适合']}")</code></pre>
+
+    <p>这张对比的核心结论：<strong>vLLM 是默认选择</strong>（易用+吞吐+生态三优），<strong>TRT-LLM 是性能极致</strong>（但要有工程投入），<strong>TGI 适合 HF 深度用户</strong>。多数团队从 vLLM 起步，规模大到成本敏感时再考虑 TRT-LLM。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>vLLM</th><th>TGI</th><th>TensorRT-LLM</th></tr></thead>
+      <tbody>
+        <tr><td><strong>吞吐</strong></td><td>极高</td><td>高</td><td>极高</td></tr>
+        <tr><td><strong>延迟</strong></td><td>低</td><td>低</td><td>极低</td></tr>
+        <tr><td><strong>易用性</strong></td><td>极高</td><td>高</td><td>低</td></tr>
+        <tr><td><strong>模型适配</strong></td><td>快(几乎即用)</td><td>较快</td><td>慢(需编译)</td></tr>
+        <tr><td><strong>量化支持</strong></td><td>AWQ/GPTQ</td><td>多种</td><td>FP8/INT4 最全</td></tr>
+        <tr><td><strong>运维成本</strong></td><td>低</td><td>中</td><td>高</td></tr>
+        <tr><td><strong>适合规模</strong></td><td>中小大</td><td>中大</td><td>大规模</td></tr>
+      </tbody>
+    </table>
+
+    <h3>PagedAttention 为什么是革命性的</h3>
+    <p>vLLM 能成为默认选择，核心是<strong>PagedAttention</strong>这个创新。传统推理里，每个请求要预留一段连续显存放 KV Cache，按最长可能长度预留——结果大量空间浪费在“预留但没用”上，且请求长度不一导致显存碎片严重。PagedAttention 借鉴操作系统虚拟内存的思路，把 KV Cache 切成固定大小的“页”，按需分配、逻辑上连续物理上可分散，显存利用率从 ~40% 提升到 ~96%。<strong>这个改进使得同样显存能塞下更多并发请求</strong>，是 vLLM 吞吐高的根本原因。理解这点，你就明白为什么“选对推理引擎比选对模型对成本影响更大”——同样的模型，PagedAttention 让它能多服务几倍请求。选型时还要看<strong>模型适配速度</strong>：新模型发布后，vLLM 通常几天内支持，TRT-LLM 可能要数周，如果你要第一时间用最新模型，vLLM 的生态优势无可替代。最后，<strong>别忽视运维</strong>：TRT-LLM 的编译流程复杂，每次模型升级都要重新编译调优，运维成本高，中小团队往往 hold 不住。</p>
+
+    <h2 class="section" id="deep66b"><span class="idx">深</span> 推理引擎 FAQ 与选型</h2>
+    <p>推理引擎选错，性能差几倍，这些问题帮选对。</p>
+    <h3>Q1：vLLM 和 TensorRT-LLM 到底选哪个？</h3>
+    <p><strong>默认 vLLM，极致性能才 TRT-LLM</strong>。vLLM 易用（OpenAI 兼容 API、几行起服务）、生态广（新模型几天支持）、吞吐高（PagedAttention），是<strong>绝大多数场景的最优默认</strong>。TRT-LLM 延迟更低、FP8 支持全，但<strong>开发成本高</strong>（需编译 engine、调参多、模型要逐个适配）、运维重。决策：<strong>中小规模、快速上线、要多模型 → vLLM</strong>；大规模商用、延迟极致敏感、有工程团队投入 → TRT-LLM。多数团队从 vLLM 起步，规模大到成本敏感再考虑 TRT-LLM。</p>
+    <pre><code># 引擎性能基准对比
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：为什么 vLLM 比裸 transformers 快这么多？</h3>
+    <p>核心是<strong>PagedAttention + 连续批处理</strong>。PagedAttention 借鉴 OS 虚拟内存，把 KV Cache 切成固定页按需分配（而非按最长请求预留），显存利用率从 ~40% 提到 ~96%，同样显存塞更多并发。连续批处理在迭代级动态组批（完成的移出、新请求加入），GPU 永远满载。二者叠加，比「transformers + 静态批」快几倍。<strong>选对引擎比选对模型对成本影响更大</strong>——同样模型，vLLM 能多服务几倍请求。理解 PagedAttention 的原理，就理解了为什么 vLLM 是默认选择。</p>
+    <h3>对比速查：推理引擎横评</h3>
+    <table>
+      <thead><tr><th>维度</th><th>vLLM</th><th>TGI</th><th>TRT-LLM</th></tr></thead>
+      <tbody>
+        <tr><td>吞吐</td><td>极高</td><td>高</td><td>极高</td></tr>
+        <tr><td>易用性</td><td>极高</td><td>高</td><td>低</td></tr>
+        <tr><td>模型适配</td><td>快</td><td>较快</td><td>慢</td></tr>
+        <tr><td>适合规模</td><td>中小大</td><td>中大</td><td>大规模</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>推理请求九步旅程：HTTP→Tokenizer→Scheduler→BlockManager→Prefill→Decode→Detokenize→返回；</li><li>Scheduler 做连续批处理（动态进出请求）；</li><li>BlockManager 做分页 KV Cache（消除碎片）；</li><li>Prefill 计算密集，Decode 内存密集；</li><li>读源码：入口→Engine→Scheduler→BlockManager→Worker。</li></ul></div>

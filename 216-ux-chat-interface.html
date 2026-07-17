@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>对话界面设计：让 Agent 好用 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="对话界面设计：让 Agent 好用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="对话界面设计：让 Agent 好用 · AI 全栈实战教学">
-<meta property="og:description" content="对话界面设计：让 Agent 好用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -796,6 +792,106 @@ function useTypewriter(speed = 30) {   // speed: 每帧渲染字符数
     <table class="data-table"><thead><tr><th>方案</th><th>实现复杂度</th><th>体验</th><th>适用</th></tr></thead><tbody><tr><td>直接 append delta</td><td>低</td><td>时快时慢，像网络卡顿</td><td>内部工具、MVP</td></tr><tr><td>RAF 恒定打字机</td><td>中</td><td>节奏稳定，有仪式感</td><td>C 端产品、演示</td></tr><tr><td>分段降速（代码块慢、正文快）</td><td>高</td><td>最自然，引导阅读</td><td>教育、长文产品</td></tr></tbody></table>
 
     
+    
+    <h2><span class="idx"></span>对话界面的认知负荷管理</h2>
+    <p>对话界面（chat interface）看似简单（一个输入框+消息流），但设计不好会让用户不知所措。LLM 应用的对话界面尤其面临<strong>"认知负荷"</strong>挑战——agent 的回复可能很长、含多个选项、需要用户决策，用户容易信息过载。管理认知负荷是对话界面设计的核心。</p>
+<p>认知负荷的来源有几个。<strong>信息密度过高</strong>：一次回复塞太多内容（长篇大论、多个建议），用户读不完也抓不住重点。<strong>决策点过多</strong>：频繁问用户"你要 A 还是 B"，每个决策都消耗注意力。<strong>状态不透明</strong>：用户不知道 agent 在干嘛、进展如何，焦虑等待。<strong>历史混乱</strong>：多轮对话后消息堆积，找之前的结论困难。每个来源都有对应的设计对策。</p>
+<p>信息密度对策是<strong>"渐进披露 + 结构化"</strong>。长回复拆成"摘要 + 详情可展开"——先给一句话结论，细节折叠让用户按需展开。多选项用<strong>"推荐 + 备选"</strong>而非平行罗列——明确推荐哪个（"我建议 A，因为..."），其他作为备选，减少用户选择困难。决策点对策是<strong>"批量决策 + 默认值"</strong>——能合并的决策一次性问，能猜默认值的别问（用合理默认 + 允许纠正）。状态对策是<strong>"过程可见"</strong>——流式输出 + 进度提示，让用户感知 agent 在工作。</p>
+<table class="data-table"><thead><tr><th>负荷来源</th><th>表现</th><th>设计对策</th></tr></thead><tbody>
+<tr><td>信息密度高</td><td>回复太长</td><td>摘要+可展开详情</td></tr>
+<tr><td>决策点多</td><td>频繁问选择</td><td>推荐+默认值</td></tr>
+<tr><td>状态不透明</td><td>不知在干嘛</td><td>流式+进度提示</td></tr>
+<tr><td>历史混乱</td><td>找不到旧信息</td><td>结构化+可搜索</td></tr>
+<tr><td>术语难懂</td><td>技术黑话</td><td>通俗化+术语解释</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 对话界面的认知负荷管理（前端组件示例）
+class ManagedChatResponse:
+    """把 agent 长回复组织成低认知负荷的结构"""
+    def render(self, agent_output):
+        # 1. 摘要先行：一句话结论
+        summary = agent_output.get("summary", agent_output["text"][:80])
+        html = [f'<div class="summary">{summary}</div>']
+        # 2. 推荐方案（而非平行罗列多选项）
+        if agent_output.get("options"):
+            recommended = agent_output["options"][0]   # 第一个是推荐
+            html.append(f'<div class="recommendation">建议：{recommended["label"]}'
+                        f'<span class="reason">{recommended["reason"]}</span></div>')
+            # 备选折叠，不分散注意力
+            if len(agent_output["options"]) > 1:
+                html.append('<details><summary>其他选项</summary><ul>')
+                for opt in agent_output["options"][1:]:
+                    html.append(f'<li>{opt["label"]}</li>')
+                html.append('</ul></details>')
+        # 3. 详情按需展开
+        if len(agent_output["text"]) > 200:
+            html.append(f'<details><summary>查看完整分析</summary>'
+                        f'<div class="detail">{agent_output["text"]}</div></details>')
+        return "".join(html)
+
+# 默认值策略：能猜的别问
+class SmartDefaults:
+    def ask(self, question, context):
+        # 如果能从历史/偏好猜出答案，直接用默认 + 允许纠正
+        guessed = self._guess_from_context(question, context)
+        if guessed and guessed.confidence > 0.8:
+            return (f"我猜你想问 {guessed.value}（{question}），"
+                    f"<a>如果不是请点这里纠正</a>")
+        return question   # 猜不出才问</code></pre>
+
+    <h2><span class="idx"></span>多模态对话的交互模式</h2>
+    <p>对话界面不再只是"文字来回"，越来越多 LLM 应用支持多模态——图片输入、语音、文件、富媒体输出（图表、卡片、可交互组件）。多模态让交互更自然强大，但也带来新的设计挑战：什么时候用什么模态、模态间如何切换、如何保持一致性。</p>
+<p>模态选择的原则是<strong>"用最适合任务的模态"</strong>。文字适合抽象描述和推理；图片适合视觉信息（截图、图表、设计稿）；语音适合移动场景和无障碍；交互组件适合结构化输入（表单比让用户用文字描述结构化数据好）。不要为了炫技用复杂模态——简单的文字问答就够时，别强求用户传图或语音。好的设计是让用户<strong>"自然地用最省力的模态"</strong>。</p>
+<p>模态切换的体验要流畅。用户传一张截图问问题，agent 应能直接基于图回答，而非要求用户"用文字描述图片"。agent 的输出也可以混用模态——文字解释 + 配图表 + 可点击的交互卡片。关键挑战是<strong>"跨模态一致性"</strong>——文字说的和图展示的要一致，不能矛盾。还要处理<strong>"模态降级"</strong>——某些环境不支持某模态（如纯文字终端），要能优雅降级到文字。</p>
+<table class="data-table"><thead><tr><th>模态</th><th>适合</th><th>不适合</th><th>设计要点</th></tr></thead><tbody>
+<tr><td>文字</td><td>抽象/推理</td><td>视觉信息</td><td>结构化排版</td></tr>
+<tr><td>图片</td><td>视觉/截图</td><td>抽象概念</td><td>支持标注</td></tr>
+<tr><td>语音</td><td>移动/无障碍</td><td>复杂结构</td><td>转文字备份</td></tr>
+<tr><td>交互组件</td><td>结构化输入</td><td>开放探索</td><td>降低输入成本</td></tr>
+<tr><td>图表</td><td>数据展示</td><td>定性信息</td><td>可交互探索</td></tr>
+</tbody></table>
+<pre><code class="language-javascript">// 多模态对话的前端处理
+class MultimodalChat {
+  async sendMessage(content) {
+    // content 可能是文字/图片/文件/语音 的混合
+    const message = await this.normalize(content);
+    // 根据内容类型选择最佳交互
+    const response = await this.agent.respond(message);
+    // 渲染：agent 输出可能是多模态混合
+    return this.renderMultimodal(response);
+  }
+
+  async normalize(content) {
+    // 语音先转文字（保留原音频备份）
+    if (content.type === 'audio') {
+      const text = await this.stt(content.audio);
+      return {...content, text, originalAudio: content.audio};
+    }
+    // 图片：提取基本信息，不用让用户描述
+    if (content.type === 'image') {
+      return {...content, metadata: await this.getImageInfo(content.image)};
+    }
+    return content;
+  }
+
+  renderMultimodal(response) {
+    // agent 输出混用模态：文字 + 图表 + 交互卡片
+    let html = '';
+    if (response.text) html += `<div class="text">${response.text}</div>`;
+    if (response.chart) html += this.renderChart(response.chart);  // 可交互图表
+    if (response.card) html += this.renderCard(response.card);     // 结构化卡片
+    if (response.actions) html += this.renderActions(response.actions); // 可点按钮
+    return html;
+  }
+
+  // 模态降级：环境不支持时优雅降级
+  renderWithFallback(response, capabilities) {
+    if (response.chart && !capabilities.svg) {
+      // 不支持 SVG：降级为文字表格
+      return this.chartToTable(response.chart);
+    }
+    return this.renderMultimodal(response);
+  }
+}</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agent 对话界面的设计核心是"透明度"——让用户知道 Agent 在想什么、做什么、结果是什么。流式渲染降低等待感、工具卡片增加透明度、审批界面保障安全。好的 Agent UI 让用户感到"可控"而非"黑盒"。</p>
     <div class="chapter-nav">

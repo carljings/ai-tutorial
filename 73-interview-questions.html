@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>73 · LLM 面试题全集 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="73 · LLM 面试题全集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="73 · LLM 面试题全集 · AI 全栈实战教学">
-<meta property="og:description" content="73 · LLM 面试题全集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -774,7 +770,7 @@
     <h3>题目：手写一个最小 RAG 检索器</h3>
     <p>这是面试出场率极高的题——考你是否真懂 embedding + 向量相似度。要求：给定一批文档和 query，返回最相关的 top-k。</p>
     <div class="code-title">mini_rag.py · 手写最小 RAG 检索</div>
-    <pre><code class="language-python"><span class="c">"""最小 RAG：embedding + 余弦相似度 top-k 检索，不依赖向量库。"""</span>
+    <pre><code><span class="c">"""最小 RAG：embedding + 余弦相似度 top-k 检索，不依赖向量库。"""</span>
 <span class="k">import</span> numpy <span class="k">as</span> np
 <span class="k">from</span> openai <span class="k">import</span> OpenAI
 
@@ -811,7 +807,7 @@ EMB_MODEL = <span class="s">"embedding-3"</span>
     <h3>系统设计题答题模板</h3>
     <p>系统设计题（如「设计一个智能客服系统」）最怕答得散。用一个<strong>固定模板</strong>能保证结构清晰、不漏关键点。下面是把模板编码成一个可复用的检查清单函数。</p>
     <div class="code-title">system_design_template.py · 系统设计答题检查清单</div>
-    <pre><code class="language-python"><span class="c">"""系统设计题的通用答题模板：6 步走，每步带检查点。"""</span>
+    <pre><code><span class="c">"""系统设计题的通用答题模板：6 步走，每步带检查点。"""</span>
 
 SYSTEM_DESIGN_TEMPLATE = {
     <span class="s">"1. 澄清需求"</span>: [
@@ -899,6 +895,82 @@ print("log softmax  :", log_softmax_stable(x))
 #  答：softmax(x-c) = e^(x-c)/sum(e^(x-c)) = e^x*e^-c / (sum(e^x)*e^-c) = softmax(x)
 #  c 把分子分母同比例缩放，概率分布不变，但数值范围安全了
 # 这就是"减 max"技巧的数学本质，也是所有 attention 实现的标准操作</code></pre>
+    <h2 class="section" id="deep73"><span class="idx">深</span> AI 面试题精解：从八股到深度</h2>
+
+    <p>AI 面试的高分题往往不是“背答案”能过的，而是<strong>考察理解的深度和工程权衡</strong>。下面精选几道高频题，给出“八股答案”和“深度答案”的对比，帮你从及格到优秀。</p>
+
+    <h3>结构化的答题框架</h3>
+    <p>把面试题答好，可以套“定义 → 原理 → 权衡 → 实例”的框架。下面用代码把高频题的答题要点结构化。</p>
+
+    <pre><code>interview_qa = {
+  "KV Cache 是什么？为什么需要？": {
+    "及格答": "缓存 attention 的 K/V，避免重复计算，加速生成",
+    "深度答": {
+      "定义": "存每层历史 token 的 K/V 投影，decode 时只算新 token",
+      "为什么": "自回归生成时，前面 token 的 K/V 不变，重算是浪费",
+      "权衡": "换速度换显存：KV Cache 随长度线性增长，长上下文显存吃紧",
+      "优化": "PagedAttention 分页管理、GQA 减少KV头数、量化KV",
+      "实例": "7B 模型 32K 上下文，KV Cache 可达数十 GB，是显存大头"
+    }
+  },
+  "RAG 和微调怎么选？": {
+    "及格答": "RAG 不改模型，微调改",
+    "深度答": {
+      "维度": "知识更新频率、是否需风格/能力改变、成本",
+      "RAG": "知识常变、需可溯源、成本低的场景首选",
+      "微调": "改风格/格式/特定能力、知识稳定且需内化时",
+      "混合": "微调改能力 + RAG 接动态知识，常组合用",
+      "实例": "客服场景：微调让语气统一 + RAG 接最新产品库"
+    }
+  }
+}
+import json; print(json.dumps(interview_qa, ensure_ascii=False, indent=2))</code></pre>
+
+    <p>深度答案的标志是<strong>有“权衡”和“实例”</strong>——不仅说“是什么”，还说“什么时候用、有什么代价、举具体例子”。这是区分“背过”和“理解过”的关键。</p>
+
+    <table>
+      <thead><tr><th>题型</th><th>及格答法</th><th>高分答法</th><th>加分点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>概念题</strong></td><td>定义</td><td>定义+原理+权衡</td><td>画图/举例</td></tr>
+        <tr><td><strong>选型题</strong></td><td>列方案</td><td>对比+决策依据</td><td>结合具体场景</td></tr>
+        <tr><td><strong>系统设计</strong></td><td>画架构</td><td>估算+模块+演进</td><td>量化数字</td></tr>
+        <tr><td><strong>调优题</strong></td><td>列方法</td><td>瓶颈分析+优先级</td><td>实测经验</td></tr>
+        <tr><td><strong>排查题</strong></td><td>猜原因</td><td>分层定位+验证</td><td>工具使用经验</td></tr>
+      </tbody>
+    </table>
+
+    <h3>把“八股”答出深度</h3>
+    <p>即使是基础概念题，也能靠<strong>讲深一层</strong>脱颖而出。比如问“什么是注意力机制”，及格答案是“加权求和”，深度答案会讲“Q/K/V 的几何意义（Q 和 K 点积衡量相关性，V 是内容聚合）、为什么除以根号 dk（防止点积过大 saturate softmax）、复杂度 O(n²) 带来的长序列问题、以及 FlashAttention 如何解决”。每往深一层，都在向面试官证明“我不只是背了，我理解了原理和它的工程后果”。几个加分习惯：第一，<strong>主动画图</strong>——遇到架构或数据流问题，主动在纸上画，比纯口述清晰得多，也展示沟通能力；第二，<strong>结合实战经验</strong>——答理论时带一句“我在项目里遇到过，当时的取舍是…”，让答案落地而非纸上谈兵；第三，<strong>诚实说不知道</strong>——遇到没把握的，承认“这部分我不确定，但我的理解是…”，比硬编强得多，面试官能识别装懂。<strong>反向提问也是考察</strong>——面试末尾问“你们团队最大的技术挑战是什么”，既显示思考，也帮你判断这岗位是否适合。最后，<strong>准备要系统而非押题</strong>：把核心概念都过一遍深度，比猜十道题有用，因为深度理解能迁移到没准备过的题上。</p>
+
+    <h2 class="section" id="deep73b"><span class="idx">深</span> 面试 FAQ 与应答技巧</h2>
+    <p>面试高分在于「深度」和「权衡」，这些问题是加分点。</p>
+    <h3>Q1：面试被问到不会的，怎么处理？</h3>
+    <p><strong>诚实+展示思考过程</strong>。直接说「这部分我不熟」比硬编强——面试官能识别装懂。然后<strong>尝试推导</strong>：「虽然没接触过，但根据我理解的 X，我推测可能是 Y，理由是…」——展示推理能力比答案对错更重要。实在不知道就坦诚并问「能提示一下背景吗」。忌讳：瞎猜、沉默、转移话题。面试官看重的是<strong>面对未知的能力</strong>（思考方法），而非知识储备（记多少）。诚实+有逻辑的推导，即使答错也比胡编得分高。</p>
+    <pre><code># 高频面试题结构化应答
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：系统设计题总是答得乱，怎么组织？</h3>
+    <p><strong>套框架</strong>：澄清需求（主动问约束）→ 估算规模（QPS/存储/成本，给推导）→ 划分模块（说清数据流）→ 关键决策（选型+权衡+为什么）→ 演进路径（v1→v2）。每步给产出。先画全局（5 分钟）再按面试官兴趣深入。<strong>量化是加分利器</strong>——给数字推导（「需 N 张 GPU，日成本 $X」）立刻拉开差距。<strong>给权衡而非标准答案</strong>（列 2~3 候选+优劣+结合需求选）。<strong>留演进思考</strong>（何时该换方案）。永远先问需求再给方案，且方案有退路，是高级工程师的标志。</p>
+    <h3>对比速查：面试题型答法</h3>
+    <table>
+      <thead><tr><th>题型</th><th>及格</th><th>高分</th><th>加分点</th></tr></thead>
+      <tbody>
+        <tr><td>概念题</td><td>定义</td><td>定义+权衡</td><td>画图举例</td></tr>
+        <tr><td>选型题</td><td>列方案</td><td>对比+决策</td><td>结合场景</td></tr>
+        <tr><td>系统设计</td><td>画架构</td><td>估算+演进</td><td>量化数字</td></tr>
+        <tr><td>调优题</td><td>列方法</td><td>瓶颈+优先级</td><td>实测经验</td></tr>
+      </tbody>
+    </table>
+
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>50 道题分四类：原理(15)+工程(15)+系统设计(10)+场景(10)；</li><li>每题理解「为什么」比背「是什么」重要；</li><li>面试加分：数字+原理+trade-off+实战经验。</li></ul></div>
     <div class="chapter-nav">

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>线上监控与告警 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="线上监控与告警 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="线上监控与告警 · AI 全栈实战教学">
-<meta property="og:description" content="线上监控与告警 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="why-monitor"><span class="idx">★</span> 为什么 ML 监控是一门独立的学问</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么 ML 监控是一门独立的学问</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三种衰减:数据漂移、概念漂移、性能衰减</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>数据漂移检测:从 PSI 到统计检验</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>概念漂移检测:等待标签的艺术</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>监控架构:Prometheus + Grafana 实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>告警策略:别让告警变成噪声</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>超越 Prometheus:专用 ML 监控平台</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>传统软件系统遵循"代码即逻辑"的原则:只要代码不变、输入合法,输出就是确定的。监控的主要对象是系统的"运行健康"——CPU、内存、磁盘、网络、错误率、延迟。这套体系在 DevOps 时代已经相当成熟。</p>
     <p>但 ML 系统多了一个维度:<strong>数据</strong>。模型的"逻辑"不是写死的,而是从训练数据中学来的。一旦线上输入数据的分布偏离训练分布,模型的预测就会变得不可靠——而此时系统层面往往一切正常,接口照常返回 200,延迟照常在 50ms 以内。这就是为什么 ML 监控不能照搬 DevOps,必须额外引入"数据质量"和"模型质量"两个维度的监控。</p>
     <p>用一句话概括:DevOps 监控问的是"系统还在不在工作",MLOps 监控还要问"模型还在不在做对的事"。后者的答案往往比前者更难获取,也更晚才能知道。</p>
@@ -460,6 +443,124 @@ groups:
     <p>Prometheus + Grafana 适合指标型监控,但 ML 场景有时需要更丰富的能力,比如高维特征的分布可视化、样本级别的下钻、以及自动化的根因分析。这时可以考虑专用的 ML 可观测性平台。</p>
     <p>开源方案中,Evidently 专注于数据和模型漂移检测,能生成漂亮的 HTML 报告,适合定期 review;Arize、Fiddler、WhyLabs 是商业产品,提供端到端的 ML 监控、根因分析和公平性审计,适合大型团队。选择时主要考量团队规模、数据敏感度(是否能上云)和预算。对于大多数中小团队,自建 Prometheus + Evidently 已经能覆盖 80% 的需求。</p>
     <p>一个值得借鉴的实践是<strong>采样日志</strong>:除了聚合指标,还按比例保留一小部分请求的完整输入输出,存到对象存储。当指标告警时,可以下钻到具体样本看发生了什么,这是单纯看仪表盘做不到的。</p>
+    
+    <h2 class="section"><span class="idx"></span>LLM 应用的专属监控指标</h2>
+    <p>LLM 应用的监控不能照搬传统应用的指标（CPU、内存、QPS），它有专属的监控维度——这些维度直接反映应用质量和用户体验，是 LLMOps 监控的核心。不理解这些专属指标，监控就抓不到 LLM 应用的真正问题。</p>
+<p>第一组是<strong>"质量指标"</strong>。任务成功率（用户请求被正确完成的比例）——这是终极指标，但难直接测量，常用代理（用户是否点"满意"、是否重试、是否转人工）。回答相关性（输出是否切题）——可用 LLM-as-judge 抽样评估。幻觉率（输出含虚假信息的比例）——最难但最重要，靠引用核查或事实校验。第二组是<strong>"行为指标"</strong>。工具调用分布（用了哪些工具、分布是否正常）、多轮对话深度（平均几轮解决）、兜底触发率（fallback 到人工/通用模式的比例）。</p>
+<p>第三组是<strong>"成本指标"</strong>。token 消耗（每次请求的 input/output token）、模型调用次数（一次请求触发几次 LLM 调用）、单次成本（每次请求花多少钱）。LLM 应用成本远高于传统应用，必须监控并优化。第四组是<strong>"安全指标"</strong>。prompt 注入尝试率、敏感内容拦截率、越界回答率。这些反映应用的安全态势。所有指标都要按时间维度监控，发现异常波动（突增/突降）及时告警。</p>
+<table class="data-table"><thead><tr><th>指标组</th><th>关键指标</th><th>含义</th><th>告警阈值（参考）</th></tr></thead><tbody>
+<tr><td>质量</td><td>任务成功率</td><td>请求被正确完成比例</td><td>下降 &gt;5%</td></tr>
+<tr><td>质量</td><td>幻觉率</td><td>含虚假信息比例</td><td>上升 &gt;3%</td></tr>
+<tr><td>行为</td><td>兜底触发率</td><td>fallback 比例</td><td>上升 &gt;10%</td></tr>
+<tr><td>成本</td><td>单次 token</td><td>每次请求 token</td><td>上升 &gt;20%</td></tr>
+<tr><td>成本</td><td>单次成本</td><td>每次请求费用</td><td>超预算</td></tr>
+<tr><td>安全</td><td>注入尝试率</td><td>恶意请求比例</td><td>突增</td></tr>
+</tbody></table>
+<pre><code class="language-python"># LLM 应用专属监控
+from prometheus_client import Counter, Histogram, Gauge
+import time
+
+# 质量指标
+task_success = Counter("llm_task_total", "任务计数", ["status"])  # success/fail
+hallucination_rate = Gauge("llm_hallucination_rate", "幻觉率估计")
+# 行为指标
+tool_usage = Counter("llm_tool_calls", "工具调用", ["tool"])
+fallback_rate = Gauge("llm_fallback_rate", "兜底触发率")
+dialog_depth = Histogram("llm_dialog_depth", "对话轮数")
+# 成本指标
+tokens_per_request = Histogram("llm_tokens_per_request", "每次请求token",
+                               buckets=(100,500,1000,2000,5000,10000))
+cost_per_request = Histogram("llm_cost_per_request", "每次请求成本(美元)",
+                             buckets=(0.01,0.05,0.1,0.5,1,5))
+# 安全指标
+injection_attempts = Counter("llm_injection_attempts", "注入尝试")
+
+class LLMMonitor:
+    def record_request(self, request, response, metadata):
+        # 质量记录
+        task_success.labels(status="success" if response.success else "fail").inc()
+        if response.fallback: fallback_rate.inc()
+        # 成本记录
+        tokens_per_request.observe(response.tokens_used)
+        cost_per_request.observe(response.cost)
+        # 行为记录
+        for tool in response.tools_used:
+            tool_usage.labels(tool=tool).inc()
+        dialog_depth.observe(request.turn_count)
+        # 安全记录
+        if detect_injection(request.input):
+            injection_attempts.inc()
+
+    def sample_quality_check(self, sample_rate=0.01):
+        """抽样做昂贵的质量评估（幻觉/相关性）"""
+        if random.random() < sample_rate:
+            sample = get_recent_sample()
+            # 用 LLM-as-judge 估幻觉率
+            haluc = judge_hallucination(sample)
+            hallucination_rate.set(haluc)
+            if haluc > 0.05:   # 幻觉率超阈值告警
+                alert(f"幻觉率上升: {haluc}")</code></pre>
+
+    <h2 class="section"><span class="idx"></span>漂移检测与异常诊断</h2>
+    <p>LLM 应用最大的监控挑战是<strong>"漂移"</strong>——行为逐渐变化但不易察觉。输入分布漂移（用户问的问题类型变了）、模型漂移（provider 升级了模型）、概念漂移（正确答案随时间变了，如"最新版本是什么"）。漂移让原本正常的应用慢慢退化，等用户大规模抱怨时已晚。主动检测漂移是高级 LLMOps 的标志。</p>
+<p>漂移检测的方法分几类。<strong>输入漂移</strong>：监控用户输入的分布变化——关键词分布、问题长度、问题类型比例。用统计方法（KS检验、分布距离）检测分布是否显著偏离基线。<strong>输出漂移</strong>：监控输出的统计特征——长度分布、情感倾向、工具调用模式。输出特征突变往往预示问题。<strong>性能漂移</strong>：监控质量指标的趋势——任务成功率、满意度的长期趋势，下降趋势就是漂移信号。<strong>模型漂移</strong>：定期跑固定的测试集，如果同样输入的输出变了（而你没改任何东西），说明底层模型变了。</p>
+<p>漂移检测到后要<strong>诊断根因</strong>。是输入变了（用户行为演变）、模型变了（provider 升级）、还是数据变了（RAG 知识库过期）？不同根因对策不同——输入漂移要调整模型适应新分布、模型漂移要锁定版本或更新适配、数据漂移要刷新数据。诊断靠对比分析：把漂移前后的样本对比，定位变化的维度。</p>
+<table class="data-table"><thead><tr><th>漂移类型</th><th>检测信号</th><th>常见根因</th><th>对策</th></tr></thead><tbody>
+<tr><td>输入漂移</td><td>输入分布变化</td><td>用户行为演变</td><td>适配新分布</td></tr>
+<tr><td>输出漂移</td><td>输出特征突变</td><td>模型/输入变了</td><td>定位根因</td></tr>
+<tr><td>性能漂移</td><td>质量趋势下降</td><td>综合因素</td><td>深入诊断</td></tr>
+<tr><td>模型漂移</td><td>固定集输出变</td><td>provider 升级</td><td>锁版本/适配</td></tr>
+<tr><td>数据漂移</td><td>RAG 召回变差</td><td>知识库过期</td><td>刷新数据</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 漂移检测与诊断
+import numpy as np
+from scipy import stats
+from collections import Counter
+
+class DriftDetector:
+    def __init__(self, baseline):
+        self.baseline = baseline   # 基线分布（上线时记录）
+
+    def detect_input_drift(self, recent_inputs):
+        """输入漂移：检测近期输入分布是否偏离基线"""
+        drifts = {}
+        # 长度分布漂移
+        recent_lens = [len(i) for i in recent_inputs]
+        base_lens = self.baseline["input_lengths"]
+        stat, p = stats.ks_2samp(recent_lens, base_lens)
+        drifts["length"] = p < 0.05   # p 值小=分布显著不同
+        # 关键词分布漂移
+        recent_kw = Counter(extract_keywords(recent_inputs))
+        base_kw = self.baseline["keywords"]
+        drift_score = self._distribution_distance(recent_kw, base_kw)
+        drifts["keywords"] = drift_score > 0.3
+        return drifts
+
+    def detect_model_drift(self, probe_inputs, current_outputs):
+        """模型漂移：固定探针输入的输出是否变了"""
+        baseline_outputs = self.baseline["probe_outputs"]
+        changes = sum(1 for cur,base in zip(current_outputs,baseline_outputs)
+                      if not similar(cur, base, threshold=0.9))
+        drift_rate = changes / len(probe_inputs)
+        return drift_rate > 0.2   # 20% 探针输出变了=模型漂移
+
+    def detect_performance_drift(self, recent_metrics):
+        """性能漂移：质量指标趋势"""
+        success_rates = [m["success_rate"] for m in recent_metrics]
+        # 简化：最近7天 vs 之前30天对比
+        recent_avg = np.mean(success_rates[-7:])
+        baseline_avg = np.mean(success_rates[:-7])
+        return recent_avg < baseline_avg - 0.03   # 下降3%+ =漂移
+
+    def diagnose(self, drifts):
+        """根因诊断"""
+        if drifts.get("model"):
+            return {"cause":"model_drift", "action":"检查 provider 是否升级了模型"}
+        if drifts.get("input"):
+            return {"cause":"input_drift", "action":"分析新输入特征，考虑适配"}
+        if drifts.get("performance"):
+            return {"cause":"performance_drift", "action":"深入分析退化维度"}
+        return {"cause":"unknown", "action":"持续观察"}</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>ML 监控的核心是捕捉三类衰减:数据漂移(输入分布变化,可早期检测)、概念漂移(输入输出关系变化,需标签回流)、模型性能衰减(前两者导致的结果)。检测手段上,PSI、KS 检验适合数值特征的漂移检测,概念漂移则依赖标签回流的周期性评估。</p>
     <p>工程实现上,Prometheus + Grafana 提供了成熟的指标采集、存储、可视化和告警链路,我们演示了如何把漂移指标暴露成 Prometheus metric 并配置告警规则。关键原则是:分层告警避免噪声、持续时长过滤抖动、聚合维度简化响应、每条告警都带行动建议。</p>

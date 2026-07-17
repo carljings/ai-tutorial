@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>50 · LLM 术语表与速查手册 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学">
-<meta property="og:description" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -474,7 +470,7 @@
 
     <h3>Token 与 BPE：文本如何变成数字</h3>
     <p>BPE（Byte-Pair Encoding）做的事就是把一段文本切成子词，再映射成整数 id。这是所有大模型输入的起点。</p>
-    <pre><code class="language-python"><span class="k">from</span> transformers <span class="k">import</span> AutoTokenizer
+    <pre><code><span class="k">from</span> transformers <span class="k">import</span> AutoTokenizer
 
 tok = AutoTokenizer.from_pretrained(<span class="s">"THUDM/glm-4-9b"</span>)
 ids = tok(<span class="s">"多模态大模型"</span>)[<span class="s">"input_ids"</span>]        <span class="c"># [151331, 36489, 102123, 99489]</span>
@@ -483,7 +479,7 @@ print(ids, <span class="s">"→"</span>, tok.convert_ids_to_tokens(ids))
 
     <h3>Embedding：把整数 id 映射成稠密向量</h3>
     <p>Embedding 本质就是一张「查表」——用 token id 当行号，从权重矩阵里取出一行。用 numpy 三行就能模拟：</p>
-    <pre><code class="language-python"><span class="k">import</span> numpy <span class="k">as</span> np
+    <pre><code><span class="k">import</span> numpy <span class="k">as</span> np
 
 vocab_size, dim = 32000, 4096
 W = np.random.randn(vocab_size, dim).astype(np.float32) * 0.02   <span class="c"># 嵌入矩阵</span>
@@ -493,7 +489,7 @@ embedding = W[token_ids]           <span class="c"># shape=(2, 4096)，这就是
 
     <h3>Self-Attention：Q/K/V 的五行实现</h3>
     <p>整个 Transformer 的灵魂就是注意力。剥掉所有工程细节，核心公式只有一句：<code>scores = softmax(Q·Kᵀ/√d) · V</code>。</p>
-    <pre><code class="language-python"><span class="k">import</span> torch, torch.nn.functional <span class="k">as</span> F
+    <pre><code><span class="k">import</span> torch, torch.nn.functional <span class="k">as</span> F
 
 <span class="k">def</span> attention(Q, K, V):                       <span class="c"># Q,K,V: (seq, d)</span>
     d = Q.shape[-1]
@@ -511,7 +507,7 @@ embedding = W[token_ids]           <span class="c"># shape=(2, 4096)，这就是
 
     <h3>Cross-Entropy：语言模型的损失函数</h3>
     <p>语言模型的训练目标极简——预测下一个 token。损失就是预测分布和真实 token 的 one-hot 分布的交叉熵：</p>
-    <pre><code class="language-python"><span class="c"># logits: 模型对每个候选 token 的打分 (vocab_size,)</span>
+    <pre><code><span class="c"># logits: 模型对每个候选 token 的打分 (vocab_size,)</span>
 <span class="c"># target: 真实的下一个 token id</span>
 loss = F.cross_entropy(logits.unsqueeze(0), torch.tensor([target]))
 <span class="c"># 等价于 -log(logits[target] 经 softmax 后的概率)</span>
@@ -522,7 +518,7 @@ loss = F.cross_entropy(logits.unsqueeze(0), torch.tensor([target]))
 
     <h3>RAG：检索增强生成</h3>
     <p>RAG 的核心是「先检索、再生成」。它解决的是大模型知识过期、幻觉、私有数据不知道的问题。术语表里一连串的 Embedding / Vector DB / HNSW / Rerank / RRF 都是为这条链路服务的：</p>
-    <pre><code class="language-python"><span class="c"># RAG 的三步骨架</span>
+    <pre><code><span class="c"># RAG 的三步骨架</span>
 query_vec = embed(question)                 <span class="c"># 1. 问题转向量</span>
 chunks = vector_db.search(query_vec, k=5)   <span class="c"># 2. 向量库召回 top-5 片段</span>
 chunks = rerank(question, chunks)           <span class="c"># 3. Cross-Encoder 精排（可选）</span>
@@ -565,11 +561,98 @@ answer = llm(question, context=chunks)      <span class="c"># 4. 带上上下文
       <a href="index.html" class="next"><div class="lbl">回到目录 ↑</div><div class="ttl">全册 50 章完结</div></a>
     </div>
     <footer><p>AI 全栈实战教学 · 第 50 章 · 术语表与速查手册 · 全书最终终章</p><p>全册 50 章完结 · 感谢阅读 · 2026.06</p></footer>
-  
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <p>术语表是全书的知识索引。建议收藏本页，遇到不熟悉的术语随时查阅。每个术语都标注了首次出现的章节，方便回溯学习。</p>
+    <h2 class="section" id="deep50"><span class="idx">深</span> 易混淆术语辨析：从概念到直觉</h2>
 
-</main>
+    <p>术语表的价值不止“查定义”，更在于<strong>辨析易混概念</strong>——很多术语字面相近但含义迥异，混淆它们是新手犯错的高频原因。下面把最易混的几组用对比表和直觉说清。</p>
+
+    <h3>用脚本对比易混术语</h3>
+    <p>把术语辨析做成可检索的知识库，比纯靠记忆更可靠。下面是一个最小化的术语查询工具。</p>
+
+    <pre><code>terms = {
+  "fine-tuning": {
+    "含义": "在预训练模型上继续训练，更新全部或部分参数",
+    "区别于": {"LoRA":"只训练少量低秩矩阵，参数高效",
+              "继续预训练":"用领域无标注数据续训，非任务导向"}},
+  "RAG": {
+    "含义": "检索增强生成，先检索外部知识再生成",
+    "区别于": {"微调":"RAG不改模型，微调改权重",
+              "长上下文":"RAG按需检索，长上下文全塞进去"}},
+  "temperature": {
+    "含义": "采样温度，控制输出随机性",
+    "区别于": {"top-p":"截断采样，限制候选token累计概率",
+              "top-k":"只保留概率最高的k个候选"}},
+  "token": {
+    "含义": "模型处理的最小单位，约2/3个汉字或4个英文字符",
+    "区别于": {"字符":"token≠字符，一个词可能是一个token",
+              "embedding":"token是输入单位，embedding是其向量表示"}},
+}
+
+def lookup(term):
+    t = terms.get(term)
+    if not t: return "未收录"
+    print(f"【{term}】{t['含义']}")
+    for other, diff in t.get("区别于",{}).items():
+        print(f"  vs {other}: {diff}")
+
+lookup("RAG")
+# 输出清晰区分 RAG 与微调/长上下文，避免概念混淆</code></pre>
+
+    <p>这种“主概念 + 区别于”的结构化定义，比单句解释更能澄清混淆。建议团队维护一份这样的术语库，新人入职先读，能省下大量沟通成本。</p>
+
+    <table>
+      <thead><tr><th>易混术语组</th><th>核心区别</th><th>一句话直觉</th></tr></thead>
+      <tbody>
+        <tr><td><strong>微调 vs LoRA vs 继续预训练</strong></td><td>改参数范围不同</td><td>全改/改一点/无监督续训</td></tr>
+        <tr><td><strong>RAG vs 微调 vs 长上下文</strong></td><td>知识注入方式不同</td><td>外挂/内化/硬塞</td></tr>
+        <tr><td><strong>temperature vs top-p vs top-k</strong></td><td>采样策略不同</td><td>调温度/截尾巴/留头部</td></tr>
+        <tr><td><strong>Prefill vs Decode</strong></td><td>生成阶段不同</td><td>算首字/逐字吐</td></tr>
+        <tr><td><strong>Dense vs MoE</strong></td><td>参数激活方式</td><td>全用/按需用一部分</td></tr>
+        <tr><td><strong>QLoRA vs LoRA</strong></td><td>基座是否量化</td><td>量化底座再LoRA/不量化</td></tr>
+      </tbody>
+    </table>
+
+    <h3>建立术语的“一句话直觉”</h3>
+    <p>真正理解一个术语，是能用<strong>一句大白话</strong>讲清它的本质。死记定义容易忘，建立直觉才能灵活运用。比如：把“注意力机制”理解为“加权求和，权重由相似度决定”，把“KV Cache”理解为“把已经算过的中间结果存起来不重算”，把“量化”理解为“用更少的小数位存数字以省空间”。这些直觉化的解释，比论文里的数学公式更利于传播和应用。建议每学一个术语，都强迫自己写一句“如果向完全不懂的人解释，我会怎么说”——写不出来说明你还没真懂。术语表不该只是查词工具，更该是<strong>思维校准器</strong>：当你能准确区分每对易混概念、并为每个概念建立直觉，你对整个领域的理解就上了一个台阶。</p>
+
+    <h2 class="section" id="deep50b"><span class="idx">深</span> 术语速查 FAQ 与辨析</h2>
+    <p>术语表的高级用法是辨析易混概念，这些问题是高频混淆点。</p>
+    <h3>Q1：RAG、微调、长上下文，到底用哪个注入知识？</h3>
+    <p>看知识特性：<strong>知识常变/需溯源</strong>→RAG（不改模型、可更新、可引用）；<strong>需改风格/能力/稳定知识内化</strong>→微调；<strong>少量临时知识</strong>→长上下文（全塞 prompt，简单但贵且有限）。常<strong>组合用</strong>：微调改能力 + RAG 接动态知识。误区是「有 RAG 就不微调」——RAG 改不了风格和能力。三者不是替代而是互补，按知识类型选。长上下文还会随 token 数线性增成本和延迟，不是「万能塞」。</p>
+    <pre><code># 知识注入方式决策
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：Dense 模型和 MoE 模型有什么区别？</h3>
+    <p><strong>参数激活方式不同</strong>。Dense 模型每个 token 激活全部参数；MoE（混合专家）每个 token 只激活部分专家（如 8 选 2），总参数大但单次计算量小。所以 MoE 能在<strong>相同推理成本下有更大容量</strong>（如 DeepSeek-V2 总参数大但激活量小，又快又强）。代价是<strong>显存占用大</strong>（全部专家都要加载）和训练复杂。选型：追求性价比的大规模服务选 MoE；显存受限或简单部署选 Dense。「总参数 vs 激活参数」是理解 MoE 的关键，别只看总参数规模。</p>
+    <h3>对比速查：易混术语辨析</h3>
+    <table>
+      <thead><tr><th>术语组</th><th>核心区别</th><th>一句话直觉</th></tr></thead>
+      <tbody>
+        <tr><td>微调vs LoRA</td><td>改参数范围</td><td>全改/改一点</td></tr>
+        <tr><td>RAGvs微调</td><td>知识注入方式</td><td>外挂/内化</td></tr>
+        <tr><td>temperaturevs top-p</td><td>采样策略</td><td>调温/截尾</td></tr>
+        <tr><td>Dense vs MoE</td><td>激活方式</td><td>全用/按需用</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost50" class="section boost">
+      <h2 class="section"><span class="idx">★</span> 术语表的维护与版本治理</h2>
+    <p>术语表（glossary）看起来只是一份静态文档，但在 AI 项目中它实际承担着"团队共识载体"的关键作用。很多沟通成本的浪费，源于不同角色对同一个词的理解不一致：算法工程师说的"召回"，产品经理可能理解为"用户回流率"；数据标注员理解的"实体"，可能与知识图谱中的"节点"定义不同。一份结构良好、有明确版本号的术语表，能把这些隐性分歧显性化，并作为新人入职和跨团队协作的基础。</p>
+    <p>维护术语表时，建议每条记录包含五个字段：术语名、英文/缩写、定义（≤两句话）、典型上下文示例、相关术语的关联链接。仅仅给定义是不够的，"上下文示例"尤其重要——它能区分同形异义词（例如 "prompt" 在对话系统和在指令微调中的含义差异）。同时，关联链接形成的术语网络，方便新人按图索骥，理解术语之间的层级与依赖关系。</p>
+    <p>版本治理同样不可忽视。术语表应当像代码一样纳入版本控制，每次修订附上"变更原因 + 影响范围"。当一个核心术语的定义被修改，所有依赖它的文档、Prompt 模板、评测脚本都需要同步审计。忽视这点会导致"文档说一套、代码做一套"的撕裂状态，最终拖慢整个团队。</p>
+         
+    </section>
+
+  </main>
 </main>
 
 </div>

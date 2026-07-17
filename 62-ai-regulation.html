@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 法规与合规 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 法规与合规 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 法规与合规 · AI 全栈实战教学">
-<meta property="og:description" content="AI 法规与合规 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="why-compliance"><span class="idx">★</span> 一、为什么技术人必须懂合规</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么技术人必须懂合规</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、EU AI Act：全球第一部综合 AI 法</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、中国生成式 AI 管理办法</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、美国行政令与行业自律</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、跨境业务的合规挑战</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、通用合规 Checklist</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、Privacy by Design：把合规写进代码</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>很多工程师对法规有天然的抵触，觉得「这是限制创新」。但在 AI 领域，合规无知是致命的。举几个真实案例：</p>
     <ul>
       <li>2024 年，意大利数据保护局率先封禁 ChatGPT，原因是隐私合规问题，OpenAI 不得不紧急整改才解封。</li>
@@ -536,6 +519,91 @@ class PrivacyAwareLLMService:
         self.log_db.delete_by_user(user_id)
         self.cache.invalidate_user(user_id)
         return {"status": "deleted", "user_id": user_id}</code></pre>
+
+    <h2 class="section" id="deep62"><span class="idx">深</span> 全球 AI 法规对照与合规落地</h2>
+
+    <p>AI 法规在全球快速分化：欧盟重风险分级、美国重行政引导、中国重生成式内容。做全球产品的团队必须理解三套体系的差异，并做<strong>合规适配</strong>。下面把核心差异结构化。</p>
+
+    <h3>按风险分级的合规自查</h3>
+    <p>多数法规按风险分级监管。先判断你的产品属于哪一级，再对应履行义务。下面是一个风险分级自查脚本。</p>
+
+    <pre><code>def classify_risk(features):
+    """按 EU AI Act 思路做风险分级自查。"""
+    if features.get("管控关键基础设施") or features.get("影响基本权利"):
+        return "不可接受风险", "禁止或极严格监管"
+    if features.get("用于招聘/信贷/司法/教育") or features.get("生物识别"):
+        return "高风险", "需注册、风险评估、人工监督、日志留存"
+    if features.get("生成内容") or features.get("与用户交互"):
+        return "有限风险", "需透明告知(标注AI生成、可识别合成)"
+    return "最小风险", "无特殊义务，鼓励自律"
+
+# 中国生成式AI办法额外关注：训练数据合法性、生成内容真实准确、标注服务规范
+features = {"生成内容": True, "用于招聘/信贷/司法/教育": False}
+level, duty = classify_risk(features)
+print(f"风险等级: {level}\n合规义务: {duty}")
+# 输出会提示：作为生成式AI，必须对用户透明告知、标注AI生成内容</code></pre>
+
+    <p>这种分级自查能快速定位你的产品需要履行哪些义务，避免漏掉关键合规动作（如忘记标注“AI 生成”就直接被监管处罚）。</p>
+
+    <table>
+      <thead><tr><th>法域</th><th>核心法规</th><th>监管理念</th><th>重点义务</th><th>违规后果</th></tr></thead>
+      <tbody>
+        <tr><td><strong>欧盟</strong></td><td>EU AI Act</td><td>风险分级</td><td>高风险需注册/评估/日志</td><td>最高全球营收 7%</td></tr>
+        <tr><td><strong>中国</strong></td><td>生成式AI办法</td><td>内容安全</td><td>数据合法、内容真实、安全评估</td><td>罚款、下架</td></tr>
+        <tr><td><strong>美国</strong></td><td>行政令+NIST框架</td><td>引导为主</td><td>自愿承诺、特定领域报备</td><td>相对宽松</td></tr>
+        <tr><td><strong>通用</strong></td><td>GDPR/个保法</td><td>数据与隐私</td><td>数据最小化、知情同意、删除权</td><td>高额罚款</td></tr>
+      </tbody>
+    </table>
+
+    <h3>合规落地的工程化清单</h3>
+    <p>把法规要求翻译成工程动作，是合规落地的关键。几个必做的工程项：<strong>AI 生成内容标注</strong>（文本加水印或声明、图片加元数据标识），这是多数法规的透明性要求；<strong>训练数据审计台账</strong>，记录每批数据来源和授权，应对“数据合法”审查；<strong>用户数据删除机制</strong>，支持 GDPR 的“被遗忘权”，能按用户要求删除其数据；<strong>内容安全过滤</strong>，对生成内容做合规检测，拦截违法有害信息（中国法规的重点）；<strong>风险评估文档</strong>，对高风险系统留存风险评估记录和日志，供监管核查。<strong>跨境数据流动</strong>也要注意：用户数据出境需符合当地数据出境规则（中国的数据出境安全评估）。合规不是法务一个人的事，而是<strong>产品、工程、法务协同的系统工程</strong>——越早把合规要求纳入设计，改造成本越低；临上线才发现合规问题，往往要伤筋动骨。把合规当成“护城河”而非“负担”，能让你在监管收紧时从容应对，而临时补课的竞品会很狼狈。</p>
+
+    <h2 class="section" id="deep62b"><span class="idx">深</span> AI 法规 FAQ 与合规落地</h2>
+    <p>合规落地的工程化，这些问题最实际。</p>
+    <h3>Q1：我的 AI 产品需要做「安全评估」吗？</h3>
+    <p><strong>中国法规下，具有舆论属性或社会动员能力的生成式 AI 需做安全评估并备案</strong>。判断标准：是否面向公众、是否影响公共意见、是否涉及新闻/教育/医疗等敏感领域。即便不强制，做安全评估也是<strong>降低合规风险的自保</strong>：记录评估过程、内容过滤机制、风险应对预案。工程上要建立<strong>内容安全审核能力</strong>（敏感词库+语义过滤+人工审核流程）和<strong>用户反馈/举报处理机制</strong>。建议<strong>早期咨询专业法务</strong>，别上线后才发现需要补做，那时改造成本高。</p>
+    <pre><code># 合规自查清单
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：AI 生成的内容要标注「AI 生成」吗？</h3>
+    <p><strong>多数法域要求透明告知</strong>。中国规定深度合成内容应显著标识；欧盟 AI Act 要求有限风险系统透明告知；AIGC 内容应可被识别（如水印、元数据）。工程实现：文本加声明（「以上由 AI 生成」）、图片加<strong>不可见水印</strong>（元数据标识）、视频/音频加合成标识。<strong>这是透明性义务，多数情况必须做</strong>，不做可能被监管处罚。还要保留<strong>生成日志</strong>便于追溯。合规要趁早纳入产品设计，而非事后补——产品架构层面支持（如内容带 provenance 元数据）比事后加标注更彻底。</p>
+    <h3>对比速查：全球 AI 法规对照</h3>
+    <table>
+      <thead><tr><th>法域</th><th>核心法规</th><th>理念</th><th>重点义务</th></tr></thead>
+      <tbody>
+        <tr><td>欧盟</td><td>EU AI Act</td><td>风险分级</td><td>高风险需注册</td></tr>
+        <tr><td>中国</td><td>生成式AI办法</td><td>内容安全</td><td>数据合法</td></tr>
+        <tr><td>美国</td><td>行政令</td><td>引导为主</td><td>自愿承诺</td></tr>
+        <tr><td>通用</td><td>GDPR/个保法</td><td>隐私</td><td>数据最小化</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost62" class="section boost">
+      <h2 class="section"><span class="idx">★</span> AI 监管合规的落地清单与节奏</h2>
+    <p>面对日益密集的 AI 监管政策（无论是数据保护、算法备案、生成内容标识还是高风险应用的准入要求），最常见的两个极端反应是：要么完全忽视，等到政策落地才仓促应对；要么过度反应，把所有功能都按最高风险等级处理，导致研发效率被拖垮。正确的做法是基于业务实际影响，做"分级合规"——先识别哪些功能属于高风险（如涉及医疗、金融、就业决策、个人敏感信息），对这些做严格审查；对低风险功能则采用轻量化的自查清单，保持迭代速度。</p>
+    <p>合规工作的一个关键认知是：它不是一次性验收，而是持续义务。数据来源的合法性、模型训练记录的可追溯、生成内容的可审计，这些都需要在系统设计阶段就嵌入，而非事后补录。例如，训练数据的"数据卡片"（datasheet）、模型决策的日志留痕、用户对生成内容的反馈通道，都应当作为默认功能而非可选附件。一旦系统在设计时没有这些能力，后期补齐的成本会非常高。</p>
+    <p>跨国业务还需要特别关注"管辖权差异"。不同地区对同一类应用（如人脸识别、自动化决策、生成式内容）的态度和具体要求差别很大。建议为每个主要市场维护一份"合规差异表"，并在架构上预留"按地区开关功能"的能力，避免一个地区的监管变化导致全球产品被迫下线。同时，与法务团队建立定期同步机制，因为监管政策本身也在快速演化。</p>
+         
+    </section>
+
+
+    <section id="boost262" class="section boost">
+      <h2 class="section"><span class="idx">★</span> 跨境数据与算法审计的工程要求</h2>
+    <p>当 AI 产品跨境运营时，数据合规的复杂度会呈指数级上升。不同司法辖区对"个人数据"的定义、跨境传输的门槛、数据本地化存储的要求各不相同。例如某些地区要求用户数据必须存储在境内服务器，某些地区对"自动化决策"赋予了用户拒绝权，还有些地区对生成式 AI 内容强制要求显著标识。这些差异不能靠事后补丁解决，而必须在架构设计阶段就引入"数据主权层"——根据用户所属地区路由数据存储、模型推理、日志留存策略。</p>
+    <p>算法审计是另一个工程密集型要求。越来越多监管要求企业能够证明其模型决策的可解释性与公平性，这意味着系统必须完整记录：模型版本、输入特征、决策结果、以及影响决策的关键因子。这些审计日志的粒度、保留期限、访问权限都需要预先设计。一个常见错误是只在"出事"后才试图从分散的日志中拼凑决策链路——此时往往已经丢失了关键信息，且重建成本极高。正确做法是把审计日志作为系统的一等公民，与业务日志分离存储，并定期做完整性校验。</p>
+    <p>此外，合规要求的变化频率远高于产品迭代频率，因此合规能力本身需要"可配置化"。例如新增一个地区的备案要求时，不应当需要修改核心代码，而应当通过配置开关启用对应的审计模块、数据路由规则、用户通知模板。这种把合规规则与业务逻辑解耦的设计，是规模化合规的关键工程能力。同时，建议为合规团队提供只读的数据访问面板，使其能独立核验而不依赖工程团队的人工配合。</p>
+         
+    </section>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们梳理了三大法域的 AI 监管框架和实操要点。核心结论：</p>

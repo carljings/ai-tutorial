@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学">
-<meta property="og:description" content="编译优化：TensorRT / ONNX / vLLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,21 +314,11 @@
       </div>
     </section>
     <h2 class="section" id="why-trt-llm"><span class="idx">★</span> 为什么需要 TensorRT-LLM</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么需要 TensorRT-LLM</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>引擎构建：从 HF 模型到 TensorRT 引擎</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Kernel Fusion：为什么算子融合能大幅加速</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>INT8 与 FP8 量化部署</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>直接用 PyTorch 或 HuggingFace Transformers 跑大模型推理，在单请求场景下看似没问题，但一旦放到生产环境就会暴露三大瓶颈。第一是<strong>吞吐量低</strong>：PyTorch 默认是逐请求串行处理，多个用户同时请求时 GPU 利用率极低。第二是<strong>算子开销大</strong>：PyTorch 的 eager 模式每个算子独立调度，存在大量 kernel 启动开销和中间结果显存读写。第三是<strong>显存占用高</strong>：KV cache、激活值都以全精度存储，长上下文场景下显存吃紧，限制了 batch size。</p>
     <p>TensorRT-LLM 正是为解决这三个问题而生。它是 NVIDIA 基于 TensorRT 推出的 LLM 专用优化引擎，核心能力有四点。<strong>引擎编译</strong>：把模型从动态图编译为静态优化引擎，针对具体 GPU 架构选择最优 kernel。<strong>算子融合（kernel fusion）</strong>：把多个小算子合并成一个大 kernel，减少显存读写和启动开销。<strong>连续批处理（inflight batching / continuous batching）</strong>：动态把新到达的请求并入正在执行的 batch，几乎消除排队延迟。<strong>低比特量化</strong>：原生支持 INT8 Weight-Only、INT8 KV cache、FP8 等多种量化方案，把显存和带宽需求降低数倍。综合下来，相同硬件上 TensorRT-LLM 通常比 PyTorch 快 3-8 倍。</p>
     <p>需要说明的是，TensorRT-LLM 与底层硬件强绑定——编译出的引擎只能在编译时指定的 GPU 架构（如 Ampere、Hopper）上运行，换一张不同架构的卡就要重新编译。这是它高性能的代价。如果你需要跨硬件部署，vLLM 或 SGLang 这类方案可能更灵活，但单卡极致性能上 TensorRT-LLM 仍是标杆。</p>
-    <h2 class="section" id="engine-build"><span class="idx">★</span> 引擎构建：从 HF 模型到 TensorRT 引擎</h2>
-    <p>TensorRT-LLM 部署的标准流程是：HuggingFace 模型权重 → 转换为 TensorRT-LLM 的 checkpoint 格式 → 编译为 .engine 文件 → 用 Triton Inference Server 或自带的 Python runtime 加载服务。其中"转换"这一步由 <code>convert_checkpoint.py</code> 完成，它会读取 HF 权重并改写为 TensorRT-LLM 期望的命名和布局；"编译"由 <code>trtllm-build</code> 完成，它会根据你指定的精度、batch size、序列长度等参数生成优化引擎。</p>
+    <h2 class="section" id="engine-build"><span class="idx">★</span> 引擎构建：从 PyTorch → ONNX → TensorRT 引擎</h2>
+    <p>TensorRT-LLM 部署的标准转换流程是：PyTorch/HuggingFace 模型权重 → 转换为 TensorRT-LLM 的 checkpoint 格式 → 编译为 .engine 文件 → 用 Triton Inference Server 或自带的 Python runtime 加载服务。其中"转换"这一步由 <code>convert_checkpoint.py</code> 完成，它会读取 HF 权重并改写为 TensorRT-LLM 期望的命名和布局；"编译"由 <code>trtllm-build</code> 完成，它会根据你指定的精度、batch size、序列长度等参数生成优化引擎。除了直连 HF 这条路，经典路径还会经过 ONNX 作为中间表示——用 <code>torch.onnx.export</code> 把 PyTorch 模型导出为 ONNX，再用 TensorRT 的解析器读取 ONNX 编译引擎。ONNX 的价值在于它把不同框架（PyTorch、TensorFlow、JAX）的计算图统一成一套标准算子集合，是跨框架交换模型的通用语言。但对 LLM 这种有动态 shape、自回归、KV cache 的模型，ONNX 导出有不少坑（控制流、in-place 操作易导致算子不支持），所以 TRT-LLM 实际推荐直连 HF checkpoint 的更稳路径，ONNX 适合简单模型和调试阶段。</p>
     <p>构建引擎时有几个关键参数必须想清楚。第一是<strong>精度</strong>：<code>--use_fp8</code>、<code>--int8</code>、<code>--use_weight_only</code>（权重 INT8 但激活 FP16）等，不同精度对显存和精度的影响差异巨大。第二是<strong>batch size 和序列长度范围</strong>：引擎会针对你指定的 min/opt/max 范围优化，超出 max 的请求会被截断或拒绝。第三是<strong>插件（plugin）</strong>：像 GEMM、Attention、RMSNorm 这些都需要对应的插件支持，不同模型（LLaMA、Qwen、ChatGLM）插件路径不同。下面这段脚本演示从 LLaMA HF 权重构建 FP8 引擎的完整命令。</p>
     <pre><code class="language-bash"># 第一步：把 HF 权重转换为 TensorRT-LLM checkpoint
 python /opt/TensorRT-LLM/examples/llama/convert_checkpoint.py \

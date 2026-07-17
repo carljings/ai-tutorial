@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI Agent 高级编排 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI Agent 高级编排 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI Agent 高级编排 · AI 全栈实战教学">
-<meta property="og:description" content="AI Agent 高级编排 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="what-is-agent"><span class="idx">★</span> 一、什么是 Agent 编排</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、什么是 Agent 编排</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、LangGraph 的核心概念</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、条件分支：让 Agent 会做选择</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、人在回路（Human-in-the-Loop）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、工具调用：让 Agent 连接真实世界</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、错误处理与回退</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、Agent 的可观测性</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>八、常见 Agent 设计模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>Agent 和普通 LLM 调用的区别在于「自主性」。普通调用是你给 prompt、模型给回答，一次结束。Agent 是你给一个目标，模型自己决定：调用哪些工具、按什么顺序、什么时候需要更多信息、什么时候任务完成。这需要一个「编排系统」来管理状态、路由、工具调用。</p>
     <p>Agent 编排要解决四个核心问题：<strong>状态管理</strong>（记住中间结果）、<strong>流程控制</strong>（条件分支和循环）、<strong>工具调用</strong>（与外部系统交互）、<strong>人工介入</strong>（关键决策需要人确认）。LangGraph 用「状态图」（StateGraph）优雅地解决了这四个问题。</p>
 
@@ -636,6 +619,85 @@ for state in states:
       <li><strong>多 Agent 协作</strong>：多个专职 Agent 分工（如一个负责搜索、一个负责写作、一个负责审查），适合大型任务。</li>
       <li><strong>人在回路</strong>：关键节点暂停等人确认，适合高风险场景。</li>
     </ul>
+
+    <h2 class="section" id="deep70"><span class="idx">深</span> LangGraph 状态图：复杂 Agent 的可控编排</h2>
+
+    <p>复杂 Agent 的工作流不是线性的——有条件分支、循环、人在回路。LangGraph 用<strong>状态图</strong>来编排这类流程，比纯链式 Agent 可控得多。下面给出核心模式和避坑点。</p>
+
+    <h3>条件分支与人在回路</h3>
+    <p>下面用 LangGraph 实现一个带“质量检查 + 人工兜底”的 Agent：低置信度时转入人工审核节点，而非硬输出。</p>
+
+    <pre><code>from typing import TypedDict, Literal
+# 概念性伪代码(展示状态图思路)
+class AgentState(TypedDict):
+    query: str
+    draft: str
+    confidence: float
+    approved: bool
+
+def generate(state):           # 生成节点
+    state["draft"] = llm_generate(state["query"])
+    state["confidence"] = score_confidence(state["draft"])
+    return state
+
+def quality_gate(state) -&gt; Literal["ok","review"]:   # 条件路由
+    return "ok" if state["confidence"] &gt; 0.8 else "review"
+
+def human_review(state):       # 人在回路节点
+    state["approved"] = ask_human(state["draft"])
+    if not state["approved"]: state["draft"] = llm_revise(state["draft"])
+    return state
+
+def finalize(state): return {"answer": state["draft"]}
+
+# graph: generate --(confidence&gt;0.8?)--&gt; finalize | review -&gt; human -&gt; finalize
+# 状态图把"何时转人工"从硬编码变成可声明、可观测的路由规则
+# 比在 prompt 里让模型自己决定"要不要找人"可控得多</code></pre>
+
+    <p>状态图的核心价值是<strong>把控制流从 prompt 里拿出来</strong>——不再让模型自己决定“要不要循环、要不要转人工”，而是用代码声明式地定义路由规则，可测试、可观测、可回滚。</p>
+
+    <table>
+      <thead><tr><th>编排模式</th><th>适用场景</th><th>优势</th><th>风险</th></tr></thead>
+      <tbody>
+        <tr><td><strong>线性链</strong></td><td>简单流程</td><td>直观</td><td>不能处理分支</td></tr>
+        <tr><td><strong>状态图</strong></td><td>有分支/循环</td><td>可控、可观测</td><td>设计复杂</td></tr>
+        <tr><td><strong>人在回路</strong></td><td>高风险动作</td><td>安全</td><td>阻塞、延迟</td></tr>
+        <tr><td><strong>多 Agent 协作</strong></td><td>复杂任务</td><td>专精分工</td><td>协调成本高</td></tr>
+        <tr><td><strong>自反思循环</strong></td><td>质量要求高</td><td>自我修正</td><td>成本/死循环</td></tr>
+      </tbody>
+    </table>
+
+    <h3>循环与防死循环</h3>
+    <p>状态图能表达循环（如“生成→自检→不通过则重生成”），这是它比线性链强大的地方，但也引入<strong>死循环风险</strong>——模型可能无限“重生成”却一直不满足退出条件。防死循环的三道保险：第一，<strong>硬性迭代上限</strong>，无论质量如何，循环超过 N 次强制退出（转入人工或返回当前最优）；第二，<strong>退出条件要可量化</strong>，用具体阈值（如质量分 &gt; 0.8）而非模糊判断（如“满意”），否则模型永远“不满意”；第三，<strong>每轮成本累加</strong>，超预算自动停。另一个要点是<strong>状态最小化</strong>：状态图的状态只存真正需要跨节点共享的数据，不要把所有中间结果都塞进状态——状态膨胀会导致每轮 prompt 变长、成本上升、且难以调试。<strong>可观测性</strong>对状态图尤其重要：每个节点的输入输出、路由决策都要记录，因为流程复杂，出问题时必须能重放看到“在哪一步、因什么条件、走了哪条边”。最后，<strong>复杂度要克制</strong>——能用线性链解决的别上状态图，能用 3 个节点解决的别搞 10 个，编排复杂度越高，维护和调试成本越高，收益要配得上复杂度。</p>
+
+    <h2 class="section" id="deep70b"><span class="idx">深</span> Agent 编排 FAQ 与可控性</h2>
+    <p>复杂 Agent 编排的核心是「可控」，这些问题最关键。</p>
+    <h3>Q1：Agent 进入死循环（一直重试不退出），怎么办？</h3>
+    <p><strong>三道防死循环保险</strong>：硬性迭代上限（超 N 次强制退出，转人工或返回当前最优）；退出条件可量化（用具体阈值如质量分>0.8，而非模糊「满意」）；每轮成本累加（超预算停）。还要<strong>监控循环次数</strong>，异常多轮触发告警。死循环根因常是退出条件设太严或模型永远「不满意」，调松阈值或加「够好就停」的兜底。<strong>循环能用但必须可控</strong>——状态图的好处就是把路由规则从 prompt 拿到代码里，可设硬上限、可观测、可干预。</p>
+    <pre><code># 防死循环的执行编排
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：状态图什么时候用，什么时候过度设计？</h3>
+    <p><strong>有分支/循环/人在回路才用，否则线性链够</strong>。判断：流程是否条件分支？是否需要循环重试？是否有高风险动作要人工？都没有就别上状态图，线性链更简单。<strong>复杂度要克制</strong>——能用 3 节点解决别搞 10 个，编排越复杂维护调试越难。状态图的价值是把控制流从 prompt 拿出（可测试可观测），但简单流程用它反而增加负担。<strong>先从最简方案开始</strong>，证明不够再加复杂度，是工程美德。多数 Agent 任务用「线性链 + 几个条件判断」就够，真正需要复杂状态图的是少数。</p>
+    <h3>对比速查：Agent 编排模式</h3>
+    <table>
+      <thead><tr><th>模式</th><th>场景</th><th>优势</th><th>风险</th></tr></thead>
+      <tbody>
+        <tr><td>线性链</td><td>简单流程</td><td>直观</td><td>不能分支</td></tr>
+        <tr><td>状态图</td><td>有分支/循环</td><td>可控</td><td>设计复杂</td></tr>
+        <tr><td>人在回路</td><td>高风险</td><td>安全</td><td>阻塞</td></tr>
+        <tr><td>自反思</td><td>高质量</td><td>自我修正</td><td>死循环</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们用 LangGraph 构建了完整的 Agent 系统。核心要点：</p>

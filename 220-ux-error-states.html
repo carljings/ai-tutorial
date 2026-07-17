@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent 的错误状态与降级设计 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Agent 的错误状态与降级设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Agent 的错误状态与降级设计 · AI 全栈实战教学">
-<meta property="og:description" content="Agent 的错误状态与降级设计 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -580,6 +576,122 @@ def handle_rate_limit(error, context):
         return degrade_to_small_model(context)
         # 用户侧提示："系统繁忙，已切换到快速模式（可能稍简略）"</code></pre>
     <div class="callout"><strong>💡 错误处理的工程哲学</strong><br>优雅降级不是"打补丁"，而是系统设计的一等公民。三个认知升级：① <strong>接受"出错是常态"</strong>——分布式 AI 系统的故障率比传统系统高（模型超时、工具失败、限流都是日常），架构要假设"随时会出错"来设计；② <strong>降级要可观测</strong>——每次降级都记录"从哪级降到哪级、为什么"，这些数据告诉你系统的真实健康度；③ <strong>用户感知 &gt; 技术正确</strong>——用户不在乎你用了什么 fallback 策略，只在乎"我有没有得到有用的回应"。所以降级的终极目标是"让用户感觉不到出错了"，而不是"技术上正确地处理了错误"。</div>
+    
+    <h2><span class="idx"></span>错误状态的分类与对应设计</h2>
+    <p>Agent 会出错是常态——模型生成错误、工具调用失败、外部服务宕机、用户输入异常。一个成熟的 agent 产品，差别不在于"不出错"，而在于<strong>"出错时的体验"</strong>。把错误分类并针对每类设计对应体验，是错误状态设计的核心。一刀切的"出错了请重试"是糟糕设计。</p>
+<p>错误分类要区分<strong>"谁的错"和"什么性质的错"</strong>。按来源分：用户错误（输入不合法、问超出能力的事）、系统错误（工具失败、模型超时）、内容错误（输出有幻觉、答非所问）。按严重性分：可恢复（重试可能成功，如临时网络问题）、需调整（改输入或换方式，如问题太模糊）、不可恢复（能力外或系统挂了）。不同类型对应的体验完全不同——可恢复的静默重试、需调整的引导用户改、不可恢复的诚实告知并提供替代方案。</p>
+<p>错误体验设计的原则有几个。第一<strong>"诚实优先"</strong>——别假装成功（如明明没查到却说"已为您找到"，编造内容）。承认失败比编造更可信。第二<strong>"可操作"</strong>——错误提示要告诉用户"接下来怎么办"（"这个我没查到，你可以试试 X"），而非只报错。第三<strong>"不丢工作"</strong>——出错时保留用户已输入的内容和已完成的步骤，别让用户从头再来。第四<strong>"分级呈现"</strong>——小错误不打断（行内提示），大错误才弹窗（中断并明确告知）。</p>
+<table class="data-table"><thead><tr><th>错误类型</th><th>来源</th><th>体验设计</th><th>用户动作</th></tr></thead><tbody>
+<tr><td>输入不合法</td><td>用户</td><td>明确指出问题</td><td>修改重试</td></tr>
+<tr><td>能力外</td><td>系统</td><td>诚实告知+替代</td><td>换方式/转人工</td></tr>
+<tr><td>临时故障</td><td>系统</td><td>静默重试</td><td>无需动作</td></tr>
+<tr><td>工具失败</td><td>系统</td><td>降级回答</td><td>可选重试</td></tr>
+<tr><td>输出幻觉</td><td>内容</td><td>标注不确定</td><td>核查</td></tr>
+<tr><td>超时</td><td>系统</td><td>后台进行/简化</td><td>等待/简化</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 错误状态分类处理
+class ErrorStateHandler:
+    def handle(self, error, context):
+        error_type = self._classify(error, context)
+        handler = {
+            "invalid_input":   self._h_invalid_input,
+            "out_of_scope":    self._h_out_of_scope,
+            "transient":       self._h_transient,
+            "tool_failure":    self._h_tool_failure,
+            "hallucination":   self._h_hallucination,
+            "timeout":         self._h_timeout,
+        }.get(error_type, self._h_unknown)
+        return handler(error, context)
+
+    def _h_invalid_input(self, error, ctx):
+        # 用户错误：明确指出+引导修改（保留已输入）
+        return {"level":"inline",  # 不打断，行内提示
+                "message":f"输入有问题：{error.detail}。示例：{error.example}",
+                "preserve_input":True}   # 保留用户输入，别清空
+
+    def _h_out_of_scope(self, error, ctx):
+        # 能力外：诚实告知+替代方案
+        return {"level":"message",
+                "message":f"这个超出了我的能力（{error.reason}）。"
+                          f"你可以试试：{error.alternatives}",
+                "action":"suggest_alternative"}
+
+    def _h_transient(self, error, ctx):
+        # 临时故障：静默重试（用户可能无感）
+        if ctx.retry_count < 3:
+            return {"level":"silent", "action":"retry"}
+        return {"level":"message", "message":"服务繁忙，请稍后重试"}
+
+    def _h_tool_failure(self, error, ctx):
+        # 工具失败：降级（用基座能力替代该工具）
+        return {"level":"inline",
+                "message":"实时数据暂不可用，以下基于已有知识回答（可能非最新）",
+                "action":"degraded_answer"}
+
+    def _h_hallucination(self, error, ctx):
+        # 幻觉风险：标注不确定，让用户核查
+        return {"level":"inline",
+                "message":"这部分信息我不太确定，建议核实",
+                "confidence":"low"}</code></pre>
+
+    <h2><span class="idx"></span>降级策略与优雅退化</h2>
+    <p>Agent 依赖大量组件（模型、工具、外部服务），任何一个挂掉都可能让整个应用不可用。<strong>优雅退化</strong>（graceful degradation）的目标是：部分组件失效时，应用仍能提供<strong>"降级但可用"</strong>的服务，而非完全崩溃。这是高可用 agent 系统的必备能力。</p>
+<p>降级的核心思想是<strong>"核心功能优先，非核心可丢"</strong>。一个 agent 应用要明确什么是核心功能（不能丢，如基础问答）什么是增强功能（可降级，如实时数据、多模态、个性化）。当资源紧张或组件失效时，优先保核心，砍增强。例如：实时数据 API 挂了，降级为"基于已有知识回答（标注可能非最新）"，而非直接报错。个性化服务挂了，降级为通用回答。这种"功能递减但持续可用"的设计，让应用韧性大幅提升。</p>
+<p>降级策略的层级设计。第一级<strong>"多源 fallback"</strong>——主源挂了切备源（主模型挂了切备用模型、主搜索挂了切备搜索）。第二级<strong>"功能降级"</strong>——某功能不可用时用简化版替代（实时数据→静态知识、多模态→纯文字）。第三级<strong>"只读降级"</strong>——写功能挂了至少保读（不能下单至少能浏览）。第四级<strong>"静态兜底"</strong>——什么都挂了，给个静态的"系统维护中"+ 联系方式。分级降级让应用在任何故障下都有"最后的安全网"。</p>
+<table class="data-table"><thead><tr><th>降级级别</th><th>触发</th><th>表现</th><th>用户感知</th></tr></thead><tbody>
+<tr><td>多源 fallback</td><td>主源失败</td><td>切备源</td><td>几乎无感</td></tr>
+<tr><td>功能降级</td><td>功能组件挂</td><td>简化版替代</td><td>功能减少但可用</td></tr>
+<tr><td>只读降级</td><td>写功能挂</td><td>只保读</td><td>能看不能改</td></tr>
+<tr><td>缓存降级</td><td>实时不可用</td><td>用旧缓存</td><td>数据可能旧</td></tr>
+<tr><td>静态兜底</td><td>全挂</td><td>维护提示</td><td>明确告知</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 优雅退化：分级降级策略
+class GracefulDegradation:
+    def __init__(self):
+        self.degradation_log = []
+
+    def answer(self, query):
+        # 级别 1：多源 fallback（主模型 → 备用模型）
+        try:
+            return self._call_model("primary", query)
+        except ModelUnavailable:
+            self.degradation_log.append("primary model down, using backup")
+            try:
+                return self._call_model("backup", query)
+            except ModelUnavailable:
+                pass   # 两个模型都挂，继续降级
+        # 级别 2：功能降级（关掉增强功能，只保核心）
+        try:
+            # 没有 RAG 增强，用基座模型直答
+            return self._baseline_answer(query)
+        except Exception:
+            pass
+        # 级别 3：缓存降级（用历史相似 query 的缓存）
+        cached = self._find_cached(query)
+        if cached:
+            return cached + "
+（注：基于历史缓存，非实时生成）"
+        # 级别 4：静态兜底
+        return ("系统暂时繁忙，无法处理您的请求。"
+                "请稍后重试，或联系 support@example.com")
+
+    def _call_model(self, source, query):
+        # 主模型失败时切备用，对外几乎无感
+        if source == "primary":
+            return primary_llm.generate(query)
+        else:
+            return backup_llm.generate(query)
+
+    # 功能降级示例：实时数据不可用时
+    def with_realtime_data(self, query):
+        try:
+            data = realtime_api.fetch(query)
+            return f"实时数据：{data}"
+        except RealtimeUnavailable:
+            # 降级：用已有知识 + 标注
+            knowledge = baseline_knowledge(query)
+            return f"{knowledge}
+（注：实时数据暂不可用，以上基于已有知识）"</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agent 一定会出错，关键是优雅降级。错误分五类（超时/工具失败/无结果/安全拦截/限流），各有降级策略。三原则：永远不只报"出错了"（要定位+给出路）、部分成功&gt;全盘失败、给用户出路。工程实现是 Fallback 链——从强到弱逐级降级，用户永远得到某种回应。配合错误监控主动发现高频问题。优雅降级是 Agent 可靠性的另一半，和正常路径同样重要。</p>
     <div class="chapter-nav">

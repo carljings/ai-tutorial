@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 项目的数据闭环与持续改进 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 项目的数据闭环与持续改进 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 项目的数据闭环与持续改进 · AI 全栈实战教学">
-<meta property="og:description" content="AI 项目的数据闭环与持续改进 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -367,7 +363,7 @@ trainer.train(train_data, epochs=3)
     <h2><span class="idx"></span>飞轮五环节的串联实现</h2>
     <p>前面把五个环节拆开讲了，但生产中它们是<strong>一条会自动流转的管线</strong>：监控告警触发 → 自动归类 → 进标注队列 → 触发 LoRA 训练 → 自动 A/B 验证。下面这段代码把五环节串成一个可运行的 pipeline 类，每一步都有明确的输入输出和质量门禁，避免「收集了一堆 bad case 却没人处理」的常见窘境。</p>
     <div class="code-title">data_flywheel.py —— 五环节串联的飞轮引擎</div>
-    <pre><code class="language-python"><span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
+    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
 <span class="k">from</span> typing <span class="k">import</span> Optional
 <span class="k">import</span> time, json
 
@@ -446,7 +442,7 @@ trainer.train(train_data, epochs=3)
       </tbody>
     </table>
     <div class="code-title">flywheel_health.py —— 飞轮健康度监控</div>
-    <pre><code class="language-python"><span class="k">from</span> collections <span class="k">import</span> Counter
+    <pre><code><span class="k">from</span> collections <span class="k">import</span> Counter
 <span class="k">import</span> numpy <span class="k">as</span> np
 
 <span class="k">def</span> <span class="f">flywheel_health_report</span>(cases, iterations, window_days=<span class="n">7</span>):

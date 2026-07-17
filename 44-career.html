@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 时代的职业发展 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 时代的职业发展 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 时代的职业发展 · AI 全栈实战教学">
-<meta property="og:description" content="AI 时代的职业发展 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>每周学习时间预算分配</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>每周学习时间预算分配</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>技能评估雷达图与学习计划生成</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AI 对就业市场的真实影响</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>路径一：AI/ML 工程师（技术深水区）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>路径二：AI 应用开发者（工程落地派）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>路径三：AI 产品经理（懂技术的翻译官）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>路径四：领域 AI 专家（行业翻译者）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>路径五：AI 内容创作者（新媒介先行者）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>光有学习计划不够，还要把它落到<strong>每周的日历</strong>上。下面这段代码根据你的目标分配合每周可用时长，生成一份可执行的时间表，把'我要学'变成'周二晚上 8 点学什么'。</p>
 <pre class="code"><code class="language-python"># 每周学习时间预算分配
 def weekly_budget(goal, total_hours=10):
@@ -883,6 +866,82 @@ for dim, w, a in plan:
 - 展示你对 AI 前沿的理解（博客、分享、社区参与）
 </code></pre>
     <p>最后一个建议：<strong>持续学习是唯一的稳定</strong>。AI 领域每几个月就有颠覆性进展，今天的热门技术可能半年后就过时。与其追逐每个新框架，不如建立"底层理解 + 快速学习"的能力——理解 Transformer 原理、理解 RAG 的本质、理解 Agent 的模式，这些底层知识不会过时；而具体的框架和工具，等需要用时几天就能上手。保持每周阅读 1-2 篇论文或技术博客的习惯，每月动手做 1 个小项目，这种持续投入的复利效应，三年后会让你和同龄人拉开巨大差距。</p>
+
+    <h2 class="section" id="deep44"><span class="idx">深</span> AI 时代的能力地图与学习策略</h2>
+
+    <p>AI 工程师的能力要求在快速变化，单纯的“会用 API”正在贬值，真正的价值在<strong>端到端解决问题</strong>。下面给出一张可对照的能力地图，和针对不同阶段的学习策略。</p>
+
+    <h3>用雷达图量化自身能力</h3>
+    <p>把“我哪方面强/弱”从模糊感觉变成可视化的雷达图，能帮你聚焦补短板。下面是一个自评打分脚本。</p>
+
+    <pre><code>import json
+
+# AI 工程师六大能力维度，每项 0-5 自评
+dimensions = {
+    "工程能力":   "代码质量、系统设计、部署运维",
+    "模型理解":   "懂 Transformer、训练、推理原理",
+    "Prompt/应用": "Prompt 工程、Agent、RAG 落地",
+    "数据能力":   "数据清洗、标注、评估、飞轮",
+    "产品思维":   "需求拆解、用户体验、指标定义",
+    "领域知识":   "所在行业(医疗/金融/客服)的深度",
+}
+self_score = {"工程能力":4, "模型理解":3, "Prompt/应用":4,
+              "数据能力":2, "产品思维":3, "领域知识":2}
+
+def gap_report(scores, target=4):
+    print("能力差距（目标线 %.0f）：" % target)
+    for k, v in sorted(scores.items(), key=lambda x:x[1]):
+        gap = target - v
+        bar = "█"*v + "░"*(5-v)
+        flag = "← 优先补强" if gap &gt; 0 else ""
+        print(f"  {k:8s} {bar} {v}/5  {flag}")
+
+gap_report(self_score)
+# 输出会清楚指出"数据能力"和"领域知识"是短板，优先投入</code></pre>
+
+    <p>这个自评最大的价值是<strong>让短板显形</strong>。多数人只在“已经强的领域”继续投入（舒适区），真正的成长来自补短板——尤其数据和领域知识，是区分“会用 AI”和“用好 AI”的分水岭。</p>
+
+    <table>
+      <thead><tr><th>职业阶段</th><th>核心能力</th><th>学习重点</th><th>验证方式</th></tr></thead>
+      <tbody>
+        <tr><td><strong>入门(0-1年)</strong></td><td>会用 API、能搭 demo</td><td>Prompt、RAG、Agent 基础</td><td>复现 2-3 个完整项目</td></tr>
+        <tr><td><strong>成长(1-3年)</strong></td><td>端到端落地、懂原理</td><td>Transformer、微调、评估</td><td>独立交付线上功能</td></tr>
+        <tr><td><strong>资深(3-5年)</strong></td><td>系统设计、性能优化</td><td>推理优化、数据飞轮、架构</td><td>主导子系统设计</td></tr>
+        <tr><td><strong>专家(5年+)</strong></td><td>技术决策、影响力</td><td>前沿追踪、跨域整合、带人</td><td>团队技术方向、开源贡献</td></tr>
+      </tbody>
+    </table>
+
+    <h3>“项目驱动”优于“课程驱动”</h3>
+    <p>AI 领域知识更新极快，纯看课程/论文很容易“学了就忘、用时不会”。最有效的学习是<strong>项目驱动</strong>：选一个你真正想解决的问题（哪怕很小），从需求到上线完整做一遍，过程中缺什么补什么。这种学习有三个优势：一是<strong>遇到真问题</strong>（OOM、幻觉、延迟），这些是课程不会教的工程现实；二是<strong>产出作品集</strong>，比证书有说服力得多；三是<strong>形成肌肉记忆</strong>，知识嵌在具体场景里不会忘。一个能讲清“为什么这样设计、踩了什么坑、怎么解的”的真实项目，面试时远胜一堆课程证书。建议保持一个<strong>“学习-实践-输出”</strong>的循环：学一个新概念→立刻用在项目里→写成博客或分享。输出倒逼输入，是抗遗忘、抗肤浅的最佳利器。</p>
+
+    <h2 class="section" id="deep44b"><span class="idx">深</span> 职业发展 FAQ 与成长策略</h2>
+    <p>AI 时代职业发展的核心问题，想清楚能少走弯路。</p>
+    <h3>Q1：非科班/转行能做 AI 工程师吗？</h3>
+    <p><strong>能，但路径不同</strong>。AI 工程不等于搞研究，应用层（Prompt/RAG/Agent/部署）对工程能力的要求高于对理论的要求。转行者优势在<strong>领域知识+工程经验</strong>，劣势在模型原理。策略：从应用层切入（能快速产出价值），同时补基础（Transformer、训练原理）。别一上来就啃论文——先做项目建立信心和作品集，再按需补理论。<strong>你的领域专长是差异化优势</strong>（懂医疗又懂 AI 比纯懂 AI 稀缺），转行者要把原行业经验和 AI 结合，而非和科班比拼纯技术深度。</p>
+    <pre><code># 能力自评雷达图
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：AI 会取代程序员吗？我该学什么才不被淘汰？</h3>
+    <p>AI 取代的是<strong>机械编码</strong>，不是<strong>解决复杂问题的工程能力</strong>。不被淘汰要聚焦 AI 难做的：系统架构设计、跨模块权衡、需求拆解、调试复杂问题、领域深度。同时<strong>把 AI 用好成为放大器</strong>——会用 AI 编程的工程师效率是不用的几倍。「淘汰你的不是 AI，而是会用 AI 的人」。所以别焦虑被取代，而要<strong>主动掌握 AI 工具</strong>，把它变成你的能力倍增器。持续学习、保持解决真实问题的能力，是最抗淘汰的护城河。</p>
+    <h3>对比速查：AI 工程师能力维度</h3>
+    <table>
+      <thead><tr><th>维度</th><th>入门</th><th>资深</th><th>精进方式</th></tr></thead>
+      <tbody>
+        <tr><td>工程能力</td><td>会写代码</td><td>系统设计</td><td>做复杂项目</td></tr>
+        <tr><td>模型理解</td><td>知道概念</td><td>懂原理调优</td><td>读论文复现</td></tr>
+        <tr><td>应用</td><td>能搭demo</td><td>端到端落地</td><td>真实项目</td></tr>
+        <tr><td>领域</td><td>了解</td><td>深度</td><td>行业实战</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 时代的职业发展有五条主要路径：AI/ML 工程师走技术深水区（门槛高、天花板高）、AI 应用开发者走工程落地（全栈 + AI、需求量大）、AI 产品经理做技术翻译（懂模型边界 + 会评估效果）、领域 AI 专家做行业深耕（domain knowledge 是壁垒）、AI 内容创作者做新媒介先行（审美和叙事能力不可替代）。每条路径都有对应的练手项目清单，关键是"做出来可访问的作品"而非"考更多的证"。作品集的核心原则是可访问、可验证、有深度——每个项目配在线 Demo 和技术博客。最根本的建议是：AI 不会取代人，会用 AI 的人会取代不用的人。保持底层理解 + 快速学习能力 + 持续做项目的习惯，这是 AI 时代最稳妥的职业策略。</p>

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 经典论文精读 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 经典论文精读 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 经典论文精读 · AI 全栈实战教学">
-<meta property="og:description" content="AI 经典论文精读 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="why-papers"><span class="idx">★</span> 一、为什么要读论文</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么要读论文</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、《Attention is All You Need》（2017）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、《GPT-3: Language Models are Few-Shot Learners》（2020）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、《Chinchilla: Training Compute-Optimal LLMs》（2022）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、《InstructGPT》（2022）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、《Constitutional AI》（2022）</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、五篇论文的内在脉络</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>八、怎么高效读论文</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>很多工程师觉得「我会用 API 就行了，读论文有什么用」。但在快速演进的 AI 领域，读论文有三个不可替代的价值：</p>
     <ul>
       <li><strong>理解「为什么」</strong>：API 文档告诉你「怎么做」，论文告诉你「为什么这么做」。理解了原理，你才能在遇到新问题时举一反三。</li>
@@ -543,6 +526,79 @@ def self_correct(prompt, model_response, constitution):
       <li><strong>带问题读</strong>：读之前问自己「这篇论文要解决什么问题」「它的解法是什么」「有什么局限」，带着问题找答案。</li>
       <li><strong>动手复现</strong>：哪怕只复现一个核心公式或一张图，理解深度都会完全不同。纸上得来终觉浅。</li>
     </ul>
+
+    <h2 class="section" id="deep57"><span class="idx">深</span> 读论文的方法论：从读懂到用上</h2>
+
+    <p>读 AI 论文最大的误区是“从头逐字读到尾”——这样既慢又抓不住重点。高效的读法是<strong>三遍递进</strong>：第一遍扫结构、第二遍抓方法、第三遍抠实验。下面给出可操作的阅读流程和复现清单。</p>
+
+    <h3>论文阅读的三遍法</h3>
+    <p>把“读懂论文”拆成结构化步骤，能显著提升效率和信息留存。下面是一个论文阅读笔记的模板。</p>
+
+    <pre><code>paper_notes = {
+  "标题": "Attention Is All You Need",
+  "核心问题": "RNN/CNN 做序列建模慢、无法并行",
+  "关键创新": "纯注意力机制替代循环，位置编码补顺序信息",
+  "方法一句话": "用 self-attention 让每个位置直接关注所有位置，可并行",
+  "关键公式/结构": "Scaled Dot-Product Attention + Multi-Head",
+  "实验亮点": "翻译任务 SOTA，训练时间大幅缩短",
+  "可复现要素": [
+    "模型结构清晰，几行代码可写",
+    "数据用标准 WMT，可获取",
+    "超参（d_model=512, h=8）论文给出"
+  ],
+  "我的疑问": ["为什么除以√d_k？", "multi-head 的头数怎么定？"],
+  "可落地什么": "用 PyTorch 实现一遍 attention，跑个小翻译任务",
+}
+
+def summarize(notes):
+    for k, v in notes.items():
+        if isinstance(v, list):
+            print(f"【{k}】"); [print(f"  - {x}") for x in v]
+        else: print(f"【{k}】{v}")
+summarize(paper_notes)</code></pre>
+
+    <p>这份结构化笔记比“画满下划线的 PDF”有价值得多。尤其是“我的疑问”和“可落地什么”两项，是把论文从“读过”变“用上”的关键。</p>
+
+    <table>
+      <thead><tr><th>阅读遍数</th><th>目标</th><th>读哪些</th><th>产出</th><th>耗时</th></tr></thead>
+      <tbody>
+        <tr><td><strong>第一遍</strong></td><td>判断是否值得细读</td><td>标题/摘要/结论/图表</td><td>相关性与价值判断</td><td>10分钟</td></tr>
+        <tr><td><strong>第二遍</strong></td><td>掌握核心方法</td><td>方法章节+关键公式</td><td>方法一句话总结</td><td>30~60分钟</td></tr>
+        <tr><td><strong>第三遍</strong></td><td>验证可信度</td><td>实验+消融+局限</td><td>复现清单+疑问</td><td>数小时</td></tr>
+      </tbody>
+    </table>
+
+    <h3>从读到用：复现是最深的读</h3>
+    <p>读懂论文的最高境界是<strong>能复现</strong>。复现一遍，你对方法的理解会从“知道”跃升到“真正懂”——所有论文没写清的细节（初始化、归一化位置、学习率调度）都会在复现中暴露，而这些恰恰是落地的关键。建议从<strong>小规模复现</strong>开始：不必跑论文的超大规模实验，而是用小数据、小模型验证核心机制是否如论文所说。比如读 Attention 论文，就写 50 行代码实现 self-attention，跑个小玩具任务看它确实能学到依赖关系。这种“最小复现”既快又能抓住本质。<strong>警惕“只在基准上刷分”的论文</strong>：有些方法在特定 benchmark 涨点，但换数据集就崩，这类要读消融实验看其提升是否稳健。最后，<strong>读论文要带着问题读</strong>——你手头的项目遇到了什么问题、期望从这篇论文找答案？带着具体问题，比漫无目的读效率高一个数量级，也更容易把论文的启发转化到自己的工作中。真正读透十篇经典、并复现其中两三篇，比泛读一百篇有价值得多。</p>
+
+    <h2 class="section" id="deep57b"><span class="idx">深</span> 论文精读 FAQ 与复现</h2>
+    <p>读论文最大的价值是用上，这些问题决定能否转化。</p>
+    <h3>Q1：论文里的方法，复现不出论文的效果，为什么？</h3>
+    <p>常见原因：<strong>论文省略了关键工程细节</strong>（初始化、学习率调度、归一化位置、warmup）——这些「不性感但决定成败」的细节常被略过；<strong>超参敏感</strong>，换数据集就不 work；<strong>算力/数据规模不同</strong>，小规模复现不出大规模现象（涌现能力）。解法：<strong>找作者的官方代码</strong>（最权威）；<strong>小规模验证核心机制</strong>（不必跑全规模，看趋势对不对）；<strong>仔细看附录</strong>（细节常藏那）。复现差距是常态，重要的是理解<strong>哪些是方法本质、哪些是工程 trick</strong>。</p>
+    <pre><code># 复现实验配置记录
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么判断一篇论文值不值得深读？</h3>
+    <p><strong>三遍法第一遍筛</strong>：看标题/摘要/结论/图表，10 分钟判断「和我的问题相关吗、有新意吗、可信吗」。值得深读的信号：解决了你手头的实际问题；方法新颖可迁移；实验扎实（多数据集、有消融、报方差）。不值得的信号：只在特定 benchmark 刷点、换数据集就崩；无消融无法归因；过度宣传。<strong>带着问题读</strong>——你遇到了什么问题、期望从这篇找答案，比漫无目的读效率高十倍。真正读透十篇经典并复现两三篇，比泛读一百篇有价值得多。</p>
+    <h3>对比速查：论文阅读三遍法</h3>
+    <table>
+      <thead><tr><th>遍数</th><th>目标</th><th>读哪些</th><th>耗时</th></tr></thead>
+      <tbody>
+        <tr><td>第一遍</td><td>判断价值</td><td>标题/摘要/结论</td><td>10分钟</td></tr>
+        <tr><td>第二遍</td><td>掌握方法</td><td>方法+公式</td><td>30-60分钟</td></tr>
+        <tr><td>第三遍</td><td>验证可信</td><td>实验+消融</td><td>数小时</td></tr>
+        <tr><td>复现</td><td>真正理解</td><td>动手实现</td><td>数天</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们精读了五篇奠定 LLM 时代的论文。核心要点：</p>

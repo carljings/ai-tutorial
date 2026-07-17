@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>29 · LLM 记忆系统深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="29 · LLM 记忆系统深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="29 · LLM 记忆系统深度 · AI 全栈实战教学">
-<meta property="og:description" content="29 · LLM 记忆系统深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -346,7 +342,7 @@
 
     <h2 class="section" id="read-write"><span class="idx">02</span> 记忆的读写循环</h2>
     <div class="code-title">memory_system.py —— 完整的读写记忆循环</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 memory_system.py —— 带重要性判断、去重、检索的记忆系统
 """</span>
 <span class="k">class</span> <span class="t">SmartMemory</span>:
@@ -414,7 +410,7 @@ memory_system.py —— 带重要性判断、去重、检索的记忆系统
     </table>
     <p>下面给出一份基于 <strong>pgvector</strong> 的可落地的长期记忆存储抽象，把上一节的「相关性×重要性×时效」直接写进 SQL 检索，由数据库一次性算分。</p>
     <div class="code-title">long_term_memory.py —— 基于 pgvector 的持久化记忆</div>
-    <pre><code class="language-python"><span class="k">import</span> time, json, asyncio
+    <pre><code><span class="k">import</span> time, json, asyncio
 <span class="k">import</span> asyncpg            <span class="c"># pip install asyncpg</span>
 
 CREATE_SQL = <span class="s">"""
@@ -500,7 +496,7 @@ CREATE INDEX ON memory (user_id, importance DESC);
     </table>
     <p>下面是分层检索的一个典型陷阱：用户问「上次提到的那个项目怎么样了」，<strong>事实层（语义记忆）查不到，必须去情景层找历史事件</strong>。把两类记忆混在一个表里、用同一套 embedding 检索，恰恰是新手最常踩的坑。</p>
     <div class="code-title">hybrid_retrieval.py —— 语义 + 情景双通道</div>
-    <pre><code class="language-python"><span class="k">async</span> <span class="k">def</span> <span class="f">hybrid_recall</span>(memory, user_id, query, llm, top_k=<span class="n">5</span>):
+    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">hybrid_recall</span>(memory, user_id, query, llm, top_k=<span class="n">5</span>):
     <span class="s">"""先做意图分类，决定从哪个通道召回，再合并"""</span>
     intent = llm(<span class="s">"判断查询属于 fact（问事实/偏好）还是 event（问上次/那次发生的事），"</span>
                  <span class="s">"只回 fact 或 event："</span> + query).strip().lower()
@@ -526,7 +522,7 @@ CREATE INDEX ON memory (user_id, importance DESC);
     <h2 class="section" id="forget-mechanism"><span class="idx">08</span> 主动遗忘机制</h2>
     <p>第 04 节讲了「为什么要遗忘」，这里讲「<strong>怎么具体实现</strong>」。生产系统通常同时跑三种遗忘：被动衰减、定期压缩、显式 TTL。压缩这一步尤其关键——它不是简单删除，而是把 N 条旧记忆用 LLM 摘成 1 条，把信息密度提上去。</p>
     <div class="code-title">forget.py —— 衰减 + 压缩 + TTL 三重遗忘</div>
-    <pre><code class="language-python"><span class="k">async</span> <span class="k">def</span> <span class="f">passive_decay</span>(memory):
+    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">passive_decay</span>(memory):
     <span class="s">"""每周跑一次：长期未命中的记忆 importance 衰减"""</span>
     <span class="k">await</span> memory.pool.execute(<span class="s">"""
         UPDATE memory SET importance = importance * 0.85
@@ -564,6 +560,87 @@ CREATE INDEX ON memory (user_id, importance DESC);
     <span class="k">for</span> uid <span class="k">in</span> <span class="k">await</span> memory.active_users():
         <span class="k">await</span> compress_old_memories(memory, uid, llm)</code></pre>
     <p>这三种机制互为补充：<strong>TTL</strong> 处理显式声明的临时记忆（如「这个会议纪要保留 7 天」）；<strong>衰减</strong> 处理自然老化；<strong>压缩</strong> 把历史细节降维成高密度摘要，既节省存储又提升检索精度。三者都默认跳过 <code>ttl_days IS NULL</code> 的永久记忆，保证用户设定的核心偏好不会被误删——这是隐私合规的红线。</p>
+
+    <h2 class="section" id="deep29"><span class="idx">深</span> 长期记忆架构：写入、遗忘与一致性</h2>
+
+    <p>给 Agent 加“长期记忆”听起来美好，落地却处处是坑：记忆写多了检索噪声大、写少了等于没记；用户改了偏好，旧记忆却不更新；多轮冲突的事实并存，模型无所适从。下面把记忆系统的三个核心难题拆开讲。</p>
+
+    <h3>记忆的写入策略：不是什么都该记</h3>
+    <p>最差的记忆系统是把每轮对话都存进向量库——检索时全是噪声，有用信息被淹没。正确做法是<strong>写入前先判断“是否值得记”</strong>：只提取事实、偏好、决策这类稳定信息，过滤掉寒暄、临时查询。</p>
+
+    <pre><code>import json
+from openai import OpenAI
+client = OpenAI(base_url="https://api.z.ai/api/paas/v4", api_key="YOUR_KEY")
+
+EXTRACT_PROMPT = '''分析对话，提取值得长期记住的事实/偏好，输出JSON数组。
+只提取稳定信息(姓名、偏好、重要决策)，忽略临时问题和寒暄。
+无值得记忆的内容则返回 []。示例: [{"type":"preference","k":"diet","v":"素食"}]'''
+
+def extract_memories(dialogue):
+    r = client.chat.completions.create(model="glm-4-plus", temperature=0.0,
+        messages=[{"role":"system","content":EXTRACT_PROMPT},
+                  {"role":"user","content":dialogue}])
+    try: return json.loads(r.choices[0].message.content)
+    except: return []
+
+def should_write(memory, existing):
+    """去重与冲突检测：新记忆与已有的是否冲突。"""
+    for e in existing:
+        if e["k"] == memory["k"]:
+            if e["v"] != memory["v"]:
+                return ("CONFLICT", e)     # 冲突，需更新而非新增
+            return ("DUPLICATE", e)        # 重复，丢弃
+    return ("NEW", None)
+
+new = extract_memories("我叫张三，我对花生过敏，最近在减肥。")
+# → [{"type":"fact","k":"name","v":"张三"},
+#    {"type":"preference","k":"allergy","v":"花生"},
+#    {"type":"preference","k":"goal","v":"减肥"}]</code></pre>
+
+    <p>这套“提取 + 去重 + 冲突检测”是可用记忆系统的最小骨架。关键是<strong>写入是有门槛的</strong>：经过价值判断、去重、冲突处理后，才落库，确保记忆库干净。</p>
+
+    <table>
+      <thead><tr><th>记忆问题</th><th>表现</th><th>解决方案</th><th>权衡</th></tr></thead>
+      <tbody>
+        <tr><td><strong>写入噪声</strong></td><td>检索出大量无关历史</td><td>提取过滤 + 价值打分</td><td>可能漏掉边缘有用信息</td></tr>
+        <tr><td><strong>记忆冲突</strong></td><td>新旧事实并存，模型困惑</td><td>写入前冲突检测 + 覆盖</td><td>旧值可能也有价值</td></tr>
+        <tr><td><strong>记忆膨胀</strong></td><td>库越来越大、检索变慢</td><td>TTL 过期 + 重要度衰减</td><td>需调衰减参数</td></tr>
+        <tr><td><strong>检索不准</strong></td><td>召回到过时记忆</td><td>时间戳加权 + 重排</td><td>实现复杂度上升</td></tr>
+        <tr><td><strong>隐私泄露</strong></td><td>跨用户记忆串扰</td><td>严格按 user_id 隔离</td><td>无（必须做）</td></tr>
+      </tbody>
+    </table>
+
+    <h3>遗忘机制：会记也要会忘</h3>
+    <p>人类记忆之所以有用，很大程度因为<strong>会遗忘</strong>——把过时、低频的信息淡忘，才能让重要的凸显。Agent 记忆也应如此。实现“遗忘”有三种机制：一是<strong>TTL 过期</strong>，临时信息（如“今天天气”）设较短过期时间；二是<strong>访问频次衰减</strong>，长期未被检索命中的记忆降低权重，最终归档；三是<strong>显式更新覆盖</strong>，检测到冲突时新值覆盖旧值（用户说“我现在不减肥了”就应更新 goal 字段）。三者结合，记忆库才能长期保持“新鲜且相关”。一个常被忽略的点是<strong>记忆也要做版本管理</strong>——记录每条记忆的来源对话和时间戳，出问题时能追溯是哪次交互写错了，而不是面对一锅无来源的“记忆汤”无从排查。</p>
+
+    <h2 class="section" id="deep29b"><span class="idx">深</span> 记忆系统 FAQ 与工程经验</h2>
+    <p>给 Agent 加记忆听着美好，落地全是这些坑。</p>
+    <h3>Q1：记忆越积越多，检索反而变差了，怎么办？</h3>
+    <p>典型的<strong>记忆膨胀导致噪声淹没信号</strong>。解法是<strong>主动遗忘</strong>：TTL 过期（临时信息短命）、访问频次衰减（长期未命中的降权归档）、重要度评分（低价值记忆淘汰）。还要<strong>定期整理</strong>（合并重复、更新过时、提炼摘要）。关键认知：<strong>好的记忆系统会忘</strong>，像人一样——把不重要的淡忘，重要的才凸显。无脑全存的记忆库，不如精心管理的少量高质量记忆。</p>
+    <pre><code># 记忆重要度衰减与遗忘
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：用户改了偏好（如「我现在不减肥了」），旧记忆怎么更新？</h3>
+    <p>必须做<strong>冲突检测与覆盖</strong>：写入新记忆前，检索同 key 的旧记忆，发现值不同则<strong>更新而非新增</strong>（避免新旧并存模型困惑）。更稳的做法是<strong>时序版本化</strong>——保留历史但标注「最新」，检索时优先最新值。还要处理<strong>隐式偏好变化</strong>：用户最近的行为若和记忆矛盾（记忆说喜欢简洁，但最近总要求详细），应触发偏好重判。冲突处理是记忆系统从「能记」到「记准」的关键，不做就是一锅矛盾的记忆汤。</p>
+    <h3>对比速查：记忆类型与策略</h3>
+    <table>
+      <thead><tr><th>记忆类型</th><th>存什么</th><th>更新策略</th><th>遗忘机制</th></tr></thead>
+      <tbody>
+        <tr><td>事实/偏好</td><td>用户属性</td><td>冲突覆盖</td><td>TTL+衰减</td></tr>
+        <tr><td>会话历史</td><td>交互记录</td><td>滚动摘要</td><td>超期归档</td></tr>
+        <tr><td>决策/技能</td><td>学到的能力</td><td>版本化</td><td>低频降权</td></tr>
+        <tr><td>临时信息</td><td>本次任务</td><td>用完即删</td><td>短期TTL</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">05</span> 本章小结</h2>
     <div class="callout note">

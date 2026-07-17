@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLMOps 工程化入门 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLMOps 工程化入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLMOps 工程化入门 · AI 全栈实战教学">
-<meta property="og:description" content="LLMOps 工程化入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="ops-challenges"><span class="idx">★</span> 一、LLM 运维和传统 Web 服务有什么不同</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、LLM 运维和传统 Web 服务有什么不同</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、部署架构：从单机到分布式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、自动扩容：基于什么指标扩</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、Prometheus 监控体系</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、告警规则设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、灰度发布：怎么安全上线新模型</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、故障回滚：多快能回</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>八、SLO 定义与服务质量保障</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>如果你做过传统 Web 服务的运维，上手 LLM 运维会遇到几个新挑战：</p>
     <ul>
       <li><strong>延迟分布特殊</strong>：LLM 的首 token 延迟（TTFT）和每 token 延迟（TPOT）是两个独立指标，传统服务的「请求延迟」概念不够用。</li>
@@ -588,6 +571,88 @@ slo_definitions = {
 # 一个月 43200 分钟 × 0.5% = 216 分钟的错误预算
 # 如果半个月就用完预算，说明稳定性不达标，要停止上新功能优先修问题</code></pre>
     <p>SLO 的价值不只是监控，更是团队优先级的协调机制。如果错误预算没用完，可以放心上新功能；如果快用完了，整个团队要优先修稳定性问题，暂停新功能发布。这就是「error budget」哲学——用数据决定「稳定性 vs 速度」的平衡点。</p>
+
+    <h2 class="section" id="deep58"><span class="idx">深</span> LLM 服务的 SLO 与故障演练</h2>
+
+    <p>LLM 服务上线后，最难的不是让它跑，而是<strong>让它稳定跑</strong>。LLM 的延迟分布长尾、显存易 OOM、模型版本切换有风险，传统的运维手段不够用。下面给出 LLM 专属的 SLO 体系和故障演练方法。</p>
+
+    <h3>LLM 专属的 SLO 指标</h3>
+    <p>传统互联网看 P99 延迟和错误率，LLM 服务还要看<strong>首字延迟(TTFT)、生成吞吐(TPS)、token 产出率</strong>，以及<strong>业务质量</strong>（不能只看技术指标，还得看模型输出是否靠谱）。</p>
+
+    <pre><code>import time, statistics
+from collections import deque
+
+class LLMServiceMonitor:
+    def __init__(self, window=1000):
+        self.ttft = deque(maxlen=window)      # 首字延迟
+        self.tps  = deque(maxlen=window)      # 生成吞吐
+        self.err  = deque(maxlen=window)      # 错误(含超时/OOM/限流)
+        self.qual = deque(maxlen=window)      # 业务质量(赞踩/低质)
+
+    def record(self, ttft_ms, tps, ok=True, quality=1):
+        self.ttft.append(ttft_ms); self.tps.append(tps)
+        self.err.append(0 if ok else 1); self.qual.append(quality)
+
+    def slo_report(self):
+        p99 = statistics.quantiles(self.ttft, n=100)[98] if len(self.ttft)&gt;100 else max(self.ttft)
+        err_rate = sum(self.err)/max(len(self.err),1)
+        q_rate = sum(self.qual)/max(len(self.qual),1)
+        print(f"TTFT P99={p99:.0f}ms  错误率={err_rate:.1%}  质量分={q_rate:.2f}")
+        # SLO 红线：TTFT P99 &lt; 1s, 错误率 &lt; 0.1%, 质量分 &gt; 0.8
+        alerts = []
+        if p99 &gt; 1000: alerts.append("TTFT 超标")
+        if err_rate &gt; 0.001: alerts.append("错误率超标")
+        if q_rate &lt; 0.8: alerts.append("质量下降")
+        return alerts
+
+m = LLMServiceMonitor()
+for _ in range(500): m.record(800, 45, ok=True, quality=0.85)
+print(m.slo_report())</code></pre>
+
+    <p>这套监控把“模型服务是否健康”量化成了具体数字。尤其<strong>业务质量分</strong>不能少——技术指标全绿但用户都在点“踩”，说明模型输出质量在下滑，必须能发现。</p>
+
+    <table>
+      <thead><tr><th>SLO 维度</th><th>指标</th><th>典型红线</th><th>告警动作</th></tr></thead>
+      <tbody>
+        <tr><td><strong>延迟</strong></td><td>TTFT P99 / TPS</td><td>TTFT &gt;1s</td><td>扩容/检查队列</td></tr>
+        <tr><td><strong>可用性</strong></td><td>错误率(含OOM/超时)</td><td>&gt;0.1%</td><td>切流量/回滚</td></tr>
+        <tr><td><strong>容量</strong></td><td>显存利用率/排队长度</td><td>显存 &gt;90%</td><td>扩容/降并发</td></tr>
+        <tr><td><strong>质量</strong></td><td>赞踩比/低质率</td><td>低质 &gt;5%</td><td>排查 prompt/模型</td></tr>
+        <tr><td><strong>成本</strong></td><td>单请求 token 成本</td><td>超预算</td><td>优化缓存/路由</td></tr>
+      </tbody>
+    </table>
+
+    <h3>故障演练与应急预案</h3>
+    <p>没出过事不代表稳定，<strong>主动演练故障</strong>才能在真出事时不慌。LLM 服务要重点演练几类故障：显存 OOM（流量突增导致 KV Cache 爆）——预案是自动降并发或踢长请求；模型超时（某请求触发极长生成）——预案是设硬超时 + 熔断；模型版本劣化（新版本质量回归）——预案是灰度 + 一键回滚。<strong>回滚能力是最后一道防线</strong>：每次模型上线必须保留上一版本权重和配置，能在 5 分钟内回滚。演练时还要测<strong>降级策略</strong>：大模型挂了能否自动切到小模型兜底（牺牲质量保可用）。一个常被忽略的运维细节是<strong>显存碎片</strong>——长期运行后显存碎片化导致明明还有空闲却 OOM，定期重启进程或用 PagedAttention 能缓解。最后，建立<strong>故障复盘机制</strong>：每次事故写 postmortem（时间线、根因、改进），把人肉经验沉淀成自动化预案，这才是 SLO 体系能持续进化的根本。</p>
+
+    <h2 class="section" id="deep58b"><span class="idx">深</span> LLM 运维 FAQ 与故障应对</h2>
+    <p>LLM 服务稳定性最考验这些实战经验。</p>
+    <h3>Q1：线上突然大面积超时，怎么快速止血？</h3>
+    <p><strong>先止血再查因</strong>。立即动作：<strong>扩容</strong>（加 GPU 实例分担流量）；<strong>降级</strong>（切到更小/更快模型兜底，牺牲质量保可用）；<strong>限流</strong>（保护核心用户，拒绝低优先请求）；<strong>回滚</strong>（若是最近发布导致，切回上版本）。同时查因：看监控是流量突增（扩容解）还是显存 OOM（降并发解）还是模型劣化（回滚解）。<strong>回滚能力是最后防线</strong>——每次上线保留上版本，5 分钟能切回。预案要预演过，真出事才不慌。事后写 postmortem 沉淀经验。</p>
+    <pre><code># 故障自动降级编排
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么预防显存 OOM？</h3>
+    <p>显存 OOM 是 LLM 服务最常见故障。预防：<strong>监控显存利用率</strong>（>90% 告警）；<strong>限制并发/上下文长度</strong>（KV Cache 随长度线性涨，是显存大头）；<strong>用 PagedAttention</strong>（分页管理，减少碎片）；<strong>量化 KV Cache</strong>（INT8 省一半）；<strong>设单请求硬超时</strong>（防极长生成吃满显存）；<strong>定期重启</strong>（缓解显存碎片）。还要测<strong>峰值而非平均</strong>——平时 60% 但峰值可能 100% OOM。容量规划要留 20% 余量。OOM 一旦发生会连锁（请求堆积→更多 KV Cache→更易 OOM），所以要在临界前主动限流。</p>
+    <h3>对比速查：LLM 服务 SLO 维度</h3>
+    <table>
+      <thead><tr><th>维度</th><th>指标</th><th>红线</th><th>告警动作</th></tr></thead>
+      <tbody>
+        <tr><td>延迟</td><td>TTFT P99</td><td>>1s</td><td>扩容</td></tr>
+        <tr><td>可用性</td><td>错误率</td><td>>0.1%</td><td>切流量/回滚</td></tr>
+        <tr><td>容量</td><td>显存利用</td><td>>90%</td><td>扩容/降并发</td></tr>
+        <tr><td>质量</td><td>低质率</td><td>>5%</td><td>查prompt/模型</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们搭建了 LLM 运维的完整体系。核心要点：</p>

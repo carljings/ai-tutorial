@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>grokking、双重下降与过参数化的反直觉 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="grokking、双重下降与过参数化的反直觉 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="grokking、双重下降与过参数化的反直觉 · AI 全栈实战教学">
-<meta property="og:description" content="grokking、双重下降与过参数化的反直觉 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -354,7 +350,7 @@
     <h2><span class="idx"></span>三类双重下降的代码可视化</h2>
     <p>前面的 ASCII 图和表格讲了原理，但「双峰」长什么样、阈值在哪里，光看描述很难建立直觉。下面这段代码用随机特征模型（random features）复现 Belkin 论文里的经典曲线，一次性画出三类双下降：<strong>模型大小轴、训练 epoch 轴、数据量轴</strong>。在本地跑一遍，三张图比任何文字都直观。</p>
     <div class="code-title">double_descent_demo.py —— 三轴双下降复现</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 double_descent_demo.py —— 用随机特征回归复现三类 double descent
 依赖：pip install numpy scikit-learn matplotlib
 思路：固定真实函数，扫描某个轴，记录训练/测试 MSE
@@ -398,7 +394,7 @@ plt.title(<span class="s">"模型大小轴的双重下降"</span>); plt.legend()
 plt.savefig(<span class="s">"dd_model_size.png"</span>, dpi=<span class="n">110</span>, bbox_inches=<span class="s">"tight"</span>)</code></pre>
     <p>跑完这张图你会看到一条标志性的双峰曲线：D 从小到大时测试误差先降（欠拟合缓解）、在 D≈80 处冲到天际（插值阈值的死记解）、D 继续增大后又平稳下降（过参数化的规律解）。下面把训练时间轴和数据量轴的关键扫描逻辑也给出，复用同一套数据生成函数即可：</p>
     <div class="code-title">double_descent_axes.py —— epoch 轴与数据量轴</div>
-    <pre><code class="language-python"><span class="c"># ===== 轴 2：训练 epoch 扫描（用大 D，固定模型）=====</span>
+    <pre><code><span class="c"># ===== 轴 2：训练 epoch 扫描（用大 D，固定模型）=====</span>
 <span class="c"># 用一个过参数化模型，记录每个 epoch 的测试误差</span>
 <span class="k">def</span> <span class="f">train_epoch_sweep</span>(D=<span class="n">300</span>, epochs=<span class="n">2000</span>, lr=<span class="n">0.05</span>):
     x_tr, y_tr = gen_data(<span class="n">60</span>); x_te, y_te = gen_data(<span class="n">300</span>)

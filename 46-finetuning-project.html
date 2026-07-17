@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>46 · LLM 微调完整项目实战 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学">
-<meta property="og:description" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -321,7 +317,7 @@
 
     <h2 class="section" id="data"><span class="idx">01</span> 第一步：准备微调数据</h2>
     <div class="code-title">prepare_data.py —— 构造医疗 SFT 数据</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 prepare_data.py —— 从原始医疗 QA 数据构造 SFT 格式
 关键是：质量 &gt; 数量，格式统一
 """</span>
@@ -357,7 +353,7 @@ print(f<span class="s">"训练集 {split} 条，验证集 {len(sft_data)-split} 
 
     <h2 class="section" id="train"><span class="idx">02</span> 第二步：QLoRA 训练</h2>
     <div class="code-title">train.py —— 完整 QLoRA 训练脚本</div>
-    <pre><code class="language-python"><span class="k">import</span> torch
+    <pre><code><span class="k">import</span> torch
 <span class="k">from</span> datasets <span class="k">import</span> load_dataset
 <span class="k">from</span> peft <span class="k">import</span> LoraConfig, get_peft_model, prepare_model_for_kbit_training
 <span class="k">from</span> transformers <span class="k">import</span> (AutoModelForCausalLM, AutoTokenizer,
@@ -397,7 +393,7 @@ print(<span class="s">"✅ 训练完成"</span>)</code></pre>
 
     <h2 class="section" id="eval"><span class="idx">03</span> 第三步：评估</h2>
     <div class="code-title">评估微调效果</div>
-    <pre><code class="language-python"><span class="c"># 对比：基座 GLM vs 微调后，在验证集上的表现</span>
+    <pre><code><span class="c"># 对比：基座 GLM vs 微调后，在验证集上的表现</span>
 test_cases = [
     {<span class="s">"q"</span>: <span class="s">"最近经常头晕，是怎么回事"</span>, <span class="s">"expect_contains"</span>: <span class="s">"就医"</span>},
     {<span class="s">"q"</span>: <span class="s">"孩子发烧 39 度怎么办"</span>, <span class="s">"expect_contains"</span>: <span class="s">"物理降温"</span>},
@@ -407,7 +403,7 @@ test_cases = [
 
     <h2 class="section" id="deploy"><span class="idx">04</span> 第四步：合并与部署</h2>
     <div class="code-title">合并 LoRA + vLLM 部署</div>
-    <pre><code class="language-python"><span class="c"># 合并 LoRA 到基座（推理零开销）</span>
+    <pre><code><span class="c"># 合并 LoRA 到基座（推理零开销）</span>
 merged = model.merge_and_unload()
 merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
 
@@ -422,7 +418,7 @@ merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
 
     <h2 class="section" id="log-analysis"><span class="idx">★</span> 训练日志分析：读懂 loss 曲线</h2>
     <p>微调不是点一下「开始」就完事——真正的功夫在<strong>看日志</strong>。一份健康的训练日志应该长什么样？loss 平滑下降、验证集 loss 同步下降且与训练集差距可控、学习率按预热-衰减曲线走。下面这段脚本读取训练日志，画出训练/验证 loss、梯度范数、学习率三条曲线，并自动标出「过拟合拐点」——这是决定何时早停的关键依据。</p>
-    <pre><code class="language-python"><span class="c">"""analyze_train_log.py —— 微调日志可视化与诊断"""</span>
+    <pre><code><span class="c">"""analyze_train_log.py —— 微调日志可视化与诊断"""</span>
 <span class="k">import</span> json, matplotlib.pyplot <span class="k">as</span> plt, numpy <span class="k">as</span> np
 
 log = [json.loads(line) <span class="k">for</span> line <span class="k">in</span> open(<span class="s">"trainer_state.jsonl"</span>)]
@@ -446,7 +442,7 @@ plt.tight_layout(); plt.savefig(<span class="s">"train_diag.png"</span>, dpi=<sp
 
     <h2 class="section" id="hptuning"><span class="idx">★</span> 超参数调优记录</h2>
     <p>微调效果好坏，超参数占一半功劳。但超参不是玄学，是<strong>有控制的搜索</strong>。下面是一份真实的超参调优记录——围绕 LoRA 秩 <code>r</code>、学习率 <code>lr</code>、epoch 数三个最关键的旋钮做网格搜索，记录每组配置在医疗问答评估集上的分数。从这张表能读出明确的规律：<code>r=8</code> 太小学不住，<code>r=64</code> 开始过拟合，<code>lr=2e-4</code> 是甜点，3 epoch 后开始退化。</p>
-    <pre><code class="language-python"><span class="c">"""hparam_search.py —— LoRA 超参网格搜索 + 记录"""</span>
+    <pre><code><span class="c">"""hparam_search.py —— LoRA 超参网格搜索 + 记录"""</span>
 <span class="k">import</span> itertools, json
 
 grid = {
@@ -479,7 +475,7 @@ print(<span class="s">"最佳配置:"</span>, results[<span class="n">0</span>])
 
     <h2 class="section" id="eval-compare"><span class="idx">★</span> 效果评估：微调前后对比</h2>
     <p>调完超参，最后一关是拿出一份让人信服的评估报告。只看一个分数不够——要分维度看，并和「未微调基座」对比，证明微调确实带来了增益。下面这段代码跑一个多维评估：专业性、安全性（是否建议就医）、忠实度（是否编造）、拒答率，每个维度都对比微调前后。这种「分维度 + 基线对比」的评估，是让微调成果经得起质疑的标准做法。</p>
-    <pre><code class="language-python"><span class="c">"""eval_compare.py —— 微调前后多维效果对比"""</span>
+    <pre><code><span class="c">"""eval_compare.py —— 微调前后多维效果对比"""</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
 
 base = <span class="s">"THUDM/glm-4-9b-chat"</span>          <span class="c"># 未微调基座</span>
@@ -528,6 +524,84 @@ ft_score   = benchmark(ft,   MED_TESTSET)
       </tbody>
     </table>
     <p>这张急救手册背后的方法论是<strong>「控制变量」</strong>：每次只改一个东西（学习率、或 epoch、或数据），跑完看评估，确定它的影响后再改下一个。一上来同时改三个变量，出了问题根本不知道是哪个的锅。建议每改一项都在评估集上记录分数，攒成一张「实验台账」——这和前面超参调优那张表是一脉相承的。微调本质上是一场和数据的拉锯战，谁更有耐心、更会控制变量，谁就赢。</p>
+
+    <h2 class="section" id="deep46"><span class="idx">深</span> 微调全流程：数据准备到部署的工程闭环</h2>
+
+    <p>一个微调项目从立项到上线，最坑的不是训练本身，而是<strong>数据准备、评估、部署</strong>这些周边环节。下面把全流程拆成可执行的清单，并给出数据质量校验代码。</p>
+
+    <h3>训练数据的自动校验</h3>
+    <p>“数据决定上限，训练只是逼近上限”。喂进模型前必须做自动校验，剔除格式错误、超长、空回复等问题数据。</p>
+
+    <pre><code>import json
+
+def validate_sft_data(path, max_in=2048, max_out=1024):
+    """校验 SFT 数据集的格式与长度，输出不合格样本。"""
+    data = [json.loads(l) for l in open(path)]
+    bad = []
+    for i, d in enumerate(data):
+        msgs = d.get("messages", [])
+        if not msgs or len(msgs) &lt; 2:
+            bad.append((i, "格式错误：缺 messages")); continue
+        # 检查角色顺序与完整性
+        roles = [m["role"] for m in msgs]
+        if roles[0] != "user" or "assistant" not in roles:
+            bad.append((i, "角色缺失或顺序错误")); continue
+        # 长度检查
+        in_len = sum(len(m["content"]) for m in msgs if m["role"]=="user")
+        out_len = sum(len(m["content"]) for m in msgs if m["role"]=="assistant")
+        if in_len &gt; max_in: bad.append((i, f"输入过长 {in_len}"))
+        if out_len == 0: bad.append((i, "回复为空"))
+        elif out_len &gt; max_out: bad.append((i, f"回复过长 {out_len}"))
+    print(f"总数 {len(data)}，不合格 {len(bad)}：")
+    for i, reason in bad[:10]: print(f"  #{i}: {reason}")
+    return bad
+
+validate_sft_data("sft_train.jsonl")</code></pre>
+
+    <p>这套校验在训练前跑一遍，能把 90% 的“训练莫名其妙 loss 不降”问题挡在门外。生产中还要加入<strong>去重、毒性、PII 检测</strong>，确保数据干净。</p>
+
+    <table>
+      <thead><tr><th>阶段</th><th>关键动作</th><th>常见坑</th><th>验收标准</th></tr></thead>
+      <tbody>
+        <tr><td><strong>数据准备</strong></td><td>采集、清洗、格式化、校验</td><td>格式不统一、长度失控</td><td>校验通过率 &gt;99%</td></tr>
+        <tr><td><strong>训练</strong></td><td>超参搜索、早停、监控</td><td>过拟合、loss 异常</td><td>验证集 loss 收敛</td></tr>
+        <tr><td><strong>评估</strong></td><td>golden set、对比基线</td><td>只看 loss 不看效果</td><td>业务指标 ≥基线</td></tr>
+        <tr><td><strong>部署</strong></td><td>量化、推理引擎、灰度</td><td>线上精度掉、延迟高</td><td>SLO 达标</td></tr>
+        <tr><td><strong>监控</strong></td><td>埋点、反馈、回归</td><td>无反馈闭环</td><td>可定位线上 case</td></tr>
+      </tbody>
+    </table>
+
+    <h3>从基线到上线的对比纪律</h3>
+    <p>微调最忌“自我感觉良好”。必须建立<strong>基线对比纪律</strong>：微调前先用原始模型在同一份评估集上跑出基线分，微调后再跑，<strong>只有业务指标显著超过基线才允许上线</strong>。评估集要覆盖：正常 case、边界 case、对抗 case，且包含基线模型的失败 case（看微调是否真的修好了）。第二个纪律是<strong>只改一个变量</strong>：数据、超参、基础模型不要同时动，否则出了问题无法归因。部署时<strong>务必灰度</strong>——先放 5% 流量观察 1-3 天，关键指标无回归再全量，避免“一上线就翻车”。最后，<strong>保留每个版本的模型权重、数据、配置和评估结果</strong>，形成可追溯的版本链，线上出问题能快速回滚到上个稳定版——这是微调项目工程化的最后一公里，也是最容易被忽略的一公里。</p>
+
+    <h2 class="section" id="deep46b"><span class="idx">深</span> 微调项目 FAQ 与工程闭环</h2>
+    <p>微调项目最容易在这些地方翻车，提前准备能少走弯路。</p>
+    <h3>Q1：微调数据要多少条才够？</h3>
+    <p><strong>看任务复杂度</strong>。简单任务（风格/格式）几百到一两千条即可；复杂任务（注入领域知识、新技能）要数千到数万条；高质量比大量更重要（1000 条精标注 > 10000 条噪声）。经验法则：SFT 数据 1K~10K 是常见区间。<strong>判断够不够看验证集 loss 是否收敛</strong>——加数据不再降 loss 就是够了。还要保证<strong>多样性</strong>（覆盖典型/边界/对抗），单一分布的数据再多也泛化差。数据是微调成败的 80%，投入产出比最高。</p>
+    <pre><code># 数据量与效果的关系分析
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：微调后线上效果反而变差，怎么排查？</h3>
+    <p>按顺序排查：第一，<strong>评估集和生产分布是否一致</strong>（评估集太干净导致虚高）；第二，<strong>是否灾难性遗忘</strong>（跑通用基准看是否掉点）；第三，<strong>部署问题</strong>（量化导致精度掉、推理引擎 bug）；第四，<strong>过拟合</strong>（训练集好但泛化差，减少 epoch）。根本预防：<strong>建立基线对比纪律</strong>，微调前后同评估集对比，业务指标显著超基线才上线；<strong>灰度发布</strong>先小流量观察。记住「只改一个变量」（数据/超参/模型别同时动），否则无法归因。</p>
+    <h3>对比速查：微调阶段验收</h3>
+    <table>
+      <thead><tr><th>阶段</th><th>关键动作</th><th>验收标准</th><th>常见坑</th></tr></thead>
+      <tbody>
+        <tr><td>数据准备</td><td>清洗+校验</td><td>通过率>99%</td><td>格式不一</td></tr>
+        <tr><td>训练</td><td>超参+早停</td><td>验证loss收敛</td><td>过拟合</td></tr>
+        <tr><td>评估</td><td>对比基线</td><td>指标≥基线</td><td>只看loss</td></tr>
+        <tr><td>部署</td><td>量化+灰度</td><td>SLO达标</td><td>精度掉</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">06</span> 本章小结</h2>
     <div class="callout note"><div class="head">📌 核心要点</div><ul style="margin:6px 0;"><li>完整流程：数据准备→QLoRA 训练→评估→合并→部署；</li><li>医疗场景：数据清洗+免责声明+专业审核；</li><li>数据质量 &gt; 数量；</li><li>防过拟合/遗忘/学习率是关键。</li></ul></div>

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAG 进阶模式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="RAG 进阶模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="RAG 进阶模式 · AI 全栈实战教学">
-<meta property="og:description" content="RAG 进阶模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,18 +315,6 @@
     </section>
 
     <h2 class="section" id="intro"><span class="idx">★</span> 朴素 RAG 的四大痛点</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>朴素 RAG 的四大痛点</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>HyDE：查询改写的逆向思维</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>混合检索：向量 + 关键词的强强联合</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Rerank：用交叉编码器精筛召回</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Late Chunking：解决切分语义断裂</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>把四种技术串成完整管线</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>让我们先回顾朴素 RAG 的流程：文档切块 → 每块做嵌入向量 → 用户查询也做嵌入 → 用余弦相似度检索 Top-K 块 → 拼接到 prompt 里让 LLM 回答。这个流程在"查询词和文档词高度匹配"时效果不错，但真实世界的查询远比这复杂。</p>
     <p>第一个痛点：<strong>语义鸿沟</strong>。用户问"如何提高团队效率"，文档里写的是"敏捷开发的每日站会实践"。字面几乎没有重叠，余弦相似度很低，但语义高度相关。第二个痛点：<strong>查询太短</strong>。用户输入"Python 装饰器"三个字，太短太模糊，嵌入向量区分度低。第三个痛点：<strong>检索结果良莠不齐</strong>。Top-K 里混入了不相关的块，干扰 LLM。第四个痛点：<strong>切块破坏语义</strong>。一个完整的论证被切成两半，单独看哪半都不完整。进阶 RAG 的四种技术，分别针对这四个痛点。</p>
 

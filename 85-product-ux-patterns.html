@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 产品设计模式深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 产品设计模式深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 产品设计模式深度 · AI 全栈实战教学">
-<meta property="og:description" content="AI 产品设计模式深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -309,418 +305,248 @@
   </aside>
 <main class="content">
     <section class="hero">
-      <span class="eyebrow">◆ CHAPTER 85 · 实战案例系列</span>
-      <h1>AI 产品 UX 模式<br>对话、流式、错误处理与人在回路</h1>
-      <p class="lead">技术再强，如果用户不会用、用得不爽，产品就失败了。AI 产品有一套独特的 UX（用户体验）设计模式，和传统软件很不一样——怎么设计对话界面、怎么做流式输出体验、AI 犯错了怎么优雅处理、什么时候该让人介入。这一章拆解四类核心 UX 模式，每个都配设计原则和实现代码，让你的 AI 产品不仅「能用」，还「好用」。</p>
+      <span class="eyebrow">◆ CHAPTER 85 · AI产品UX</span>
+      <h1>AI产品的四种UX模式<br>对话、流式、错误处理与人在回路</h1>
+      <p class="lead">传统软件的交互是"输入-处理-输出"的确定性循环，而 AI 产品的输出本质是概率性的、可变的、有时甚至是错的。这种不确定性倒逼出全新的 UX 模式：对话式让产品有了性格，流式输出缓解了等待焦虑，错误处理教会我们优雅地承认失败，人在回路则把人变成系统的安全阀。本章拆解这四类模式，并给出可落地的设计 checklist 和代码骨架。</p>
       <div class="meta">
-        <span class="chip">阅读约 27 分钟</span>
+        <span class="chip">阅读约 30 分钟</span>
         <span class="chip">难度 ★★★</span>
       </div>
     </section>
+    <h2 class="section" id="conversational"><span class="idx">★</span> 对话式 UX：让产品学会"说话"</h2>
+    <p>对话式 UX 是 ChatGPT 之后被复制最多的形态。它的核心不是"加一个聊天框"，而是把原本分散在表单、按钮、菜单里的功能，统一收拢进一条会话流。用户用自然语言表达意图，系统理解并执行，再把结果以可继续追问的形式返回。这种模式的巨大优势在于降低了学习成本——用户不用记住"哪个按钮在哪"，直接说要什么。</p>
+    <p>但对话式 UX 也带来了独特的设计挑战。第一，对话有状态，你必须管理上下文窗口、维护多轮记忆、决定何时清空。第二，对话有节奏，模型不能一口气把所有信息倒出来，要分轮次、留追问空间。第三，对话有"性格"，一个生硬的系统指令式回复和一个有人格的助手回复，用户感受天差地别。下面这份 checklist 是上线前必须逐条核对的。</p>
+    <p><strong>对话式 UX 设计 checklist：</strong></p>
+    <ul>
+      <li>是否维护了会话级上下文（最近 N 轮或 token 上限内）？是否在超出时优雅截断而非报错？</li>
+      <li>是否提供"重新开始会话"的显式入口，避免历史污染新意图？</li>
+      <li>系统的每条回复是否给用户明确的下一步（追问建议、快捷操作）？</li>
+      <li>是否区分"系统消息"和"助手消息"，避免把内部状态泄露给用户？</li>
+      <li>是否设置了人设（persona），并在所有回复中保持一致语气？</li>
+      <li>是否支持多模态输入（语音、图片），并在不支持时给出友好提示？</li>
+    </ul>
+    <pre><code class="language-python">from dataclasses import dataclass, field
+from collections import deque
+import time, uuid
 
-    <h2 class="section" id="why-ux"><span class="idx">★</span> 一、为什么 AI 产品需要专门的 UX 设计</h2>
+@dataclass
+class Conversation:
+    """带滑动窗口的多轮会话管理。"""
+    user_id: str
+    history: deque = field(default_factory=lambda: deque(maxlen=20))  # 最近 20 条
+    system_prompt: str = "你是一名简洁、专业的助手，回答控制在 3 句话内。"
+
+    def add(self, role: str, content: str):
+        self.history.append({"role": role, "content": content})
+
+    def to_messages(self):
+        # 系统提示始终置于首位，保证人设不被历史稀释
+        return [{"role": "system", "content": self.system_prompt},
+                *self.history]
+
+# 前端展示时，每条消息都要带唯一 id，便于流式追加与重试
+def new_message(role, content=""):
+    return {"id": str(uuid.uuid4()), "role": role,
+            "content": content, "ts": time.time()}
+</code></pre>
+    <p>一个常被忽视的细节：会话窗口的截断策略。简单按条数截断会丢失早期重要上下文，更好的做法是按 token 数截断，并保留系统提示和最近若干轮。否则用户提到第一轮里的某个实体时，模型会因为上下文被切掉而"失忆"。</p>
+    <h2 class="section" id="streaming"><span class="idx">★</span> 流式输出 UX：让等待变成参与</h2>
+    <p>大模型生成一段 500 字的回复，端到端可能需要 5 到 15 秒。如果让用户盯着一个转圈等到全部生成完再显示，体验会非常糟糕——心理学称之为"未填充时间感知"。流式输出（streaming）通过逐 token 返回，把用户从"等待者"变成"旁观者"，感知延迟从"15 秒"压缩到"首个 token 到达的 300 毫秒"。这是现代 AI 产品几乎必备的能力。</p>
+    <p>流式输出的工程实现基于 Server-Sent Events（SSE）或 WebSocket。SSE 更简单，单向服务端推送就够；WebSocket 适合需要双向实时交互的场景（如语音对话）。前端的核心是"逐字渲染 + 打字机效果 + 自动滚动到底部"，并且要让用户能随时点"停止生成"——这一点至关重要，否则用户在模型开始胡说时只能干瞪眼。</p>
+    <p><strong>流式输出设计 checklist：</strong></p>
+    <ul>
+      <li>是否显示"正在思考"的状态，且首个 token 到达后立刻切换为"正在生成"？</li>
+      <li>是否提供"停止生成"按钮，且停止后保留已生成内容可编辑？</li>
+      <li>是否自动滚动到底部，但当用户主动上滑时暂停自动滚动？</li>
+      <li>是否对 markdown / 代码块做增量渲染，而非等全部生成再解析？</li>
+      <li>是否在网络中断时自动重连，并恢复之前的生成？</li>
+      <li>是否对超长输出设置上限（如 4096 token），避免无限生成？</li>
+    </ul>
+    <pre><code class="language-python"># 后端：FastAPI + SSE 流式返回
+from fastapi import FastAPI
+from fastapi.responses import StreamingResponse
+import json
+
+app = FastAPI()
+
+async def stream_chat(messages):
+    # 伪代码：实际调用 OpenAI / 自建推理服务
+    async for chunk in llm_client.chat_stream(messages):
+        delta = chunk.choices[0].delta.content or ""
+        # SSE 协议：每条消息以 "data: " 前缀，两个换行结尾
+        yield f"data: {json.dumps({'delta': delta})}\n\n"
+    yield "data: [DONE]\n\n"
+
+@app.post("/chat")
+def chat(payload: dict):
+    conv = Conversation(user_id=payload["user_id"])
+    for m in payload["messages"]:
+        conv.add(m["role"], m["content"])
+    return StreamingResponse(
+        stream_chat(conv.to_messages()),
+        media_type="text/event-stream",
+        headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
+    )
+</code></pre>
+    <p>关键的 HTTP 头是 <code>X-Accel-Buffering: no</code>，它告诉 Nginx 不要缓冲这个响应，否则你会在生产环境里发现流式效果失效——token 全部攒齐后才一次性返回，前端的逐字渲染就毫无意义了。这个坑踩过的人不在少数。</p>
+    <h2 class="section" id="error-handling"><span class="idx">★</span> 错误处理 UX：优雅地承认失败</h2>
+    <p>AI 模型会犯错，这是事实。可能输出幻觉、可能拒绝回答、可能触发安全过滤、可能因为输入超长被截断、可能因为限流返回 429。一个好的 AI 产品不是"假装从不犯错"，而是建立一套优雅的错误处理 UX，让用户在遇到问题时知道发生了什么、能做什么。错误的 UX 处理质量，往往直接决定用户留存。</p>
+    <p>错误处理的核心理念是"可解释 + 可恢复"。可解释意味着错误信息要让用户看懂——不要把 "RateLimitError: 429" 直接抛给用户，而是说"系统繁忙，请稍后再试"。可恢复意味着错误后要给用户一条出路——重试、换个问法、联系人工。下面这份 checklist 把常见错误场景穷举出来。</p>
+    <p><strong>错误处理设计 checklist：</strong></p>
+    <ul>
+      <li>是否对超时、限流、服务不可用做分类，并展示不同的友好文案？</li>
+      <li>是否对内容安全过滤做解释，告知用户为何被拒（涉敏、违规）？</li>
+      <li>是否对幻觉高风险（如医疗、法律、金融）做来源标注或免责声明？</li>
+      <li>是否提供"重新生成"按钮，且支持调整温度等参数重试？</li>
+      <li>是否记录错误日志，并对接到监控告警系统？</li>
+      <li>是否在长上下文截断时提示用户"信息已省略"，避免误导？</li>
+    </ul>
+    <pre><code class="language-python">class AIError(Exception):
+    """统一的 AI 错误基类，前端按 code 映射文案。"""
+    def __init__(self, code: str, user_msg: str, retryable: bool = True):
+        self.code = code
+        self.user_msg = user_msg
+        self.retryable = retryable
+        super().__init__(user_msg)
+
+# 在调用层做错误归一化
+def safe_chat(messages):
+    try:
+        return llm_client.chat(messages)
+    except RateLimitError:
+        raise AIError("rate_limit", "系统当前繁忙，请 30 秒后重试。", retryable=True)
+    except ContextLengthError:
+        raise AIError("too_long", "对话过长，请精简后重试或开启新会话。", retryable=False)
+    except ContentFilterError as e:
+        raise AIError("filtered", f"内容被安全策略拦截：{e.reason}", retryable=False)
+    except TimeoutError:
+        raise AIError("timeout", "响应超时，请重试或换个更简短的问题。", retryable=True)
+    except Exception:
+        # 兜底：永远不要把原始 traceback 暴露给用户
+        raise AIError("unknown", "出了点小问题，已记录，请稍后重试。", retryable=True)
+
+# 前端按 code 渲染不同 UI：rate_limit 显示倒计时按钮，filtered 显示警示色等
+</code></pre>
+    <p>这里有一个反模式值得警惕：很多团队喜欢把所有错误都包装成 "Something went wrong"。这等于把所有诊断信息都丢掉了，用户既不知道是不是自己的问题，也不知道该不该重试，最后只能放弃。错误文案是 AI 产品里被低估的"微小但关键"的体验设计点。</p>
+    <h2 class="section" id="hitl"><span class="idx">★</span> 人在回路 UX：把人变成安全阀</h2>
+    <p>不是所有 AI 决策都该全自动执行。当一个 Agent 要发邮件、转账、删除数据、调用付费 API 时，错误的代价远超重试成本。这时候"人在回路"（Human-in-the-Loop, HITL）就成了必要设计：让 AI 完成大部分工作，但在关键节点暂停，请人确认、修正或反馈，再继续执行。HITL 把"全自动"和"全人工"之间这大片灰色地带填补上，是高价值 AI 产品落地的关键模式。</p>
+    <p>HITL 在 UX 上有几个变体。最常见的是 <strong>approval 模式</strong>：AI 生成计划，人点"批准"或"拒绝"后系统才执行。其次是 <strong>feedback 模式</strong>：AI 输出后请人打分或点赞踩，反馈用于训练或重排。还有 <strong>correction 模式</strong>：AI 输出可被人直接编辑，编辑后的版本作为"金标准"回流。这三种模式对应不同的信任度和成本权衡，下一章我们会展开 LangGraph 的 interrupt 机制实现，这里先给出 UX 侧的设计要点。</p>
+    <p><strong>人在回路设计 checklist：</strong></p>
+    <ul>
+      <li>是否清晰标注"待确认"状态，让用户知道系统在等他决策？</li>
+      <li>是否展示 AI 的完整计划（而非只摘要），便于用户判断风险？</li>
+      <li>是否提供"批准 / 拒绝 / 修改"三种动作，而不仅是二元选择？</li>
+      <li>是否在审批超时后设定默认安全行为（默认不执行）？</li>
+      <li>是否记录每次审批的结果，用于后续自动化阈值的动态调整？</li>
+      <li>是否对高风险操作（删除、转账）做二次确认或生物校验？</li>
+    </ul>
+    <pre><code class="language-python">from enum import Enum
+from datetime import timedelta
+
+class ApprovalDecision(Enum):
+    APPROVED = "approved"
+    REJECTED = "rejected"
+    REVISED = "revised"
+
+async def run_with_approval(plan, user):
+    """Agent 提交计划，等待用户审批后再执行。"""
+    # 1) 把 plan 暂存，状态置为 pending_approval
+    task = await db.create_task(
+        user_id=user.id,
+        plan=plan,
+        status="pending_approval",
+        expires_at=now() + timedelta(minutes=10),  # 10 分钟未审批自动作废
+    )
+    # 2) 通知用户（站内信 / 邮件 / 推送）
+    await notify(user, f"需要你确认一个操作：{plan.summary}")
+
+    # 3) 阻塞等待用户决策（实际用消息队列 / WebSocket 异步唤醒）
+    decision = await wait_for_decision(task.id, timeout=600)
+    if decision is None:
+        await task.update(status="expired")
+        return "操作已超时取消"
+
+    if decision == ApprovalDecision.APPROVED:
+        result = await execute(plan)            # 真正执行
+        await audit_log(user, plan, "executed") # 留痕
+        return result
+    elif decision == ApprovalDecision.REJECTED:
+        await audit_log(user, plan, "rejected")
+        return "操作已取消"
+    else:  # REVISED：用户修改了计划，重新走一遍
+        return await run_with_approval(decision.revised_plan, user)
+</code></pre>
+    <p>HITL 的本质是"信任的渐进释放"。一个成熟的做法是动态调整审批阈值：当一个操作类型连续被批准 100 次，可以自动降低审批频率（比如每 10 次抽审一次）；一旦出现一次拒绝或修改，立刻回到全审批状态。这种"信任分数"机制让 HITL 在安全性和效率之间找到自适应平衡，是工业级 Agent 系统的高级模式。</p>
+    <h2 class="section" id="deep85"><span class="idx">深</span> AI 产品 UX 模式：信任与控制感</h2>
+
+    <p>AI 产品的 UX 难点在于<strong>如何让用户信任一个会出错的系统</strong>。好的 UX 不是隐藏错误，而是给用户控制感和可修正性。下面拆解几个核心 UX 模式及其设计要点。</p>
+
+    <h3>UX 模式的选择决策</h3>
+    <p>不同场景该用哪种交互模式，取决于<strong>任务确定性、错误代价、用户期望</strong>。下面是一个模式选择器。</p>
+
+    <pre><code>ux_patterns = {
+  "对话式": {"适合":"开放式问答、探索", "要点":"支持多轮、流式、可追问", "坑":"用户不知边界"},
+  "流式生成": {"适合":"长文本生成", "要点":"首字快、可中途停止", "坑":"出错时已生成大段"},
+  "表单/结构化": {"适合":"明确输入输出(抽取、分类)", "要点":"约束输入、校验输出", "坑":"灵活性低"},
+  "人在回路": {"适合":"高风险/高代价", "要点":"预览+确认、可回滚", "坑":"打断心流"},
+  "渐进披露": {"适合":"复杂结果", "要点":"先概要后细节、可展开", "坑":"用户看不到深层"},
+  "错误友好": {"适合":"所有(必备)", "要点":"坦诚错误、给修正路径", "坑":"甩锅、无解法"},
+}
+def pick_pattern(task_type, risk):
+    if risk == "高": return "人在回路"
+    if task_type == "开放": return "对话式 + 流式"
+    if task_type == "明确": return "表单/结构化"
+    return "渐进披露"
+print(pick_pattern("开放", "低"))   # 对话式 + 流式</code></pre>
+
+    <p>这个选择器的核心原则：<strong>风险越高越要人在回路，任务越开放越要对话式</strong>。给医疗、金融类高代价动作加确认，是 UX 也是安全的双重保障。</p>
 
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么 AI 产品需要专门的 UX 设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、对话模式：不只是聊天框</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、流式模式：让等待变可接受</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、错误处理模式：AI 犯错了怎么办</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、人在回路模式：让用户参与决策</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、建立信任：AI 产品的核心 UX 目标</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
+      <thead><tr><th>UX 模式</th><th>解决的问题</th><th>设计要点</th><th>反模式</th></tr></thead>
+      <tbody>
+        <tr><td><strong>流式生成</strong></td><td>等待焦虑</td><td>首字优先、可停止</td><td>全生成完才显示</td></tr>
+        <tr><td><strong>人在回路</strong></td><td>高风险</td><td>预览、确认、可撤销</td><td>静默执行不可逆</td></tr>
+        <tr><td><strong>来源引用</strong></td><td>不可信</td><td>可点击核实</td><td>无来源硬信</td></tr>
+        <tr><td><strong>错误友好</strong></td><td>出错流失</td><td>坦诚+修正路径</td><td>甩锅/无解</td></tr>
+        <tr><td><strong>渐进披露</strong></td><td>信息过载</td><td>概要→详情</td><td>一上来全堆</td></tr>
+        <tr><td><strong>反馈机制</strong></td><td>无法修正</td><td>一键标注、低摩擦</td><td>反馈入口深</td></tr>
+      </tbody>
     </table>
-    <p>AI 产品的输出是概率性的、可能是错的、需要时间生成的。这三个特性让它的 UX 设计和传统软件完全不同：</p>
-    <ul>
-      <li><strong>延迟更长</strong>：传统软件毫秒级响应，AI 要等几秒甚至几十秒。</li>
-      <li><strong>输出不确定</strong>：传统软件给确定结果，AI 可能给错答案。</li>
-      <li><strong>需要用户引导</strong>：用户不知道怎么和 AI 对话，需要界面引导。</li>
-    </ul>
-    <p>好的 AI UX 设计能把这些「劣势」转化为「优势」——让等待变可接受（流式输出），让不确定变透明（置信度展示），让不会用变会引导（示例和模板）。</p>
 
-    <h2 class="section" id="conversational"><span class="idx">★</span> 二、对话模式：不只是聊天框</h2>
-    <p>对话界面（Chat UI）是 AI 产品最常见的交互形式，但很多人只做一个简单的输入框+输出区。优秀的对话 UX 要考虑更多细节。</p>
+    <h3>信任构建与“可修正性”设计</h3>
+    <p>AI 产品 UX 的最高目标是<strong>建立并维持用户信任</strong>。信任来自三点：可预期（行为一致、不随机崩）、可解释（能给理由、能溯源）、可修正（错了能改、能教）。具体设计上：<strong>流式输出</strong>不仅降等待焦虑，还让用户“看到 AI 在思考”，增加过程透明度；<strong>来源引用</strong>让用户能核实关键信息，比“AI 说了算”可信得多；<strong>错误友好处理</strong>是最被低估的信任建设——坦诚说“我不确定”并提供修正路径（“要不要换个问法/补充信息”），比硬装确定然后出错更能留住信任，用户对“坦诚的局限”容忍度远高于“自信的错误”。<strong>可修正性</strong>是核心：允许用户编辑 AI 输出、标注错误、提供额外信息，这些不仅是反馈数据，更是<strong>给用户控制感</strong>——感觉自己能驾驭这个工具，而非被它摆布。<strong>人在回路</strong>对高风险场景必不可少：让用户预览并确认 AI 的动作（如“即将发送这封邮件，确认？”），既防错又增信任。<strong>避免过度承诺</strong>：UX 文案不要暗示“永远正确”，而要诚实传达“擅长什么、局限在哪”，管理预期本身就是信任管理。最后，<strong>一致性比偶尔惊艳更重要</strong>——一个每次都“还不错”的产品，比一个“时好时坏”的产品更让人信任和依赖，所以 UX 设计要追求<strong>稳定可预期的体验下限</strong>，而非偶尔的高光上限。</p>
 
-    <h3 class="section">2.1 对话界面的设计要素</h3>
-    <pre><code class="language-python"># 对话界面的 UX 设计清单
-chat_ux_checklist = {
-    "输入区": {
-        "自动聚焦": "页面打开后输入框自动聚焦，用户直接能打字",
-        "自适应高度": "输入长文本时输入框自动变高，不要出现内部滚动条",
-        "快捷键": "Enter 发送，Shift+Enter 换行（符合用户习惯）",
-        "字数提示": "接近上下文上限时提示，不让用户白打一堆字",
-        "草稿保存": "未发送的内容自动保存，刷新不丢失",
-    },
-    "消息展示": {
-        "区分角色": "用户和 AI 的消息视觉上明显区分（颜色/位置/头像）",
-        "Markdown 渲染": "AI 输出的代码块、列表、表格要正确渲染",
-        "代码高亮": "代码块要有语法高亮 + 一键复制",
-        "打字机效果": "AI 输出时逐字显示（配合流式），增加「正在思考」的感觉",
-        "时间戳": "每条消息显示时间，方便回溯",
-    },
-    "上下文管理": {
-        "对话历史": "支持滚动查看历史消息",
-        "分支对话": "从某条消息重新生成（不覆盖原对话）",
-        "对话导出": "支持导出对话内容（Markdown/PDF）",
-        "清除上下文": "一键清空当前对话，开始新话题",
-    },
-    "操作便利": {
-        "重新生成": "对不满意的回答可以要求重新生成",
-        "编辑后重发": "编辑之前的问题重新提问",
-        "复制回答": "一键复制 AI 的回答",
-        "反馈按钮": "👍/👎 让用户反馈回答质量",
-    },
-}</code></pre>
+    <h2 class="section" id="deep85b"><span class="idx">深</span> 产品 UX FAQ 与信任</h2>
+    <p>AI 产品 UX 的核心是「让用户信任」，这些问题最关键。</p>
+    <h3>Q1：用户说「AI 总是出错不敢用」，怎么设计 UX 重建信任？</h3>
+    <p><strong>坦诚局限+给控制感</strong>。别隐藏错误，而是：<strong>显式置信度</strong>（不确定就提示「仅供参考」）；<strong>来源引用</strong>（可点击核实，比硬信强）；<strong>优雅降级</strong>（低置信引导澄清而非瞎答）；<strong>一键反馈和修正</strong>（让用户能教它，有控制感）；<strong>人在回路</strong>（高风险动作确认）。用户对「坦诚不确定+可修正」的容忍度，远高于「自信地出错」。信任来自三点：<strong>可预期</strong>（一致不崩）、<strong>可解释</strong>（给理由）、<strong>可修正</strong>（错了能改）。一次硬装确定然后错，比十次坦诚不确定更伤信任。</p>
+    <pre><code># 置信度驱动的 UX 呈现
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
 
-    <h3 class="section">2.2 空状态设计</h3>
-    <p>用户第一次打开产品时看到的「空白聊天框」是最糟糕的体验。好的空状态要给用户明确的引导。</p>
-    <pre><code class="language-python"># 空状态的 UX 设计（React 示例概念）
-empty_state_design = """
-当用户打开一个新的对话，不要只显示空白输入框。
-应该展示：
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
 
-1. 欢迎语 + 产品定位
-   "你好！我是你的 AI 写作助手，可以帮你："
-
-2. 示例问题卡片（点击直接发送）
-   ┌─────────────┐ ┌─────────────┐
-   │ 帮我写一封  │ │ 总结这段    │
-   │ 商务邮件    │ │ 文档的核心  │
-   │             │ │ 要点        │
-   └─────────────┘ └─────────────┘
-   ┌─────────────┐ ┌─────────────┐
-   │ 把这段文字  │ │ 帮我润色这  │
-   │ 改写得更专业│ │ 篇文章      │
-   └─────────────┘ └─────────────┘
-
-3. 最近对话（如果有的话）
-   "继续上次的对话：周报草稿..."
-
-4. 能力说明
-   "我能做什么：写作 / 润色 / 翻译 / 总结"
-   "我不能做什么：实时数据 / 百分百准确"
-
-关键原则：降低首次使用的认知门槛
-"""
-
-# React 组件示意
-chat_empty_component = """
-function ChatEmpty() {
-  const examples = [
-    {icon: "✉️", text: "帮我写一封商务邮件", prompt: "请帮我写一封..."},
-    {icon: "📄", text: "总结文档要点", prompt: "请总结以下文档..."},
-    {icon: "✨", text: "润色我的文章", prompt: "请润色以下内容..."},
-  ]
-  return (
-    &lt;div className="empty-state"&gt;
-      &lt;h2&gt;你好！我是 AI 写作助手&lt;/h2&gt;
-      &lt;p&gt;试试这些：&lt;/p&gt;
-      {examples.map(ex =&gt; (
-        &lt;button onClick={() =&gt; sendPrompt(ex.prompt)}&gt;
-          {ex.icon} {ex.text}
-        &lt;/button&gt;
-      ))}
-    &lt;/div&gt;
-  )
-}
-"""</code></pre>
-
-    <h2 class="section" id="streaming"><span class="idx">★</span> 三、流式模式：让等待变可接受</h2>
-    <p>流式输出（streaming）是 AI 产品最重要的 UX 优化之一。比起「等 10 秒一次性显示」，用户更喜欢「立刻看到第一个字，然后逐字输出」。这把感知延迟从 10 秒降到了 1 秒。</p>
-
-    <h3 class="section">3.1 流式输出的 UX 细节</h3>
-    <pre><code class="language-javascript">// 流式输出的前端实现（核心细节）
-async function streamResponse(message) {
-    // 1. 立即显示用户消息 + AI 的「正在输入」状态
-    appendMessage("user", message);
-    const aiMessage = appendMessage("ai", "");
-    showTypingIndicator(aiMessage);
-
-    // 2. 发起流式请求
-    const response = await fetch("/api/chat", {
-        method: "POST",
-        body: JSON.stringify({message}),
-    });
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-
-    // 3. 移除「正在输入」，开始逐字渲染
-    removeTypingIndicator(aiMessage);
-
-    let fullText = "";
-    while (true) {
-        const {done, value} = await reader.read();
-        if (done) break;
-
-        const chunk = decoder.decode(value);
-        // 解析 SSE 数据
-        const lines = chunk.split("\n");
-        for (const line of lines) {
-            if (line.startsWith("data: ")) {
-                const data = JSON.parse(line.slice(6));
-                if (data.content) {
-                    fullText += data.content;
-                    // 增量渲染（只更新变化的部分，性能好）
-                    updateMessage(aiMessage, fullText);
-                }
-            }
-        }
-    }
-
-    // 4. 流结束后，启用操作按钮（复制/重新生成/反馈）
-    enableActions(aiMessage);
-}</code></pre>
-
-    <h3 class="section">3.2 打字机效果的心理学</h3>
-    <pre><code class="language-python"># 流式输出的 UX 心理学
-streaming_psychology = {
-    "感知延迟降低": """
-    无流式：用户等 8 秒看到完整答案 → 感知延迟 8 秒（焦虑）
-    有流式：1 秒看到第一个字，7 秒看完 → 感知延迟 1 秒（可接受）
-    原理：人类对「开始」的延迟敏感，对「进行中」的延迟不敏感
-    """,
-
-    "生成中的反馈": """
-    流式过程中可以显示「思考中...」「检索文档中...」「生成答案中...」
-    让用户知道系统在做什么，而不是卡死了
-    这对多步骤的 Agent 尤其重要
-    """,
-
-    "可中断": """
-    流式过程中允许用户「停止生成」
-    如果用户看到前半段已经知道答案不对，可以及时停止
-    不要强迫用户等完整输出
-    """,
-
-    "速度感": """
-    逐字输出给人一种「AI 在认真思考」的感觉
-    比一次性弹出更有人性化的交互感
-    注意：速度不要人为故意调慢（用户不傻）
-    """,
-}</code></pre>
-
-    <h2 class="section" id="error-handling"><span class="idx">★</span> 四、错误处理模式：AI 犯错了怎么办</h2>
-    <p>AI 一定会犯错——关键是犯错时怎么处理，让用户不流失。好的错误处理能把「负面体验」转化为「信任建立」。</p>
-
-    <h3 class="section">4.1 错误的分类与处理</h3>
-    <pre><code class="language-python"># AI 产品错误处理的分类
-error_handling_patterns = {
-    "技术错误（系统故障）": {
-        "场景": "API 超时、模型不可用、网络断开",
-        "UX 处理": """
-        1. 明确告知用户发生了什么（不要显示 "Error 500"）
-        2. 提供重试按钮
-        3. 如果可能，自动重试（用户无感）
-        4. 保存用户输入，不要让他们重新打字
-        """,
-        "示例文案": "网络似乎不太稳定，点击重试。你的内容已保存。",
-    },
-
-    "内容错误（AI 答错了）": {
-        "场景": "AI 给出了错误或不相关的回答",
-        "UX 处理": """
-        1. 提供反馈按钮（👍/👎）
-        2. 允许用户纠正或补充
-        3. 提供「重新生成」选项
-        4. 对负面反馈做记录，用于改进
-        """,
-        "示例文案": "这个回答对你有帮助吗？[👍] [👎] [重新生成]",
-    },
-
-    "安全拦截（内容被过滤）": {
-        "场景": "用户输入或 AI 输出触发安全过滤",
-        "UX 处理": """
-        1. 友好地解释为什么无法回答
-        2. 引导用户换一种方式提问
-        3. 不要让用户觉得被「审查」了
-        """,
-        "示例文案": "抱歉，我无法回答这个问题。可以换一种方式提问吗？",
-    },
-
-    "能力边界（超出 AI 能力）": {
-        "场景": "用户问的问题 AI 做不到",
-        "UX 处理": """
-        1. 诚实说明能力边界
-        2. 建议替代方案或人工帮助
-        3. 不要强行回答（避免幻觉）
-        """,
-        "示例文案": "这个问题超出了我的能力范围，建议咨询专业人士。",
-    },
-}</code></pre>
-
-    <h3 class="section">4.2 错误处理的前端实现</h3>
-    <pre><code class="language-javascript">// 优雅的错误处理实现
-async function safeChat(message) {
-    try {
-        showLoading();
-        const response = await callAI(message);
-
-        // 检查是否被安全过滤
-        if (response.filtered) {
-            showFriendlyMessage(
-                "抱歉，我无法回答这个问题。可以换个角度提问吗？",
-                type: "warning"
-            );
-            return;
-        }
-
-        // 检查置信度
-        if (response.confidence &lt; 0.5) {
-            showResponseWithWarning(
-                response.text,
-                "我对这个回答不太确定，建议核实一下。"
-            );
-        } else {
-            showResponse(response.text);
-        }
-
-    } catch (error) {
-        if (error.type === "timeout") {
-            showErrorWithRetry(
-                "响应超时了。可能是问题太复杂，再试一次？",
-                () => safeChat(message)  // 重试回调
-            );
-        } else if (error.type === "rate_limit") {
-            showErrorWithCountdown(
-                "请求太频繁了，请等待 X 秒后再试",
-                cooldownSeconds: error.retry_after
-            );
-        } else {
-            showErrorWithRetry(
-                "出了点小问题。你的内容已保存，点击重试。",
-                () => safeChat(message)
-            );
-        }
-    } finally {
-        // 无论如何，恢复输入框
-        enableInput();
-        // 保存用户输入，防止丢失
-        saveDraft(message);
-    }
-}</code></pre>
-
-    <h2 class="section" id="hitl-ux"><span class="idx">★</span> 五、人在回路模式：让用户参与决策</h2>
-    <p>有些场景下，AI 不应该自主做决定，而应该让用户确认。这种「人在回路」（HITL）的 UX 设计很关键——要让确认过程不烦人，又足够安全。</p>
-
-    <h3 class="section">5.1 HITL 的 UX 设计</h3>
-    <pre><code class="language-python"># 人在回路的 UX 设计模式
-hitl_ux_patterns = {
-    "模式 1：确认后执行（高风险操作）": {
-        "场景": "AI 要发送邮件、删除数据、转账",
-        "UX": """
-        显示 AI 准备执行的操作详情
-        [预览] AI 准备发送邮件给 xxx@xxx.com
-        内容：...
-        [确认发送] [取消] [修改后发送]
-        """,
-        "原则": "让用户清楚知道将要发生什么，且能修改",
-    },
-
-    "模式 2：选择而非填写（降低门槛）": {
-        "场景": "AI 不确定用户想要什么",
-        "UX": """
-        AI: 你想要哪种风格的总结？
-        [简洁版] [详细版] [要点列表]
-        （点击按钮，而不是让用户打字说明）
-        """,
-        "原则": "给选项比要用户输入更友好",
-    },
-
-    "模式 3：渐进式披露（避免信息过载）": {
-        "场景": "AI 给出了长答案，但用户可能想深入",
-        "UX": """
-        先给摘要：「核心结论是 XXX」
-        然后给展开选项：[查看详细分析] [查看数据来源]
-        用户按需展开，不要一次性全给
-        """,
-        "原则": "默认给最少必要信息，深入按需",
-    },
-
-    "模式 4：可撤销（降低用户焦虑）": {
-        "场景": "AI 执行了某个操作",
-        "UX": """
-        AI: 已为你创建了文档草稿
-        [查看文档] [撤销]
-        给用户「反悔」的机会
-        """,
-        "原则": "可逆操作让用户更敢于尝试",
-    },
-}</code></pre>
-
-    <h3 class="section">5.2 HITL 的实现</h3>
-    <pre><code class="language-javascript>// HITL 的前端实现
-async function aiActionWithApproval(action) {
-    // 1. AI 提议操作
-    const proposal = await ai.propose(action);
-
-    // 2. 展示给用户确认
-    const approved = await showApprovalDialog({
-        title: `AI 建议执行：${proposal.type}`,
-        preview: proposal.details,
-        actions: ["确认执行", "修改", "取消"],
-    });
-
-    if (approved.choice === "确认执行") {
-        // 3a. 用户确认，执行
-        const result = await execute(proposal);
-        showUndoOption(result);  // 给撤销机会
-    } else if (approved.choice === "修改") {
-        // 3b. 用户修改后执行
-        const modified = await getUserModifications(proposal);
-        await execute(modified);
-    } else {
-        // 3c. 用户取消
-        showInfo("操作已取消");
-    }
-}</code></pre>
-
-    <h2 class="section" id="trust"><span class="idx">★</span> 六、建立信任：AI 产品的核心 UX 目标</h2>
-    <p>AI 产品最大的 UX 挑战不是「好不好用」，而是「信不信任」。用户如果不信任 AI，功能再强也不会用。建立信任的几个设计原则：</p>
-    <pre><code class="language-python"># 建立 AI 信任的设计原则
-trust_building_principles = {
-    "透明度": """
-    - 明确告诉用户这是 AI 生成的（不要假装是人）
-    - 展示 AI 的能力和局限（「我擅长 X，不擅长 Y」）
-    - 提供信息来源（RAG 场景标注引用）
-    - 让用户看到 AI 的「思考过程」（CoT 或步骤展示）
-    """,
-
-    "一致性": """
-    - 相似的问题给出相似的回答（降低 temperature）
-    - 输出格式稳定（用户能预测 AI 的行为）
-    - 风格一致（不要忽正式忽随意）
-    """,
-
-    "可纠错": """
-    - 用户能轻松纠正 AI 的错误
-    - AI 能记住用户的纠正（下次不犯同样错误）
-    - 提供反馈通道，让用户觉得「我的意见被重视」
-    """,
-
-    "渐进信任": """
-    - 新用户先体验低风险功能（问答、建议）
-    - 信任建立后再开放高风险功能（自动执行、写操作）
-    - 不要一上来就让 AI 做不可逆的事
-    """,
-
-    "诚实": """
-    - AI 不确定时明确说「我不确定」
-    - AI 不会时说「我做不到」，而不是编造
-    - 出错时承认错误，不要狡辩
-    """,
-}</code></pre>
+demo()</code></pre>
+    <h3>Q2：流式输出为什么对 AI 产品这么重要？</h3>
+    <p><strong>降等待焦虑+增加透明度</strong>。等 AI 生成完才显示，用户焦虑且不知它在干嘛；流式让用户「看到 AI 在思考/打字」，首字快（TTFT 低）就有「秒回」感，心理等待感大降。还<strong>可中途停止</strong>（发现方向错立即停，省时间省 token）。实现上用 SSE/WebSocket 流式传输。对长文本生成尤其重要——流式让 10 秒的生成感觉像 2 秒。<strong>首字延迟比总延迟更影响体感</strong>，所以优化 TTFT（prefix cache、小模型首字）比优化总吞吐对 UX 更直接。AI 产品几乎所有实时交互都该流式，这是基础 UX。</p>
+    <h3>对比速查：AI UX 模式选择</h3>
+    <table>
+      <thead><tr><th>场景</th><th>推荐模式</th><th>设计要点</th><th>反模式</th></tr></thead>
+      <tbody>
+        <tr><td>实时交互</td><td>流式</td><td>首字快可停</td><td>全生成完显示</td></tr>
+        <tr><td>高风险</td><td>人在回路</td><td>预览确认</td><td>静默执行</td></tr>
+        <tr><td>需信任</td><td>来源引用</td><td>可核实</td><td>硬信</td></tr>
+        <tr><td>出错</td><td>错误友好</td><td>坦诚+修正</td><td>甩锅</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <p>这一章我们覆盖了 AI 产品的四类核心 UX 模式。核心要点：</p>
-    <ul>
-      <li><strong>对话模式</strong>：不只是聊天框，要设计输入区、消息展示、上下文管理、操作便利。空状态要有示例引导。</li>
-      <li><strong>流式模式</strong>：把感知延迟从 10 秒降到 1 秒，配合「思考中」反馈和可中断设计。</li>
-      <li><strong>错误处理</strong>：分技术错误、内容错误、安全拦截、能力边界四类，每类有对应的友好处理方式。核心是保存用户输入、提供重试、友好文案。</li>
-      <li><strong>人在回路</strong>：确认后执行、选择而非填写、渐进式披露、可撤销。让用户参与关键决策但不烦人。</li>
-      <li><strong>建立信任</strong>：透明度、一致性、可纠错、渐进信任、诚实。信任是 AI 产品最宝贵的资产。</li>
-    </ul>
-    <p>UX 是 AI 产品成功的最后一公里——技术让产品能用，UX 让产品好用。这也是整个实战案例系列的最后一章。从第 51 章的数学基础到这里，你已经完成了从理论到工程、从技术到产品、从个人到团队的完整旅程。接下来，就是把这些知识用起来的实践了。</p>
+    <p>AI 产品的 UX 与传统软件截然不同，根源在于输出的概率性和不确定性。本章拆解了四类核心模式。对话式 UX 把功能收拢进会话流，关键在于会话状态管理、节奏控制和一致的人设，必须重视上下文窗口的 token 级截断而非简单按条数截断。流式输出 UX 通过 SSE / WebSocket 逐 token 返回，把感知延迟从"总耗时"压缩到"首 token 延迟"，工程上务必设置 <code>X-Accel-Buffering: no</code> 头避免 Nginx 缓冲，并提供停止生成与自动滚动控制。错误处理 UX 的核心理念是"可解释 + 可恢复"，要按错误类型分类展示友好文案并给出重试路径，绝不能把原始 traceback 暴露给用户。人在回路 UX 在高风险决策节点引入人工审批，包含 approval / feedback / correction 三种变体，本质是"信任的渐进释放"，可通过信任分数动态调整审批频率。四类模式并非孤立，而是层层叠加：一个成熟的 AI 产品往往同时具备对话界面、流式渲染、优雅的错误处理和关键节点的人审机制。掌握这套模式语言，你就能从"能跑的 demo"迈向"用户愿意持续使用的产品"。</p>
 
 </main>
 

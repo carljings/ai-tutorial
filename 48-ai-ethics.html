@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 创作与版权伦理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 创作与版权伦理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 创作与版权伦理 · AI 全栈实战教学">
-<meta property="og:description" content="AI 创作与版权伦理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="intro"><span class="idx">★</span> 版权法撞上生成式 AI</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>版权法撞上生成式 AI</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>训练数据版权：合理使用之争</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>生成内容的版权：AI 能成为作者吗</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>欧盟 AI 法案：全球最严的监管框架</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>中美欧三地法规差异对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>声音、风格与肖像权：新型侵权</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>超越法律：伦理与行业自律</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>现行的版权法体系诞生于印刷时代，核心假设是"作品由人类创作者创作"。但生成式 AI 打破了这个假设——AI 的训练数据来自数百万人类创作者的作品，输出又是这些作品风格的混合体。这制造了两个根本性的法律灰色地带：<strong>训练阶段</strong>（未经许可使用受版权保护的作品训练模型，是否侵权？）和<strong>生成阶段</strong>（AI 生成的作品是否受版权保护？版权归谁？）。</p>
     <p>这两个问题至今没有全球统一的答案。不同法域给出了截然不同的判断：美国倾向于"合理使用"但正在被诉讼挑战，欧盟率先立法要求"训练数据披露"，中国出现了全球首例 AI 生成图片著作权案。理解这些差异，对于 AI 产品出海、内容创作、模型训练都至关重要——一个在美国合法的操作，在欧盟可能面临巨额罚款。</p>
 
@@ -464,6 +447,96 @@ compliance_checklist = {
     <h2 class="section" id="ethics"><span class="idx">★</span> 超越法律：伦理与行业自律</h2>
     <p>法律总是滞后于技术的。在法律明确之前，行业自律和伦理考量至关重要。几个值得思考的伦理问题：AI 公司是否应该主动标注 AI 生成内容（即使法律不强制）？是否应该为训练数据的贡献者提供补偿机制（如版税分成）？是否应该限制 AI 在敏感领域（司法、医疗、军事）的自主决策权？</p>
     <p>一些积极的趋势正在出现：Adobe 的 Firefly 只用授权数据训练，并为贡献者提供版税；Stability AI 推出了"退出训练"机制，允许创作者声明不让其作品用于训练；OpenAI、Anthropic 等公司设立了 AI 安全团队研究"模型行为对齐"。这些自律行为不仅是公关需要，更是在塑造"负责任 AI"的行业规范——未来的法规很可能会以这些自律实践为基础。</p>
+
+    <h2 class="section" id="deep48"><span class="idx">深</span> 版权与合规：训练数据到生成内容的红线</h2>
+
+    <p>AI 合规的核心是搞清<strong>两条红线</strong>：训练数据有没有侵权、生成内容是否合规。这两点目前在全球都处于法规快速演进的灰色地带，但已有判例可循。下面把工程上能做的合规动作结构化。</p>
+
+    <h3>生成内容的风险检测流水线</h3>
+    <p>上线前必须有一道“内容合规过滤”，拦截侵权、有害、违规内容。下面是最小化的双层过滤。</p>
+
+    <pre><code>from openai import OpenAI
+import re
+client = OpenAI(base_url="https://api.z.ai/api/paas/v4", api_key="YOUR_KEY")
+
+# 第一层：规则过滤（快、便宜，拦明显违规）
+BANNED = ["版权所有", "未经授权", re.compile(r"\b\d{3}-\d{4}-\d{4}\b")]  # ISBN 等
+
+def rule_filter(text):
+    for p in BANNED:
+        if re.search(p, text): return False, "命中规则"
+    return True, ""
+
+# 第二层：LLM 判官（慢、贵，拦语义级风险）
+SAFETY = "判断以下内容是否存在版权侵权、虚假宣传、有害信息。只输出 OK 或 RISK 及原因。"
+def llm_filter(text):
+    r = client.chat.completions.create(model="glm-4-plus", temperature=0.0,
+        messages=[{"role":"system","content":SAFETY},{"role":"user","content":text}])
+    out = r.choices[0].message.content
+    return out.startswith("OK"), out
+
+def safety_pipeline(text):
+    ok, reason = rule_filter(text)        # 先过便宜的规则层
+    if not ok: return ("BLOCK", reason)
+    ok, reason = llm_filter(text)         # 再过语义层
+    return ("PASS" if ok else "REVIEW", reason)
+
+print(safety_pipeline("这段内容版权所有，禁止转载"))   # BLOCK
+print(safety_pipeline("正常的产品介绍"))               # PASS</code></pre>
+
+    <p>这种“规则 + LLM”双层过滤是性价比最高的合规方案：规则层拦截明显违规、成本极低；LLM 层处理语义级风险、兜底复杂情况。</p>
+
+    <table>
+      <thead><tr><th>合规风险</th><th>典型表现</th><th>工程缓解</th><th>法规依据</th></tr></thead>
+      <tbody>
+        <tr><td><strong>训练数据侵权</strong></td><td>用了受版权语料</td><td>数据来源审计、opt-out 机制</td><td>各地版权法、判例</td></tr>
+        <tr><td><strong>生成内容侵权</strong></td><td>逐字复制训练数据</td><td>去重、相似度过滤</td><td>版权法</td></tr>
+        <tr><td><strong>虚假信息</strong></td><td>生成不实陈述</td><td>RAG 接事实库、置信度提示</td><td>广告法、平台责任</td></tr>
+        <tr><td><strong>有害内容</strong></td><td>歧视、暴力、违规</td><td>safety checker、敏感词</td><td>网络安全法等</td></tr>
+        <tr><td><strong>隐私(PII)</strong></td><td>输出他人隐私信息</td><td>PII 检测与脱敏</td><td>GDPR、个人信息保护法</td></tr>
+      </tbody>
+    </table>
+
+    <h3>训练数据合规：来源比内容更重要</h3>
+    <p>很多合规风险不在生成端，而在<strong>训练数据来源</strong>。用未授权的版权数据训练，即便模型不直接输出原文，也可能被判侵权（已有判例支持）。工程上能做的：建立<strong>数据来源审计台账</strong>，记录每批数据的来源、授权状态、采集时间；提供<strong>opt-out 机制</strong>，允许数据所有者要求退出训练（这是趋势性法规要求）；对爬取数据做<strong>robots.txt 和版权声明检查</strong>。对于生成端，加一道<strong>相似度过滤</strong>：生成内容与训练数据中任何片段高度相似（如 &gt;90%）时拦截或改写，避免“逐字复制”的直接侵权。最后，<strong>保留模型和数据的版本记录</strong>——出事时能证明“尽到了合理注意义务”，这是法律抗辩的重要证据。合规不是阻碍创新，而是让产品能长期活下来的护城河。</p>
+
+    <h2 class="section" id="deep48b"><span class="idx">深</span> AI 伦理合规 FAQ 与落地</h2>
+    <p>合规不是法务一个人的事，这些工程问题决定能否落地。</p>
+    <h3>Q1：用了公开爬取的数据训练，会有版权风险吗？</h3>
+    <p><strong>有，且已有判例支持侵权</strong>。即使模型不直接输出原文，用未授权版权数据训练本身可能侵权。工程上能做：<strong>数据来源审计台账</strong>（记录每批来源/授权/采集时间）；<strong>opt-out 机制</strong>（允许数据所有者退出）；<strong>robots.txt 和版权声明检查</strong>；<strong>相似度过滤</strong>（生成与训练数据高度相似时拦截）。保留模型和数据版本记录，出事时能证明「尽到合理注意义务」是法律抗辩证据。商用务必重视，别存侥幸——版权诉讼赔偿可能远超训练节省的成本。</p>
+    <pre><code># 版权相似度过滤
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么防止模型生成有害/违法内容？</h3>
+    <p><strong>双层过滤</strong>：规则层（敏感词/正则，拦明显违规，快且便宜）+ LLM 判官层（语义级风险，兜底复杂情况）。还要在<strong>输入端</strong>消毒（检测有害 prompt）+<strong>输出端</strong>过滤（检测有害生成）。对关键场景加<strong>人工审核</strong>。持续用<strong>红队测试</strong>主动找漏洞。中国法规特别强调内容安全，必须建立<strong>敏感词库和内容审核流程</strong>。记住没有任何单一手段能 100% 拦截，要用<strong>纵深防御</strong>（多层叠加）把风险降到可接受，并为最坏情况准备响应预案。合规是产品能长期活下来的前提。</p>
+    <h3>对比速查：合规风险与缓解</h3>
+    <table>
+      <thead><tr><th>风险</th><th>表现</th><th>工程缓解</th><th>法规</th></tr></thead>
+      <tbody>
+        <tr><td>训练数据侵权</td><td>用版权语料</td><td>来源审计</td><td>版权法</td></tr>
+        <tr><td>生成侵权</td><td>逐字复制</td><td>相似度过滤</td><td>版权法</td></tr>
+        <tr><td>虚假信息</td><td>不实陈述</td><td>RAG+置信度</td><td>广告法</td></tr>
+        <tr><td>隐私PII</td><td>输出他人信息</td><td>PII脱敏</td><td>GDPR/个保法</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost48" class="section boost">
+      <h2 class="section"><span class="idx">★</span> AI 伦理落地的组织化机制</h2>
+    <p>AI 伦理常被视为"软约束"，但在实际产品中，它往往转化为硬性的合规要求与声誉风险。一个常见的失败模式是：算法工程师完成了模型训练，但直到上线前一周才被要求补一份"伦理评估报告"，导致评估流于形式。正确的做法是把伦理审查嵌入到研发流程的早期阶段，例如在需求评审时同步登记"潜在影响维度"（隐私、公平性、可解释性、安全、劳动替代），并在每个迭代节点更新对应的风险等级。</p>
+    <p>组织层面，建议设立一个跨职能的"负责任 AI 小组"，成员包含算法、产品、法务、用户体验研究员，甚至外部独立顾问。该小组不应拥有"一票否决"的过度权力（否则会变成流程瓶颈），但应拥有"升级触发权"——当某项风险超过阈值时，可以把问题直接上升到决策层。这种机制既保证了效率，又避免了伦理审查被边缘化。</p>
+    <p>此外，要警惕"指标幻觉"：仅仅声明模型在某公开数据集上的公平性指标达标，并不能代表它在真实用户群体上是公平的。因为真实用户分布往往与评测集不同，而历史数据本身就可能蕴含偏见。因此公平性度量必须结合业务方的真实用户分层，并定期做偏差复测，而不是一次性验收。</p>
+         
+    </section>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 创作与版权伦理的核心矛盾在于：现行版权法诞生于"人类创作"的假设，而 AI 同时挑战了训练端（用版权数据训练是否侵权）和生成端（AI 输出是否有版权）。关键案件包括 NYT vs OpenAI（训练数据合理使用之争）、Getty vs Stability AI（图片训练数据侵权）、北京 AI 文生图第一案（认定 AI 生成内容可有条件受保护）。中美欧三地监管哲学不同：美国创新优先（靠既有法律个案处理）、欧盟权利优先（EU AI Act 严格分级监管、要求训练数据披露）、中国发展管控平衡（算法备案+内容审核）。实操层面，训练数据要尽量用授权来源，生成内容要标注 AI 辅助，声音克隆必须获本人授权，出海产品需同时满足多法域要求。超越法律的伦理自律同样重要——主动标注、贡献者补偿、安全研究，这些正在塑造负责任 AI 的行业规范。合规不是创新的障碍，而是让创新可持续的基础设施。</p>

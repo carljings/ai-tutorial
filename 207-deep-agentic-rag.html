@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agentic RAG：让 RAG 学会自主决策 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Agentic RAG：让 RAG 学会自主决策 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Agentic RAG：让 RAG 学会自主决策 · AI 全栈实战教学">
-<meta property="og:description" content="Agentic RAG：让 RAG 学会自主决策 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -539,6 +535,129 @@ class AdaptiveRetriever:
         trusted = [d for d in web_docs if self._trustworthy(d)]
         return self._generate(query, trusted or web_docs)</code></pre>
     <div class="callout"><strong>💡 Agentic RAG 的工程心法</strong><br>把多跳检索、查询路由、自适应纠错这三个能力组合起来，就是一个完整的生产级 Agentic RAG：<strong>路由决定查哪 → 多跳决定查几次 → 纠错保证查得准</strong>。这套架构相比标准 RAG 的代价是更多 LLM 调用（每跳、每次评估都要调 LLM），但换来的是对复杂问题的高回答质量。落地建议：先用标准 RAG 上线，收集"答不好"的 case，针对性地加路由/多跳/纠错——按需投入，不要一上来就上全套（简单问题用标准 RAG 就够，复杂问题才需要 Agentic）。</div>
+    
+    <h2><span class="idx"></span>Agentic RAG 的检索决策与查询改写</h2>
+    <p>Agentic RAG（智能体化 RAG）和传统 RAG 的核心区别是：<strong>检索不再是固定的"一次检索"，而是 agent 自主决策的动态过程</strong>。agent 决定何时检索、检索什么、检索结果够不够、要不要换关键词再检索。这种自主性大幅提升了复杂查询的处理能力，但也带来新的工程挑战——检索决策的质量直接决定效果。</p>
+<p>检索决策的第一个问题是<strong>"何时检索"</strong>。不是每个用户消息都需要检索——简单问候、闲聊、明确的知识用基座模型直答即可，检索反而引入噪声。agent 要先判断"这个问题需要外部知识吗"，需要才检索。判断可以基于规则（含实体/事实性问题触发）或模型（轻量分类）。第二个问题是<strong>"检索什么"</strong>。用户原话往往不是好的检索 query——口语化、含指代、信息密度低。检索前要做<strong>查询改写</strong>：补全指代（"它"→具体实体）、提取关键词、甚至生成多个查询变体提高召回。</p>
+<p>第三个也是最关键的问题是<strong>"够了没"</strong>。检索回来一批结果后，agent 要判断证据是否充分支撑回答。不充分时，要决定是"换个 query 再检索"（多跳检索）还是"承认信息不足"。这个判断质量决定 agent 会不会陷入"无限检索"或"草率回答"。实践中用"自评置信度"——agent 评估当前证据能否可靠回答，低置信度则补检索，但补检索次数有上限（如最多 3 次），避免无限循环。</p>
+<table class="data-table"><thead><tr><th>决策点</th><th>问题</th><th>策略</th><th>失败模式</th></tr></thead><tbody>
+<tr><td>何时检索</td><td>需不需要外部知识</td><td>规则/模型判断</td><td>该检索没检索</td></tr>
+<tr><td>检索什么</td><td>用什么 query</td><td>查询改写</td><td>原话检索召回差</td></tr>
+<tr><td>够不够</td><td>证据是否充分</td><td>自评置信度</td><td>无限检索/草率答</td></tr>
+<tr><td>换什么</td><td>补检索用什么 query</td><td>基于缺口改写</td><td>重复检索同样东西</td></tr>
+<tr><td>何时停</td><td>检索几次封顶</td><td>硬性上限</td><td>成本失控</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Agentic RAG：动态检索决策
+class AgenticRAG:
+    def __init__(self, llm, retriever, max_hops=3):
+        self.llm = llm
+        self.retriever = retriever
+        self.max_hops = max_hops
+
+    def answer(self, question):
+        # 1. 判断是否需要检索
+        if not self._needs_retrieval(question):
+            return self.llm.direct_answer(question), 0
+
+        collected = []
+        for hop in range(self.max_hops):
+            # 2. 查询改写（基于已收集信息优化 query）
+            query = self._rewrite_query(question, collected, hop)
+            # 3. 检索
+            results = self.retriever.search(query, top_k=5)
+            collected.extend(results)
+            # 4. 自评：证据是否充分
+            confidence, missing = self._self_assess(question, collected)
+            if confidence >= 0.8:
+                break   # 够了，停止检索
+            # 不够：missing 提示下次检索的方向
+        # 5. 基于全部证据生成答案
+        return self.llm.generate(answer_prompt(question, collected)), hop+1
+
+    def _needs_retrieval(self, q):
+        # 简单问题（问候/闲聊）不检索
+        if len(q) < 10: return False
+        if any(w in q for w in ["你好","谢谢","再见"]): return False
+        return True   # 默认检索
+
+    def _rewrite_query(self, question, collected, hop):
+        if hop == 0:
+            # 第一跳：补全指代、提取关键词
+            return self.llm.rewrite(f"把这句话改成适合检索的查询：{question}")
+        else:
+            # 后续跳：基于已知缺口改写（查还没找到的部分）
+            return self.llm.rewrite(
+                f"已检索：{summarize(collected)}。问题：{question}。"
+                f"生成一个新查询，找还没覆盖的信息。")
+
+    def _self_assess(self, question, collected):
+        prompt = f"""问题：{question}
+已有证据：{summarize(collected)}
+能否可靠回答？置信度(0-1)？还缺什么信息？"""
+        result = self.llm.generate(prompt, format="json")
+        return result["confidence"], result.get("missing","")</code></pre>
+
+    <h2><span class="idx"></span>Agentic RAG 的工具增强与多源编排</h2>
+    <p>Agentic RAG 的"Agentic"不仅体现在动态检索，还体现在<strong>把检索作为众多工具之一</strong>——agent 除了检索知识库，还能调数据库查询、调 API 获取实时数据、调计算工具做分析。这种工具增强让 agent 不再是"只会查文档的问答机"，而是能综合多种信息源的智能助手。</p>
+<p>多源编排的核心是<strong>"按需选择信息源"</strong>。不同问题适合不同信息源：事实性知识查向量库、实时数据调 API、结构化数据查数据库、需要计算的调工具。agent 要根据问题判断该用哪个源——这通常通过工具描述（"我擅长查 X 类信息"）让模型自主选择。复杂问题可能需要多个源协作（先查知识库理解概念，再调 API 拿实时数据，最后算一下），agent 要能编排这个多步流程。</p>
+<p>多源融合的挑战是<strong>"结果整合"</strong>。不同源返回的数据格式各异（文档片段、JSON、表格、数字），agent 要把它们整合成连贯的回答。这需要在 prompt 层做数据规范化——把各源结果统一描述给模型。还要处理<strong>"信息冲突"</strong>——知识库说 A、API 实时数据说 B（可能知识库过时了），agent 要判断采信哪个（实时数据通常更新，应优先）。</p>
+<table class="data-table"><thead><tr><th>信息源</th><th>适合查询</th><th>返回格式</th><th>时效性</th></tr></thead><tbody>
+<tr><td>向量知识库</td><td>事实/概念/文档</td><td>文本片段</td><td>静态（需更新）</td></tr>
+<tr><td>SQL 数据库</td><td>结构化业务数据</td><td>表格/行</td><td>实时</td></tr>
+<tr><td>REST API</td><td>实时外部数据</td><td>JSON</td><td>实时</td></tr>
+<tr><td>计算工具</td><td>数值计算/分析</td><td>数字/图表</td><td>即时</td></tr>
+<tr><td>网络搜索</td><td>最新/冷门信息</td><td>网页摘要</td><td>实时</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Agentic RAG：多源工具编排
+from anthropic import Anthropic
+
+class MultiSourceAgent:
+    def __init__(self):
+        self.client = Anthropic()
+        # 定义多个信息源工具
+        self.tools = [
+            {"name":"search_knowledge", "description":"检索内部知识库，适合查概念/文档/历史事实",
+             "input_schema":{"type":"object","properties":{"query":{"type":"string"}}}}},
+            {"name":"query_database", "description":"查询业务数据库，适合查订单/用户/销售等结构化数据",
+             "input_schema":{"type":"object","properties":{"sql":{"type":"string"}}}}},
+            {"name":"call_api", "description":"调外部 API 获取实时数据（如天气/股价/汇率）",
+             "input_schema":{"type":"object","properties":{
+                 "endpoint":{"type":"string"},"params":{"type":"object"}}}}},
+            {"name":"calculate", "description":"执行数值计算或统计分析",
+             "input_schema":{"type":"object","properties":{"expression":{"type":"string"}}}}},
+        ]
+
+    def answer(self, question):
+        messages = [{"role":"user","content":question}]
+        # agent 自主决定调哪些工具、调几次
+        for _ in range(10):   # 工具调用上限
+            resp = self.client.messages.create(
+                model="claude-sonnet-4-5", max_tokens=1024,
+                tools=self.tools, messages=messages)
+            if resp.stop_reason == "end_turn":
+                return resp.content[-1].text   # 不需要更多工具，给最终答案
+            # 执行 agent 选择的工具
+            messages.append({"role":"assistant","content":resp.content})
+            for block in resp.content:
+                if block.type == "tool_use":
+                    result = self._execute_tool(block.name, block.input)
+                    messages.append({"role":"user","content":[{
+                        "type":"tool_result","tool_use_id":block.id,"content":str(result)}]})
+        return "达到工具调用上限"
+
+    def _execute_tool(self, name, params):
+        # 各源返回的数据格式不同，统一转成模型可理解的文本
+        if name == "search_knowledge":
+            return [n.text for n in vector_db.search(params["query"])]
+        elif name == "query_database":
+            rows = db.execute(params["sql"])
+            return format_as_table(rows)   # 表格→文本描述
+        elif name == "call_api":
+            data = requests.get(params["endpoint"], params=params.get("params",{})).json()
+            return json.dumps(data, ensure_ascii=False)
+        elif name == "calculate":
+            return str(eval_safe(params["expression"]))
+# agent 会自主编排：查知识库理解概念 → 查数据库拿数据 → 算一下 → 综合</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Agentic RAG 把 RAG 从"被动检索"升级为"主动探索"：agent 自主决定检索时机、构造查询、评估结果、多跳深挖。它用更高的复杂度换来了对复杂问题的处理能力。前面概念辨析章里讲过 Skills 和 MCP 的关系——Agentic RAG 就是用 agent 的智能来驱动 RAG 的检索。</p>
     <div class="chapter-nav">

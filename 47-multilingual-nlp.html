@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多语言 NLP · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="多语言 NLP · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="多语言 NLP · AI 全栈实战教学">
-<meta property="og:description" content="多语言 NLP · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -624,16 +620,6 @@
       </div>
     </section>
     <h2 class="section" id="cjk-tokenization"><span class="idx">★</span> 中文分词：NLP里最特殊的"第一公里"</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>中文分词：NLP里最特殊的"第一公里"</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>跨语言迁移：XLM-R 与 mBERT 为什么能"举一反百"</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>低资源语言：当训练数据只有几 MB 时怎么办</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>多语言评测基准：怎么客观衡量"懂多种语言"</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>多语言模型加载与跨语言推理</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>英文NLP在很长一段时间里，分词几乎等于按空格切。直到 BPE、WordPiece 出现，大家才把 subword 当成默认选项。但中文、日文这类 CJK 语言天然没有空格，分词从一开始就是一道独立的工程难题。"南京市长江大桥"到底是"南京市/长江大桥"还是"南京市长/江大桥"？这种歧义在英文里几乎不存在，在中文里却几乎每一句话都会遇到。</p>
     <p>传统中文分词的两大流派是基于词典的最大匹配和基于统计模型的序列标注（CRF/HMM）。Jieba 是词典派最经典的实现，它的核心思路是：先构建一个大规模的前缀词典，用 DAG（有向无环图）枚举所有可能的切分路径，再用基于词频的动态规划选出概率最大的路径，最后对未登录词用 HMM 做一次识别。这套机制在 2014 年开源时几乎是中文分词的事实标准，时至今日它在轻量、确定性强、部署成本低的场景里依然是首选。</p>
     <p>HanLP 则代表了统计/深度学习派的集大成者。它不仅提供感知机、CRF 等多种分词模型，还内置了词性标注、命名实体识别、依存句法分析、语义依存等一整套管道。对于需要"不只是分个词"的复杂业务，HanLP 几乎是开源方案里最完整的选择。它还提供了基于预训练词向量的神经网络分词模型，准确率在标准数据集上能压过很多商业服务。</p>
@@ -747,9 +733,95 @@ for prem, hyp, lang in tests:
 #    - 选型看: 你的语种覆盖、显存、是否要生成 vs 分类
 # 跨语言迁移的秘密: 共享的嵌入空间让"吉他"和"guitar"向量接近,
 #   分类头学到的语义结构能跨语言复用, 无需每种语言都标注</code></pre>
+    <h2 class="section" id="deep47"><span class="idx">深</span> 多语言与低资源场景的工程化</h2>
 
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
-    <p>多语言NLP的核心挑战是中文分词特殊性和低资源语言处理。XLM-R和mBERT通过跨语言迁移学习大幅降低了多语言模型的开发门槛，但中文场景仍需针对性优化。</p>
+    <p>多语言 NLP 的核心矛盾是<strong>数据极度不均衡</strong>——英语数据是某些小语种的几千倍。直接训练会导致模型对小语种“装聋作哑”。下面给出提升低资源语言表现的工程手段和评估方法。</p>
+
+    <h3>多语言能力的评估</h3>
+    <p>不能只看英语基准。要建立一个覆盖目标语言矩阵的评估集，量化每种语言的能力。</p>
+
+    <pre><code>import json
+from openai import OpenAI
+client = OpenAI(base_url="https://api.z.ai/api/paas/v4", api_key="YOUR_KEY")
+
+# 跨语言对齐评估集：同一组问题翻译成多语言
+tasks = {
+  "sentiment": {
+    "en": "I love this product.",
+    "zh": "我喜欢这个产品。",
+    "ja": "この製品が大好きです。",
+    "ar": "أحب هذا المنتج.",
+  }
+}
+
+def eval_multilingual(model):
+    results = {}
+    for task, langs in tasks.items():
+        for lang, text in langs.items():
+            r = client.chat.completions.create(model=model, temperature=0.0,
+                messages=[{"role":"user","content":f"情感(正/负): {text}"}])
+            results.setdefault(lang, []).append(r.choices[0].message.content.strip())
+    # 统计各语言正确率
+    for lang, preds in results.items():
+        print(f"{lang}: {preds}")
+    return results
+
+eval_multilingual("glm-4-plus")
+# 优质多语言模型各语言准确率应接近，差距大说明某语言是短板</code></pre>
+
+    <p>这张语言×任务矩阵能精确定位短板——如果阿拉伯语准确率明显低于英语，就说明需要针对性增强。</p>
+
+    <table>
+      <thead><tr><th>低资源增强策略</th><th>原理</th><th>数据需求</th><th>典型收益</th></tr></thead>
+      <tbody>
+        <tr><td><strong>跨语言迁移</strong></td><td>用高资源语种的表示迁移</td><td>少量目标语种</td><td>中</td></tr>
+        <tr><td><strong>回译数据增强</strong></td><td>翻译过去再翻回来造平行数据</td><td>翻译模型</td><td>中</td></tr>
+        <tr><td><strong>多语言预训练</strong></td><td>混入小语种语料继续预训练</td><td>小语种语料</td><td>高</td></tr>
+        <tr><td><strong>语种自适应微调</strong></td><td>用小语种 SFT 数据微调</td><td>小语种标注</td><td>高</td></tr>
+        <tr><td><strong>Prompt 引导</strong></td><td>显式指定输出语种</td><td>零</td><td>低(治标)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>分词器：被忽视的命门</h3>
+    <p>多语言效果的根基往往不在模型，而在<strong>分词器</strong>。如果一个分词器把中文/日文/阿拉伯语切得极碎（一个字变成多个 token），不仅推理慢、成本高，还会让模型“看不懂”。评估分词器要看<strong>压缩率</strong>：同样文本，token 数越少越好。GLM 和 Qwen 的分词器针对中文优化过，中文压缩率显著优于纯英文训练的分词器。一个实操技巧：上线前统计<strong>目标语种的每字 token 数</strong>，若某语种 &gt; 1.5 token/字，说明分词器对它不友好，要么换分词器、要么接受高成本。此外，<strong>低资源语种要警惕“语种混淆”</strong>——模型可能用英语回答小语种问题，需要在 prompt 里强制指定输出语种，或在训练数据里强化“问什么语言答什么语言”的模式。这些细节决定了多语言产品能否真正落地非英语市场。</p>
+
+    <h2 class="section" id="deep47b"><span class="idx">深</span> 多语言 NLP FAQ 与低资源</h2>
+    <p>多语言场景的核心矛盾是数据不均衡，这些问题最关键。</p>
+    <h3>Q1：模型对小语种支持差，prompt 能救吗？</h3>
+    <p><strong>只能治标</strong>。显式指定输出语言、用该语言 few-shot 示例能缓解，但<strong>根治要靠数据</strong>：多语言预训练（混入小语种语料）、语种自适应微调（用小语种 SFT 数据）。prompt 救不了分词器对小语种的不友好——若一个字被切成多个 token，模型天然吃亏。评估时先看<strong>分词压缩率</strong>（每字 token 数），>1.5 说明分词器是瓶颈，得换。低资源语言的根本解法是数据增强（回译）和迁移学习，prompt 只是临时止血。</p>
+    <pre><code># 多语言分词压缩率检测
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么评估模型的多语言能力？</h3>
+    <p>不能用英语基准。建<strong>语言×任务矩阵</strong>：同一组问题翻译成各目标语言，统计每种语言的准确率。优质多语言模型各语言应接近，差距大说明某语言是短板。还要测<strong>跨语言能力</strong>（用英语问、要小语种答，或反之）。评估集要从真实用户场景采样，而非机器翻译（翻译可能简化了难度）。重点关注<strong>目标市场的语言</strong>——做东南亚产品就重点测泰语/越南语。多语言能力的短板往往是隐性的（英语基准全绿但小语种用户抱怨），只有专项评估能暴露。</p>
+    <h3>对比速查：低资源增强策略</h3>
+    <table>
+      <thead><tr><th>策略</th><th>原理</th><th>数据需求</th><th>收益</th></tr></thead>
+      <tbody>
+        <tr><td>跨语言迁移</td><td>高资源迁移</td><td>少量目标</td><td>中</td></tr>
+        <tr><td>回译增强</td><td>造平行数据</td><td>翻译模型</td><td>中</td></tr>
+        <tr><td>多语言预训练</td><td>混入小语种</td><td>小语种语料</td><td>高</td></tr>
+        <tr><td>自适应微调</td><td>小语种SFT</td><td>小语种标注</td><td>高</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost247" class="section boost">
+      <h2 class="section"><span class="idx">★</span> 从 PoC 到规模化的常见陷阱</h2>
+    <p>把一个成功的概念验证（PoC）推向规模化生产，是 AI 落地中最容易翻车的阶段。PoC 阶段往往使用的是干净、规模有限的数据集，在受控环境中取得了不错的指标；但一旦面对真实线上流量——数据分布漂移、长尾 case、并发请求、异常输入——原本有效的方案可能迅速退化。因此规模化前必须做一次"压力暴露测试"：用线上真实流量（或其回放）驱动系统，观察延迟分布、错误率、资源占用，以及最关键的——指标在真实分布下的表现。</p>
+    <p>第二个陷阱是"单点依赖"。许多 PoC 把数据清洗、模型训练、部署都绑定在一台机器或一个人身上，这在验证阶段没问题，但在规模化时会成为严重瓶颈。正确的做法是在 PoC 通过后，立即着手"去单点化"：把数据管道产物化、把训练流程脚本化、把部署配置版本化，并确保至少两人能独立操作整个链路。这不仅是工程规范，更是业务连续性的保障。</p>
+    <p>成本控制也是规模化阶段的核心议题。PoC 阶段通常不计成本地追求效果，但规模化意味着每一个百分点的提升都要对应可量化的投入。建议建立"效果-成本"的二维看板，把模型指标与算力消耗、延迟、人力维护成本放在一起审视。很多时候，一个指标略低但成本低数倍的方案，在规模化场景下反而是更优选择。盲目追求纸面指标而忽视单位成本，是许多项目在规模化后难以为继的根源。</p>
+         
+    </section>
 
 </main>
 

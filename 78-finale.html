@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>全书总结与进阶路线 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="全书总结与进阶路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="全书总结与进阶路线 · AI 全栈实战教学">
-<meta property="og:description" content="全书总结与进阶路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>全书进阶路线决策</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>全书进阶路线决策</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>全书知识点自测与知识图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>一、全书知识图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、必须牢记的十个核心认知</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、能力自评：你在哪个层级</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、进阶路线：接下来学什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、终身学习的心态</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、写在最后</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>最后给一个落地的进阶路线决策器：根据你的当前水平和目标方向，推荐下一步该投入精力的具体动作。把职业规划从'模糊的方向感'变成'下周就做的一件事'，是这本书能给你的最好礼物。</p>
 <pre class="code"><code class="language-python"># 进阶路线决策器：输入当前水平 + 目标方向，输出下一步动作
 def next_step(level, goal):
@@ -896,6 +879,84 @@ Level 5：AI 研究者/创新者
     <p>回顾这本书的起点——我们从一个最基本的问题「什么是大语言模型」出发，一路走到 Agent 编排、推理优化、行业落地、法规合规、投资创业。这条路径本身就是 AI 从「实验室技术」到「改变世界的基础设施」的缩影。</p>
     <p>但书的结束不是学习的结束。AI 领域最迷人的地方在于：它还在快速演进，每个人都既是学习者也是参与者。你今天写的一个 prompt、做的一个应用、提的一个问题，都可能成为推动这个领域前进的一份力量。</p>
     <p>保持好奇，保持实践，保持谦逊。AI 的黄金时代才刚刚开始，而你，已经准备好了。</p>
+
+    <h2 class="section" id="deep78"><span class="idx">深</span> 全栈实战综合：把知识连成系统</h2>
+
+    <p>学完各个模块后，最大的挑战是<strong>把它们连成完整系统</strong>——单点都会，组合起来却处处掣肘。下面用一个端到端案例，演示如何把 RAG、Agent、记忆、评估、部署串成可运行的整体。</p>
+
+    <h3>端到端系统的组件编排</h3>
+    <p>一个真实的 AI 助手系统，组件如何协作、数据如何流动，下面用代码骨架说清。</p>
+
+    <pre><code># 一个生产级 AI 助手的组件协作骨架(概念性)
+class FullStackAssistant:
+    def __init__(self):
+        self.router = SmallModelRouter()        # 1.小模型路由(简单问题便宜解决)
+        self.rag = RetrievalEngine(vector_db)   # 2.RAG 接知识库
+        self.memory = UserMemoryStore()         # 3.长期记忆
+        self.llm = GLMClient()                  # 4.主力大模型
+        self.guard = SafetyGuard()              # 5.输入输出安全
+        self.eval = OnlineEvalSink()            # 6.在线评估埋点
+
+    def handle(self, user_id, query):
+        # 7.串联各组件：安全→记忆→路由→检索→生成→安全→评估
+        if not self.guard.check_input(query):    # 输入消毒
+            return self.safe_fallback()
+        history = self.memory.load(user_id)      # 加载记忆
+        if self.router.is_simple(query):          # 简单走小模型
+            ans = self.router.answer(query)
+        else:
+            context = self.rag.retrieve(query)   # RAG 检索
+            ans = self.llm.generate(query, context, history)  # 大模型生成
+        ans = self.guard.check_output(ans)        # 输出安全
+        self.memory.save(user_id, query, ans)     # 更新记忆
+        self.eval.record(user_id, query, ans)     # 评估埋点
+        return ans
+# 关键不是单个组件多强，而是它们如何协作 + 每步都有兜底</code></pre>
+
+    <p>这个骨架揭示了一个全栈系统的本质：<strong>组件不难，难的是把它们串成可靠的数据流，且每一步都有兜底和可观测</strong>。多数失败的全栈项目，不是某个组件弱，而是组件间协作缺乏防护（一处失败全链崩）。</p>
+
+    <table>
+      <thead><tr><th>组件</th><th>作用</th><th>与其他组件关系</th><th>失败兜底</th></tr></thead>
+      <tbody>
+        <tr><td><strong>路由</strong></td><td>分流简单/复杂</td><td>前置，决定走哪条路</td><td>路由失败走大模型</td></tr>
+        <tr><td><strong>RAG</strong></td><td>接外部知识</td><td>给生成提供上下文</td><td>检索失败用模型内置知识</td></tr>
+        <tr><td><strong>记忆</strong></td><td>长期个性化</td><td>给生成提供历史</td><td>记忆失败用当前上下文</td></tr>
+        <tr><td><strong>大模型</strong></td><td>核心生成</td><td>消费上述所有输入</td><td>超时降级到小模型</td></tr>
+        <tr><td><strong>安全</strong></td><td>输入输出防护</td><td>包裹整个链路</td><td>拦截即返回兜底</td></tr>
+        <tr><td><strong>评估</strong></td><td>在线质量监控</td><td>旁路记录</td><td>评估失败不影响主链</td></tr>
+      </tbody>
+    </table>
+
+    <h3>从能跑到跑得稳：工程化的三重境界</h3>
+    <p>全栈系统的成熟度有三重境界。第一重<strong>“能跑”</strong>——每个组件单独工作正常，串起来在理想输入下出结果，这是 demo 阶段。第二重<strong>“能扛”</strong>——异常输入、组件故障、高并发下都不崩，每步有兜底、有限流、有降级，这是生产最低门槛。第三重<strong>“能进化”</strong>——有完整的反馈闭环和评估体系，能从线上数据持续优化，组件可独立升级、A/B、回滚，这是长期竞争力所在。多数团队卡在第一重和第二重之间，差的就是<strong>兜底、可观测、灰度</strong>这些“不性感但决定生死”的工程能力。一个判断系统成熟度的简单标准：<strong>随便关掉一个组件，系统是否还能（降级地）工作</strong>？如果能，说明有韧性；如果直接崩，说明是脆弱的串联。<strong>可观测性是进化的前提</strong>——没有埋点和 trace，你既不知道哪里出了问题，也无法量化改进效果。把全栈知识连成系统，本质是培养<strong>系统思维</strong>：不只看单个组件，而看数据如何流动、故障如何传播、优化如何叠加，这种思维比任何单个技术点都更稀缺、更有价值。</p>
+
+    <h2 class="section" id="deep78b"><span class="idx">深</span> 全栈系统 FAQ 与可靠性</h2>
+    <p>把组件连成系统，可靠性是核心，这些问题最关键。</p>
+    <h3>Q1：系统里一个组件挂了，整个就崩，怎么解？</h3>
+    <p><strong>每个组件都要有兜底，串联变韧性链</strong>。检索挂→用模型内置知识兜；记忆挂→用当前上下文；大模型超时→降级到小模型；安全过滤拦→返回兜底回复。<strong>关键设计：随便关掉一个组件，系统应能降级工作</strong>，而非直接崩。实现：每步 try/except + fallback；异步解耦（组件故障不阻塞主链）；超时+重试+熔断。<strong>限流降级</strong>：过载时主动拒绝低优先请求保核心。<strong>这是 demo 和生产的分水岭</strong>——多数失败的全栈项目不是组件弱，而是组件间缺乏防护（一处失败全链崩）。</p>
+    <pre><code># 组件级容错编排
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：系统怎么持续进化（不只是能跑）？</h3>
+    <p><strong>反馈闭环+可观测+A/B</strong>。埋点采集全链路 trace 和用户反馈（赞踩/复制/重提），清洗后进评估集和微调数据池，形成「使用→反馈→改进」飞轮。<strong>可观测是进化前提</strong>——没埋点既不知哪出问题也无法量化改进。<strong>组件可独立升级</strong>：每个组件能单独 A/B、回滚，而非牵一发动全身。<strong>定期评估基线</strong>：每月跑全量评估看趋势，发现缓慢劣化。<strong>判断成熟度</strong>：随便关一个组件能否降级工作？能=有韧性；崩=脆弱串联。能进化的系统才是长期竞争力，能跑只是起点。</p>
+    <h3>对比速查：系统成熟度三重境界</h3>
+    <table>
+      <thead><tr><th>境界</th><th>特征</th><th>判断标准</th><th>差距</th></tr></thead>
+      <tbody>
+        <tr><td>能跑</td><td>理想输入出结果</td><td>demo级</td><td>无兜底</td></tr>
+        <tr><td>能扛</td><td>异常不崩</td><td>关组件仍降级工作</td><td>缺韧性</td></tr>
+        <tr><td>能进化</td><td>反馈闭环改进</td><td>有trace+飞轮</td><td>无观测</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们对全书做了系统性回顾。核心要点：</p>

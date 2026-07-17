@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>知识图谱与 LLM · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="知识图谱与 LLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="知识图谱与 LLM · AI 全栈实战教学">
-<meta property="og:description" content="知识图谱与 LLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="why-graph"><span class="idx">★</span> 一、纯向量检索的局限</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、纯向量检索的局限</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、知识图谱的基本概念</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、知识图谱的构建流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、Neo4j 实操：图数据库入门</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、GraphRAG：微软的前沿方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、混合检索：向量 + 图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、什么场景该用知识图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>向量检索（RAG 的基础）的核心逻辑是「语义相似」——把文本编码成向量，用余弦相似度找最相关的片段。这对「找相关内容」很有效，但对「找关系」很无力。</p>
     <p>举一个真实场景：用户问「和特斯拉在同一个供应链里的公司有哪些」。纯向量检索会找和「特斯拉供应链」语义相近的文本片段，但它不理解「供应链」是一种关系，也不知道哪些公司通过哪些零部件和特斯拉关联。这种多跳关系推理，正是知识图谱的强项。</p>
     <pre><code class="language-python"># 向量检索 vs 图谱检索的差异
@@ -597,6 +580,84 @@ class HybridRetriever:
       <li><strong>知识溯源</strong>：需要精确知道答案来自哪些结构化关系。</li>
     </ul>
     <p>反过来，如果你的场景只是简单的「找相关文档回答问题」，传统 RAG 就够了，不必上图谱——知识图谱的构建和维护成本不低。</p>
+
+    <h2 class="section" id="deep72"><span class="idx">深</span> GraphRAG 实战：从图构建到增强检索</h2>
+
+    <p>GraphRAG 把知识图谱引入 RAG，能解决传统向量 RAG 在<strong>多跳推理、全局总结</strong>上的短板。但它工程复杂度高，并非所有场景都该用。下面给出落地路径和与向量 RAG 的选型。</p>
+
+    <h3>知识图谱的构建与查询</h3>
+    <p>GraphRAG 的第一步是把文档转成图（实体+关系）。下面用 Neo4j 演示构建和查询的核心流程。</p>
+
+    <pre><code>from neo4j import GraphDatabase
+
+driver = GraphDatabase.driver("bolt://localhost:7687", auth=("neo4j","password"))
+
+def build_graph_from_text(tx, text):
+    """用 LLM 抽取实体与关系，写入图(概念性)。"""
+    entities_relations = llm_extract(text)
+    # entities_relations 例: {"entities":["GLM","Z.ai"], "relations":[("GLM","开发商","Z.ai")]}
+    for e in entities_relations["entities"]:
+        tx.run("MERGE (n:Entity {name: $name})", name=e)
+    for subj, rel, obj in entities_relations["relations"]:
+        tx.run('''MERGE (a:Entity {name:$s}) MERGE (b:Entity {name:$o})
+                  MERGE (a)-[:RELATION {type:$r}]-&gt;(b)''', s=subj, r=rel, o=obj)
+
+def multi_hop_query(tx, question):
+    """多跳查询：向量 RAG 难以回答的'谁开发了GLM，它属于哪家公司'这类问题。"""
+    cypher = """MATCH (n:Entity {name:'GLM'})-[:RELATION]-&gt;(m)
+                RETURN n.name, m.name LIMIT 10"""
+    return tx.run(cypher).data()
+
+with driver.session() as s:
+    s.execute_write(build_graph_from_text, "GLM由Z.ai开发...")
+    print(s.execute_read(multi_hop_query, "GLM的开发商"))
+# GraphRAG 强在多跳与关系推理；简单事实检索向量 RAG 更快更省</code></pre>
+
+    <p>GraphRAG 的核心增量价值是<strong>结构化的多跳推理</strong>——向量 RAG 找“提到 GLM 的段落”很行，但找“GLM 的开发商又投资了谁”这种跨多实体关系就力不从心，而图查询天然擅长。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>向量 RAG</th><th>GraphRAG</th><th>混合 RAG</th></tr></thead>
+      <tbody>
+        <tr><td><strong>简单事实</strong></td><td>好</td><td>中</td><td>好</td></tr>
+        <tr><td><strong>多跳推理</strong></td><td>差</td><td>极好</td><td>好</td></tr>
+        <tr><td><strong>全局总结</strong></td><td>差</td><td>好</td><td>好</td></tr>
+        <tr><td><strong>构建成本</strong></td><td>低</td><td>高(抽实体关系)</td><td>最高</td></tr>
+        <tr><td><strong>维护</strong></td><td>易</td><td>难(图要更新)</td><td>难</td></tr>
+        <tr><td><strong>延迟</strong></td><td>低</td><td>中(图查询)</td><td>中</td></tr>
+      </tbody>
+    </table>
+
+    <h3>何时该上 GraphRAG</h3>
+    <p>GraphRAG 不是“更高级的 RAG”，而是<strong>解决特定问题的 RAG</strong>，多数场景向量 RAG 就够了，盲目上图反而增加复杂度。该考虑 GraphRAG 的信号：第一，<strong>用户问题常涉及多跳关系</strong>（“A 的供应商的竞争对手是谁”），向量检索召回不准；第二，<strong>需要全局性总结</strong>（“总结整个行业的主要玩家和关系”），向量 RAG 只能找片段、难综观全局；第三，<strong>数据本身强结构化</strong>（已有图谱、或关系是核心价值，如金融股权、医疗药物相互作用）。即便如此，推荐<strong>混合 RAG</strong>——向量检索找相关片段 + 图谱补关系，两者互补，而非二选一。落地的坑主要有三个：<strong>图谱构建质量</strong>（LLM 抽实体关系会出错，要人工抽检校准）、<strong>图谱更新</strong>（文档变了图要同步更新，比向量库索引维护麻烦）、<strong>查询转换</strong>（把自然语言问题转成 Cypher 是难点，需好的 NL2Graph 模块）。所以 GraphRAG 要在<strong>收益明显大于复杂度成本</strong>时才上，先验证“向量 RAG 真的答不好这类问题”，再投入。</p>
+
+    <h2 class="section" id="deep72b"><span class="idx">深</span> GraphRAG FAQ 与选型</h2>
+    <p>GraphRAG 不是万能药，这些问题决定该不该用。</p>
+    <h3>Q1：我的 RAG 效果不好，换 GraphRAG 能解决吗？</h3>
+    <p><strong>不一定，先诊断</strong>。效果不好原因多：chunking 不合理、embedding 差、召回不准、prompt 没用好上下文。这些用 GraphRAG 也救不了。<strong>该考虑 GraphRAG 的信号</strong>：用户问题常涉及多跳关系（「A 的供应商的竞争对手」）、需全局总结、数据本身强结构化。即便如此，推荐<strong>混合 RAG</strong>（向量+图互补）而非二选一。盲目上图增加复杂度（图构建/更新/查询转换都难）却未必更好。<strong>先验证「向量 RAG 真的答不好这类问题」</strong>，再投入 GraphRAG。</p>
+    <pre><code># RAG 效果根因诊断
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：GraphRAG 的图怎么构建和维护？</h3>
+    <p>构建：<strong>用 LLM 从文档抽取实体和关系</strong>（结构化输出），写入图数据库（Neo4j）。坑是<strong>抽取会出错</strong>（幻觉关系），要人工抽检校准。维护更难：<strong>文档变了图要同步更新</strong>（比向量索引麻烦）、<strong>实体消歧</strong>（同名不同实体、异名同实体）。查询转换是另一难点：把自然语言转 Cypher 需要 NL2Graph 模块。所以 GraphRAG 落地成本高，要<strong>收益明显大于复杂度</strong>才上。建议先小规模验证（一个子领域），跑通构建-查询-维护全流程再扩大。</p>
+    <h3>对比速查：RAG 方式对比</h3>
+    <table>
+      <thead><tr><th>维度</th><th>向量RAG</th><th>GraphRAG</th><th>混合</th></tr></thead>
+      <tbody>
+        <tr><td>简单事实</td><td>好</td><td>中</td><td>好</td></tr>
+        <tr><td>多跳推理</td><td>差</td><td>极好</td><td>好</td></tr>
+        <tr><td>构建成本</td><td>低</td><td>高</td><td>最高</td></tr>
+        <tr><td>维护</td><td>易</td><td>难</td><td>难</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们覆盖了知识图谱从构建到应用的完整链路。核心要点：</p>

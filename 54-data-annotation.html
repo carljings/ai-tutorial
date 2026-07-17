@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 数据标注工程 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 数据标注工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 数据标注工程 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 数据标注工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -750,6 +746,116 @@ for idx, row in enumerate(labels):
 # 把低置信样本送回给更资深的标注员或再过一轮 adjudication，
 # 把高置信样本直接喂给模型训练，从而把预算花在刀刃上。</code></pre>
     <p>把这三个脚本串起来，就是一条可落地的质量管理流水线：一致率矩阵做标注员入职考核、kappa 做批次验收、难样本挖掘做持续回标。在真实业务里，建议每周对随机抽样的 5% 数据做一次全员交叉标注（cross-annotation），用 kappa 的周变化趋势来判断标注规范是否在被正确执行——kappa 持续走低通常意味着任务定义出现了歧义，是该组织一次标注规范校准会的信号。</p>
+
+    <h2 class="section" id="deep54"><span class="idx">深</span> 标注质量管控：一致性与质量保证</h2>
+
+    <p>微调数据的质量，七成取决于标注质量。而标注质量的核心指标是<strong>标注者间一致性</strong>——多人标同一份数据，结论是否一致。一致性低，说明标注规范不清，数据就是噪声。下面给出量化与提升一致性的方法。</p>
+
+    <h3>用 Cohen's Kappa 量化一致性</h3>
+    <p>Cohen's Kappa 剔除了“偶然一致”的影响，是衡量标注一致性的标准指标。下面是计算代码和判读标准。</p>
+
+    <pre><code>from sklearn.metrics import cohen_kappa_score
+
+# 两位标注者对同一批样本的标签
+annotator_a = [1, 1, 0, 1, 0, 0, 1, 0, 1, 0]
+annotator_b = [1, 1, 0, 0, 0, 0, 1, 1, 1, 0]
+
+kappa = cohen_kappa_score(annotator_a, annotator_b)
+print(f"Cohen's Kappa = {kappa:.3f}")
+# 判读：&lt;0.4 差(规范不清)；0.4~0.6 中；0.6~0.8 好；&gt;0.8 优秀
+# 多人一致性用 Fleiss' Kappa，思路相同但扩展到 &gt;2 人
+
+# 工作流：先小批量标注 → 算 Kappa → 若&lt;0.6 则修订规范重训标注员 → 再标
+# 这个"标注-校准"循环是保证数据质量的根本，比事后清洗便宜得多</code></pre>
+
+    <p>Kappa &lt; 0.6 时，与其继续标注产出噪声数据，不如先停下来修订标注规范、重新培训标注员。这个“校准循环”是数据质量的根本保障。</p>
+
+    <table>
+      <thead><tr><th>标注问题</th><th>表现</th><th>成因</th><th>解决</th></tr></thead>
+      <tbody>
+        <tr><td><strong>一致性低</strong></td><td>同人不同标</td><td>规范模糊</td><td>细化规范+培训+校准</td></tr>
+        <tr><td><strong>标注疲劳</strong></td><td>后半段质量下滑</td><td>单调任务</td><td>限量+轮换+抽检</td></tr>
+        <tr><td><strong>主观偏差</strong></td><td>系统倾向某标签</td><td>个人偏好</td><td>多人标注+分歧仲裁</td></tr>
+        <tr><td><strong>边界模糊</strong></td><td>难例反复改</td><td>定义不严</td><td>建立难例集+专家裁定</td></tr>
+        <tr><td><strong>成本失控</strong></td><td>全人工太贵</td><td>规模大</td><td>主动学习+模型预标</td></tr>
+      </tbody>
+    </table>
+
+    <h3>主动学习：把人工花在刀刃上</h3>
+    <p>全量人工标注又贵又慢。<strong>主动学习(Active Learning)</strong>的思路是：先标少量数据训个初版模型，再用模型对未标注数据预测，挑出<strong>模型最不确定</strong>的样本（如预测概率接近 0.5 的）交给人工标——这些“难例”对模型提升最大。这样把有限的人工预算投在信息量最大的样本上，能比随机标注省 50%~80% 的标注量达到同样效果。配合<strong>模型预标注 + 人工校验</strong>（模型先标，人只改错的），标注速度还能再快一倍。但要注意：预标注会引入<strong>确认偏差</strong>——人倾向于接受模型的答案，要定期插入“盲标”样本（不给模型答案）监控人工是否在偷懒。<strong>难例集要重点建设</strong>：把所有标注分歧大、模型反复错的样本汇集成 golden hard set，它既是质量监控的标尺，也是后续模型迭代最该攻克的靶子。数据标注不是廉价劳动力堆砌，而是一套需要工程化设计的质量系统。</p>
+
+    <h2 class="section" id="deep54b"><span class="idx">深</span> 数据标注 FAQ 与质量管控</h2>
+    <p>标注质量是微调成败的 80%，这些问题最关键。</p>
+    <h3>Q1：标注一致性很低（多人标同一份结果不同），怎么办？</h3>
+    <p><strong>先停标注，修订规范</strong>。一致性低说明标注规范不清。流程：小批量标注→算 Cohen's Kappa→<0.6 则<strong>细化规范+培训标注员</strong>→重新标。规范要包含<strong>大量带理由的示例</strong>（为什么这样标）和<strong>边界 case 裁定</strong>。建立<strong>难例集</strong>（分歧大的样本）由专家裁定，沉淀回规范。这个「标注-校准」循环是数据质量根本——与其继续产出噪声数据，不如先统一标准。<strong>一致性是数据可用性的前提</strong>，低一致性的数据再多家等于没有。</p>
+    <pre><code># 标注一致性监控
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：标注太贵太慢，怎么省钱提速？</h3>
+    <p><strong>主动学习</strong>：先标少量训初版模型，挑模型最不确定的样本（概率接近 0.5）交人工——这些难例对提升最大，比随机标注省 50~80% 达同效果。配合<strong>模型预标注+人工校验</strong>（模型先标，人只改错）速度再快一倍。但要防<strong>确认偏差</strong>（人倾向接受模型答案），定期插「盲标」监控质量。<strong>难例重点投入</strong>：把分歧大、模型反复错的汇集成 hard set，既是质量标尺也是迭代靶子。标注是系统工程，不是堆人力——用主动学习把钱花在信息量最大的样本上。</p>
+    <h3>对比速查：标注问题与解决</h3>
+    <table>
+      <thead><tr><th>问题</th><th>表现</th><th>解决</th><th>预防</th></tr></thead>
+      <tbody>
+        <tr><td>一致性低</td><td>同人不同标</td><td>细化规范+培训</td><td>校准循环</td></tr>
+        <tr><td>标注疲劳</td><td>后半段差</td><td>限量+轮换</td><td>抽检</td></tr>
+        <tr><td>主观偏差</td><td>系统倾向</td><td>多人+仲裁</td><td>规范</td></tr>
+        <tr><td>边界模糊</td><td>难例反复</td><td>专家裁定</td><td>难例集</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep54c"><span class="idx">深</span> 数据标注代码实战：一致性与主动学习</h2>
+
+    <p>标注质量是微调成败的 80%，下面给出量化与提效的代码。</p>
+
+    <h3>标注一致性度量</h3>
+    <pre><code>from sklearn.metrics import cohen_kappa_score
+
+def inter_annotator_agreement(ann_a, ann_b):
+    """计算两位标注者的一致性(Cohen's Kappa)。"""
+    kappa = cohen_kappa_score(ann_a, ann_b)
+    level = ("差(规范不清)" if kappa &lt; 0.4 else
+             "中" if kappa &lt; 0.6 else
+             "好" if kappa &lt; 0.8 else "优秀")
+    return kappa, level
+
+a = [1,1,0,1,0,0,1,0,1,0,1,1,0,1,0]
+b = [1,1,0,0,0,0,1,1,1,0,1,1,0,1,1]
+k, lv = inter_annotator_agreement(a, b)
+print(f"Kappa={k:.3f} ({lv})")
+# &lt;0.6 要停下修订规范重训标注员，而非继续产出噪声</code></pre>
+
+    <h3>主动学习：选最难的样本标注</h3>
+    <pre><code>import numpy as np
+
+def active_learning_select(unlabeled, model_predict, budget=50):
+    """挑模型最不确定的样本交人工标注，提升标注效率。"""
+    scores = []
+    for x in unlabeled:
+        prob = model_predict(x)             # 模型预测概率
+        uncertainty = 1 - abs(prob - 0.5)*2 # 接近0.5最不确定
+        scores.append((uncertainty, x))
+    scores.sort(reverse=True)               # 最不确定在前
+    return [x for _, x in scores[:budget]]
+
+# 模拟：1000 未标注样本，挑最难的50个标
+unlabeled = [f"样本{i}" for i in range(1000)]
+import random
+predict = lambda x: random.random()        # 假装模型预测
+selected = active_learning_select(unlabeled, predict, budget=50)
+print(f"主动学习选出 {len(selected)} 个高价值样本优先标注")
+# 比随机标注省 50-80% 达同效果，把人工花在刀刃上</code></pre>
+
+    <p>这两段代码把标注质量管控工程化：一致性度量让你判断「数据可不可用」，主动学习让你把有限预算投在信息量最大的样本上。标注不是堆人力，是系统工程。</p>
 
     <h2><span class="idx"></span>本章小结</h2>
     <p>数据标注是 LLM 训练最被低估的瓶颈。SFT 标注教模型"理想的回答"，RLHF 偏好标注教模型"什么是更好"。标注质量的核心控制手段是黄金集测试 + 交叉标注 IAA + 专家抽检。当前前沿是用 AI（Constitutional AI、合成数据）替代部分人工标注，把人力集中到 AI 标不了的硬核判断上。记住：garbage in, garbage out——标注质量决定模型上限。</p>

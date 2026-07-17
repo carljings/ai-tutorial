@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 调试手册 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 调试手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 调试手册 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 调试手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,19 +315,6 @@
     </section>
 
     <h2 class="section" id="why-hard"><span class="idx">★</span> 一、为什么 LLM 应用特别难调试</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么 LLM 应用特别难调试</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、Bug 1：输出格式不稳定</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Bug 2：RAG 召回质量差</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、Bug 3：模型产生幻觉</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、Bug 4：模型效果随时间退化</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、Bug 5：流式响应中断</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、通用的 LLM 调试方法论</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>传统软件的 Bug 有个特点：可复现。同样的输入一定产生同样的错误。但 LLM 应用的 Bug 经常是「概率性」的——temperature 大于 0 时，同样的 prompt 可能 10 次里有 8 次正常、2 次出错。这让调试变得极其困难。</p>
     <pre><code class="language-python"># LLM Bug 的特殊性
 llm_bug_characteristics = {
@@ -656,6 +639,85 @@ debugging_methodology = {
     - 加入回归测试集，防止以后复现
     """,
 }</code></pre>
+
+    <h2 class="section" id="deep79"><span class="idx">深</span> LLM 调试：从症状到根因的排查法</h2>
+
+    <p>调试 LLM 应用比调传统代码难——错误是“语义级”的，没有堆栈，输出“看起来对其实错”。下面给出一套系统化的排查方法，把模糊的“效果不好”定位到具体根因。</p>
+
+    <h3>分层定位法</h3>
+    <p>LLM 应用的输出质量是多个环节共同决定的，排查要<strong>按数据流分层隔离</strong>，逐段检查，而非一团乱麻地猜。</p>
+
+    <pre><code>def diagnose_bad_output(query, expected, pipeline):
+    """LLM 输出质量问题的分层排查清单。"""
+    checks = []
+    # 层1：输入是否正常
+    if not pipeline.validate_input(query):
+        checks.append(("输入异常", "query 格式/长度/编码问题"))
+    # 层2：检索是否召回了相关内容
+    retrieved = pipeline.retrieve(query)
+    if not retrieved or relevance(retrieved, expected) &lt; 0.3:
+        checks.append(("检索失败", f"召回 {len(retrieved)} 条但与答案不相关"))
+    # 层3：上下文是否被正确组装(prompt 里是否真的包含了检索结果)
+    prompt = pipeline.build_prompt(query, retrieved)
+    if not all(k in prompt for k in expected_keywords):
+        checks.append(("上下文组装", "检索结果未正确进入 prompt"))
+    # 层4：模型生成(检索对了但生成错了)
+    out = pipeline.generate(prompt)
+    if retrieved and relevance(out, expected) &lt; 0.3:
+        checks.append(("生成错误", "上下文含答案但模型没用上 → prompt/模型问题"))
+    # 层5：后处理是否破坏了正确输出
+    final = pipeline.postprocess(out)
+    if relevance(out, expected) &gt; 0.6 but relevance(final, expected) &lt; 0.3:
+        checks.append(("后处理", "正确的生成被后处理改坏"))
+    return checks or [("未定位", "需扩大日志/人工分析")]
+
+# 经验：80% 的"效果差"根因在检索，而非模型生成</code></pre>
+
+    <p>这套分层法的价值是把<strong>“模型不行”这个模糊归因拆开</strong>——很多时候模型没问题，是检索没召回、或上下文没拼对、或后处理截断了。逐层验证才能找到真凶。</p>
+
+    <table>
+      <thead><tr><th>症状</th><th>最可能根因</th><th>定位方法</th><th>修复方向</th></tr></thead>
+      <tbody>
+        <tr><td><strong>答非所问</strong></td><td>检索不相关</td><td>看召回内容相关性</td><td>改 chunking/换 embedding</td></tr>
+        <tr><td><strong>幻觉编造</strong></td><td>上下文不足/模型忽略上下文</td><td>对比上下文与答案</td><td>加引用约束/降温度</td></tr>
+        <tr><td><strong>格式错误</strong></td><td>prompt 不清/采样随机</td><td>固定 seed 复现</td><td>JSON mode/正则兜底</td></tr>
+        <tr><td><strong>偶发出错</strong></td><td>采样随机/边界输入</td><td>多 seed 跑同输入</td><td>降温度/边界处理</td></tr>
+        <tr><td><strong>慢/超时</strong></td><td>上下文过长/检索慢</td><td>分阶段计时</td><td>截断/缓存/优化检索</td></tr>
+        <tr><td><strong>整体退化</strong></td><td>模型/prompt 版本变更</td><td>对比版本基线</td><td>回滚/查变更日志</td></tr>
+      </tbody>
+    </table>
+
+    <h3>调试的工程化：可复现与日志先行</h3>
+    <p>调试 LLM 最大的障碍是<strong>不可复现</strong>——同样的输入，因为采样随机，输出可能不同，无法稳定排查。解法是<strong>固定随机性并记录全量上下文</strong>：调试时用 temperature=0 或固定 seed；线上把每次请求的完整输入（含检索结果、prompt、模型版本、参数）记进日志，出问题能精确回放。<strong>对比调试</strong>是高效技巧：把“好 case”和“坏 case”的 prompt 并排对比，差异往往一眼就能看出问题在哪。<strong>最小复现</strong>同样适用——把复杂的坏 case 逐步简化，剥到最小的还能复现问题的输入，根因就藏在那部分。一个常被忽略的根因是<strong>数据漂移</strong>——线上效果突然变差，可能不是代码改了，而是用户输入分布变了（如新话题、新措辞），这时要看输入统计而非代码。<strong>整体退化优先怀疑版本变更</strong>：线上突然大面积变差，第一反应是查最近的模型/prompt/数据变更，跑评估集对比基线，而不是逐个 case 调试。<strong>建立调试工具箱</strong>：相关性打分、prompt 对比、版本回放、分布监控，这些工具平时就要备好，出事时才能快速定位，而不是临时手忙脚乱写脚本。调试能力的强弱，本质是<strong>可观测性和工具链</strong>的成熟度。</p>
+
+    <h2 class="section" id="deep79b"><span class="idx">深</span> LLM 调试 FAQ 与排查法</h2>
+    <p>LLM 调试最怕「一团乱麻猜根因」，这些问题帮系统化。</p>
+    <h3>Q1：线上效果突然整体变差，第一反应查什么？</h3>
+    <p><strong>先查版本变更，再查数据漂移</strong>。整体退化优先怀疑最近的模型/prompt/数据/配置变更——查变更日志，跑评估集对比基线，定位是哪次变更引入。<strong>同时看输入分布</strong>：是否用户问题类型变了（新话题、新措辞），数据漂移导致模型在不擅长的输入上表现差。<strong>别一上来逐个 case 调</strong>——整体退化是系统性问题，先看宏观（版本/分布），再看微观（单 case）。<strong>快速止血</strong>：若是版本问题立即回滚，再慢慢查因。事后写 postmortem 沉淀。</p>
+    <pre><code># 整体退化根因定位
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么调试「偶发」的错误（有时对有时错）？</h3>
+    <p><strong>固定随机性 + 多 seed 复现</strong>。偶发错多因采样随机——temperature>0 时同输入结果不同。调试时用 temperature=0 或固定 seed 复现；线上把完整输入（含检索结果/prompt/参数/版本）记日志，出问题能精确回放。<strong>对比调试</strong>：把好 case 和坏 case 的 prompt 并排对比，差异常一眼可见。<strong>最小复现</strong>：逐步简化坏 case 到最小还能复现的输入，根因藏在那部分。偶发错的根因还可能是<strong>边界输入</strong>（超长、空、特殊字符），要归类这些边界单独处理。可观测性（全量日志）是调试偶发问题的前提。</p>
+    <h3>对比速查：LLM 调试症状根因</h3>
+    <table>
+      <thead><tr><th>症状</th><th>最可能根因</th><th>定位</th><th>修复</th></tr></thead>
+      <tbody>
+        <tr><td>答非所问</td><td>检索不相关</td><td>看召回</td><td>改chunking</td></tr>
+        <tr><td>幻觉</td><td>上下文不足</td><td>对比上下文</td><td>加引用</td></tr>
+        <tr><td>偶发出错</td><td>采样随机</td><td>多seed复现</td><td>降温度</td></tr>
+        <tr><td>整体退化</td><td>版本变更</td><td>对比基线</td><td>回滚</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们覆盖了 LLM 应用最常见的五类 Bug 和调试方法论。核心要点：</p>

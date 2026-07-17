@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学">
-<meta property="og:description" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="what-is-deep-research"><span class="idx">★</span> 深度研究与普通问答的本质区别</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>深度研究与普通问答的本质区别</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>完整架构:五个核心模块</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>任务规划器:把大问题拆成可搜索的小问题</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>搜索与抽取:把网页变成结构化要点</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>综合与报告:从要点到论述</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>引用与溯源:可信度的基石</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>迭代深化:让研究越做越深</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>串联成完整系统</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>普通问答(包括 RAG)的模式是"一次检索 + 一次生成":用户提问,系统检索几条相关文档,LLM 基于这些文档回答。它适合"事实性问题"——比如"法国首都是哪里"。但研究型问题远比这复杂,它们有几个本质特征。</p>
     <p><strong>问题宽泛且开放</strong>。"新能源汽车行业现状"这类问题没有唯一答案,需要从多个维度(市场、技术、政策、竞争)分别调研。<strong>需要多轮检索</strong>。第一轮搜索后,你才会发现需要更深入的子问题(如"固态电池进展"),触发第二轮搜索,如此迭代。<strong>需要综合多方信息</strong>。单一来源往往片面或有偏见,好的研究要交叉验证多个来源。<strong>需要引用溯源</strong>。研究的可信度建立在引用之上,每个论断都应能追溯到具体来源。</p>
     <p>深度研究 Agent 正是为满足这些特征设计的。它把研究流程拆解成多个步骤,由 Agent 自主规划、迭代、综合,最终产出一份结构化、有引用的报告。这个过程模拟了人类研究员的工作方式,但速度和广度远超人类。</p>
@@ -501,6 +484,116 @@ print(report)
     <p><strong>来源质量参差</strong>。SEO 垃圾、AI 生成的低质内容会污染研究。对策是来源白名单(优先权威媒体、学术、官方)、黑名单(已知低质域名),以及让抽取器评估来源可信度并加权。</p>
     <p><strong>信息时效性</strong>。研究常涉及最新进展,过时的信息会误导。对策是搜索时限定时间范围(如最近一年),并在报告里标注信息的时间。</p>
     <p><strong>成本控制</strong>。多轮搜索 + 多次综合,token 消耗会迅速膨胀。对策是分层处理(先用便宜模型抽取,用强模型综合)、缓存(相同查询不重复搜索)、以及合理的迭代轮数上限。</p>
+    
+    <h2 class="section"><span class="idx"></span>深度研究 agent 的质量评估体系</h2>
+    <p>深度研究 agent（deep research）能自动完成"查资料-分析-写报告"的长流程，产出看似专业的报告。但"看起来像研究报告"不等于"内容可靠"——这类 agent 最大的风险是<strong>幻觉式研究</strong>：引用了不存在的文献、编造了数据、把无关信息拼凑成看似相关的结论。建立一套质量评估体系，是深度研究 agent 从 demo 走向可信生产的关键。</p>
+<p>评估维度分四层。<strong>事实层</strong>：报告里的每个事实断言是否可溯源（引用的真实文献是否支持该断言）、数据是否真实（统计数字是否编造）。这是最硬的指标，靠引用核查和事实校验。<strong>逻辑层</strong>：论证是否自洽（结论是否真的从前提推出）、推理链是否完整（有没有跳步）。<strong>覆盖层</strong>：是否覆盖了问题的各个方面（有没有遗漏关键视角）、是否呈现了主要争议（而不是单方面片面）。<strong>表达层</strong>：结构是否清晰、语言是否准确。</p>
+<p>评估方法上，事实层靠自动化核查（把每个引用拿去原文比对），逻辑层和覆盖层靠 LLM-as-judge（用强模型评估论证质量），表达层靠规则和人工抽检。最关键的是<strong>"引用可溯源率"</strong>这个硬指标——报告里声称的引用，多少能追溯到真实支持原文。这个指标低（&lt;70%）的深度研究 agent 不可信，无论报告看起来多专业。</p>
+<table class="data-table"><thead><tr><th>评估维度</th><th>检查对象</th><th>方法</th><th>可信门槛</th></tr></thead><tbody>
+<tr><td>事实层</td><td>断言是否真实可溯源</td><td>引用核查</td><td>溯源率 ≥ 90%</td></tr>
+<tr><td>数据层</td><td>数字是否编造</td><td>源头比对</td><td>0 编造</td></tr>
+<tr><td>逻辑层</td><td>论证是否自洽</td><td>LLM judge</td><td>自洽分 ≥ 0.85</td></tr>
+<tr><td>覆盖层</td><td>视角是否全面</td><td>LLM judge</td><td>覆盖度 ≥ 0.8</td></tr>
+<tr><td>表达层</td><td>结构清晰度</td><td>规则+抽检</td><td>结构分 ≥ 0.85</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 深度研究报告质量评估器
+import json, re
+from anthropic import Anthropic
+
+class ResearchReportEvaluator:
+    def __init__(self):
+        self.client = Anthropic()
+
+    def evaluate(self, report, citations):
+        report = {"facts":{}, "logic":0, "coverage":0, "expression":0}
+        # 1. 事实层：每个引用是否可溯源
+        report["facts"] = self._verify_citations(report, citations)
+        traceability = (sum(1 for v in report["facts"].values() if v) /
+                        len(report["facts"]) if report["facts"] else 0)
+        # 2. 逻辑 + 覆盖：LLM judge
+        report["logic"] = self._judge(report, rubric="论证是否自洽、结论是否由前提推出")
+        report["coverage"] = self._judge(report, rubric="是否覆盖主要视角和争议")
+        # 3. 综合可信度
+        credibility = (0.4*traceability + 0.25*report["logic"]
+                       + 0.25*report["coverage"] + 0.1*report["expression"])
+        status = "可信" if traceability >= 0.9 and report["logic"] >= 0.85 else "存疑"
+        return {"scores":report, "traceability":traceability,
+                "credibility":credibility, "status":status}
+
+    def _verify_citations(self, report, citations):
+        """核查每个引用：报告里的断言，原文是否真的支持"""
+        results = {}
+        for cite in citations:
+            # 取报告中断言 + 对应原文，判断原文是否支持断言
+            claim = cite["claim"]
+            source_text = fetch_source(cite["url"])
+            if not source_text:
+                results[cite["id"]] = False   # 找不到原文 = 不可溯源
+                continue
+            prompt = f"""断言：{claim}
+原文：{source_text[:2000]}
+原文是否支持该断言？只回 支持/不支持/无关。"""
+            verdict = self.client.messages.create(
+                model="claude-sonnet-4-5", max_tokens=20,
+                messages=[{"role":"user","content":prompt}]).content[0].text
+            results[cite["id"]] = "支持" in verdict
+        return results
+# 引用溯源率 < 90% → 报告不可信，无论多专业</code></pre>
+
+    <h2 class="section"><span class="idx"></span>深度研究的成本控制与渐进式深化</h2>
+    <p>深度研究 agent 的另一个工程难题是<strong>成本失控</strong>。一个"深度"研究可能调几十次搜索、读上百篇文档、生成几万字报告——单次研究的 token 消耗和 API 费用可能高达几美元甚至几十美元。不控制成本，这种 agent 无法规模化使用。关键是在"深度"和"成本"间找到平衡。</p>
+<p>成本控制的核心策略是<strong>"渐进式深化"</strong>。不要一开始就做最深度的研究，而是分级别：先用低成本快速研究（少量搜索+简短报告）给出初步结果，让用户判断是否值得深入；用户确认后再升级到中级研究（更多搜索+结构化分析）；只有明确需要时才上深度研究（全面搜索+多轮分析+长报告）。这样把昂贵的深度研究用在真正需要的场景，简单问题用便宜模式就够。</p>
+<p>另一个控制点是<strong>"研究预算"</strong>。给每次研究设定明确的资源上限——最多搜几次、读几篇、生成多少字、花多少钱。到了上限就收敛收尾，避免无限深挖。预算的设定可以基于任务重要性（关键决策给高预算，随手一问给低预算）和用户付费意愿。还要做<strong>"研究去重"</strong>——相似的研究请求复用历史结果缓存，避免重复花同样的钱查同样的东西。</p>
+<table class="data-table"><thead><tr><th>研究级别</th><th>搜索次数</th><th>报告长度</th><th>典型成本</th><th>适合场景</th></tr></thead><tbody>
+<tr><td>快速</td><td>3-5</td><td>500 字摘要</td><td>$0.05</td><td>随手一问</td></tr>
+<tr><td>标准</td><td>10-15</td><td>1500 字结构化</td><td>$0.3</td><td>日常工作</td></tr>
+<tr><td>深度</td><td>30-50</td><td>5000 字报告</td><td>$2</td><td>关键决策</td></tr>
+<tr><td>旗舰</td><td>100+</td><td>万字+引用</td><td>$10+</td><td>战略调研</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 渐进式深化 + 预算控制
+class TieredDeepResearch:
+    TIERS = {
+        "quick":   {"searches":5,  "max_words":500,  "cost_cap":0.05},
+        "standard":{"searches":15, "max_words":1500, "cost_cap":0.3},
+        "deep":    {"searches":50, "max_words":5000, "cost_cap":2.0},
+        "flagship":{"searches":120,"max_words":12000,"cost_cap":10.0},
+    }
+    def __init__(self, agent):
+        self.agent = agent
+        self.cost_tracker = {}
+
+    def research(self, question, tier="auto"):
+        if tier == "auto":
+            # 自动选级：基于问题复杂度
+            tier = self._estimate_tier(question)
+        budget = self.TIERS[tier]
+        # 先跑 quick 给用户预览
+        if tier != "quick":
+            preview = self._run(question, self.TIERS["quick"])
+            print(f"初步研究：{preview[:200]}...")
+            # 用户可决定是否升级（这里简化为自动按选定 tier 继续）
+        # 正式研究（带预算上限）
+        result = self._run(question, budget)
+        return {"tier":tier, "report":result, "budget":budget}
+
+    def _run(self, question, budget):
+        searches_done = 0
+        cost = 0
+        findings = []
+        while (searches_done < budget["searches"] and cost < budget["cost_cap"]):
+            query = self.agent.generate_search_query(question, findings)
+            results = web_search(query)
+            searches_done += 1
+            cost += 0.01   # 每次搜索成本
+            findings.extend(self.agent.extract(results))
+        # 控制报告长度
+        report = self.agent.write_report(question, findings, max_words=budget["max_words"])
+        return report
+
+    def _estimate_tier(self, q):
+        if len(q) < 20: return "quick"
+        if any(w in q for w in ["对比","综述","深度","全面"]): return "deep"
+        return "standard"</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>深度研究 Agent 把研究流程自动化,由规划器、搜索器、抽取器、综合器、报告生成器五个模块协同完成,并通过迭代不断深化研究。它与普通问答的本质区别在于:多轮迭代搜索、多方信息综合、严格引用溯源。</p>
     <p>我们给出了完整架构和可运行的代码骨架,涵盖任务拆解、搜索抽取、分层综合、引用标注、迭代深化。核心难点在信息质量把控(防幻觉、筛来源)和长上下文处理(分层综合)。</p>

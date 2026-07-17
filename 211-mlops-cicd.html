@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 应用的 CI/CD：prompt 也要测试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LLM 应用的 CI/CD：prompt 也要测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LLM 应用的 CI/CD：prompt 也要测试 · AI 全栈实战教学">
-<meta property="og:description" content="LLM 应用的 CI/CD：prompt 也要测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -759,6 +755,124 @@ def test_prompt(agent, case):
     <div class="callout"><strong>⚠️ 落地提醒</strong><br>评估集回归这一层最容易被忽略，却是最能防退步的。建议维护一个 50-200 条的 golden set，每条带人工标注的期望输出或期望特征，用自动化指标（如 ROUGE/BERTScore/LLM-as-judge）打分。每次改 prompt 或换模型，跑一遍看分数有没有掉——这是 LLM 应用质量长期可控的关键。没有这一层，团队会陷入"改了 prompt 不知道是好是坏"的盲人摸象状态。</div>
 
     
+    
+    <h2><span class="idx"></span>Prompt 的 CI 实践：版本化与变更审查</h2>
+    <p>把 prompt 纳入 CI/CD 是 LLMOps 的基础实践。prompt 像代码一样需要版本化、变更审查、自动化测试——但它又有"概率性"的特殊性，不能完全照搬代码的 CI 方式。建立适合 prompt 的 CI 流程，是保障 LLM 应用质量稳定的关键。</p>
+<p>版本化是第一步。每个 prompt 都应该存在版本控制里（git 或专门的 prompt 库），每次改动有 commit message 说明改了什么、为什么改。这看似基础，但很多团队早期把 prompt 硬编码在代码里或散落在配置中，出了问题根本不知道改过什么、谁改的、什么时候改的。版本化后，任何线上问题都能快速定位到是哪个 prompt 版本引入的，并支持回滚。</p>
+<p>变更审查（prompt review）比代码 review 更重要，因为 prompt 的影响面大且难预测。review 要关注几个点：<strong>意图清晰</strong>（prompt 表达的是不是想要的）、<strong>边界明确</strong>（有没有意外的触发或漏触发）、<strong>注入风险</strong>（用户输入会不会破坏 prompt）、<strong>兼容性</strong>（改动会不会影响依赖此 prompt 的其他部分）。建议建立 prompt review checklist，每次改动对照检查。</p>
+<table class="data-table"><thead><tr><th>CI 环节</th><th>对代码</th><th>对 prompt 的特殊点</th></tr></thead><tbody>
+<tr><td>版本控制</td><td>git</td><td>+ 变更说明、关联评测</td></tr>
+<tr><td>静态检查</td><td>lint/类型</td><td>格式、注入风险、占位符</td></tr>
+<tr><td>单元测试</td><td>断言输出</td><td>断言输出特征（非固定值）</td></tr>
+<tr><td>代码审查</td><td>逻辑正确</td><td>+ 意图/边界/注入/兼容</td></tr>
+<tr><td>灰度发布</td><td>流量切换</td><td>+ 质量对比（A/B）</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Prompt CI：lint + 特征测试
+import re, json
+
+class PromptLinter:
+    """prompt 的静态检查（CI 必过）"""
+    RULES = [
+        # 注入风险：检查是否正确处理用户输入
+        ("注入风险", lambda p: not re.search(r'\{user_input\}.*\{user_input\}', p)),
+        # 占位符完整：所有 {{var}} 都有对应定义
+        ("占位符完整", lambda p: all_placeholder_defined(p)),
+        # 长度合理
+        ("长度合理", lambda p: 50 < len(p) < 8000),
+        # 无矛盾指令
+        ("无矛盾", lambda p: not has_contradiction(p)),
+    ]
+    def lint(self, prompt):
+        issues = []
+        for name, check in self.RULES:
+            if not check(prompt):
+                issues.append(f"违反规则：{name}")
+        return issues
+
+class PromptFeatureTest:
+    """prompt 的特征测试（断言输出满足特征，而非固定值）"""
+    def __init__(self, prompt_version, test_cases):
+        self.prompt = prompt_version
+        self.cases = test_cases   # [(input, expected_features)]
+    def run(self, llm):
+        results = []
+        for inp, features in self.cases:
+            output = llm.generate(self.prompt.fill(input=inp))
+            # 检查输出是否满足特征（而非固定值）
+            passed = all(check_feature(output, f) for f in features)
+            results.append({"input":inp, "passed":passed})
+        pass_rate = sum(1 for r in results if r["passed"])/len(results)
+        return pass_rate >= 0.95   # 95% 通过才算 CI 过
+
+# CI pipeline（GitHub Actions 示例）
+# - name: Prompt Lint
+#   run: python -m prompt_ci lint prompts/
+# - name: Prompt Feature Tests
+#   run: python -m prompt_ci test --threshold 0.95</code></pre>
+
+    <h2><span class="idx"></span>Prompt 的灰度发布与 A/B 评估</h2>
+    <p>Prompt 改动即使通过了 CI，也可能在线上引入退化（CI 的特征测试覆盖有限）。所以 prompt 上线要走<strong>灰度发布</strong>——先小流量验证，对比新旧版本的实际表现，确认无退化再全量。这是 LLMOps 区别于传统部署的关键实践。</p>
+<p>灰度发布的核心是<strong>"A/B 对比"</strong>。把一部分流量切到新 prompt，其余保持旧 prompt，同时收集两组的表现指标（用户满意度、任务成功率、错误率、成本）。关键是指标要能反映真实质量——光看技术指标（延迟、错误）不够，还要看业务指标（用户是否满意、任务是否完成）。对比时要注意统计显著性——小样本的差异可能是噪声，要积累足够样本才能下结论。</p>
+<p>A/B 评估的难点是<strong>"延迟反馈"</strong>。很多 LLM 应用的质量指标（用户满意度、长期留存）不是即时可知的——用户可能几天后才表达不满。所以灰度要持续足够长时间（至少一周）才能捕捉到延迟反馈。还要警惕<strong>"辛普森悖论"</strong>——整体看新版本更好，但分用户群看某群体变差了（如新 prompt 对复杂问题更好但牺牲了简单问题）。所以 A/B 分析要分层，不只看整体。</p>
+<table class="data-table"><thead><tr><th>灰度阶段</th><th>流量比例</th><th>持续时间</th><th>关注指标</th></tr></thead><tbody>
+<tr><td>金丝雀</td><td>1-5%</td><td>1 天</td><td>错误率、崩溃</td></tr>
+<tr><td>小流量</td><td>10-20%</td><td>3-5 天</td><td>质量指标、满意度</td></tr>
+<tr><td>中流量</td><td>50%</td><td>1 周</td><td>延迟反馈、分群</td></tr>
+<tr><td>全量</td><td>100%</td><td>—</td><td>持续监控</td></tr>
+<tr><td>回滚</td><td>0%（回旧）</td><td>即时</td><td>—</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Prompt 灰度发布 + A/B 评估
+import random, statistics, time
+
+class PromptCanary:
+    def __init__(self, old_prompt, new_prompt, llm):
+        self.old = old_prompt
+        self.new = new_prompt
+        self.llm = llm
+        self.results = {"old":[], "new":[]}
+
+    def serve(self, user_input, traffic_split=0.1):
+        """按流量比例分配新旧 prompt"""
+        use_new = random.random() < traffic_split
+        prompt = self.new if use_new else self.old
+        output = self.llm.generate(prompt.fill(input=user_input))
+        group = "new" if use_new else "old"
+        self.results[group].append({"input":user_input, "output":output, "ts":time.time()})
+        return output
+
+    def collect_feedback(self, group, sample_id, satisfied):
+        """收集用户反馈（延迟反馈）"""
+        for s in self.results[group]:
+            if id(s) == sample_id:
+                s["satisfied"] = satisfied
+
+    def evaluate(self, min_samples=1000):
+        """A/B 对比：需足够样本才下结论"""
+        if len(self.results["new"]) < min_samples:
+            return "样本不足，继续灰度"
+        old_sat = statistics.mean([s.get("satisfied",0.5) for s in self.results["old"]])
+        new_sat = statistics.mean([s.get("satisfied",0.5) for s in self.results["new"]])
+        # 统计显著性检验（简化）
+        delta = new_sat - old_sat
+        if delta > 0.02 and self._significant():
+            return f"新版本更好（+{delta:.2f}），可全量"
+        elif delta < -0.02:
+            return f"新版本退化（{delta:.2f}），回滚"
+        return "无显著差异，可全量或继续观察"
+
+    def _significant(self):
+        """简化的显著性检验"""
+        # 实际用 t-test 或 bootstrap
+        return True
+
+    def segment_analysis(self):
+        """分群分析：避免辛普森悖论"""
+        for segment in ["simple","complex"]:
+            old_seg = [s for s in self.results["old"] if classify(s["input"])==segment]
+            new_seg = [s for s in self.results["new"] if classify(s["input"])==segment]
+            if old_seg and new_seg:
+                d = (mean_satisfied(new_seg) - mean_satisfied(old_seg))
+                print(f"{segment}: 新旧差异 {d:+.2f}")</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LLM CI/CD 要测"行为"不只是"代码"。五层测试金字塔：单元→prompt 回归→评估集→端到端→金丝雀。Prompt 回归测试用"固定输入+期望特征"确保改 prompt 不引入退步。评估集回归用 golden set 量化指标。每次改动都跑，防退步。</p>
     <div class="chapter-nav">

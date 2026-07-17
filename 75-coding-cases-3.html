@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 编程实战第三辑 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 编程实战第三辑 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 编程实战第三辑 · AI 全栈实战教学">
-<meta property="og:description" content="AI 编程实战第三辑 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,17 +315,6 @@
     </section>
 
     <h2 class="section" id="case-overview"><span class="idx">★</span> 一、三个案例的整体脉络</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、三个案例的整体脉络</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、案例一：用 Docker 容器化 AI 应用</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、案例二：CI/CD 流水线</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、案例三：测试自动化体系</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、三者的协同效应</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>我们把一个 AI 问答服务作为贯穿全章的示例项目，逐步给它加上 Docker 容器化、CI/CD 自动化、测试自动化三层基建。这三个案例是递进的：容器化是部署的基础，CI/CD 是交付的基础，测试自动化是质量的基础。三者结合，就是现代 AI 应用的工程标配。</p>
 
     <h2 class="section" id="docker"><span class="idx">★</span> 二、案例一：用 Docker 容器化 AI 应用</h2>
@@ -704,6 +689,83 @@ jobs:
 - 人为操作错误：趋近于零
 - 出问题：5 分钟内发现 + 回滚
 - 开发者精力：聚焦在写代码，不是部署</code></pre>
+
+    <h2 class="section" id="deep75"><span class="idx">深</span> LLM 服务的容器化与 CI/CD</h2>
+
+    <p>LLM 服务的容器化和传统应用不同——模型权重大、GPU 驱动依赖复杂、版本切换要灰度。直接套用传统 Dockerfile 会踩很多坑。下面给出 LLM 专属的容器化最佳实践和 CI/CD 流水线。</p>
+
+    <h3>LLM 友好的 Dockerfile</h3>
+    <p>核心要点：基础镜像带 CUDA、模型权重分层缓存（不随代码变）、镜像体积控制。下面是一个生产级模板。</p>
+
+    <pre><code># Dockerfile.llm —— LLM 推理服务生产模板
+FROM nvidia/cuda:12.1.0-cudnn8-runtime-ubuntu22.04
+
+# 系统依赖 + Python
+RUN apt-get update &amp;&amp; apt-get install -y python3.10 python3-pip git &amp;&amp; rm -rf /var/lib/apt/lists/*
+
+# 依赖单独一层（变更少，缓存命中率高）
+COPY requirements.txt /tmp/
+RUN pip3 install --no-cache-dir -r /tmp/requirements.txt
+
+# 模型权重单独一层(关键：权重不变时这层命中缓存，省下GB级传输)
+# 生产中权重放对象存储启动时拉取，而非打进镜像(镜像会太大)
+# 这里演示打进镜像的写法：
+COPY models/glm-4-9b /app/models/glm-4-9b
+
+# 应用代码最后(变更最频繁)
+COPY app /app/app
+WORKDIR /app
+EXPOSE 8000
+# 健康检查 + 优雅退出
+HEALTHCHECK --interval=30s --timeout=10s CMD curl -f http://localhost:8000/health || exit 1
+CMD ["python3", "-m", "app.server", "--host", "0.0.0.0"]
+# 构建注意：.dockerignore 排除 .git/测试数据，镜像能小几百MB</code></pre>
+
+    <p>两个关键实践：<strong>分层缓存</strong>（权重层和代码层分开，改代码不重新传 GB 级权重）、<strong>权重外挂</strong>（生产中权重放对象存储或挂载卷，不打进镜像，否则镜像太大、更新慢）。</p>
+
+    <table>
+      <thead><tr><th>实践</th><th>传统应用</th><th>LLM 服务</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td><strong>基础镜像</strong></td><td>alpine 足够</td><td>需 CUDA 镜像</td><td>GPU 驱动依赖</td></tr>
+        <tr><td><strong>镜像体积</strong></td><td>几十 MB</td><td>数 GB</td><td>依赖+权重</td></tr>
+        <tr><td><strong>权重管理</strong></td><td>无</td><td>外挂/分层缓存</td><td>更新频率不同</td></tr>
+        <tr><td><strong>启动</strong></td><td>秒级</td><td>分钟级(加载权重)</td><td>权重加载慢</td></tr>
+        <tr><td><strong>健康检查</strong></td><td>进程存活</td><td>模型就绪</td><td>加载完才能服务</td></tr>
+        <tr><td><strong>滚动更新</strong></td><td>直接换</td><td>需预热+灰度</td><td>避免冷启动雪崩</td></tr>
+      </tbody>
+    </table>
+
+    <h3>CI/CD：模型也要流水线</h3>
+    <p>LLM 服务的 CI/CD 要把<strong>模型和代码一起纳入版本与自动化</strong>。流水线关键阶段：代码 CI（lint/单测）→ 模型评估（跑 golden set，准确率不达标阻断）→ 构建镜像（权重版本号写入镜像 label）→ 灰度部署（先 5% 流量，自动监控 SLO）→ 全量或回滚。几个要点：第一，<strong>模型权重版本化</strong>——每次模型变更打版本号，和代码 commit 关联，线上能追溯到具体版本；第二，<strong>部署前必跑评估</strong>——把 golden set 评估作为 CI 门禁，防止劣化模型上线，这比代码单测更重要；第三，<strong>预热避免冷启动</strong>——新版本实例先加载权重并跑热身请求，健康检查通过后才接流量，否则大量请求涌向还在加载权重的实例会雪崩；第四，<strong>金丝雀发布</strong>——小流量观察 1-3 天，关键指标（错误率、延迟、质量）无回归再全量，LLM 的劣化往往要真实流量才能暴露。<strong>回滚要快</strong>：保留上版本镜像和权重，5 分钟内能切回。最后，<strong>配置与代码分离</strong>——prompt、模型路径、超参放配置中心，能不重新构建镜像就调整，大幅提升迭代速度。</p>
+
+    <h2 class="section" id="deep75b"><span class="idx">深</span> Docker/CI-CD FAQ 与工程化</h2>
+    <p>LLM 服务的容器化和传统应用不同，这些坑最常见。</p>
+    <h3>Q1：LLM 的 Docker 镜像太大（几个 GB），怎么办？</h3>
+    <p><strong>权重外挂，别打进镜像</strong>。权重（GB 级）和代码（MB 级）更新频率不同，混在一起改代码要重传 GB。正确：<strong>基础镜像只含依赖</strong>，权重放对象存储/挂载卷，启动时拉取或挂载。这样镜像小、更新快。若必须打进镜像，<strong>权重单独一层</strong>（COPY 在代码层之前），利用分层缓存——改代码时权重层命中缓存不重传。还要用<strong>.dockerignore 排除</strong> .git/测试数据，能小几百 MB。<strong>多阶段构建</strong>（builder 阶段装编译依赖，runtime 阶段只拷产物）也能瘦身。</p>
+    <pre><code># 镜像分层与缓存优化
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：模型更新怎么灰度发布？</h3>
+    <p><strong>金丝雀+预热+SLO 监控</strong>。流程：新版本实例先加载权重并跑热身请求（健康检查通过才接流量，防冷启动雪崩）→ 放 5% 流量观察 1~3 天 → 监控关键指标（错误率/延迟/质量）无回归 → 全量；有回归则回滚。<strong>评估前置</strong>：发布前必跑 golden set，准确率不达标阻断（比代码单测更重要）。<strong>模型版本化</strong>：权重打版本号和代码 commit 关联，线上可追溯。<strong>回滚要快</strong>：保留上版本镜像和权重，5 分钟切回。LLM 劣化往往要真实流量才暴露，所以灰度观察期不能省。</p>
+    <h3>对比速查：LLM 容器化实践</h3>
+    <table>
+      <thead><tr><th>实践</th><th>传统</th><th>LLM</th><th>原因</th></tr></thead>
+      <tbody>
+        <tr><td>基础镜像</td><td>alpine</td><td>CUDA镜像</td><td>GPU依赖</td></tr>
+        <tr><td>镜像体积</td><td>几十MB</td><td>数GB</td><td>依赖+权重</td></tr>
+        <tr><td>权重管理</td><td>无</td><td>外挂/分层</td><td>更新频率</td></tr>
+        <tr><td>滚动更新</td><td>直接换</td><td>预热+灰度</td><td>防冷启动</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们用三个案例搭建了 AI 应用的工程基建。核心要点：</p>

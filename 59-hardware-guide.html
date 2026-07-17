@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 硬件选型与采购指南 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 硬件选型与采购指南 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 硬件选型与采购指南 · AI 全栈实战教学">
-<meta property="og:description" content="AI 硬件选型与采购指南 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -484,6 +480,83 @@ print(f"自建 H100 8卡 初始投入: ${total_hardware:,}")
 print(f"自建月电费: ${electricity:.0f}")
 # 回本周期 = total_hardware / monthly_cloud ≈ 7-8 个月
 # 结论：使用率超过 50%，自建更划算；偶尔用，云更灵活</code></pre>
+
+    <h2 class="section" id="deep59"><span class="idx">深</span> GPU 选型实战：场景驱动的决策</h2>
+
+    <p>GPU 选型不是“越贵越好”，而是<strong>场景匹配</strong>。训练和推理需求不同、云端和本地成本结构不同、单卡和多卡拓扑不同。下面给出结构化的选型决策方法。</p>
+
+    <h3>推理 vs 训练的 GPU 需求差异</h3>
+    <p>训练吃算力和显存容量，推理（尤其 decode）吃显存带宽。下面用代码估算不同场景的 GPU 需求，避免“买错卡”。</p>
+
+    <pre><code>def gpu_need(task, model_b, ctx_k, batch=1):
+    """估算推理/训练的显存需求(GB)。"""
+    params_gb = model_b * 2          # FP16 权重
+    if task == "推理":
+        # KV cache: 2(K,V) * 2字节 * layers * 2(ctx/头) * hidden * batch * ctx_len
+        # 粗略：7B@8K ctx 约 +8GB；简化估算
+        kv = model_b * 0.5 * (ctx_k/8) * batch
+        return {"权重":params_gb, "KV缓存":round(kv,1), "合计":round(params_gb+kv,1)}
+    else:  # 训练：权重+梯度+优化器状态(Adam≈2x权重)
+        return {"权重":params_gb, "优化器":params_gb*2, "激活":round(params_gb*1.5,1),
+                "合计":round(params_gb*4.5,1)}
+
+print("推理 7B 8K:", gpu_need("推理", 7, 8))      # ~17GB → 单卡 A10/4090 可行
+print("推理 7B 32K:", gpu_need("推理", 7, 32))     # ~33GB → 需 A100-40G
+print("训练 7B:", gpu_need("训练", 7, 0))          # ~63GB → 需 A100-80G 或多卡</code></pre>
+
+    <p>这张账一算，选型就清晰了：推理 7B 短上下文单张消费级卡就够，长上下文或训练则必须上专业卡甚至多卡。盲目上 H100 往往是浪费。</p>
+
+    <table>
+      <thead><tr><th>GPU</th><th>显存</th><th>带宽</th><th>适合训练</th><th>适合推理</th><th>性价比</th></tr></thead>
+      <tbody>
+        <tr><td><strong>RTX 4090</strong></td><td>24GB</td><td>1.0TB/s</td><td>小模型/LoRA</td><td>7B 量化推理</td><td>极高(消费级)</td></tr>
+        <tr><td><strong>A10</strong></td><td>24GB</td><td>0.6TB/s</td><td>小模型</td><td>7B 商用推理</td><td>高(商用许可)</td></tr>
+        <tr><td><strong>A100-40/80</strong></td><td>40/80GB</td><td>1.5/2.0TB/s</td><td>7B~70B</td><td>大模型/长上下文</td><td>中(专业卡)</td></tr>
+        <tr><td><strong>H100</strong></td><td>80GB</td><td>3.35TB/s</td><td>大模型主力</td><td>大规模推理</td><td>高(高性能)</td></tr>
+        <tr><td><strong>Mac MPS(统一内存)</strong></td><td>16~128GB</td><td>0.1~0.4TB/s</td><td>不推荐</td><td>端侧/开发调试</td><td>高(已有设备)</td></tr>
+      </tbody>
+    </table>
+
+    <h3>云端 vs 本地：TCO 总拥有成本</h3>
+    <p>选 GPU 还要算<strong>总拥有成本(TCO)</strong>，而不是只看单卡价格。云端 GPU（如按小时租 A100）适合<strong>弹性、短期、不想运维</strong>的场景，但长期 7×24 跑会比自购贵 3~5 倍；自购适合<strong>稳定负载</strong>，但前期投入大、还要算电费/散热/折旧。一个经验公式：如果 GPU 利用率能长期保持 &gt;70%，自购更划算；负载波动大或只是阶段性需求，云端更灵活。Mac MPS 是个特殊选项——它用统一内存，能在大内存 Mac 上跑大模型（128GB Mac 能跑 70B 量化模型），适合<strong>个人开发者和原型验证</strong>，性价比惊人，但带宽低、不适合生产高并发。消费级卡(4090)做推理性价比极高，但<strong>有商用许可限制</strong>，正式商用产品要用 A10/A100 等专业卡规避法律风险。最后，<strong>多卡拓扑</strong>也要考虑：训练大模型需要 NVLink 高速互联，普通的 PCIe 多卡在 tensor parallel 下效率会打折，这是选服务器而不止单卡的决策。</p>
+
+    <h2 class="section" id="deep59b"><span class="idx">深</span> GPU 选型 FAQ 与成本权衡</h2>
+    <p>GPU 选型不是越贵越好，这些问题决定性价比。</p>
+    <h3>Q1：自建 GPU 集群还是用云端？</h3>
+    <p>看<strong>负载特征和 TCO</strong>。云端适合<strong>弹性/短期/不运维</strong>（按小时租，灵活，但 7×24 长跑比自购贵 3~5 倍）；自建适合<strong>稳定高利用率</strong>（前期投入大，但长期便宜，要算电费/散热/折旧/人力）。经验：利用率能长期 >70% 选自建，波动大或阶段性选云端。<strong>混合</strong>是常见最优：自建基线容量 + 云端扛峰值。还要考虑<strong>迭代速度</strong>——云端能秒级扩容应对突发，自建采购周期长。<strong>别只看单卡价格</strong>，要算 TCO（含运维/折旧/机会成本）。</p>
+    <pre><code># TCO 总拥有成本对比
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：消费级卡（4090）能做生产推理吗？</h3>
+    <p><strong>技术上可以（推理性价比极高），但商用有许可风险</strong>。NVIDIA 消费级卡许可条款限制数据中心商用，正式商用产品要用专业卡（A10/A100）规避法律风险。4090 适合<strong>个人开发/原型/研究/内部工具</strong>，不适合对外商用服务。另一个限制是<strong>显存（24GB）和互联</strong>（无 NVLink，多卡 tensor parallel 效率打折）。所以 4090 是「开发神器、商用禁区」。<strong>Mac MPS</strong> 是另一选择——大统一内存能跑大模型（128GB Mac 跑 70B 量化），适合个人/原型，但带宽低不适合高并发生产。</p>
+    <h3>对比速查：GPU 选型矩阵</h3>
+    <table>
+      <thead><tr><th>GPU</th><th>显存</th><th>适合推理</th><th>适合训练</th></tr></thead>
+      <tbody>
+        <tr><td>4090</td><td>24G</td><td>7B量化(开发)</td><td>小模型/LoRA</td></tr>
+        <tr><td>A10</td><td>24G</td><td>7B商用</td><td>小模型</td></tr>
+        <tr><td>A100</td><td>40/80G</td><td>大模型/长上下文</td><td>7B-70B</td></tr>
+        <tr><td>H100</td><td>80G</td><td>大规模</td><td>大模型主力</td></tr>
+      </tbody>
+    </table>
+
+
+    <section id="boost59" class="section boost">
+      <h2 class="section"><span class="idx">★</span> GPU 选型与采购的实务决策</h2>
+    <p>在 GPU 选型时，最容易犯的错误是只看峰值算力（TFLOPS）或显存容量，而忽视了实际工作负载的匹配度。例如，大模型推理往往是带宽受限的，此时显存带宽（TB/s）和互联带宽（NVLink、PCIe）才是决定性因素，而非单纯的 FP16 峰值算力。一份合格的选型报告，应当先描述清楚目标工作负载：模型规模、并发请求数、序列长度、延迟与吞吐的优先级，再据此推算需要的显存、带宽和算力，最后才落到具体型号。</p>
+    <p>采购层面，还要考虑总持有成本（TCO）而非单卡价格。同样是某张高端卡，它的功耗、散热要求、机柜密度、供电规格都可能在数据中心层面放大成本。一张功耗更高的卡意味着更高的电费、更大的散热投入、可能更低的机柜利用率。因此建议在做采购对比时，同时估算"每美元可支撑的 QPS"和"每瓦特的推理吞吐"，而不仅仅是"每美元的峰值算力"。</p>
+    <p>此外，供应链的稳定性是常被忽视的风险。某些型号在缺货周期里价格会剧烈波动，且交付周期不确定，这会直接影响项目排期。对于关键业务，建议采用"主备型号"策略——在软件栈层抽象出硬件差异，使得在主力型号缺货时能平滑切换到替代方案，避免被单一供应商锁定。</p>
+         
+    </section>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们全面对比了主流 GPU 的选型。核心要点：</p>

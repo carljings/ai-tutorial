@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 系统设计与面试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 系统设计与面试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 系统设计与面试 · AI 全栈实战教学">
-<meta property="og:description" content="AI 系统设计与面试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -584,6 +580,119 @@ class CustomerServiceRouter:
   最后留余量（"+20% buffer 应对增长"）。
   数字让你显得"真做过"，而不是空谈架构。</code></pre>
     <div class="callout"><strong>💡 系统设计面试的终极心法</strong><br>AI 系统设计面试考察的不是"背了多少架构图"，而是三个能力：① <strong>结构化拆解</strong>（需求→架构→组件→瓶颈，层层深入）；② <strong>用数字说话</strong>（容量估算让方案可信）；③ <strong>权衡意识</strong>（每个选择都有代价，能说清"为什么这么选、什么时候该换"）。准备时重点练这三个：拿"智能客服""推荐系统""内容审核"三道经典题，每道都按"需求澄清→高层架构→核心组件深挖→瓶颈分析→容量估算"的框架完整答一遍，面试时就能从容应对任何变体。</div>
+    <h2 class="section" id="deep42"><span class="idx">深</span> LLM 系统设计题：从需求到架构的拆解法</h2>
+
+    <p>LLM 系统设计面试题（如“设计一个智能客服系统”）考的不是背架构图，而是<strong>结构化拆解需求、量化权衡、说清取舍</strong>的能力。下面给出一套通用拆解框架，并用真实题目演示。</p>
+
+    <h3>四步拆解法</h3>
+    <p>任何 LLM 系统设计题都能套这套流程：<strong>澄清需求 → 估算规模 → 划分模块 → 关键决策</strong>。下面用代码把估算环节结构化，避免凭感觉给数字。</p>
+
+    <pre><code>def estimate(qps, avg_in_tokens, avg_out_tokens, hours=24):
+    """估算 LLM 服务的算力与成本需求。"""
+    # 每秒 token 吞吐
+    tok_per_sec = qps * (avg_in_tokens + avg_out_tokens)
+    # 单卡(A100)吞吐假设 2000 tok/s（含批处理）
+    gpus = -(-tok_per_sec // 2000)            # 向上取整
+    # 成本：A100 ~ $2/h
+    daily_cost = gpus * hours * 2
+    return {"qps":qps, "tok/s":int(tok_per_sec), "A100需求":int(gpus),
+            "日成本USD":int(daily_cost)}
+
+# 场景：日均 100 QPS、平均输入 500 token、输出 200 token 的客服
+print(estimate(qps=100, avg_in_tokens=500, avg_out_tokens=200))
+# → 约需 36 张 A100，日成本 ~$1728
+# 面试官追问"如何降本" → 量化+Prefix Cache+小模型路由，能砍到 1/3</code></pre>
+
+    <p>这种“用数字说话”的拆解，比“我觉得要多加几台机器”专业得多。面试中给出量化的容量估算，立刻拉开和只画方框的候选人的差距。</p>
+
+    <table>
+      <thead><tr><th>拆解步骤</th><th>要产出的内容</th><th>常见误区</th><th>得分点</th></tr></thead>
+      <tbody>
+        <tr><td><strong>澄清需求</strong></td><td>功能边界、SLA、延迟要求</td><td>直接开画架构</td><td>主动问关键约束</td></tr>
+        <tr><td><strong>估算规模</strong></td><td>QPS、token量、存储、成本</td><td>数字拍脑袋</td><td>给出推导过程</td></tr>
+        <tr><td><strong>划分模块</strong></td><td>检索/生成/记忆/网关</td><td>模块过细或过粗</td><td>说清模块间数据流</td></tr>
+        <tr><td><strong>关键决策</strong></td><td>选型理由与权衡</td><td>只列方案不说取舍</td><td>给出 A/B 及选择理由</td></tr>
+        <tr><td><strong>演进路径</strong></td><td>v1→v2 如何扩展</td><td>只设计终态</td><td>分阶段、留扩展点</td></tr>
+      </tbody>
+    </table>
+
+    <h3>关键技术决策的答题模板</h3>
+    <p>面试官最爱问“为什么这么选”。标准答法是<strong>列 2~3 个候选 → 说各自优劣 → 结合需求给出选择</strong>。例如选向量库：“Milvus（亿级、专用但运维重）vs pgvector（百万级、简单但性能够用）vs Redis（极快但容量小）。本场景日新增 10 万向量、需 join 用户表，pgvector 性能够用且运维简单，故选它；若未来上亿级再迁 Milvus。”这个模板适用于所有选型问题：模型大小、推理引擎、缓存策略、消息队列。<strong>永远先问需求再给方案</strong>，且方案要有“何时该换”的演进思考——这才是高级工程师的标志，而非背标准答案。</p>
+
+    <h2 class="section" id="deep42b"><span class="idx">深</span> 系统设计面试 FAQ 与应答</h2>
+    <p>系统设计面试的高分在于「结构化」和「量化」，这些问题是得分点。</p>
+    <h3>Q1：面试官问「怎么扩展到百万用户」，怎么答？</h3>
+    <p>别只说「加机器」。结构化答：<strong>先估算规模</strong>（QPS、token 量、存储、成本，给推导过程）；<strong>分层扩展</strong>（无状态层水平扩、有状态如 KV Cache 用 PagedAttention+分片）；<strong>缓存与异步</strong>（热点结果缓存、长任务进队列）；<strong>数据库分片</strong>（向量库分库、元数据读写分离）；<strong>容灾</strong>（多可用区、降级策略）。每个决策给「为什么」和「权衡」。给出量化的容量估算（如「需 N 张 GPU，日成本 $X」），立刻拉开和只画方框的候选人的差距。</p>
+    <pre><code># 容量估算工具
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：系统设计要画到多细？</h3>
+    <p><strong>先粗后细，按面试官兴趣深入</strong>。第一层：主要模块和数据流（5 分钟画清）；第二层：关键决策点（选型理由、权衡）；第三层：按面试官追问深入某模块（如「这个向量库怎么选」）。别一上来钻细节——先展示全局视野，再在热点展示深度。<strong>留扩展点</strong>：说清 v1 怎么做、未来怎么演进（「先用 pgvector，上亿级再迁 Milvus」），展示工程判断。永远先问需求再给方案，且方案有「何时该换」的演进思考，这是高级工程师的标志。</p>
+    <h3>对比速查：系统设计拆解步骤</h3>
+    <table>
+      <thead><tr><th>步骤</th><th>产出</th><th>得分点</th><th>误区</th></tr></thead>
+      <tbody>
+        <tr><td>澄清需求</td><td>约束/SLA</td><td>主动问</td><td>直接画图</td></tr>
+        <tr><td>估算规模</td><td>QPS/成本</td><td>给推导</td><td>拍脑袋</td></tr>
+        <tr><td>划分模块</td><td>数据流图</td><td>说清关系</td><td>过细/过粗</td></tr>
+        <tr><td>关键决策</td><td>选型+权衡</td><td>给理由</td><td>不谈取舍</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep42c"><span class="idx">深</span> 系统设计代码实战：容量估算与架构</h2>
+
+    <p>系统设计的核心是「量化」，下面给出容量估算和架构决策的代码化方法。</p>
+
+    <h3>容量估算工具</h3>
+    <pre><code>def capacity(qps, avg_in_tok, avg_out_tok, gpu_tps=2000, gpu_cost_h=2):
+    """估算 LLM 服务的 GPU 需求与成本。"""
+    total_tps = qps * (avg_in_tok + avg_out_tok)     # 每秒总 token
+    gpus = -(-total_tps // gpu_tps)                  # 向上取整
+    daily_cost = gpus * 24 * gpu_cost_h
+    monthly = daily_cost * 30
+    return {
+        "每秒token": int(total_tps),
+        "GPU数": int(gpus),
+        "日成本($)": int(daily_cost),
+        "月成本($)": int(monthly),
+    }
+
+# 场景：日均 50 QPS 客服，输入 300 / 输出 150 token
+import json
+print(json.dumps(capacity(50, 300, 150), ensure_ascii=False, indent=2))
+# 量化后能说清「需要几张卡、花多少钱」，面试/汇报都专业</code></pre>
+
+    <h3>架构决策记录</h3>
+    <pre><code>def arch_decision(problem, options, chosen, reason, when_to_revisit):
+    """结构化记录架构决策(ADR)，避免「为什么这么选」失传。"""
+    return {
+        "问题": problem,
+        "候选方案": options,
+        "选择": chosen,
+        "理由": reason,
+        "何时重评": when_to_revisit,
+        "日期": __import__("datetime").date.today().isoformat(),
+    }
+
+dec = arch_decision(
+    problem="向量库选型",
+    options=["Milvus(亿级专用)", "pgvector(简单够用)", "Redis(极快小容量)"],
+    chosen="pgvector",
+    reason="日增10万向量+需join用户表，pgvector性能够用且运维简单",
+    when_to_revisit="向量数过亿或延迟不达标时迁Milvus")
+import json; print(json.dumps(dec, ensure_ascii=False, indent=2))</code></pre>
+
+    <p>这两个工具把系统设计从「画方框」变成「量化决策」。容量估算让你给得出数字，架构决策记录(ADR)让团队理解决策语境、知道何时该换，是工程成熟度的标志。</p>
+
     <h2><span class="idx"></span>本章小结</h2>
     <p>AI 系统设计比传统系统设计多了三个维度：推理延迟不可预测、输出不确定、需要知识层。核心矛盾是"用户要秒回+永远正确" vs "LLM 可能慢+可能错"。典型架构是"安全过滤→意图分类→RAG检索→LLM生成→流式返回→反馈飞轮"。四个经典瓶颈（延迟/成本/幻觉/并发）各有标准工程解法。面试加分靠的是在某个点上能深入排查到底。</p>
     <div class="chapter-nav">

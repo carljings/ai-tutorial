@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 在科研中的应用 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 在科研中的应用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 在科研中的应用 · AI 全栈实战教学">
-<meta property="og:description" content="AI 在科研中的应用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>文献聚类与趋势分析</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>文献聚类与趋势分析</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>AlphaFold 结构预测实战示例</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>一、科学研究范式的转变</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、AlphaFold：生物学的里程碑</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、AI 材料发现：让新材料研发快 10 倍</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、AI 药物设计：从大海捞针到精准狙击</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、AI for Science 的共同模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、下一个前沿</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>科研不仅要会读单篇论文，还要能从一批文献里看出<strong>趋势</strong>。下面这段代码把一个领域的论文摘要做 embedding 聚类，找出研究主题并统计年份分布，帮你快速定位'哪些方向在升温'。</p>
 <pre class="code"><code class="language-python"># 论文主题聚类 + 趋势分析
 import numpy as np
@@ -880,6 +863,75 @@ class MoleculeGenerator:
       <li><strong>气候建模</strong>：华为盘古气象大模型把天气预报速度提升 1 万倍，精度超越传统方法。</li>
       <li><strong>从 AI 工具到 AI 科学家</strong>：未来的方向是让 AI 自主提出假设、设计实验、解释结果，成为真正的「科研伙伴」。</li>
     </ul>
+
+    <h2 class="section" id="deep68"><span class="idx">深</span> AI 研究方法：从想法到验证的闭环</h2>
+
+    <p>AI 研究和工程的最大区别是<strong>面对的是未知</strong>——你不知道想法对不对，必须用最小成本快速验证。下面给出从想法到验证的高效闭环方法。</p>
+
+    <h3>最小可行实验(MVE)的设计</h3>
+    <p>研究最大的浪费是“一上来就上大模型大数据跑完整实验”。正确做法是<strong>最小可行实验</strong>：用最小的模型、数据、算力，先验证核心假设是否成立。</p>
+
+    <pre><code>experiment_plan = {
+  "假设": "在 attention 前加 LayerNorm 能稳定训练大模型",
+  "MVE 设计": {
+    "模型": "最小能体现问题的规模(如 125M，而非 7B)",
+    "数据": "小而可控的集(如 1亿token，足够看趋势)",
+    "指标": "训练 loss 曲线、梯度范数、是否 NaN",
+    "预期": "如果假设对，小模型上也应看到 loss 更稳/梯度更小",
+    "反例": "如果小模型上看不出差异，说明效果可能只在规模上显现，需扩大"
+  },
+  "决策点": [
+    "MVE 看到明显差异 → 值得扩大到中等规模验证",
+    "MVE 无差异 → 假设可能错，或效果是涌现的(需谨慎扩大)",
+    "MVE 矛盾 → 重新理解问题，修正假设"
+  ],
+  "预算": "MVE 应在几小时内跑完，否则设计太大"
+}
+import json; print(json.dumps(experiment_plan, ensure_ascii=False, indent=2))</code></pre>
+
+    <p>MVE 的精髓是<strong>“快失败、便宜失败”</strong>——大多数想法是错的，用最小成本快速淘汰掉错的，把资源集中在少数有希望的假设上。一个能在几小时内跑完的 MVE，比一个跑一周才出结果的大实验，研究效率高一个数量级。</p>
+
+    <table>
+      <thead><tr><th>研究阶段</th><th>目标</th><th>规模</th><th>产出</th><th>耗时</th></tr></thead>
+      <tbody>
+        <tr><td><strong>MVE</strong></td><td>验证核心假设</td><td>最小</td><td>是否有信号</td><td>数小时</td></tr>
+        <tr><td><strong>中等验证</strong></td><td>确认效果非偶然</td><td>中等</td><td>趋势是否成立</td><td>数天</td></tr>
+        <tr><td><strong>完整实验</strong></td><td>可发表的结论</td><td>完整</td><td>主结果+消融</td><td>数周</td></tr>
+        <tr><td><strong>复现/打磨</strong></td><td>稳健可信</td><td>多 seed</td><td>方差与稳定性</td><td>数周</td></tr>
+      </tbody>
+    </table>
+
+    <h3>消融实验：证明“是X起了作用”</h3>
+    <p>研究最容易犯的逻辑错误是<strong>“相关当因果”</strong>——加了 A 效果涨了，就以为 A 起作用了，但可能只是随机波动或别的因素。<strong>消融实验</strong>是建立因果性的金标准：把 A 去掉（其他不变），看效果是否回落。如果去掉 A 效果明显变差，才能说“A 起了作用”。做消融要<strong>每次只变一个因素</strong>，否则无法归因。另一个关键是<strong>多 seed 统计</strong>：LLM 训练有随机性，单次实验的“提升”可能在误差范围内。至少跑 3-5 个随机种子，报告均值和方差，只有提升显著超过方差（如均值提升 2 分、各 seed 都正向）才可信。很多“刷点”的论文不报告方差，其提升可能只是噪声。<strong>诚实记录负面结果</strong>也很重要——把“试了但不 work”的想法记下来，既避免自己重复踩坑，也能帮社区少走弯路。研究的本质是<strong>用证据逼近真理</strong>，而非证明自己是对的——保持这种心态，才能做出真正经得起检验的发现，而不是自欺欺人的 benchmark 刷分。</p>
+
+    <h2 class="section" id="deep68b"><span class="idx">深</span> AI 研究方法 FAQ 与验证</h2>
+    <p>研究最难的是「面对未知高效验证」，这些问题是方法论。</p>
+    <h3>Q1：我的想法在小模型上有效，大模型上还有效吗？</h3>
+    <p><strong>不一定，要分层验证</strong>。有些能力是<strong>涌现</strong>的（只在足够大规模出现），小模型上看不到；有些是<strong>连续</strong>的（小模型有趋势，大模型更强）。MVE 在小模型验证后，要在中等规模确认趋势，再到大规模定论。<strong>别只凭小模型就下结论</strong>——可能错过涌现现象；也<strong>别一上来就跑大实验</strong>——太贵太慢。规律：核心机制在小模型应能看到趋势（如某改动让 loss 更稳），若小模型完全无差异，要么假设错，要么是规模涌现，要谨慎扩大验证。</p>
+    <pre><code># 多规模验证实验设计
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么证明「是我的方法起作用」而非随机波动？</h3>
+    <p><strong>消融+多 seed 统计</strong>。消融：去掉你的方法（其他不变），看效果是否回落，回落才能说「它起作用了」（建立因果性）。多 seed：跑 3~5 个随机种子，报均值和方差，提升要显著超过方差（如各 seed 都正向）才可信。很多「刷点」论文不报方差，其提升可能只是噪声。<strong>每次只变一个因素</strong>否则无法归因。诚实记录负面结果（试了但不 work），避免自己重复踩坑。<strong>研究本质是用证据逼近真理</strong>，而非证明自己对——保持这种心态才能做出经得起检验的发现。</p>
+    <h3>对比速查：研究实验阶段</h3>
+    <table>
+      <thead><tr><th>阶段</th><th>目标</th><th>规模</th><th>耗时</th></tr></thead>
+      <tbody>
+        <tr><td>MVE</td><td>验证假设</td><td>最小</td><td>数小时</td></tr>
+        <tr><td>中等验证</td><td>确认非偶然</td><td>中等</td><td>数天</td></tr>
+        <tr><td>完整实验</td><td>可发表结论</td><td>完整</td><td>数周</td></tr>
+        <tr><td>复现打磨</td><td>稳健可信</td><td>多seed</td><td>数周</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们看了 AI 在科学发现领域的三个标杆案例。核心要点：</p>

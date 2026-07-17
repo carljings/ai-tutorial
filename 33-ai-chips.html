@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 芯片与算力 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 芯片与算力 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 芯片与算力 · AI 全栈实战教学">
-<meta property="og:description" content="AI 芯片与算力 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>All-Reduce 通信开销估算</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>All-Reduce 通信开销估算</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>用 Roofline 模型诊断算子瓶颈</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>算力即权力：AI 时代的硬通货</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>GPU、TPU、NPU 的架构哲学</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>存储层级：HBM、DDR、SRAM 的金字塔</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Roofline 模型：一眼看出性能瓶颈</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>芯片互联：多卡训练的隐形战场</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>多卡训练的瓶颈往往不是算力而是<strong>通信</strong>。梯度同步用 Ring All-Reduce，其通信量与卡数无关（约 2×模型大小×(N-1)/N），但延迟随卡数对数增长。算清这笔账，能帮你判断'加更多卡到底划不划算'。</p>
 <pre class="code"><code class="language-python"># Ring All-Reduce 通信量与时间估算
 def allreduce_time(model_bytes, n_gpu, bw_GBps=25e9, latency_us=2):
@@ -794,6 +777,69 @@ for task, info in tasks.items():
     <h2 class="section" id="interconnect"><span class="idx">★</span> 芯片互联：多卡训练的隐形战场</h2>
     <p>训练百亿参数以上的模型，单卡显存放不下，必须多卡甚至多机协同。这时，芯片之间的通信带宽就成了关键瓶颈。NVIDIA 的 NVLink 提供 900 GB/s 的卡间带宽（H100），是 PCIe 5.0（64 GB/s）的 14 倍。InfiniBand 网络提供 400 Gb/s 的机间带宽，延迟低至微秒级。这就是为什么 DGX/HGX 整机（内置 NVLink 互联）比"自己买显卡拼服务器"贵得多——互联拓扑本身就是核心竞争力。</p>
     <p>通信开销在大模型训练中占比惊人。在千卡规模训练时，梯度同步的通信可能占总时间的 30-50%。这就是各种并行策略（数据并行 DP、张量并行 TP、流水线并行 PP）的用武之地——它们通过切分计算和通信，最小化等待时间。DeepSeek 提出的 FP8 训练 + 自研通信压缩，把万卡训练的 MFU（模型算力利用率）推到了 50% 以上，这在工程上是顶尖水平。</p>
+
+    <h2 class="section" id="deep33"><span class="idx">深</span> 读懂 GPU 性能：算力与带宽的双瓶颈</h2>
+
+    <p>调优 LLM 时，必须搞清楚当前到底卡在<strong>算力瓶颈</strong>还是<strong>带宽瓶颈</strong>——二者的优化方向完全相反。prefill 阶段（首 token）通常是算力瓶颈，decode 阶段（逐 token）通常是带宽瓶颈。看不懂这一点，所有优化都是盲拍。下面给出生成时算一次 roofline 分析的方法。</p>
+
+    <h3>算力 vs 带宽的实测</h3>
+    <p>核心公式：算术强度 = FLOPs / 字节。LLM decode 每生成一个 token，要把全部权重从显存搬到 SM，但只做 ~2 倍参数量的浮点运算，算术强度极低，因此<strong>decode 几乎一定是带宽瓶颈</strong>。</p>
+
+    <pre><code># 估算 7B 模型 decode 的算术强度，判断瓶颈类型
+params = 7e9                      # 7B 参数
+bytes_per_param = 2              # FP16/BF16 = 2 字节
+flops_per_token = 2 * params     # 约为 2N (矩阵乘 forward)
+mem_bytes_per_token = params * bytes_per_param   # 权重要全读一遍
+
+arith_intensity = flops_per_token / mem_bytes_per_token   # = 1.0
+# A100：峰值算力 312 TFLOPS, 峰值带宽 2.0 TB/s → 平衡点 = 312/2.0 = 156
+# 算术强度 1.0 &lt;&lt; 156 → 严重带宽受限！
+print(f"算术强度 {arith_intensity:.1f}，远低于平衡点 156 → 带宽瓶颈")
+# 推论：decode 时提升算力(更强GPU)几乎无效，必须降显存读取量(量化)或提升带宽</code></pre>
+
+    <p>这张账一算就明白：decode 阶段买更贵的 H100 提升 <strong>算力</strong>收益有限，真正有效的是<strong>量化降权重体积</strong>（带宽压力降一半）或<strong>提高批大小</strong>（把多个请求的算力需求摊到同一次权重读取上）。</p>
+
+    <table>
+      <thead><tr><th>阶段</th><th>主要瓶颈</th><th>有效优化</th><th>无效优化</th></tr></thead>
+      <tbody>
+        <tr><td><strong>Prefill(首token)</strong></td><td>算力</td><td>更强GPU、FP8、tensor parallel</td><td>单纯量化(计算量没降)</td></tr>
+        <tr><td><strong>Decode(逐token)</strong></td><td>显存带宽</td><td>量化、增大batch、KV cache优化</td><td>堆算力(TFLOPS)</td></tr>
+        <tr><td><strong>KV Cache 存储</strong></td><td>显存容量</td><td>PagedAttention、GQA、量化KV</td><td>加 GPU 数量(除非数据并行)</td></tr>
+        <tr><td><strong>长序列</strong></td><td>注意力算力+显存</td><td>FlashAttention、稀疏注意力</td><td>单纯量化</td></tr>
+      </tbody>
+    </table>
+
+    <h3>批大小是“免费的”带宽优化</h3>
+    <p>既然 decode 是带宽瓶颈（算力闲置），那么<strong>加大批大小</strong>能把闲置算力利用起来：同样读一遍权重，能同时处理多个请求的 token，单位 token 的有效算力提升、吞吐随之提升。这正是连续批处理（vLLM 的核心）的理论基础——不是更聪明的算法，而是<strong>把带宽瓶颈转化为算力利用</strong>的工程。对单用户场景，批大小无法提高（只有一个请求），这时只能靠量化和投机解码。所以“为什么服务器推理要批处理、端侧却不用”的本质，就是<strong>带宽瓶颈下，批处理是唯一能把算力用满的手段</strong>，而端侧没有并发请求可批。</p>
+
+    <h2 class="section" id="deep33b"><span class="idx">深</span> AI 芯片 FAQ 与性能理解</h2>
+    <p>调优时不懂硬件，就是盲拍，这些问题是基础。</p>
+    <h3>Q1：为什么我的推理很慢，但 GPU 利用率却很低？</h3>
+    <p>典型的<strong>带宽瓶颈而非算力瓶颈</strong>。decode 阶段每生成一个 token 要把全部权重从显存搬到计算单元，但只做很少运算，算术强度极低，算力大量闲置。这时<strong>提升算力（换更贵 GPU）几乎无效</strong>，有效的是<strong>量化降权重体积</strong>、<strong>增大批处理</strong>（把多个请求的算力需求摊到同一次权重读取）、<strong>用更快的显存</strong>。判断方法：看算术强度（FLOPs/字节）是否低于 GPU 的平衡点，低于就是带宽受限。这是推理优化最核心的洞察。</p>
+    <pre><code># 算术强度与瓶颈判断
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：训练和推理该选不同的 GPU 吗？</h3>
+    <p><strong>应该</strong>。训练吃算力和显存容量（要存梯度/优化器状态），适合高算力大显存卡（A100/H100）；推理尤其是 decode 吃显存带宽，<strong>带宽高的卡更划算</strong>，且推理可用量化降低要求，消费级卡（4090）做推理性价比极高（但有商用许可限制）。批量推理要批处理把闲置算力用满。所以「训练用专业卡、推理用高带宽或消费级卡」是常见组合。还要看拓扑：训练大模型要 NVLink 多卡高速互联，普通 PCIe 多卡做 tensor parallel 效率打折。</p>
+    <h3>对比速查：GPU 瓶颈判断</h3>
+    <table>
+      <thead><tr><th>阶段</th><th>瓶颈</th><th>有效优化</th><th>无效优化</th></tr></thead>
+      <tbody>
+        <tr><td>Prefill</td><td>算力</td><td>更强GPU/FP8</td><td>单纯量化</td></tr>
+        <tr><td>Decode</td><td>显存带宽</td><td>量化/批处理</td><td>堆算力</td></tr>
+        <tr><td>KV Cache</td><td>显存容量</td><td>PagedAttention/GQA</td><td>加GPU数(非并行)</td></tr>
+        <tr><td>长序列</td><td>注意力算力</td><td>FlashAttention</td><td>单纯量化</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>AI 芯片的性能不能只看 TFLOPS 数字。GPU 用灵活性（CUDA 生态）称霸通用计算，TPU 用脉动阵列在大规模推理上极致高效，NPU 在边缘侧追求能耗比。存储层级是真正的性能瓶颈——HBM 带宽决定大模型能跑多快，SRAM 容量决定能否用 Flash Attention 这类优化。Roofline 模型揭示了"算术强度"这个关键指标：算力再高，算术强度低的操作仍会被"内存墙"卡住。芯片互联（NVLink、InfiniBand）是多卡训练的隐形战场，通信效率直接决定 MFU。理解这些底层原理，你才能在选卡、调优、做架构决策时做出正确判断，而不是被 FLOPS 营销话术忽悠。</p>

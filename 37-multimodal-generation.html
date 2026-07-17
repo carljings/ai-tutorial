@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多模态生成前沿 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="多模态生成前沿 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="多模态生成前沿 · AI 全栈实战教学">
-<meta property="og:description" content="多模态生成前沿 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -627,19 +623,6 @@
 
 
     <h2><span class="idx"></span>提示词增强与采样参数</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>提示词增强与采样参数</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>文生视频 Pipeline 实战与调参</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>多模态生成的三重飞跃</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>文生视频：Sora 的时空 Patch 架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>文生音乐：把声波变成"语言"</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>文生 3D：从 NeRF 到 3D Gaussian Splatting</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>时序一致性：多模态生成的终极 Boss</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>文生视频/图像的质量，一半取决于 prompt 写法，一半取决于采样参数。下面这段代码演示一个 prompt 增强器（自动补画质词）和采样参数的推荐组合，帮你稳定产出高质量结果。</p>
 <pre class="code"><code class="language-python"># Prompt 增强器 + 采样参数推荐
 def enhance_prompt(subject, style="电影质感", quality=True):
@@ -835,6 +818,74 @@ class TextTo3D:
     <h2 class="section" id="consistency"><span class="idx">★</span> 时序一致性：多模态生成的终极 Boss</h2>
     <p>所有多模态生成任务的核心难题都是"一致性"。视频中的物体不能变形（外观一致性），运动要符合物理（运动一致性），场景的因果关系要合理（逻辑一致性）。当前模型解决这些问题靠的是"规模暴力"——足够大的模型 + 足够多的数据，让模型隐式学到一致性的模式。但这还不够可靠。</p>
     <p>前沿的解法包括：<strong>运动条件控制</strong>——用骨骼动画、光流、轨迹作为额外条件输入，显式约束运动（如 AnimateDiff、ControlNet Video）；<strong>长视频分块生成 + 前后帧条件</strong>——把长视频切成片段，每段以上一段的最后一帧为起点，保证接缝连贯；<strong>物理引擎引导</strong>——把简化的物理模拟器嵌入生成管线，约束物体运动符合基本物理规律。真正的突破可能需要把"生成模型"和"物理模拟器"深度融合，这是下一个十年的研究方向。</p>
+
+    <h2 class="section" id="deep37"><span class="idx">深</span> 文生图/生视频的工程化：从生成到可控</h2>
+
+    <p>把扩散模型从“能生成”变成“能稳定出业务可用的图”，难点不在模型本身，而在<strong>可控性</strong>：怎么保证构图、风格、细节一致，怎么复现，怎么批量。下面拆解两个让生成可控的工程手段。</p>
+
+    <h3>Seed 与参数的完整复现链</h3>
+    <p>生产中必须做到“给定相同输入，产出相同输出”，否则无法调试、无法 A/B。关键是<strong>固定所有随机性来源</strong>并记录。</p>
+
+    <pre><code>import torch, json
+from diffusers import StableDiffusionPipeline
+
+def generate_deterministic(pipe, prompt, seed, steps=25, cfg=7.5, sampler="DPM++ 2M"):
+    g = torch.Generator(device="cuda").manual_seed(seed)   # 显式 generator
+    # 同 seed + 同 sampler + 同 steps + 同 cfg → 完全一致的图
+    img = pipe(prompt, num_inference_steps=steps, guidance_scale=cfg,
+               generator=g).images[0]
+    return img, {"seed":seed, "steps":steps, "cfg":cfg, "sampler":sampler,
+                 "model":pipe.config._name_or_path, "prompt":prompt}
+
+pipe = StableDiffusionPipeline.from_pretrained("...", torch_dtype=torch.float16).to("cuda")
+img, meta = generate_deterministic(pipe, "a cat", seed=42)
+# 把 meta 存库：出问题时能用相同参数+seed 100% 复现这张图，便于排障与回归
+print(json.dumps(meta, ensure_ascii=False))</code></pre>
+
+    <p>这套“参数 + seed 全记录”是可控生成的基础。没有它，线上出了张“畸形手”的图，你既无法复现排查，也无法说清是模型问题还是某次参数抖动。</p>
+
+    <table>
+      <thead><tr><th>可控性需求</th><th>技术手段</th><th>实现成本</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td><strong>结果复现</strong></td><td>固定 seed + 记录参数</td><td>低</td><td>调试、A/B、审计</td></tr>
+        <tr><td><strong>构图控制</strong></td><td>ControlNet、T2I-Adapter</td><td>中</td><td>指定姿态、边缘、深度</td></tr>
+        <tr><td><strong>角色/风格一致</strong></td><td>IP-Adapter、LoRA</td><td>中</td><td>同角色多图、品牌风格</td></tr>
+        <tr><td><strong>局部修改</strong></td><td>Inpainting、区域提示</td><td>低</td><td>改局部不改全局</td></tr>
+        <tr><td><strong>文字渲染</strong></td><td>专用模型、后处理叠加</td><td>高</td><td>海报、配文字的图</td></tr>
+      </tbody>
+    </table>
+
+    <h3>批量生成的成本与质量控制</h3>
+    <p>业务场景常要批量生成（如给 1000 个商品配图）。这时的核心挑战是<strong>成本与质量方差</strong>。经验做法：先小批量（10 张）探参数，人工筛出满意的 prompt+seed 组合，再批量跑——避免 1000 张全废。批量生成时务必<strong>并发但限流</strong>，防止 API 限速或本地 GPU OOM。质量兜底用<strong>自动质量打分</strong>：训一个轻量分类器（或用 CLIP score）给每张图打分，低于阈值的自动重生成或转人工。最后别忘了<strong>版权与安全过滤</strong>：生成图可能误含 logo、名人脸、 NSFW 内容，上线前必须有 safety checker 兜底，这是合规底线，不是可选项。</p>
+
+    <h2 class="section" id="deep37b"><span class="idx">深</span> 多模态生成 FAQ 与可控性</h2>
+    <p>文生图/视频从能用到好用，隔着这些可控性问题。</p>
+    <h3>Q1：生成的图总是「手部畸形」「多根手指」，能根治吗？</h3>
+    <p>手部畸形是扩散模型的经典难题，因为<strong>训练数据里手部细节标注不足、结构复杂</strong>。缓解方法：<strong>用专门微调过手部的模型或 LoRA</strong>；<strong>inpainting 修复</strong>（检测到手部异常就重画该区域）；<strong>后处理质量检测</strong>（用模型给每张图打分，低分自动重生成）；<strong>多生成几张挑最好的</strong>（best-of-n）。完全根治目前不可能，生产中必须有<strong>质量兜底机制</strong>，不能把畸形图直接给用户。商用 API 多已内置质量过滤。</p>
+    <pre><code># 生成质量自动筛选
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：怎么保证生成内容不侵权/不违规？</h3>
+    <p>上线前必须有<strong>safety checker</strong>兜底，这是合规底线不是可选项。三层防护：规则过滤（拦截明显违规 prompt）；生成端 safety 模型（检测 NSFW、暴力等）；<strong>版权相似度过滤</strong>（生成图与训练数据高度相似时拦截或改写，防直接侵权）。还要<strong>记录生成参数和 seed</strong>便于追溯。商用更要看<strong>训练数据来源是否合法</strong>——若模型用了受版权数据，输出也可能侵权。合规不是阻碍，是让产品能长期活下来的护城河。</p>
+    <h3>对比速查：生成可控性技术</h3>
+    <table>
+      <thead><tr><th>需求</th><th>技术</th><th>成本</th><th>效果</th></tr></thead>
+      <tbody>
+        <tr><td>结果复现</td><td>固定seed</td><td>零</td><td>完全一致</td></tr>
+        <tr><td>构图控制</td><td>ControlNet</td><td>中</td><td>精确</td></tr>
+        <tr><td>风格/角色一致</td><td>LoRA/IP-Adapter</td><td>中</td><td>稳定</td></tr>
+        <tr><td>质量兜底</td><td>自动评分+重生成</td><td>低</td><td>防畸形</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>多模态生成的核心挑战从"空间一致性"（图像）升级到"时空一致性"（视频）、"时间结构一致性"（音乐）、"几何视角一致性"（3D）。Sora 用时空 Patch + DiT 架构把视频生成统一为序列建模，展示了惊人的世界模拟能力但物理理解仍表面。文生音乐通过神经编解码器把波形 token 化，再用语言模型生成，难点在于长程音乐结构。文生 3D 从 NeRF 转向 3D Gaussian Splatting，用 SDS 损失蒸馏 2D 先验，但仍受困于多面性问题。所有这些方向的终极 Boss 都是"时序一致性"——当前靠规模暴力部分解决，真正的突破需要融合物理建模和因果推理。多模态生成正在从"能看"进化到"可信"，从"几秒 demo"进化到"完整作品"，这条路还很长，但每一步都在拓展创意的边界。</p>

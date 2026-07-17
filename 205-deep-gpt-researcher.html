@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GPT Researcher：开源深度研究 agent 源码解析 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="GPT Researcher：开源深度研究 agent 源码解析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="GPT Researcher：开源深度研究 agent 源码解析 · AI 全栈实战教学">
-<meta property="og:description" content="GPT Researcher：开源深度研究 agent 源码解析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -585,6 +581,136 @@ class SectionalReporter:
             f"发现：{format_docs(docs)}"
         )</code></pre>
     <div class="callout"><strong>💡 Deep Research 的工程精髓</strong><br>GPT Researcher 这套架构揭示了 Deep Research agent 的三个核心工程智慧：① <strong>分而治之</strong>——把"写一篇长报告"拆成"规划→检索→分章节写→组装"，每步聚焦一个小问题，避免单次 LLM 调用扛不住；② <strong>并行是加速关键</strong>——子问题并行搜索、章节并行生成，能把 30 分钟的研究压到 5 分钟；③ <strong>可溯源是公信力基础</strong>——每个论断带来源编号，读者能验证，这比"LLM 凭记忆写"可信得多。这三个原则适用于任何"长周期、多来源、高质量"的 agent 任务。</div>
+    
+    <h2><span class="idx"></span>GPT Researcher 的架构剖析与定制</h2>
+    <p>GPT Researcher 是开源的深度研究 agent，它的架构是"规划-检索-分析-写作"的经典流水线。理解它的内部架构，才能在它基础上做定制——调整检索策略、增强分析深度、优化报告结构。把它当黑盒用只能得到默认效果，定制才能适配具体场景。</p>
+<p>GPT Researcher 的核心流程分四步。<strong>规划</strong>：把研究主题拆成多个子查询（sub-queries），每个子查询覆盖一个方面——这步决定了研究的覆盖广度。<strong>检索</strong>：对每个子查询并行做网络搜索，收集原始资料。<strong>分析</strong>：对检索到的资料去重、过滤、提取要点，形成结构化的"研究素材"。 <strong>写作</strong>：把素材整合成连贯的报告。这四步中，规划和分析最值得定制——规划决定查什么，分析决定留什么，直接决定报告质量。</p>
+<p>定制的常见方向有几个。第一是<strong>检索源定制</strong>：默认用网络搜索，但很多场景需要特定源（学术论文用 Semantic Scholar、代码用 GitHub、内部文档用知识库）。GPT Researcher 支持自定义 retriever，把检索指向你需要的源。第二是<strong>规划增强</strong>：默认规划靠 LLM 拆子查询，可以注入领域知识让拆解更专业（如医学研究的子查询模板）。第三是<strong>分析深度</strong>：默认分析较浅，可以加入交叉验证、矛盾检测，提升素材可靠性。第四是<strong>报告模板</strong>：按业务需求定制报告结构（如投资报告的固定章节）。</p>
+<table class="data-table"><thead><tr><th>定制点</th><th>默认行为</th><th>定制方向</th><th>收益</th></tr></thead><tbody>
+<tr><td>规划</td><td>LLM 拆子查询</td><td>注入领域模板</td><td>覆盖更专业</td></tr>
+<tr><td>检索源</td><td>网络搜索</td><td>学术/内部/专业源</td><td>素材更权威</td></tr>
+<tr><td>分析</td><td>去重过滤</td><td>交叉验证/矛盾检测</td><td>素材更可靠</td></tr>
+<tr><td>写作</td><td>通用报告</td><td>业务模板</td><td>产出更可用</td></tr>
+<tr><td>引用</td><td>简单标注</td><td>结构化引用库</td><td>可溯源核查</td></tr>
+</tbody></table>
+<pre><code class="language-python"># GPT Researcher 定制：自定义检索源 + 规划模板
+# 安装：pip install gpt-researcher
+import asyncio
+from gpt_researcher import GPTResearcher
+
+# 1. 基础用法（默认）
+async def basic_research():
+    researcher = GPTResearcher(query="向量数据库选型", report_type="research_report")
+    report, sources = await researcher.conduct_research()
+    return report
+
+# 2. 定制检索源：用自定义 retriever 替代默认网络搜索
+class AcademicRetriever:
+    """自定义检索器：查学术论文而非通用网络"""
+    async def search(self, query):
+        # 调 Semantic Scholar / arXiv API
+        papers = await semantic_scholar_search(query, limit=10)
+        return [{"title":p.title, "content":p.abstract, "url":p.url} for p in papers]
+
+# 3. 定制规划：注入领域子查询模板
+DOMAIN_TEMPLATES = {
+    "技术选型": [
+        "{topic} 的主流方案有哪些",
+        "{topic} 各方案的对比基准测试",
+        "{topic} 在大规模场景的性能数据",
+        "{topic} 的已知问题和局限",
+    ],
+}
+def custom_planner(topic, domain="技术选型"):
+    template = DOMAIN_TEMPLATES.get(domain, ["{topic} 概述", "{topic} 现状"])
+    return [t.format(topic=topic) for t in template]
+
+# 4. 定制分析：加交叉验证
+class RigorousAnalyzer:
+    def analyze(self, findings):
+        # 默认只去重，这里加：标注相互矛盾的发现
+        groups = group_by_topic(findings)
+        for topic, items in groups.items():
+            if self._has_contradiction(items):
+                # 标记矛盾，写作时呈现多方观点而非单方面
+                for it in items: it["contested"] = True
+        return groups
+
+# 5. 组装定制版 researcher
+async def custom_research(topic):
+    researcher = GPTResearcher(
+        query=topic,
+        report_type="research_report",
+        retrievers=[AcademicRetriever()],      # 定制检索源
+        planner=custom_planner,                 # 定制规划
+        analyzer=RigorousAnalyzer(),            # 定制分析
+        # 报告模板可指定 markdown 结构
+    )
+    return await researcher.conduct_research()</code></pre>
+
+    <h2><span class="idx"></span>多源融合与矛盾处理</h2>
+    <p>GPT Researcher 检索多个来源后，要融合成一份报告。融合的难点不是"收集"，而是<strong>处理矛盾</strong>——不同来源对同一问题常有不同说法（数据冲突、观点对立）。处理不好，报告要么偏听偏信（只采纳一面），要么和稀泥（矛盾观点堆砌不解决），质量都不高。</p>
+<p>矛盾检测是第一步。同一事实/数据点，如果不同来源给出不同值，就是矛盾。检测方法：对每个事实断言，比对多个来源的表述，语义冲突即标记为矛盾。矛盾分两类：<strong>数据矛盾</strong>（同一指标不同数字，可能因统计口径/时点不同）和<strong>观点矛盾</strong>（对同一现象不同解读，可能都成立只是视角不同）。</p>
+<p>矛盾处理的策略因类型而异。数据矛盾优先<strong>溯源核查</strong>——找最权威的源头（官方统计、一手数据），采纳它并注明口径差异。无法判定时<strong>呈现范围</strong>（"不同来源给出 30%-45%"）而非选一个。观点矛盾<strong>多方呈现</strong>——并列不同观点及其依据，让读者自行判断，而非替读者下结论。这种"忠实呈现矛盾"的报告比"假装没有矛盾"的报告更可信。关键原则是<strong>"不掩盖矛盾"</strong>——发现的矛盾要在报告中体现，让读者知道存在分歧。</p>
+<table class="data-table"><thead><tr><th>矛盾类型</th><th>成因</th><th>处理策略</th><th>报告呈现</th></tr></thead><tbody>
+<tr><td>数据矛盾</td><td>口径/时点不同</td><td>溯源核查/呈现范围</td><td>注明差异</td></tr>
+<tr><td>观点矛盾</td><td>视角/立场不同</td><td>多方并列</td><td>呈现各方依据</td></tr>
+<tr><td>事实矛盾</td><td>某方有误</td><td>核查辨真伪</td><td>采信正确方</td></tr>
+<tr><td>时序矛盾</td><td>信息过时</td><td>采最新</td><td>注明演变</td></tr>
+<tr><td>定义矛盾</td><td>术语歧义</td><td>先明确定义</td><td>统一口径</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 多源融合 + 矛盾检测与处理
+from collections import defaultdict
+
+class SourceFusion:
+    def __init__(self, llm):
+        self.llm = llm
+
+    def fuse(self, findings):
+        """findings: [{topic, claim, value, source, credibility}]"""
+        # 1. 按 topic 分组
+        grouped = defaultdict(list)
+        for f in findings:
+            grouped[f["topic"]].append(f)
+        # 2. 逐组检测矛盾
+        fused = {}
+        for topic, items in grouped.items():
+            contradictions = self._detect_contradictions(items)
+            if contradictions:
+                fused[topic] = self._resolve_contradictions(topic, items, contradictions)
+            else:
+                # 无矛盾：取可信度最高的来源
+                fused[topic] = max(items, key=lambda x: x["credibility"])
+        return fused
+
+    def _detect_contradictions(self, items):
+        """检测同主题不同来源是否矛盾"""
+        contradictions = []
+        values = set(it.get("value") for it in items if it.get("value"))
+        if len(values) > 1:
+            # 数值/表述不同，可能是矛盾
+            contradictions.append({"type":"value_conflict", "values":list(values)})
+        return contradictions
+
+    def _resolve_contradictions(self, topic, items, contradictions):
+        """处理矛盾：不掩盖，按类型决策"""
+        conflict = contradictions[0]
+        if conflict["type"] == "value_conflict":
+            # 数据矛盾：核查可信度，差异大则呈现范围
+            items_sorted = sorted(items, key=lambda x:-x["credibility"])
+            top = items_sorted[0]
+            if all(abs(top["value"]-it["value"])/top["value"] < 0.2
+                   for it in items if it.get("value")):
+                return top   # 差异小，采信最可信
+            else:
+                # 差异大：呈现范围，不强行选一个
+                values = [it["value"] for it in items if it.get("value")]
+                return {"topic":topic, "contested":True,
+                        "value_range":f"{min(values)} - {max(values)}",
+                        "note":"不同来源数据存在差异，已呈现范围"}
+        # 观点矛盾：多方呈现
+        return {"topic":topic, "contested":True,
+                "viewpoints":[(it["source"], it["claim"]) for it in items]}</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>GPT Researcher 用清晰的 Planner/Researcher/Reporter 三角色实现了 Deep Research：Planner 分解问题、Researcher 并行搜索抓取、Reporter 综合报告。它的 Deep Research 模式用递归实现"发现缺口→补充研究"。读懂它的源码，你就掌握了 Deep Research agent 的实现蓝图。</p>
     <div class="chapter-nav">

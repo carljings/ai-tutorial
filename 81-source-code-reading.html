@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>开源项目源码导读合集 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="开源项目源码导读合集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="开源项目源码导读合集 · AI 全栈实战教学">
-<meta property="og:description" content="开源项目源码导读合集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -319,17 +315,6 @@
     </section>
 
     <h2 class="section" id="why-read-source"><span class="idx">★</span> 一、为什么读源码</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么读源码</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、nanoGPT：300 行理解 GPT 的全部</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、MinBPE：200 行理解分词原理</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、tiktoken：生产级分词的工程极致</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、高效的源码阅读策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>文档告诉你「怎么用」，源码告诉你「怎么实现」。读源码的价值：</p>
     <ul>
       <li><strong>理解底层原理</strong>：看真实代码怎么实现 attention、怎么做分词，比看公式直观 10 倍。</li>
@@ -645,6 +630,82 @@ chunks = tokenizer.split_by_tokens(document, chunk_size=500)</code></pre>
   - 用自己的话复述核心逻辑
   - 画出架构图
   - 记录学到的设计模式</code></pre>
+
+    <h2 class="section" id="deep81"><span class="idx">深</span> 源码阅读法：以 nanoGPT 为例</h2>
+
+    <p>读源码是理解 LLM 内部最快的途径，但“从第一行读到最后一行”效率极低。下面以 Karpathy 的 nanoGPT 为例，演示一套高效的源码阅读法。</p>
+
+    <h3>分层阅读法</h3>
+    <p>读源码要<strong>从外到内、先骨架后血肉</strong>：先懂入口和数据流，再逐层深入实现细节。下面用 nanoGPT 的结构演示。</p>
+
+    <pre><code>reading_plan = {
+  "第1层·入口与数据流": {
+    "看什么": "model.py 的 GPT 类、train.py 的主循环",
+    "目标": "理解'数据进来→过哪些层→输出什么'",
+    "产出": "一张数据流草图: tokens→embed→blocks→lm_head→logits"
+  },
+  "第2层·核心结构": {
+    "看什么": "Block(Transformer块)、CausalSelfAttention、MLP",
+    "目标": "理解每个组件的输入输出和作用",
+    "产出": "对照Transformer论文，代码和公式一一对应"
+  },
+  "第3层·实现细节": {
+    "看什么": "mask怎么做的、初始化、优化器配置、显存优化",
+    "目标": "理解工程细节为什么这么写",
+    "产出": "记录'原来XX是这样实现的'的顿悟点"
+  },
+  "第4层·动手改造": {
+    "做什么": "改一处(如换激活函数、加LayerNorm位置)、跑通看效果",
+    "目标": "通过改造验证理解",
+    "产出": "对代码有' ownership'感"
+  }
+}
+import json; print(json.dumps(reading_plan, ensure_ascii=False, indent=2))</code></pre>
+
+    <p>这套分层法的精髓是<strong>“读和改结合”</strong>——只读不动手，理解停留在表面；改一行跑一遍，立刻知道“这行到底干啥”。nanoGPT 只有约 300 行，是练习这套方法的绝佳对象。</p>
+
+    <table>
+      <thead><tr><th>阅读策略</th><th>何时用</th><th>产出</th><th>常见误区</th></tr></thead>
+      <tbody>
+        <tr><td><strong>自顶向下</strong></td><td>理解整体架构</td><td>数据流图</td><td>陷在细节</td></tr>
+        <tr><td><strong>自底向上</strong></td><td>懂底层算子</td><td>实现细节笔记</td><td>只见树木</td></tr>
+        <tr><td><strong>问题驱动</strong></td><td>找特定答案</td><td>针对性理解</td><td>遗漏全局</td></tr>
+        <tr><td><strong>动手改造</strong></td><td>验证理解</td><td>ownership 感</td><td>改坏不知为何</td></tr>
+        <tr><td><strong>对照论文</strong></td><td>学术项目</td><td>公式↔代码映射</td><td>只信论文忽现代码</td></tr>
+      </tbody>
+    </table>
+
+    <h3>读 nanoGPT 的关键顿悟点</h3>
+    <p>nanoGPT 虽小，却集中体现了 Transformer 的所有核心，阅读时关注几个“顿悟点”能事半功倍。第一，<strong>注意力其实是几行矩阵运算</strong>——没有黑魔法，Q/K/V 是三个线性投影，attention 就是 <code>softmax(Q@K^T/√d)@V</code>，看完你会惊叹“原来就这么简单”。第二，<strong>因果 mask 的实现</strong>——用一个上三角为负无穷的矩阵加到 attention 分数上，softmax 后未来位置权重为零，这就是“不能看未来”的全部实现。第三，<strong>LayerNorm 的位置</strong>——nanoGPT 用 Pre-LN（先归一化再进子层），和原论文的 Post-LN 不同，这是现代模型稳定训练的关键改动，对照看能理解为什么。第四，<strong>参数初始化的精细</strong>—— resid_pproj 等的缩放，是为了让残差路径初始化时接近恒等、训练稳定，这种细节论文常略过、代码里却关键。读源码的价值就在这些<strong>“论文不会写、但决定了能不能跑好”</strong>的工程细节。<strong>读完一定要自己改</strong>：换个激活函数、加个 dropout、改优化器，跑一下看 loss 曲线变化，这种动手验证比读十遍印象深刻。读源码不是为了“读完”，而是为了<strong>建立对系统的直觉和 ownership</strong>——当你能改它、能解释每一行、能预测改动后果，才算真读懂了。</p>
+
+    <h2 class="section" id="deep81b"><span class="idx">深</span> 源码阅读 FAQ 与方法</h2>
+    <p>读源码最怕「逐行读不抓重点」，这些问题帮高效。</p>
+    <h3>Q1：读大项目源码（如 PyTorch/vLLM）从哪开始？</h3>
+    <p><strong>从入口和数据流开始，别从第一行</strong>。先找入口（main/serve 函数），追主数据流（数据进来→过哪些模块→输出），画一张全局图。再按兴趣深入某模块。<strong>问题驱动</strong>最有效：带着具体问题（「PagedAttention 怎么实现的」）找相关代码读，比通读高效十倍。<strong>善用调试器</strong>：断点单步执行，看实际数据流，比静态读理解快。<strong>读测试</strong>：测试用例是最好的「使用文档」，告诉你模块怎么用。<strong>读文档/issue</strong>：设计文档和高赞 issue 常解释「为什么这么设计」。大项目别想一次读懂，分多次、每次深入一块。</p>
+    <pre><code># 源码阅读笔记模板
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：读懂了但记不住/用不上，怎么办？</h3>
+    <p><strong>动手改造+输出</strong>。只读不动手理解停留在表面，改一行跑一遍立刻知道「这行干啥」。读完<strong>写博客/笔记</strong>把理解讲出来，输出倒逼深度思考，也抗遗忘。<strong>迁移应用</strong>：把学到的设计用到自己的项目（如学了 vLLM 的分页思想，用到自己的内存管理）。<strong>关联对比</strong>：和其他项目对比同类设计（不同推理引擎的批处理有何异同），形成知识网络而非孤立点。读源码的目标不是「读完」，而是<strong>建立直觉和 ownership</strong>——能改、能解释、能预测改动后果，才算真懂。读透几个核心项目比泛读一堆有价值。</p>
+    <h3>对比速查：源码阅读策略</h3>
+    <table>
+      <thead><tr><th>策略</th><th>何时用</th><th>产出</th><th>误区</th></tr></thead>
+      <tbody>
+        <tr><td>自顶向下</td><td>理解架构</td><td>数据流图</td><td>陷细节</td></tr>
+        <tr><td>问题驱动</td><td>找答案</td><td>针对理解</td><td>漏全局</td></tr>
+        <tr><td>动手改造</td><td>验证理解</td><td>ownership</td><td>改坏不知</td></tr>
+        <tr><td>对照论文</td><td>学术项目</td><td>公式↔代码</td><td>只信论文</td></tr>
+      </tbody>
+    </table>
 
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们导读三个经典的 LLM 相关开源项目。核心要点：</p>

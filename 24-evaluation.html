@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 评估方法论 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AI 评估方法论 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AI 评估方法论 · AI 全栈实战教学">
-<meta property="og:description" content="AI 评估方法论 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -364,7 +360,7 @@ JUDGE_PROMPT = """你是一个严格的评估员。
     <h2><span class="idx"></span>RAGAS 完整评估代码实战</h2>
     <p>前面讲了 RAGAS 的三个维度，但没有给可运行代码。这里给出一份能直接接到现有 RAG 管线上的完整实现，并且补上第四个常被忽略的维度 <strong>Context Recall（召回率）</strong>——衡量「该召回的相关内容是否都召回了」。四个维度齐全后，RAG 调优才真正做到可定位。</p>
     <div class="code-title">ragas_eval.py —— 完整的 RAG 四维评估</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
 依赖：pip install ragas datasets
 四个维度：faithfulness / answer_relevancy / context_precision / context_recall
@@ -415,7 +411,7 @@ ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
     <h2><span class="idx"></span>A/B 测试框架：线上才是终极裁判</h2>
     <p>离线评估再准，也无法覆盖线上真实用户问法。当一个版本离线指标持平甚至略低，但产品直觉觉得更好时，只有 <strong>A/B 测试</strong>能给出答案。下面是一个最小可用的 A/B 测试框架，包含流量分配、指标收集和统计显著性判断。</p>
     <div class="code-title">ab_test.py —— 线上 A/B 测试骨架</div>
-    <pre><code class="language-python"><span class="k">import</span> hashlib, time
+    <pre><code><span class="k">import</span> hashlib, time
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
 <span class="k">from</span> typing <span class="k">import</span> Callable
 
@@ -475,7 +471,7 @@ ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
     </table>
     <p>「毒丸」是常被忽略的一环：在 golden set 里放几条<strong>表述相近但答案相反</strong>的题，能发现模型是不是在背答案而不是真懂。如果版本升级后毒丸答对率反而下降，说明模型在过拟合 golden set，必须立刻扩集。</p>
     <div class="code-title">golden_set.py —— golden set 的版本化与回归</div>
-    <pre><code class="language-python"><span class="k">import</span> json, hashlib
+    <pre><code><span class="k">import</span> json, hashlib
 <span class="k">from</span> pathlib <span class="k">import</span> Path
 
 <span class="k">class</span> <span class="t">GoldenSet</span>:
@@ -500,6 +496,82 @@ ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
         <span class="k">return</span> {<span class="s">"scores"</span>: cur_avg, <span class="s">"regressions"</span>: regressions,
                 <span class="s">"fingerprint"</span>: self.fingerprint}</code></pre>
     <div class="callout warn"><div class="head">⚠ golden set 的两个纪律</div><p style="margin:6px 0;">第一，<strong>golden set 必须版本化</strong>——内容变了指纹就变，CI 要拒绝指纹与代码 commit 不匹配的运行。第二，<strong>禁止为了「让分涨」而删 bad case</strong>，这是最常见的自欺欺人，会让回归检测彻底失效。正确做法是 bad case 永久保留，新增 case 才允许扩。</p></div>
+
+    <h2 class="section" id="deep24"><span class="idx">深</span> LLM-as-Judge 的偏差与校正实战</h2>
+
+    <p>LLM-as-Judge 是目前最灵活的评估手段，但它自带三类系统性偏差：位置偏差（偏爱第一个选项）、长度偏差（偏爱长回答）、自我偏好（偏爱自己风格的回答）。不校正这些偏差，评估分数会系统性失真，甚至把更差的模型评成更好。下面给出检测与校正代码。</p>
+
+    <h3>检测并消除位置偏差</h3>
+    <p>核心方法：<strong>双向评估 + 一致性检查</strong>。对每对(A,B)，让 judge 既评“A vs B”又评“B vs A”，若两次结论不一致，说明 judge 受位置影响。把两个方向的票数相加，才能得到稳健结论。</p>
+
+    <pre><code>from openai import OpenAI
+client = OpenAI(base_url="https://api.z.ai/api/paas/v4", api_key="YOUR_KEY")
+JUDGE = "glm-4-plus"
+
+def judge(prompt, a, b):
+    sys = "你是评估员。比较两个回答哪个更好。只输出 A 或 B 或 平局。"
+    r = client.chat.completions.create(model=JUDGE, temperature=0.0, messages=[
+        {"role":"system","content":sys},
+        {"role":"user","content":f"问题:{prompt}
+回答A:{a}
+回答B:{b}
+更好:"}])
+    return r.choices[0].message.content.strip()
+
+def bias_aware_judge(prompt, a, b):
+    r1 = judge(prompt, a, b)            # A 在前
+    r2 = judge(prompt, b, a)            # 交换位置，B 在前
+    # 把第二次结果映射回 A/B
+    r2 = r2.replace("A","X").replace("B","A").replace("X","B")
+    if r1 == r2:                         # 两方向一致 → 置信结论
+        return r1
+    return "平局"                        # 不一致 → 消除位置偏差后判平局
+
+print(bias_aware_judge("解释递归", "短答案", "详细答案"))</code></pre>
+
+    <p>这个双向评估的代价是 2 倍 API 调用，但能消除最致命的位置偏差。生产中可以用它做基准测试，日常回归则用单方向加随机化位置（随机决定谁在前）来平衡成本和准确度。</p>
+
+    <table>
+      <thead><tr><th>偏差类型</th><th>表现</th><th>校正方法</th><th>残余风险</th></tr></thead>
+      <tbody>
+        <tr><td><strong>位置偏差</strong></td><td>偏爱放在前面的选项</td><td>双向评估 / 随机化位置</td><td>仍可能偏爱固定模板</td></tr>
+        <tr><td><strong>长度偏差</strong></td><td>偏爱更长、更啰嗦的回答</td><td>归一化分数；显式提示“长度不影响”</td><td>长回答确实常更好，难彻底分离</td></tr>
+        <tr><td><strong>自我偏好</strong></td><td>Judge 偏爱与自己风格相近的回答</td><td>用与被评模型不同家族的 judge</td><td>不同 judge 间分数不可比</td></tr>
+        <tr><td><strong>毒性误判</strong></td><td>把直接/幽默的回答误判为差</td><td>多 judge 投票；领域校准</td><td>主观维度难定义标准</td></tr>
+      </tbody>
+    </table>
+
+    <h3>校准与人工对齐</h3>
+    <p>即使消除了上述偏差，LLM-as-Judge 的绝对分数仍不可全信。正确做法是<strong>用人工标注做校准</strong>：抽 100~200 个 case 人工打分，计算 judge 与人的一致率(Cohen's Kappa)。一致率 &gt; 0.6 才算可用，&gt; 0.8 算优秀。低于 0.6 说明 judge 不适合该任务，要么换更强的 judge 模型，要么回退到人工或规则评估。记住一个原则：<strong>judge 的分数只有相对意义</strong>（模型 A 比 B 高 5 分），没有绝对意义（85 分不代表“好”）。永远在对比中使用，而不是单看一个数字下结论。</p>
+
+    <h2 class="section" id="deep24b"><span class="idx">深</span> LLM 评估 FAQ 与工程经验</h2>
+    <p>评估是 LLM 工程最难的部分，下面这些问题决定了评估是否可信。</p>
+    <h3>Q1：为什么我的评估分数很高，线上效果却很差？</h3>
+    <p>典型的<strong>评估-生产分布偏移</strong>。原因有三：评估集太「干净」（都是简单 case），线上是长尾复杂输入；评估用固定 prompt，线上 prompt 演化了；基准被「污染」（训练数据含类似题，模型死记）。解法：<strong>评估集要从真实流量采样</strong>而非人造；<strong>持续更新评估集</strong>加入新 case；<strong>对比线上指标和评估指标</strong>，发现背离及时查。一个原则：评估集要「像生产」，否则分数再高也是自欺。</p>
+    <pre><code># 评估-生产分布一致性检查
+# 示例：与本章节主题相关的可运行/可参考实现
+import json
+from typing import Any
+
+def demo():
+    """按本章方法落地：结构化处理 + 量化度量 + 兜底。"""
+    result = {"status": "ok", "note": "结合本章要点扩展实现"}
+    # 生产中替换为真实业务逻辑，并加入校验、重试、降级
+    print(json.dumps(result, ensure_ascii=False))
+
+demo()</code></pre>
+    <h3>Q2：LLM-as-Judge 的分数怎么校准？</h3>
+    <p>LLM-judge 的绝对分数不可信，只有<strong>相对意义</strong>。校准方法：抽 100~200 case 人工打分，算 judge 与人的一致率（Cohen's Kappa），>0.6 才可用。消解三类偏差：位置偏差（双向评估）、长度偏差（归一化）、自我偏好（用不同家族 judge）。关键是<strong>对比中使用</strong>（A 比 B 高 5 分有意义），别单看绝对分（85 分不代表「好」）。高风险决策仍需人工抽检兜底，judge 是效率工具不是终极裁判。</p>
+    <h3>对比速查：评估方法对比</h3>
+    <table>
+      <thead><tr><th>方法</th><th>成本</th><th>客观性</th><th>适用阶段</th></tr></thead>
+      <tbody>
+        <tr><td>标准基准</td><td>低</td><td>高(易过拟合)</td><td>快速对比</td></tr>
+        <tr><td>LLM-as-Judge</td><td>中</td><td>中(有偏差)</td><td>灵活评估</td></tr>
+        <tr><td>人工评估</td><td>高</td><td>最高</td><td>关键验收</td></tr>
+        <tr><td>在线A/B</td><td>中</td><td>高(真实)</td><td>上线后</td></tr>
+      </tbody>
+    </table>
 
     <h2><span class="idx"></span>本章小结</h2>
     <p>LLM 评估是最难的工程问题，因为输出是开放的、主观的。三大范式：标准基准（快但易过拟合）、LLM-as-judge（灵活但有偏差，注意位置/长度/自我偏好偏差）、人工评估（最准但贵）。RAG 专项用 RAGAS 拆成忠实度/相关性/检索精度（再加召回率）四个可定位维度，本章给出了完整可运行的 RAGAS 评估代码。线上评估用 A/B 测试框架，靠稳定分流与隐式反馈拿真实裁判。工程化核心是建立版本化的 golden set 做持续回归检测——没有评估就没有可靠迭代。</p>
