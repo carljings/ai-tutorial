@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cline 的工具循环与审批 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Cline 的工具循环与审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Cline 的工具循环与审批 · AI 全栈实战教学">
-<meta property="og:description" content="Cline 的工具循环与审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 51 · Agent 源码深挖系列</span>
       <h1>Cline 的 Agent 循环<br>XML 格式工具调用与 plan/act 双模式</h1>
@@ -569,6 +566,72 @@ FAIL  src/auth.test.js
     </ul>
     <p>总体来说，function calling 是「更工程化、更可靠」的选择，XML 是「更兼容、更透明」的选择。Cline 选 XML 是因为它早期专注 Claude（Claude 的 XML 训练强）且重视用户感知，这是符合它定位的合理决策。</p>
 
+<h2 class="section" id="deep-cline-approval"><span class="idx">D1</span> 深度剖析：Cline 工具循环的审批集成</h2>
+    <p>本章介绍了 Cline 的工具循环与审批。这一节我们看审批如何无缝集成进循环，并设计一个支持"始终允许"与"本次允许"分级的审批管理器。</p>
+
+    <pre><code class="language-typescript">// Cline 风格的审批集成进工具循环
+class ApprovalManager {
+  private alwaysAllow = new Map<string, Set<string>>();  // tool -> 参数模式集合
+
+  async check(tool: string, args: any): Promise<"allow" | "deny"> {
+    // 1. 检查"始终允许"列表
+    const patterns = this.alwaysAllow.get(tool) ?? new Set();
+    for (const pat of patterns) {
+      if (matchesPattern(args, pat)) return "allow";
+    }
+    // 2. 否则弹窗询问用户，提供三个选项
+    const choice = await showApprovalDialog({
+      tool, args,
+      options: ["允许本次", "始终允许此类", "拒绝"]
+    });
+    if (choice === "始终允许此类") {
+      patterns.add(extractPattern(args));   // 记录参数模式
+      this.alwaysAllow.set(tool, patterns);
+    }
+    return choice === "拒绝" ? "deny" : "allow";
+  }
+}
+
+// 集成进循环：每次工具调用前过审批
+while (true) {
+  const action = await llm.next();
+  if (action.tool) {
+    if (await approval.check(action.tool, action.args) === "deny") {
+      messages.push({ role: "user", content: `已拒绝执行 ${action.tool}` });
+      continue;   // 告知 LLM 被拒，让它换方案
+    }
+    const result = await execute(action);
+    messages.push({ role: "tool", content: result });
+  }
+}
+</code></pre>
+
+    <p>审批集成的关键设计是<strong>"被拒后告知 LLM"</strong>。不能静默跳过被拒工具，否则 LLM 会反复尝试同一工具陷入死循环。把"用户拒绝了 X"作为反馈塞回 messages，LLM 能理解并换方案——这是让审批与循环协同的核心。</p>
+
+    <table>
+      <thead><tr><th>审批选项</th><th>作用范围</th><th>用户体验</th><th>风险</th></tr></thead>
+      <tbody>
+        <tr><td>允许本次</td><td>仅当前调用</td><td>安全但繁琐</td><td>低</td></tr>
+        <tr><td>始终允许此类</td><td>同模式参数</td><td>平衡</td><td>中（模式过宽）</td></tr>
+        <tr><td>始终允许工具</td><td>该工具所有调用</td><td>省事</td><td>高（不限参数）</td></tr>
+        <tr><td>拒绝</td><td>阻止本次</td><td>—</td><td>无</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-cline-pitfall"><span class="idx">D2</span> 生产避坑：审批循环的体验优化</h2>
+    <div class="callout warn">
+      <div class="head">坑 1："始终允许此类"的模式过宽</div>
+      <p>若 extractPattern 提取的模式太泛（如只记工具名不记参数），"始终允许"会变成对该工具全放行。模式提取要包含关键参数（如文件路径前缀），做到"同类但不无限"。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">坑 2：审批打断流式输出</div>
+      <p>LLM 流式输出途中弹审批框会打断阅读体验。优化：<strong>积累完整个工具调用再弹审批</strong>，而非工具名一出现就弹。Cline 会等 tool_call 参数完整后再询问。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：审批状态的持久化</div>
+      <p>"始终允许"的设置应跨会话保留，否则用户每次重启都要重设。但持久化要注意安全——存储的允许列表可能被篡改。建议加密存储并提供"重置所有允许"的快捷入口。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Cline 的 Agent 循环在「透明性」和「可控性」上做了独特探索。要点回顾：</p>
     <ul>
@@ -580,6 +643,7 @@ FAIL  src/auth.test.js
       <li><strong>与 function calling 对比</strong>：XML 更兼容更透明，function calling 更可靠更工程化，各有取舍。</li>
     </ul>
     <p>下一章（169 章）我们继续 Cline——看它的 diff 策略，SEARCH/REPLACE blocks 和 full-file rewrite 两种模式如何选择，以及错误恢复。</p>
+
 
 </main>
 

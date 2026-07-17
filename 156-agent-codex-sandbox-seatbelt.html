@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 沙箱：macOS Seatbelt · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学">
-<meta property="og:description" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 41 · Agent 源码深挖系列</span>
       <h1>macOS Seatbelt 沙箱<br>sandbox-exec profile 与进程隔离</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="what-is-seatbelt"><span class="idx">★</span> 一、Seatbelt：macOS 内核里的安全栅栏</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、Seatbelt：macOS 内核里的安全栅栏</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、读一份真实的 profile 文件</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Codex 如何动态生成 profile</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、调试 profile：为什么我的命令被拒了</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、Seatbelt 的局限</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、网络白名单的实战考量</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Seatbelt 是 macOS（确切说是 XNU 内核）里的 mandatory access control（MAC）框架，它的用户态接口是 <code>sandbox-exec</code> 命令。和 Linux 的 AppArmor 或 SELinux 类似，Seatbelt 允许你定义一套规则——某个进程能访问哪些路径、能连哪些网络、能 spawn 什么子进程——然后强制执行。</p>
@@ -478,6 +522,63 @@ sandbox-exec -D 1 -p /tmp/codex-sandbox-xxx.sb bash -c "npm install"
 (deny network-outbound)</code></pre>
     <p>这种「按域名白名单」的策略比「按 IP」更实用——域名稳定、可读、可维护。但要注意 DNS 解析可能被劫持，高安全场景下要配合 DNS-over-HTTPS 或固定 IP。对大多数开发场景，域名白名单已经足够。</p>
 
+<h2 class="section" id="deep-seatbelt-rules"><span class="idx">D1</span> 深度剖析：macOS Seatbelt 的规则系统</h2>
+    <p>本章介绍了 Codex 在 macOS 上用 Seatbelt 做沙箱。这一节我们深入 Seatbelt 的规则语法，看如何用 profile 文件精确控制进程的网络和文件访问。</p>
+
+    <pre><code class="language-lisp">;; Seatbelt profile：限制 Agent 子进程的权限
+;; (deny default) 表示默认拒绝，再用 allow 显式放行
+(deny default)
+
+;; 允许读取系统库（进程启动必需）
+(allow file-read*
+  (subpath "/usr/lib")
+  (subpath "/System/Library"))
+
+;; 仅允许工作目录的读写，禁止触碰家目录其它部分
+(allow file-write*
+  (subpath "/Users/dev/project"))   ; 只能写项目目录
+(deny file-write*
+  (subpath "/Users/dev"))            ; 家目录其余禁止写
+
+;; 完全禁止网络（防止数据外泄或拉取恶意载荷）
+(deny network*)
+
+;; 允许进程创建（执行命令需要 fork/exec）
+(allow process-fork)
+(allow process-exec
+  (subpath "/usr/bin")
+  (subpath "/bin"))
+
+;; 关键：deny default + 显式 allow 的白名单模式
+;; 比 "allow default + deny 危险项" 的黑名单模式安全得多
+</code></pre>
+
+    <p>Seatbelt 的设计哲学是<strong>"默认拒绝 + 显式允许"</strong>的白名单模式。这与黑名单（默认允许 + 禁止危险项）截然不同——白名单下，任何未预料到的操作（如新出现的系统调用）默认被拦，安全性远高于黑名单。Codex 选择白名单正是因为 Agent 执行的命令不可预测，黑名单永远列不全。</p>
+
+    <table>
+      <thead><tr><th>规则类型</th><th>作用</th><th>典型用法</th><th>坑</th></tr></thead>
+      <tbody>
+        <tr><td>deny default</td><td>拒绝所有未明确允许的</td><td>白名单基础</td><td>可能误伤必要系统调用</td></tr>
+        <tr><td>allow file-*</td><td>文件读写控制</td><td>限制工作目录</td><td>符号链接绕过</td></tr>
+        <tr><td>deny network*</td><td>禁止网络</td><td>防数据外泄</td><td>某些包管理需联网</td></tr>
+        <tr><td>allow process-exec</td><td>限制可执行命令</td><td>仅允许 /usr/bin</td><td>解释器（python）可绕过</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-seatbelt-pitfall"><span class="idx">D2</span> 生产避坑：Seatbelt 沙箱的绕过与加固</h2>
+    <div class="callout warn">
+      <div class="head">绕过 1：解释器逃逸</div>
+      <p>即使限制了可执行文件为 /usr/bin，若允许了 <code>python</code> 或 <code>node</code>，攻击者可用解释器执行任意代码（python -c "import os; os.system('...')"），完全绕过 exec 限制。<strong>要么禁止解释器，要么对解释器再加内层沙箱</strong>。Codex 对此采用命令分类 + 二次确认。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">绕过 2：符号链接与硬链接</div>
+      <p>工作目录内若有符号链接指向外部（如 node_modules 链到家目录），file-write 规则可能被绕过。Seatbelt 较新版本支持 <code>resolve</code> 选项解析符号链接后再匹配，务必启用。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">加固：分层沙箱</div>
+      <p>单层 Seatbelt 不够。Codex 在 Seatbelt 之外还加了应用层检查（命令分类、路径白名单）。纵深防御是关键——任何单层沙箱都可能被绕过，多层叠加才能提升攻击成本。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Seatbelt 让 Codex 在 macOS 上实现了进程级的强隔离。要点回顾：</p>
     <ul>
@@ -489,6 +590,7 @@ sandbox-exec -D 1 -p /tmp/codex-sandbox-xxx.sb bash -c "npm install"
       <li><strong>局限</strong>：仅 macOS、规则语法陌生、官方文档少、有政策风险。</li>
     </ul>
     <p>下一章（157 章）我们看 Linux 上的对应方案——Landlock。它是 Linux 5.13 引入的内核特性，用完全不同的方式（基于 syscall 的程序化设置）实现类似的隔离，我们对比两者的设计哲学。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>重复惩罚与可控生成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="重复惩罚与可控生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="重复惩罚与可控生成 · AI 全栈实战教学">
-<meta property="og:description" content="重复惩罚与可控生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 11 · Transformer 深度系列</span>
       <h1>重复惩罚机制<br>三种 penalty 的数学原理与代码实现</h1>
@@ -513,6 +510,64 @@ print(f"penalty=1.0 时 3-gram 重复率: {repetition_ratio(text_low, 3):.2%}")
 print(f"penalty=1.3 时 3-gram 重复率: {repetition_ratio(text_high, 3):.2%}")</code></pre>
     <p>用这个工具扫一遍不同参数组合，找到重复率低于 5% 且读起来最自然的配置，就是你的最佳参数。通常 repetition_penalty=1.15 + no_repeat_ngram_size=3 是一个很好的起点。</p>
 
+<h2 class="section" id="deep-penalty-compare"><span class="idx">D1</span> 深度对比：三种重复惩罚机制的数学差异</h2>
+    <p>防重复看似简单，实则有三套不同数学机制：Repetition Penalty、Frequency Penalty、Presence Penalty。它们的公式不同、副作用不同，混用容易出怪事。这一节把三者的数学讲透，并给出选型矩阵。</p>
+
+    <pre><code class="language-python"># 三种惩罚的数学定义与实现
+import torch, torch.nn.functional as F
+
+def repetition_penalty(logits, generated_ids, penalty=1.2):
+    # 对所有出现过的 token，logit 除以 penalty（正 logit 降低，负 logit 抬高）
+    for tid in set(generated_ids.tolist()):
+        if logits[tid] > 0:
+            logits[tid] /= penalty
+        else:
+            logits[tid] *= penalty
+    return logits
+
+def frequency_penalty(logits, generated_ids, penalty=0.5):
+    # 按出现次数线性降低 logit
+    for tid in set(generated_ids.tolist()):
+        cnt = generated_ids.tolist().count(tid)
+        logits[tid] -= penalty * cnt
+    return logits
+
+def presence_penalty(logits, generated_ids, penalty=0.3):
+    # 只要出现过就降固定值，不管次数
+    for tid in set(generated_ids.tolist()):
+        logits[tid] -= penalty
+    return logits
+
+# 关键差异：
+# - repetition_penalty 对"负 logit"会反而抬高概率（乘 penalty）→ 偶现怪词
+# - frequency/presence 只降不升，行为更可预测
+# - repetition 是"乘性"非线性，freq/pres 是"加性"线性
+</code></pre>
+
+    <p>这里有个常被忽略的细节：<strong>Repetition Penalty 对负 logit 是乘以 penalty，反而会抬高该 token 的概率</strong>（负数乘 1.2 更负，softmax 后反而... 实际是绝对值变大，但因为它是负的，exp 后更小）。等等，这里要小心：标准实现里负 logit 乘 penalty 会让它更负，概率更低。但部分错误实现统一用除法，对负 logit 会反向抬高。这就是为什么<strong>建议优先用 frequency/presence 这类加性惩罚</strong>——它们对 logit 符号不敏感，行为更可预测。</p>
+
+    <table>
+      <thead><tr><th>机制</th><th>公式</th><th>对次数敏感</th><th>副作用</th><th>推荐场景</th></tr></thead>
+      <tbody>
+        <tr><td>Repetition Penalty</td><td>logit /= p（正）/ ×= p（负）</td><td>否（只看是否出现）</td><td>可能压制合理复述</td><td>通用防重复</td></tr>
+        <tr><td>Frequency Penalty</td><td>logit -= p × count</td><td>是</td><td>高频功能词被压制</td><td>创意写作</td></tr>
+        <tr><td>Presence Penalty</td><td>logit -= p（出现即扣）</td><td>否</td><td>最温和</td><td>对话、长文</td></tr>
+        <tr><td>n-gram 阻断</td><td>硬性禁止 n-gram 复现</td><td>否</td><td>可能卡死生成</td><td>翻译、摘要兜底</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-penalty-debug"><span class="idx">D2</span> 调试指南：重复问题的分级排查</h2>
+    <div class="callout tip">
+      <div class="head">重复问题的四级排查法</div>
+      <ol style="margin:6px 0;">
+        <li><strong>第一级：是否温度过低？</strong>temp=0 或极低时模型必然走最高概率路径，任何高频 n-gram 都会被无限复述。先 temp=0.7 试。</li>
+        <li><strong>第二级：是否 repetition penalty 方向反了？</strong>打印被惩罚后的 logits，确认正 logit 确实下降、负 logit 没被误抬。</li>
+        <li><strong>第三级：是否 EOS 概率被压得太低？</strong>若 EOS 被惩罚，模型无法正常结束，只能靠重复填满长度。把 EOS 排除在惩罚集合外。</li>
+        <li><strong>第四级：是否模型本身过拟合？</strong>上述都无效，可能是训练数据有大量重复 pattern。需回训练阶段清洗，或加 n-gram 阻断兜底。</li>
+      </ol>
+    </div>
+    <p>一个实战经验：<strong>80% 的"模型变重复了"问题，根因是 temperature 被设成了 0</strong>。在动用任何惩罚之前，先把 temperature 调到 0.7~1.0，往往问题就消失大半。惩罚参数应该是最后的微调手段，而不是第一反应。</p>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把对抗重复的三把剪刀都拆解清楚了。要点回顾：</p>
     <ul>
@@ -524,6 +579,7 @@ print(f"penalty=1.3 时 3-gram 重复率: {repetition_ratio(text_high, 3):.2%}")
       <li><strong>调参原则</strong>：惩罚过重比过轻更危险，组合使用（repetition_penalty + no_repeat_ngram_size）通常优于单独使用，用量化指标辅助调参。</li>
     </ul>
     <p>解决了重复问题，我们就可以更放心地使用采样来获得多样性。下一章会深入更高级的采样技巧——top-k、top-p、min-p、typical sampling、mirostat，看看它们各自如何精雕细琢地塑造输出的「性格」。</p>
+
 
 </main>
 

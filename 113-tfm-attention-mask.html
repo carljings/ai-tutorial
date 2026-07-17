@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>注意力掩码：因果、双向、文档级 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学">
-<meta property="og:description" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 13 · Transformer 深度系列</span>
       <h1>注意力掩码全景<br>Causal / Padding / Prefix 三种掩码的协同</h1>
@@ -524,6 +521,63 @@ print("输出不含 NaN:", not torch.isnan(out).any())</code></pre>
       <li><strong>注意 device 和 dtype</strong>：掩码的 dtype 要和 attention scores 一致（通常是 float），device 要一致。混用 CPU 和 GPU 的 tensor 会报错。</li>
     </ul>
 
+<h2 class="section" id="deep-mask-zoo"><span class="idx">D1</span> 深度剖析：四种掩码的工程实现与坑</h2>
+    <p>本章讲了因果、双向、文档级掩码。这一节我们用代码把四种掩码一次性实现出来，并指出每种掩码在实践中最容易踩的坑——尤其是<strong>文档级掩码在多轮对话/RAG 场景的泄漏问题</strong>。</p>
+
+    <pre><code class="language-python"># 四种掩码的统一实现
+import torch
+
+def causal_mask(n):
+    # 下三角为 0（可见），上三角为 -inf（屏蔽）
+    return torch.triu(torch.full((n, n), float('-inf')), diagonal=1)
+
+def bidirectional_mask(n):
+    # 全可见
+    return torch.zeros(n, n)
+
+def prefix_mask(n, prefix_len):
+    # prefix 部分（前 prefix_len）双向可见，生成部分保持因果
+    m = causal_mask(n)
+    m[:prefix_len, :prefix_len] = 0   # prefix 内部互通
+    return m
+
+def document_mask(doc_ids):
+    # 同 doc 可见，跨 doc 屏蔽（用于 packing 多文档）
+    n = len(doc_ids)
+    doc = torch.tensor(doc_ids).unsqueeze(0)   # (1, n)
+    same_doc = (doc == doc.T).float()          # (n, n) 同 doc=1
+    causal = torch.tril(torch.ones(n, n))      # 因果
+    return torch.where(same_doc * causal > 0, 0.0, float('-inf'))
+
+print("因果掩码(4):\n", causal_mask(4))
+print("\n文档掩码([A,A,B,B]):\n", document_mask([0,0,1,1]))
+# 关键：跨 doc 的位置即使因果允许也必须屏蔽，否则 RAG 场景里
+# 后一文档的 token 会"偷看"前一文档，造成训练-推理不一致
+</code></pre>
+
+    <p>文档掩码是最容易出 bug 的地方。在 RAG/多轮对话训练中，我们常把多个文档 pack 进一个序列以提高 GPU 利用率。如果只用因果掩码，后一个文档的 token 会通过自注意力"看到"前一个文档的内容——这在训练时是数据泄漏（模型不该依赖跨文档信息），推理时又看不到，导致分布偏移。<strong>文档掩码必须同时满足"因果 + 同文档"两个约束</strong>。</p>
+
+    <table>
+      <thead><tr><th>掩码类型</th><th>可见范围</th><th>典型场景</th><th>常见 bug</th></tr></thead>
+      <tbody>
+        <tr><td>因果（下三角）</td><td>i 可见 j≤i</td><td>Decoder 自回归</td><td>padding 未屏蔽</td></tr>
+        <tr><td>双向</td><td>全部互见</td><td>Encoder、嵌入</td><td>误用于生成导致泄漏</td></tr>
+        <tr><td>Prefix</td><td>prefix 双向 + 生成因果</td><td>前缀微调、指令</td><td>prefix_len 边界算错</td></tr>
+        <tr><td>文档级</td><td>同文档 + 因果</td><td>RAG packing、多轮</td><td>跨文档泄漏（最隐蔽）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-mask-debug"><span class="idx">D2</span> 调试技巧：如何快速定位掩码 bug</h2>
+    <div class="callout tip">
+      <div class="head">掩码 bug 的三步定位法</div>
+      <ol style="margin:6px 0;">
+        <li><strong>可视化注意力矩阵</strong>：把任意一层的 attention weights 热力图画出来。正确掩码下，被屏蔽位置应为纯黑（权重 0）。看到"亮斑"出现在应屏蔽区域，就是泄漏。</li>
+        <li><strong>构造最小复现</strong>：输入两个不同文档 packed 的序列，对比"单独推理 doc2"和"packed 推理 doc2"的输出。若不同，说明 doc2 被 doc1 污染。</li>
+        <li><strong>检查 mask 的 dtype</strong>：mask 应与 logits 同 dtype。-inf 在 fp16 下可能变成 nan，用 <code>torch.finfo(dtype).min</code> 更稳。</li>
+      </ol>
+    </div>
+    <p>一个高频事故：训练用 bf16，mask 写成 <code>float('-inf')</code>，在 bf16 下 -inf 与正常值相加会传播 nan，导致 loss 直接变 nan。把 -inf 换成 <code>torch.finfo(logits.dtype).min</code>（bf16 下约 -3.4e38）可以规避。这个改动看似微小，却救过无数训练任务。</p>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把注意力掩码的完整体系梳理了一遍。要点回顾：</p>
     <ul>
@@ -535,6 +589,7 @@ print("输出不含 NaN:", not torch.isnan(out).any())</code></pre>
       <li><strong>调试要点</strong>：打印掩码、检查 NaN、验证因果性、统一 device 和 dtype。</li>
     </ul>
     <p>掩码是注意力计算正确性的基石。掌握它之后，我们就可以放心地讨论一个更激进的优化方向——投机解码。下一章会讲如何用一个小模型「投机」猜测大模型的输出，再由大模型批量验证，实现推理的大幅加速。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Continue 的 IDE 架构 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Continue 的 IDE 架构 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Continue 的 IDE 架构 · AI 全栈实战教学">
-<meta property="og:description" content="Continue 的 IDE 架构 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 48 · Agent 源码深挖系列</span>
       <h1>Continue 架构<br>IDE 扩展形态的 autocomplete + chat 双模式 Agent</h1>
@@ -318,18 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="two-modes"><span class="idx">★</span> 一、两种模式，两种约束</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、两种模式，两种约束</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、core 与 extension 的分层</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、config.json：Continue 的配置中心</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、autocomplete 的极速流水线</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、debounce 与触发时机</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、chat 模式的上下文与工具</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>七、WebView：chat 界面的渲染</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Continue 同时服务两个场景，而它们对系统的约束几乎相反：</p>
@@ -500,6 +543,59 @@ export class ChatSession {
     <p>VSCode 的侧边栏 chat 界面是用 WebView 实现的——本质上是一个内嵌的浏览器，加载 Continue 自己的 React 应用。core 通过 postMessage 和 WebView 通信：用户输入通过 postMessage 传给 core，core 的流式响应通过 postMessage 推回 WebView 渲染。</p>
     <p>这种架构让 Continue 的 chat 界面可以做得非常丰富（支持 Markdown 渲染、代码高亮、diff 视图、按钮交互），而不受 VSCode 原生 UI 组件的限制。代价是 WebView 比原生 UI 重（启动慢、占内存），但对于 chat 这种重交互场景是值得的。</p>
 
+<h2 class="section" id="deep-continue-arch"><span class="idx">D1</span> 深度剖析：Continue 的 IDE 进程通信架构</h2>
+    <p>本章介绍了 Continue 的 IDE 架构。这一节我们深入 VSCode 扩展与后端 core 的进程通信，看它如何平衡响应性与功能完整。</p>
+
+    <pre><code class="language-typescript">// Continue 的双进程架构
+// 1. 扩展进程（VSCode Extension Host）：负责 UI、编辑器交互
+// 2. Core 进程（Node）：负责 LLM 调用、索引、工具执行
+
+// 扩展进程侧：轻量，只做 UI 响应
+vscode.commands.registerCommand('continue.generate', async (input) => {
+  // 通过 IPC 把请求发给 core 进程，不阻塞 UI
+  const stream = await coreClient.streamGenerate({
+    input,
+    context: { activeFile: getActiveFile(), selection: getSelection() }
+  });
+  // 流式渲染 core 返回的增量
+  for await (const chunk of stream) {
+    renderToWebview(chunk);
+  }
+});
+
+// Core 进程侧：重量级逻辑
+// 负责：调用 LLM、查代码库索引、执行工具
+// 这样即使 LLM 响应慢或索引构建耗时，UI 也不卡顿
+// 通信：通过 stdio 或 WebSocket，双向流式
+</code></pre>
+
+    <p>双进程架构的关键收益是<strong>UI 永不卡顿</strong>。LLM 调用可能耗时数十秒，若在扩展进程（UI 线程）里做，整个 VSCode 会冻住。把重活放到独立 core 进程，UI 只负责流式渲染，响应性得到保证。这也是为什么 Continue 的体验比"单进程插件"流畅得多。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>双进程（Continue）</th><th>单进程插件</th></tr></thead>
+      <tbody>
+        <tr><td>UI 响应性</td><td>优（隔离）</td><td>差（易卡）</td></tr>
+        <tr><td>资源隔离</td><td>core 崩溃不影响 IDE</td><td>崩溃带垮 IDE</td></tr>
+        <tr><td>通信开销</td><td>有 IPC 序列化成本</td><td>无</td></tr>
+        <tr><td>调试难度</td><td>需调试两个进程</td><td>简单</td></tr>
+        <tr><td>适用场景</td><td>重计算、长任务</td><td>轻量功能</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-continue-pitfall"><span class="idx">D2</span> 生产避坑：IDE 扩展的工程陷阱</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：core 进程的生命周期</div>
+      <p>core 进程何时启动、何时退出？若随 IDE 启动，增加冷启动时间；若按需启动，首次调用有延迟。Continue 采用<strong>懒启动 + 保活</strong>：首次使用时启动，空闲一段时间后退出。需处理进程意外崩溃的自动重启。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">坑 2：Webview 与扩展的通信</div>
+      <p>Continue 的聊天 UI 跑在 Webview（独立 iframe 沙箱）里，与扩展进程通信需经 <code>acquireVsCodeApi</code> 的 postMessage。大量流式数据走这条路会有序列化开销，需做批量合并减少消息数。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：多编辑器窗口的状态同步</div>
+      <p>用户开多个 VSCode 窗口，每个窗口的上下文（当前文件、选区）不同。core 进程要按窗口隔离上下文，避免窗口 A 的查询拿到窗口 B 的文件。用 windowId 做命名空间隔离。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Continue 展示了一个 IDE 扩展形态 Agent 的典型架构。要点回顾：</p>
     <ul>
@@ -512,6 +608,7 @@ export class ChatSession {
       <li><strong>WebView 渲染</strong>：React 应用跑在内嵌浏览器，postMessage 通信，UI 丰富但较重。</li>
     </ul>
     <p>下一章（166 章）我们深入 Continue 的另一项核心技术——codebase 索引和 @codebase 检索，看它如何让 Agent 真正「理解」整个项目。</p>
+
 
 </main>
 

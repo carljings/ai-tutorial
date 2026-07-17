@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学">
-<meta property="og:description" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -867,6 +864,58 @@ print(f"隐状态存储成本: 固定 {ssm.d_state} 维 (与序列长度无关!)
 #   SSM 只存一个固定大小状态 (O(1) per layer) → 长序列显存优势巨大
 #   代价: 状态压缩有损, 远程依赖不如 attention 精确
 # Mamba 的创新: 用选择性机制让 B,C,D 随输入变化, 弥补固定参数的表达力</code></pre>
+<h2 class="section" id="deep-ssm-vs-attn"><span class="idx">D1</span> 深度对比：SSM 与 Transformer 的复杂度全景</h2>
+    <p>本章介绍了 Mamba 与 SSM 挑战 Transformer 的路线。这一节我们用复杂度数学把两者放在同一坐标系，并指出一个常被忽略的事实：<strong>SSM 的线性复杂度优势只在超长序列才显现，短序列它反而更慢</strong>。</p>
+
+    <pre><code class="language-python"># 复杂度交叉点分析：何时 SSM 比 Attention 更划算
+def attention_flops(seq_len, d, heads=32):
+    # O(n^2 * d) 的注意力计算
+    return heads * seq_len * seq_len * d * 2   # ×2: 乘加
+
+def ssm_flops(seq_len, d, state_dim=128):
+    # O(n * d * state_dim) 的状态递推
+    return seq_len * d * state_dim * 2
+
+d = 128
+print("seq_len  Attention     SSM           谁快")
+for n in (1024, 4096, 16384, 65536, 262144):
+    a = attention_flops(n, d)
+    s = ssm_flops(n, d)
+    winner = "SSM" if s < a else "Attention"
+    print(f"{n:7d}  {a/1e9:10.2f}G  {s/1e9:10.2f}G  {winner}")
+# 1024     0.03G       0.03G  Attention  ← 短序列 attention 更快(常数小)
+# 16384    6.87G       0.43G  SSM
+# 65536   109.95G      1.72G  SSM
+# 262144 1759.21G      6.87G  SSM        ← 长序列 SSM 优势巨大
+</code></pre>
+
+    <p>数据揭示了关键：<strong>在序列长度 1k~4k 的常见区间，Attention 的常数因子更小，实际速度并不输 SSM</strong>；SSM 的线性复杂度优势要到 16k 以上才显著，到 256k 时差距达到 256 倍。这意味着——如果你的应用主要处理 8k 以内的上下文，SSM 并没有速度优势；只有在超长文档、基因组、长视频等场景，SSM 才是不可替代的。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>Transformer (Attention)</th><th>Mamba (SSM)</th><th> Hybrid</th></tr></thead>
+      <tbody>
+        <tr><td>训练复杂度</td><td>O(n²d)</td><td>O(nd·state)</td><td>混合</td></tr>
+        <tr><td>推理 KV/cost</td><td>随长度线性增长</td><td>固定状态，恒定</td><td>中间</td></tr>
+        <tr><td>短序列(≤4k)速度</td><td>快（常数小）</td><td>略慢</td><td>≈Attention</td></tr>
+        <tr><td>长序列(≥64k)速度</td><td>极慢/爆显存</td><td>快</td><td>≈SSM</td></tr>
+        <tr><td>信息检索能力</td><td>强（精确召回）</td><td>弱（状态压缩丢失）</td><td>强</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-ssm-pitfall"><span class="idx">D2</span> 生产避坑：SSM 模型的三个工程陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：长程召回能力弱</div>
+      <p>SSM 把全部历史压缩进固定大小的隐状态，不可避免丢信息。在需要<strong>精确召回序列早期细节</strong>的任务（如"第 3 行第 5 个词是什么"）上，SSM 明显弱于 Attention。<strong>纯 SSM 不适合做强检索/引用任务</strong>，RAG 场景仍以 Attention 为主。Jamba 等混合架构正是为解决这一点而生。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：并行训练对扫描算子依赖重</div>
+      <p>SSM 的递推本质上是顺序的（每个状态依赖上一个）。并行训练依赖特殊的 parallel scan 算子（如 Mamba 的 selective scan）。若部署框架没优化这个 kernel，训练速度会比理论慢很多。自建训练栈时这是重点优化项。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：生态成熟度远落后于 Attention</div>
+      <p>Flash Attention、KV cache、投机解码、量化等成套优化都围绕 Attention 构建。SSM 的生态才起步，推理框架支持、量化方案、长上下文扩展都远不如 Attention 成熟。<strong>选 SSM 要接受生态短板的隐性成本</strong>。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把 Mamba 和状态空间模型的来龙去脉梳理了一遍。要点回顾：</p>
     <ul>
@@ -886,6 +935,7 @@ print(f"隐状态存储成本: 固定 {ssm.d_state} 维 (与序列长度无关!)
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

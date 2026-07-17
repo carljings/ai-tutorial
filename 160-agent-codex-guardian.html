@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex Guardian AI 审批 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex Guardian AI 审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex Guardian AI 审批 · AI 全栈实战教学">
-<meta property="og:description" content="Codex Guardian AI 审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 44 · Agent 源码深挖系列</span>
       <h1>Codex Guardian 守护进程<br>网络审计与 auto-approve 规则引擎</h1>
@@ -576,6 +573,68 @@ impl Guardian {
 【阻断】0 次</code></pre>
     <p>这种人类可读的报告，让用户在 Agent 跑完后能快速回顾「它都干了什么」。特别是「陌生端点」这一栏，是安全审查的重点——如果你不认识那个域名，就该 investigate 为什么 Agent 会访问它。</p>
 
+<h2 class="section" id="deep-guardian-decision"><span class="idx">D1</span> 深度剖析：Guardian AI 审批的决策依据</h2>
+    <p>本章介绍了 Codex 的 Guardian AI 审批机制。这一节我们深入 Guardian 如何综合多维信号做审批决策，并对比它与规则审批的优劣。</p>
+
+    <pre><code class="language-python"># Guardian AI 审批的决策特征（示意）
+class GuardianDecision:
+    def __init__(self):
+        self.features = [
+            "command_category",      # read/write/network/dangerous
+            "target_paths",          # 影响的文件路径
+            "path_sensitivity",      # 路径敏感度（系统/用户/项目）
+            "command_history",       # 本会话历史命令
+            "deviation_score",       # 与常规模式的偏离度
+            "sandbox_mode",          # 当前沙箱强度
+            "user_trust_level",      # 用户信任等级
+        ]
+
+    def decide(self, cmd, ctx) -> dict:
+        score = self._score(cmd, ctx)   # 综合打分 0~1
+        if score < 0.3:
+            return {"action": "allow", "reason": "低风险常规操作"}
+        elif score < 0.7:
+            return {"action": "ask", "reason": self._explain(cmd, ctx)}
+        else:
+            return {"action": "deny", "reason": self._explain(cmd, ctx)}
+
+    def _explain(self, cmd, ctx):
+        # 关键：必须给出人类可读的理由，不能黑箱拒绝
+        reasons = []
+        if ctx.path_sensitivity == "system":
+            reasons.append("影响系统关键路径")
+        if ctx.deviation_score > 0.8:
+            reasons.append("偏离常规命令模式")
+        return "；".join(reasons) or "风险较高，建议人工确认"
+</code></pre>
+
+    <p>Guardian 相比纯规则的优势在于<strong>能理解上下文和意图</strong>。规则只能机械匹配"是否含 rm"，Guardian 能综合"这次 rm 是否符合本次任务模式、目标路径是否敏感、与历史命令是否一致"做判断。它的短板是<strong>可解释性</strong>——AI 决策必须给出理由，否则用户无法信任，这也是上面代码强调 _explain 的原因。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>规则审批</th><th>Guardian AI 审批</th></tr></thead>
+      <tbody>
+        <tr><td>理解上下文</td><td>否（机械匹配）</td><td>是（综合历史）</td></tr>
+        <tr><td>响应速度</td><td>快（毫秒）</td><td>较慢（需推理）</td></tr>
+        <tr><td>可解释性</td><td>强（规则清晰）</td><td>中（需额外解释）</td></tr>
+        <tr><td>误报率</td><td>高（保守匹配）</td><td>低（理解意图）</td></tr>
+        <tr><td>成本</td><td>低</td><td>高（每次调用 LLM）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-guardian-pitfall"><span class="idx">D2</span> 生产避坑：AI 审批的风险与缓解</h2>
+    <div class="callout warn">
+      <div class="head">风险 1：AI 被绕过（对抗攻击）</div>
+      <p>Guardian 本身是 LLM，可能被精心构造的命令描述误导（如把恶意命令包装成"清理临时文件"）。缓解：<strong>不要让 Guardian 只看 LLM 的文字描述，必须看实际命令和参数</strong>，并对参数做独立校验。Guardian 是规则的补充，不能替代硬规则。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">风险 2：延迟影响体验</div>
+      <p>每次审批都调 LLM 推理，延迟可能达数百毫秒，在快速连续操作时拖慢体验。优化：<strong>分层决策</strong>——规则能定的不调 Guardian，只有 unknown 或高风险才升级给 Guardian。Guardian 只处理 10% 的疑难决策。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">风险 3：模型一致性</div>
+      <p>Guardian 用的模型若升级，审批行为可能变化，导致同样的命令昨天允许今天拒绝。建议对 Guardian 决策做<strong>版本化 + 回归测试</strong>，关键命令有固定的 golden 决策集，升级后必须通过。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Guardian 是 Codex 安全体系的「观察者」角色。要点回顾：</p>
     <ul>
@@ -588,6 +647,7 @@ impl Guardian {
       <li><strong>可读审计报告</strong>：按类别汇总网络访问，陌生端点高亮，让 Agent 行为可追溯。</li>
     </ul>
     <p>下一章（161 章）是 Codex 系列的最后一篇——配置系统。我们会看到 config.toml 如何把所有这些机制（沙箱、权限、Guardian 规则、模型选择）统一管理，以及 profiles 如何让一套配置适配多种场景。</p>
+
 
 </main>
 

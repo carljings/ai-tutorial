@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoE 路由的工程细节 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="MoE 路由的工程细节 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="MoE 路由的工程细节 · AI 全栈实战教学">
-<meta property="og:description" content="MoE 路由的工程细节 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 17 · Transformer 深度系列</span>
       <h1>MoE 路由机制深入<br>Top-k Gating / Noisy Top-k / Auxiliary Loss 全解</h1>
@@ -515,6 +512,60 @@ analyze_routing(moe, torch.randn(4, 32, 64))</code></pre>
       <li><strong>路由器容量与丢弃</strong>：训练时配合容量因子丢弃超额 token，推理时通常不限容量（动态 batching）。</li>
     </ul>
 
+<h2 class="section" id="deep-routing-zoo"><span class="idx">D1</span> 深度对比：四种路由策略的工程权衡</h2>
+    <p>本章讲了 MoE 路由的基本原理。这一节我们对比四种工程上真正用过的路由策略：Top-K、Expert Choice、Hash 路由、容量因子限流。每种都有适用场景和致命短板。</p>
+
+    <pre><code class="language-python"># 四种路由策略的核心实现
+import torch, torch.nn.functional as F
+
+def topk_routing(gate_logits, k=2):
+    # 经典：每个 token 选概率最高的 k 个专家
+    return gate_logits.topk(k, dim=-1)
+
+def expert_choice_routing(gate_logits, capacity):
+    # 反过来：每个专家选它最想要的 token（token 可能被重复选或丢弃）
+    # gate_logits: (tokens, experts) → 转置后每个专家挑 token
+    scores = F.softmax(gate_logits, dim=0)   # 沿 token 维归一化
+    chosen = scores.topk(capacity, dim=0)    # 每专家挑 capacity 个
+    return chosen
+
+def hash_routing(token_ids, num_experts):
+    # 确定性哈希：token_id 决定专家，无学习参数
+    return token_ids % num_experts
+
+def topk_with_capacity(gate_logits, k=2, capacity=64):
+    # Top-K + 容量限流：超出容量的 token 丢弃或溢出到共享专家
+    topk = gate_logits.topk(k, dim=-1)
+    # 统计每专家负载，超 capacity 的 token 被标记 drop
+    return topk  # 实际框架里这里要做容量检查
+</code></pre>
+
+    <p>四种策略的核心矛盾是<strong>"token 视角" vs "专家视角"</strong>。Top-K 是 token 视角（每个 token 都要被服务），但可能造成专家过载；Expert Choice 是专家视角（每个专家挑最好的 token），负载均衡天然好，但可能丢弃某些 token。Hash 路由完全无学习，最快但效果差，只在极端追求速度时用。</p>
+
+    <table>
+      <thead><tr><th>策略</th><th>决策视角</th><th>负载均衡</th><th>token 丢失</th><th>代表模型</th></tr></thead>
+      <tbody>
+        <tr><td>Top-K</td><td>token</td><td>需 aux loss</td><td>可能（超容量）</td><td>GShard、Mixtral</td></tr>
+        <tr><td>Expert Choice</td><td>专家</td><td>天然均衡</td><td>可能被丢</td><td>EC-MoE</td></tr>
+        <tr><td>Hash</td><td>确定</td><td>强制均衡</td><td>无</td><td>研究/极速</td></tr>
+        <tr><td>Top-K+容量因子</td><td>token+限流</td><td>受控</td><td>溢出丢弃</td><td>Switch、GLM</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-routing-pitfall"><span class="idx">D2</span> 生产避坑：路由的部署期三大坑</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：容量因子（capacity factor）设错导致静默丢 token</div>
+      <p>MoE 推理时每个专家有一个容量上限，超出则丢弃 token。若 capacity factor 设太小，长序列或大 batch 下大量 token 被静默丢弃，输出质量下降但<strong>不报错</strong>。务必监控 drop rate，生产环境 capacity factor 建议 ≥1.25。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">坑 2：多卡部署的 all-to-all 通信瓶颈</div>
+      <p>MoE 的专家通常分布在不同 GPU 上，每个 token 路由后要 all-to-all 通信到目标专家所在的卡。在 8 卡以上部署时，这个通信往往成为瓶颈。DeepSeek 用<strong>细粒度专家 + 共享专家</strong>缓解：共享专家不分卡，处理通用 token，减少跨卡通信。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：推理 batch 太小导致专家闲置</div>
+      <p>MoE 的优势在高 batch 下才充分发挥（token 多才能填满各专家）。单用户低 batch 推理时，多数专家长期闲置，算力利用率可能低于稠密模型。<strong>MoE 更适合高并发服务场景</strong>，不适合单用户本地部署。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把 MoE 路由机制的内部细节彻底拆解了。要点回顾：</p>
     <ul>
@@ -526,6 +577,7 @@ analyze_routing(moe, torch.randn(4, 32, 64))</code></pre>
       <li><strong>专家专业化</strong>：训练后专家自发分工处理不同领域，可通过路由分布统计观察，细粒度+共享专家能减少冗余。</li>
     </ul>
     <p>讲完了 Transformer 家族的优化（量化、投机解码、MoE），下一章我们要跳出来，认识一个 Transformer 的有力挑战者——Mamba。它基于状态空间模型，用线性复杂度挑战 Transformer 的 O(n²) 注意力，是长序列建模的新希望。</p>
+
 
 </main>
 

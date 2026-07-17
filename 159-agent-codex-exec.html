@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex exec 路径：命令分类 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex exec 路径：命令分类 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex exec 路径：命令分类 · AI 全栈实战教学">
-<meta property="og:description" content="Codex exec 路径：命令分类 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 43 · Agent 源码深挖系列</span>
       <h1>Codex 命令执行<br>fork + exec 与流式输出捕获</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="why-not-system"><span class="idx">★</span> 一、为什么不用 system() 或 std::process::Command</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么不用 system() 或 std::process::Command</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、一次执行的完整流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、流式执行器的核心实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、超时处理的细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、环境变量的隔离与注入</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、输出格式化：给 LLM 看的格式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>最朴素的命令执行是 C 的 <code>system()</code> 或 Rust 标准库的 <code>std::process::Command::output()</code>。它们的接口是同步阻塞的——调用了就等命令跑完，拿到全部 stdout/stderr 再返回。这对 Agent 来说有几个致命问题。</p>
@@ -519,6 +563,70 @@ Tests:       12 passed, 12 total
 [无 stderr]</code></pre>
     <p>几个细节。第一，<strong>exit code 放最前面</strong>，让 LLM 第一眼就知道成功还是失败。第二，<strong>命令本身用 &gt; 引用</strong>，便于 LLM 区分「我让它跑的命令」和「命令的输出」。第三，<strong>stderr 即使为空也明确标注「无 stderr」</strong>，避免 LLM 猜「是没有 stderr 还是 stderr 被丢了」。第四，<strong>超时情况标注特殊状态</strong>，如 <code>[timeout after 120s, killed]</code>。这些格式细节看似琐碎，但对 LLM 准确理解执行结果非常关键——一个模糊的输出格式可能导致 LLM 误判。</p>
 
+<h2 class="section" id="deep-cmd-classify"><span class="idx">D1</span> 深度剖析：命令分类的规则引擎</h2>
+    <p>本章介绍了 Codex exec 路径的命令分类。这一节我们实现一个完整的命令分类器，把命令分成只读、写、网络、危险四类，并讨论分类的边界情况。</p>
+
+    <pre><code class="language-python"># 命令分类规则引擎
+import re, shlex
+
+class CommandClassifier:
+    READ_ONLY = {"ls", "cat", "grep", "find", "wc", "head", "tail",
+                 "git_status", "git_log", "git_diff", "tree", "file"}
+    WRITE_CMDS = {"rm", "mv", "cp", "mkdir", "touch", "chmod",
+                  "pip", "npm", "git_add", "git_commit"}
+    NETWORK_CMDS = {"curl", "wget", "ssh", "scp", "git_push", "npm_publish"}
+    DANGEROUS = {r"rm\s+-rf\s+/", r">\s*/etc/", r"mkfs", r"dd\s+if="}
+
+    def classify(self, cmd: str) -> str:
+        # 1. 先匹配危险模式（正则）
+        for pat in self.DANGEROUS:
+            if re.search(pat, cmd): return "dangerous"
+        # 2. 解析命令，取主命令名
+        try:
+            tokens = shlex.split(cmd)
+            main = tokens[0]
+            # 处理 git 子命令
+            if main == "git" and len(tokens) > 1:
+                main = "git_" + tokens[1]
+        except ValueError:
+            return "unknown"   # 解析失败，保守归为未知
+        # 3. 查表分类
+        if main in self.READ_ONLY: return "read_only"
+        if main in self.NETWORK_CMDS: return "network"
+        if main in self.WRITE_CMDS: return "write"
+        return "unknown"   # 未知命令，保守处理
+
+# 关键：unknown 是兜底，宁可多问不可误放
+# 管道和命令替换（cmd | cmd, $(cmd)）要递归分类每个子命令
+</code></pre>
+
+    <p>分类器的设计原则是<strong>"保守优先"</strong>：任何无法明确归为只读的命令，都归为 unknown 并触发审批。宁可误报打扰用户，也不漏放危险命令。同时要处理命令组合——管道 <code>a | b</code> 的危险等级取两者最高，命令替换 <code>$(b)</code> 要递归分析。</p>
+
+    <table>
+      <thead><tr><th>类别</th><th>示例</th><th>沙箱处理</th><th>审批策略</th></tr></thead>
+      <tbody>
+        <tr><td>read_only</td><td>ls/cat/grep/git diff</td><td>直接放行</td><td>无需审批</td></tr>
+        <tr><td>write</td><td>rm/mv/pip install</td><td>工作目录内允许</td><td>首次询问</td></tr>
+        <tr><td>network</td><td>curl/git push</td><td>需显式允许网络</td><td>每次询问</td></tr>
+        <tr><td>dangerous</td><td>rm -rf /、mkfs</td><td>硬拒绝</td><td>禁止，需手动解除</td></tr>
+        <tr><td>unknown</td><td>自定义脚本</td><td>保守审批</td><td>每次询问</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-classify-pitfall"><span class="idx">D2</span> 生产避坑：命令分类的绕过手法</h2>
+    <div class="callout warn">
+      <div class="head">绕过 1：别名与环境变量</div>
+      <p>用户 shell 里 <code>alias ll='rm -rf'</code> 会让分类器把 "ll" 误判为只读。分类必须基于<strong>解析后的真实命令</strong>，而非表面字符串。Codex 在非交互 shell 中跑命令，部分规避了别名，但环境变量注入（如 <code>LD_PRELOAD</code>）仍需额外防护。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">绕过 2：命令替换与管道</div>
+      <p><code>echo $(curl evil.com)</code> 表面是 echo（只读），实际含网络调用。分类器必须递归分析 <code>$(...)</code> 和 <code>`...`</code> 内的内容，取所有子命令的最高危险等级。这一步遗漏是常见漏洞。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">绕过 3：解释器内执行</div>
+      <p><code>python -c "import os; os.system('rm -rf /')"</code> 表面是 python（可能被归为 unknown 或 write），实际执行任意命令。对解释器调用应<strong>强制询问或禁止 -c 内联</strong>，要求脚本文件落地后再分类执行。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Codex 的命令执行器是异步编程的精细样本。要点回顾：</p>
     <ul>
@@ -531,6 +639,7 @@ Tests:       12 passed, 12 total
       <li><strong>格式化设计</strong>：exit code 在前、命令用 &gt; 引用、stderr 为空也标注，每个细节都为 LLM 准确理解服务。</li>
     </ul>
     <p>下一章（160 章）我们看 Codex 的另一个守护机制——Guardian 守护进程，它负责审计 Agent 的网络访问、维护 auto-approve 规则引擎，是 Agent 安全的又一层防线。</p>
+
 
 </main>
 

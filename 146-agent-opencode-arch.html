@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学">
-<meta property="og:description" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -847,6 +844,59 @@ export default definePlugin({
     <p>这种分离有两个好处：一是 MCP server 崩溃不会拖垮主进程；二是不同语言实现的 MCP server（Python 的、Go 的）可以共存。主进程通过 <code>Bun.spawn</code> 拉起子进程，用 JSON-RPC over stdio 跟它通信。</p>
     <p>如果以 server 模式运行，还会多一个 WebSocket 监听进程。外部客户端连上之后，通过 WS 收发事件——本质上就是把 bus 的 emit/on 代理到了网络通道上。这就是为什么 OpenCode 能被 IDE 扩展复用：它的事件协议天然支持远程化。</p>
 
+<h2 class="section" id="deep-cs-protocol"><span class="idx">D1</span> 深度剖析：客户端/服务器协议的消息流转</h2>
+    <p>本章介绍了 OpenCode 客户端/服务器分离的架构。这一节我们深入两者之间的通信协议，看一条用户消息是如何从 TUI 客户端流经 JSON-RPC 到达 LLM 再返回的，并对比这种分离架构与单体架构在生产部署上的差异。</p>
+
+    <pre><code class="language-typescript">// OpenCode 客户端 → 服务器的核心消息类型（简化）
+interface SessionRequest {
+  method: "session.run" | "session.abort" | "tool.call";
+  params: {
+    sessionId: string;
+    messages: Message[];        // 完整对话历史
+    tools?: ToolDefinition[];   // 本轮可用工具
+    config?: RunConfig;         // 模型、温度等
+  };
+}
+
+// 服务器返回的是流式事件，客户端逐个消费渲染
+type StreamEvent =
+  | { type: "text.delta"; text: string }            // LLM 文本增量
+  | { type: "tool.call"; tool: string; args: any }  // 工具调用请求
+  | { type: "tool.result"; result: string }         // 工具执行结果
+  | { type: "error"; message: string };
+
+// 关键设计：客户端只负责"输入与渲染"，所有 LLM 调用、工具执行、
+// 文件读写都在服务器进程完成。这样服务器可以无头运行（headless），
+// 被其它客户端（CLI、API、CI）复用，而不是绑死在某个 TUI 上。
+</code></pre>
+
+    <p>这种分离带来一个重要的生产优势：<strong>同一套推理逻辑能被多种前端复用</strong>。开发者可以在 TUI 里调试 prompt，调试好后把同一服务器进程接到 CI 流水线做自动代码审查，或暴露成 HTTP API 给 Web 端调用。逻辑只在服务器一处维护，避免多端实现漂移。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>C/S 分离（OpenCode）</th><th>单体架构</th></tr></thead>
+      <tbody>
+        <tr><td>前端复用</td><td>TUI/CLI/API/CI 共享一服务器</td><td>每端重写逻辑</td></tr>
+        <tr><td>无头运行</td><td>支持（headless 模式）</td><td>通常不支持</td></tr>
+        <tr><td>调试难度</td><td>协议层可独立抓包</td><td>耦合在 UI 里</td></tr>
+        <tr><td>部署复杂度</td><td>需管理两个进程</td><td>单进程简单</td></tr>
+        <tr><td>状态一致性</td><td>服务器单一数据源</td><td>易多端不一致</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-cs-pitfall"><span class="idx">D2</span> 生产避坑：C/S 架构的三个部署陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：进程生命周期管理</div>
+      <p>客户端关闭时若不优雅终止服务器，会留下僵尸进程占用 LLM 连接和端口。OpenCode 用 Unix domain socket + 心跳检测来管理：客户端每 5 秒发心跳，服务器超时未收到则自动退出。自建类似架构务必实现这个机制。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：大消息的序列化开销</div>
+      <p>对话历史变长后，每次请求序列化整个 messages 数组开销很大。优化方向：服务器侧维护会话状态，客户端只发增量消息；或用二进制协议（如 MessagePack）替代 JSON。OpenCode 在超长会话时会做消息分页加载。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：并发会话的状态隔离</div>
+      <p>一个服务器进程可能同时服务多个会话，若共享全局状态（如工作目录、环境变量），会话间会相互污染。每个 sessionId 必须有独立的工作上下文，工具调用的副作用（文件改动）要按会话隔离或显式共享。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们从全局视角理解了 OpenCode 的架构骨架。核心要点回顾：</p>
     <ul>
@@ -865,6 +915,7 @@ export default definePlugin({
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

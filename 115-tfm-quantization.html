@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>量化：让大模型跑在消费级显卡上 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学">
-<meta property="og:description" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 15 · Transformer 深度系列</span>
       <h1>模型量化全景<br>从 FP16 到 INT4 的精度与效率博弈</h1>
@@ -497,6 +494,58 @@ model_4bit.print_trainable_parameters()
     </ul>
     <p>最后提醒：量化不是免费的，部署前务必在评测集上对比量化前后的指标（perplexity、下游任务准确率），确认损失在可接受范围内再上线。不同模型对量化的敏感度差异很大，不能盲目套用。</p>
 
+<h2 class="section" id="deep-quant-compare"><span class="idx">D1</span> 深度对比：四种量化方案的精度-速度权衡</h2>
+    <p>本章介绍了量化的基本概念。这一节我们把四种主流方案——PTQ 的 INT8/INT4、GPTQ、AWQ、以及 QAT——放在同一张表里横向对比，并用代码演示 GPTQ 和 AWQ 在校准数据上的核心差异。</p>
+
+    <pre><code class="language-python"># GPTQ vs AWQ 的核心思路差异（伪代码示意）
+# GPTQ：基于二阶信息（Hessian）逐层最小化输出误差
+def gptq_layer(W, X_calib, bits=4):
+    H = X_calib.T @ X_calib              # Hessian 近似
+    H_inv = torch.linalg.inv(H + 1e-6 * torch.eye(H.shape[0]))
+    # 逐列量化，用 Hessian 修正已量化列的误差
+    Q = W.clone()
+    for col in range(W.shape[1]):
+        q = quantize(W[:, col], bits)     # 量化当前列
+        err = (W[:, col] - q) / H_inv[col, col]
+        Q[:, col] = q
+        W[:, col+1:] -= err.unsqueeze(1) * H_inv[col, col+1:].unsqueeze(0)
+    return Q
+
+# AWQ：先找"重要权重"（按激活幅度），对重要权重做等比缩放后再量化
+def awq_layer(W, X_calib, bits=4):
+    importance = X_calib.abs().mean(dim=0)   # 每个通道的激活幅度
+    s = importance.pow(0.5) / importance.mean()  # 缩放因子
+    W_scaled = W * s                          # 放大重要权重
+    Q = quantize(W_scaled, bits)
+    return Q / s                              # 反缩放恢复
+</code></pre>
+
+    <p>两者的哲学截然不同：<strong>GPTQ 是"事后补救"</strong>——量化后用 Hessian 信息把误差分摊到未量化列；<strong>AWQ 是"事前保护"</strong>——量化前先放大重要权重，让它们落在量化网格的更精细区间。AWQ 通常更快（无需二阶计算），GPTQ 通常更准（尤其 3bit 极端场景）。实际选择看部署框架支持哪个。</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>类型</th><th>4bit 精度损失</th><th>校准需求</th><th>推理加速</th><th>代表实现</th></tr></thead>
+      <tbody>
+        <tr><td>INT8 (LLM.int8)</td><td>PTQ 混合精度</td><td>极小</td><td>无需/动态</td><td>1.3x</td><td>bitsandbytes</td></tr>
+        <tr><td>GPTQ</td><td>PTQ 二阶</td><td>小（0.3~0.5 ppl）</td><td>128 样本</td><td>2x</td><td>AutoGPTQ</td></tr>
+        <tr><td>AWQ</td><td>PTQ 激活感知</td><td>小（0.2~0.4 ppl）</td><td>128 样本</td><td>2x</td><td>llm-awq</td></tr>
+        <tr><td>QAT</td><td>训练感知</td><td>最小</td><td>需再训练</td><td>2x</td><td>自定义</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-quant-pitfall"><span class="idx">D2</span> 生产避坑：量化部署的常见翻车点</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：3bit 是悬崖</div>
+      <p>4bit 几乎所有方案都能保持可接受精度，但 3bit 是断崖式下跌——除非用 GPTQ + 充分校准 + 分组大小调优，否则 ppl 会暴涨。<strong>生产环境建议 4bit 起步，3bit 仅在极致省显存需求下谨慎尝试</strong>。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">坑 2：group size 影响巨大</div>
+      <p>量化的 group size（每多少个权重共享一个 scale）默认 128。调到 64 精度更好但额外存储增加，调到 256 省存储但精度下降。这是精度和开销的核心旋钮，值得在目标任务上扫一遍。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：校准数据分布要匹配</div>
+      <p>GPTQ/AWQ 的校准集决定了"哪些权重重要"。用通用 Wiki 文本校准，部署到代码任务时重要权重判断会偏差。最好用<strong>目标领域的真实输入</strong>做校准，128 条即可，成本很低但收益明显。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把模型量化的全景梳理了一遍。要点回顾：</p>
     <ul>
@@ -509,6 +558,7 @@ model_4bit.print_trainable_parameters()
       <li><strong>精度损失</strong>：来自权重舍入、异常值保护不足、激活量化、层间累积；模型越大越抗量化。</li>
     </ul>
     <p>掌握了量化，你就能让大模型跑在各种硬件上。下一章我们进入一个全新的架构话题——MoE 混合专家。它从另一个维度优化大模型：不是压参数，而是让每个 token 只激活一小部分参数，实现「参数多但计算少」的稀疏激活。</p>
+
 
 </main>
 

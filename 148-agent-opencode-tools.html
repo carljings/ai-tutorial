@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学">
-<meta property="og:description" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 33 · Agent 源码深挖系列</span>
       <h1>OpenCode 工具系统<br>从 JSON Schema 到 Tool.execute 的完整链路</h1>
@@ -531,6 +528,72 @@ function toLLMTools(tools: Tool[]) {
 }</code></pre>
     <p>注意名字冲突的处理：如果两个来源都有同名工具，OpenCode 会给 MCP 工具加前缀（如 <code>mcp__filesystem__read_file</code>），避免覆盖内置工具。这种前缀策略后来也被 Claude Code 等其他 Agent 采用，成了事实约定。</p>
 
+<h2 class="section" id="deep-tool-lifecycle"><span class="idx">D1</span> 深度剖析：工具调用的完整生命周期</h2>
+    <p>本章逐个介绍了 read/write/bash/grep 工具。这一节我们把这些工具统一抽象成一个<strong>生命周期模型</strong>，看一个工具从被 LLM 选中到结果回传经历了哪些阶段，并用代码展示如何自定义一个新工具。</p>
+
+    <pre><code class="language-typescript">// 工具的统一生命周期：定义 → 校验 → 审批 → 执行 → 后处理
+interface ToolDefinition {
+  name: string;
+  description: string;            // 发给 LLM 的说明（措辞极关键）
+  inputSchema: JSONSchema;        // 参数校验 schema
+  requiresApproval: (args: any) => boolean;  // 动态权限判断
+  execute: (args: any, ctx: ToolContext) => Promise<ToolResult>;
+}
+
+// 示例：自定义一个"统计代码行数"工具
+const countLinesTool: ToolDefinition = {
+  name: "count_lines",
+  description: "统计指定文件的代码行数（不含空行和注释）。当用户问'这个文件有多少行有效代码'时使用。",
+  inputSchema: {
+    type: "object",
+    properties: {
+      path: { type: "string", description: "文件绝对路径" },
+      exclude_comments: { type: "boolean", default: true }
+    },
+    required: ["path"]
+  },
+  requiresApproval: (args) => false,   // 只读，无需审批
+  async execute(args, ctx) {
+    const content = await ctx.fs.readFile(args.path);
+    const lines = content.split("\n").filter(l => l.trim() &&
+      !(args.exclude_comments && l.trim().startsWith("//")));
+    return { content: `${args.path}: ${lines.length} 行有效代码` };
+  }
+};
+// description 的措辞直接决定 LLM 何时调用它——这是工具设计的核心
+</code></pre>
+
+    <p>这个生命周期模型揭示了工具设计的两个关键：<strong>第一，description 是给 LLM 看的"使用说明书"，必须用 LLM 能理解的触发条件描述</strong>（"当用户问 X 时使用"），而不是给人看的 API 文档；<strong>第二，requiresApproval 应该基于参数动态判断</strong>——读文件无需审批，但写关键路径要审批，这种粒度比静态布尔更合理。</p>
+
+    <table>
+      <thead><tr><th>阶段</th><th>输入</th><th>输出</th><th>常见失败</th></tr></thead>
+      <tbody>
+        <tr><td>定义</td><td>name/schema/desc</td><td>注册到工具表</td><td>desc 模糊导致误调用</td></tr>
+        <tr><td>校验</td><td>LLM 的 args JSON</td><td>合法参数 / 报错</td><td>schema 不严导致类型错误</td></tr>
+        <tr><td>审批</td><td>参数 + 权限规则</td><td>通过/拒绝/询问</td><td>规则过严打断流程</td></tr>
+        <tr><td>执行</td><td>合法参数 + ctx</td><td>ToolResult</td><td>超时/异常/副作用</td></tr>
+        <tr><td>后处理</td><td>原始结果</td><td>裁剪后的文本</td><td>结果过长爆上下文</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-tool-result-size"><span class="idx">D2</span> 生产避坑：工具结果大小的控制</h2>
+    <div class="callout warn">
+      <div class="head">头号杀手：工具结果撑爆上下文窗口</div>
+      <p>read_file 读一个 5000 行的文件、bash 输出几 MB 日志、grep 命中上千行——这些结果直接塞进 messages 会迅速耗尽上下文窗口，导致后续 LLM 调用截断或报错。OpenCode 的做法是<strong>对所有工具结果做上限截断</strong>（如默认保留前 2000 行 + 末尾 500 行），并在截断时明确告知 LLM "结果已截断，可用 grep/read 精确查看"。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">结果裁剪的三层策略</div>
+      <ol style="margin:6px 0;">
+        <li><strong>硬截断</strong>：超出字符/行数上限直接砍，附"已截断"提示。</li>
+        <li><strong>智能摘要</strong>：对日志类输出，提取 ERROR/WARNING 行 + 统计。</li>
+        <li><strong>分页引导</strong>：大文件提示 LLM 用 offset/limit 分段读，而非一次全读。</li>
+      </ol>
+    </div>
+    <div class="callout note">
+      <div class="head">工具结果的格式选择</div>
+      <p>结果用纯文本还是 JSON？经验是：<strong>给 LLM 看的内容用结构化文本（带缩进/分隔符）比 JSON 更易理解</strong>，因为 LLM 训练语料中文本占比远高于 JSON。工具结果应是人类可读的文本，而非机器格式。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>OpenCode 的工具系统是一套高度统一的抽象。核心要点回顾：</p>
     <ul>
@@ -542,6 +605,7 @@ function toLLMTools(tools: Tool[]) {
       <li><strong>动态工具列表</strong>：内置 + MCP + 插件三者并集，名字冲突时给 MCP 加前缀。</li>
     </ul>
     <p>下一章（149 章）我们会继续深入工具之上的一层——权限模型。工具定义好了不等于能随便调用，OpenCode 用 allow/ask/deny 三态把工具的每一次执行都纳入了用户掌控。</p>
+
 
 </main>
 

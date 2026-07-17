@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aider 的 Repo Map · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Aider 的 Repo Map · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Aider 的 Repo Map · AI 全栈实战教学">
-<meta property="og:description" content="Aider 的 Repo Map · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 46 · Agent 源码深挖系列</span>
       <h1>Aider Repo Map<br>tree-sitter 抽取符号 → PageRank 排序 → 注入 context</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="problem"><span class="idx">★</span> 一、问题：大仓库塞不进 context</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、问题：大仓库塞不进 context</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、第一步：用 tree-sitter 抽取符号</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、第二步：基于引用关系建图</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、第三步：PageRank 排序选最重要的节点</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、格式化与注入：压缩成几百 token</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、动态预算：根据剩余 context 调整 map 大小</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Aider 的核心场景是「帮我改这个项目里的某个功能」。要做到这点，LLM 需要知道整个项目的结构——哪些模块存在、它们之间怎么依赖、关键类和函数叫什么。最朴素的做法是把所有文件内容塞进 context，但一个中型项目（比如 Django 框架本身）就有几万个文件、几百万行代码，远超任何模型的 context window。</p>
@@ -510,6 +554,61 @@ class RepoMap:
         return min(2048, max(256, int(remaining * 0.15)))</code></pre>
     <p>这种「按预算选 top N」的策略保证了 repo map 永远不会挤爆 context。如果对话还很短（剩余空间多），map 会大一点，给 LLM 更全的视图；如果对话已经很长（剩余空间少），map 自动缩小到只保留最重要的核心符号。</p>
 
+<h2 class="section" id="deep-repomap-algo"><span class="idx">D1</span> 深度剖析：Repo Map 的图构建算法</h2>
+    <p>本章介绍了 Aider 的 Repo Map。这一节我们深入它的核心——基于 tree-sitter 的符号提取和图排名算法，看它如何用有限的 token 预算表示整个代码库的结构。</p>
+
+    <pre><code class="language-python"># Repo Map 构建的核心流程（简化）
+import tree_sitter_cpp as tscpp
+from tree_sitter import Language, Parser
+
+def extract_symbols(file_path, lang):
+    """用 tree-sitter 提取文件中的定义符号及其引用"""
+    parser = Parser(Language(tscpp.language()))
+    tree = parser.parse(open(file_path, 'rb').read())
+    defs = []      # 本文件定义的符号
+    refs = []      # 本文件引用的符号
+    def walk(node):
+        if node.type in ('function_definition', 'class_definition'):
+            name = node.child_by_field_name('name')
+            defs.append((name.text.decode(), node.type))
+        elif node.type == 'identifier':
+            refs.append(node.text.decode())
+        for child in node.children: walk(child)
+    walk(tree.root_node)
+    return defs, refs
+
+# 构建符号图：节点=定义，边=引用关系
+# 然后用 PageRank 类算法给符号打分，按 token 预算取 top-N
+# 关键：不是随机选符号，而是按"被引用重要性"排序
+# 这让有限的 token 窗口承载最具结构信息的符号子集
+</code></pre>
+
+    <p>Repo Map 的精妙之处在于<strong>把代码库建模成图，用排名算法选最重要的符号</strong>。被大量引用的核心函数（如 main、init）排名高，孤立的小工具排名低。在有限 token 预算下，优先展示高排名符号，让 LLM 用最少的 token 理解代码库的骨架。这比"随机塞几个文件"的信息密度高得多。</p>
+
+    <table>
+      <thead><tr><th>符号类型</th><th>提取方式</th><th>排名权重</th><th>典型保留</th></tr></thead>
+      <tbody>
+        <tr><td>函数定义</td><td>tree-sitter 节点</td><td>按被引用数</td><td>签名 + docstring</td></tr>
+        <tr><td>类定义</td><td>tree-sitter 节点</td><td>高</td><td>类名 + 方法列表</td></tr>
+        <tr><td>全局变量</td><td>赋值节点</td><td>低</td><td>仅名称</td></tr>
+        <tr><td>导入关系</td><td>import 节点</td><td>中（建边）</td><td>模块间依赖</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-repomap-pitfall"><span class="idx">D2</span> 生产避坑：Repo Map 的维护成本</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：大仓库的构建耗时</div>
+      <p>tree-sitter 解析整个代码库可能很慢（万文件级仓库数分钟）。Aider 用<strong>增量更新 + 缓存</strong>：只重新解析修改过的文件，结果按 mtime 缓存。首次构建慢，后续秒级。生产使用务必启用缓存。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 2：token 预算的动态调整</div>
+      <p>Repo Map 占用多少 token 应随对话长度动态调整。对话初期窗口空，可以给 Map 更多 token；对话变长后应压缩 Map 给历史腾空间。固定预算会导致长对话时上下文不足。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">坑 3：语言支持差异</div>
+      <p>tree-sitter 对不同语言的支持深度不一（Python/C++ 好，冷门语言差）。不支持的语言只能退化为正则提取，符号质量下降。选型时要确认目标语言的支持情况。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Aider 的 repo map 是把经典算法（PageRank）创造性应用到代码理解上的典范。要点回顾：</p>
     <ul>
@@ -521,6 +620,7 @@ class RepoMap:
       <li><strong>动态预算</strong>：按剩余 context 的 10-20% 分配，对话短则 map 大、对话长则 map 小。</li>
     </ul>
     <p>下一章（164 章）我们继续 Aider 系列——看它的 Git 集成，包括 auto-commit、git undo，以及它独创的 SEARCH/REPLACE diff 格式如何让 LLM 精确编辑代码。</p>
+
 
 </main>
 

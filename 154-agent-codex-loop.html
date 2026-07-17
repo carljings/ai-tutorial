@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学">
-<meta property="og:description" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 39 · Agent 源码深挖系列</span>
       <h1>Codex Agent 循环<br>从 model call 到 approval 到 continue</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="loop-anatomy"><span class="idx">★</span> 一、把一轮循环切成五段</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、把一轮循环切成五段</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、段 2：流式调用与中断的协作</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、段 3：判停策略——什么时候算一轮结束</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、段 4：审批的异步等待</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、段 4 续：沙箱执行的隔离</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、与 OpenCode 循环的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>一个成熟的 Agent 循环，单轮（turn）内部其实可以切成五段。我们用伪代码标出边界，再逐段拆解。</p>
@@ -478,6 +522,65 @@ async fn request_approval(call: &amp;ToolCall) -&gt; bool {
     </ul>
     <p>总体来说，Codex 的循环更「重」——更多防护、更强隔离、更复杂的失败处理；OpenCode 的循环更「轻」——更依赖模型判断、更少的框架干预、更快的迭代。这和它们的语言选择（Rust vs TypeScript）、定位（引擎 vs 产品）一脉相承。</p>
 
+<h2 class="section" id="deep-turn-model"><span class="idx">D1</span> 深度剖析：Turn 模型与推理持久化的协同</h2>
+    <p>本章介绍了 Codex 的 Turn 模型与推理持久化。这一节我们把 Turn 抽象成数据结构，并展示推理状态如何在 Turn 间持久化以支持中断恢复。</p>
+
+    <pre><code class="language-typescript">// Turn 的数据模型与持久化
+interface Turn {
+  id: string;
+  parentTurnId?: string;        // 支持分支（fork）
+  status: "running" | "paused" | "done" | "aborted";
+  userMessage: Message;         // 触发本 Turn 的用户输入
+  assistantSteps: Step[];       // LLM 的多步推理
+  reasoningState?: {            // 持久化的推理状态（用于恢复）
+    partialOutput: string;      // 中断时的部分输出
+    pendingToolCall?: ToolCall; // 待执行的工具调用
+    tokenCount: number;
+  };
+  startedAt: string;
+  finishedAt?: string;
+}
+
+// 中断恢复的核心：从 reasoningState 重建 LLM 上下文
+function resumeTurn(turn: Turn): Turn {
+  if (turn.status !== "paused" || !turn.reasoningState) return turn;
+  // 把已完成的 steps 作为历史，从中断点继续
+  const rs = turn.reasoningState;
+  if (rs.pendingToolCall) {
+    // 恢复时优先执行未完成的工具调用
+    return { ...turn, status: "running" };
+  }
+  // 否则把部分输出作为已知，让 LLM 续写
+  return { ...turn, status: "running" };
+}
+</code></pre>
+
+    <p>Turn 模型与推理持久化的协同，本质上是在解决<strong>"长任务的可靠性"</strong>。一个复杂任务可能跨越多个 Turn、调用几十次工具，任何一步都可能因网络/超时/用户中断而暂停。持久化推理状态后，重启能从中断点无缝继续，而不是从头重跑——这对用户体验和成本控制都至关重要。</p>
+
+    <table>
+      <thead><tr><th>Turn 状态</th><th>触发转移</th><th>持久化内容</th><th>恢复行为</th></tr></thead>
+      <tbody>
+        <tr><td>running</td><td>LLM/工具完成或中断</td><td>实时增量</td><td>—</td></tr>
+        <tr><td>paused</td><td>用户中断/超时</td><td>reasoningState 快照</td><td>从中断点续</td></tr>
+        <tr><td>done</td><td>正常结束</td><td>完整 steps</td><td>只读回放</td></tr>
+        <tr><td>aborted</td><td>用户取消</td><td>部分 steps</td><td>不恢复</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-turn-pitfall"><span class="idx">D2</span> 生产避坑：Turn 持久化的难点</h2>
+    <div class="callout warn">
+      <div class="head">难点 1：工具副作用的幂等性</div>
+      <p>恢复 Turn 时，若中断发生在工具执行<strong>之后、结果回传之前</strong>，恢复后重跑工具可能造成重复副作用（如文件写两次、命令执行两次）。必须在持久化时记录"已执行未回传"的工具，恢复时跳过执行、用缓存结果。对非幂等工具（如发邮件），需幂等键保护。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">难点 2：LLM 上下文重建的一致性</div>
+      <p>恢复时重建的 messages 数组必须与中断时完全一致，否则 LLM 的续写会"接不上"。任何 token 化、截断、格式化都要可重现。建议持久化时存原始消息（而非 token 化后），恢复时重新打包。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">难点 3：并发 Turn 的隔离</div>
+      <p>用户可能同时开多个 Turn（如分屏调试）。它们的文件系统副作用若不隔离，会互相覆盖。Codex 用工作目录隔离或 git 分支隔离，每个 Turn 在独立空间操作，完成后才合并。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Codex 的 Agent 循环是工业级工程的样本。要点回顾：</p>
     <ul>
@@ -489,6 +592,7 @@ async fn request_approval(call: &amp;ToolCall) -&gt; bool {
       <li><strong>与 OpenCode 对比</strong>：Codex 重防护强隔离，OpenCode 轻量快迭代，是不同定位下的合理取舍。</li>
     </ul>
     <p>下一章（155 章）我们看 Codex 和 OpenAI Responses API 的集成——从 stateless 到 stateful 的演进，以及 previous_response_id 如何让会话状态管理发生质变。</p>
+
 
 </main>
 

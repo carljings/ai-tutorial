@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 用 Responses API · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex 用 Responses API · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex 用 Responses API · AI 全栈实战教学">
-<meta property="og:description" content="Codex 用 Responses API · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 40 · Agent 源码深挖系列</span>
       <h1>Codex 与 Responses API<br>从 stateless 到 stateful 的演进</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="chat-completions"><span class="idx">★</span> 一、Chat Completions 时代的负担</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、Chat Completions 时代的负担</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、Responses API 的核心变化：服务端状态</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Codex 如何集成 Responses API</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、工具调用循环的简化</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、stateful 不是免费的午餐</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、混合策略：Codex 的实际选择</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>在 Responses API 出现之前，Agent 用的是 Chat Completions API。这个 API 是 <strong>stateless（无状态）</strong> 的——每次请求都要把完整的对话历史发上去。第一轮发 [用户消息1]，第二轮发 [用户消息1, assistant回复1, 用户消息2]，第三轮发 [前5条 + 用户消息3]……历史越来越长，请求体越来越大。</p>
@@ -480,6 +524,63 @@ async fn run_turn_with_tools(session: &amp;mut ResponsesSession) -&gt; Result&lt
     </ul>
     <p>这种「乐观使用 + 降级兜底」的策略，是集成任何有状态外部依赖时的通用智慧。你在自己的 Agent 里接入有状态的服务（比如向量数据库的会话缓存）时，也可以借鉴这种模式。</p>
 
+<h2 class="section" id="deep-responses-compare"><span class="idx">D1</span> 深度剖析：Responses API 与 Chat Completions 的差异</h2>
+    <p>本章介绍了 Codex 使用 Responses API。这一节我们把它与传统的 Chat Completions API 放在一起对比，看为什么 Responses API 更适合 Agent 场景。</p>
+
+    <pre><code class="language-python"># 两种 API 的调用对比
+from openai import OpenAI
+client = OpenAI()
+
+# 传统 Chat Completions：无状态，每次发完整 messages
+resp = client.chat.completions.create(
+    model="gpt-4o",
+    messages=[
+        {"role": "system", "content": "你是代码助手"},
+        {"role": "user", "content": "修复 bug"},
+        {"role": "assistant", "content": "我来查...", "tool_calls": [...]},
+        {"role": "tool", "content": "文件内容..."},
+        # ... 多轮工具调用历史全要重发
+    ],
+    tools=[...]
+)
+
+# Responses API：有状态，服务端保存推理链
+resp = client.responses.create(
+    model="gpt-4o",
+    previous_response_id="resp_abc123",   # 只传上一轮 ID，无需重发历史
+    input="继续修复",                       # 只发新增输入
+    tools=[...]
+)
+# 服务端自动维护完整上下文，节省传输和 token 计费
+</code></pre>
+
+    <p>Responses API 的核心优势是<strong>服务端状态管理</strong>。传统 Chat Completions 是无状态的，每次请求要重发完整历史，长对话下传输量和 token 计费急剧增长。Responses API 用 <code>previous_response_id</code> 在服务端串联推理链，客户端只发增量，既省带宽又省成本，特别适合多轮工具调用的 Agent 场景。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>Chat Completions</th><th>Responses API</th></tr></thead>
+      <tbody>
+        <tr><td>状态管理</td><td>无状态（客户端管历史）</td><td>有状态（服务端管）</td></tr>
+        <tr><td>每轮传输</td><td>完整 messages</td><td>仅增量 + 上一轮 ID</td></tr>
+        <tr><td>长对话成本</td><td>随轮次线性增长</td><td>显著降低</td></tr>
+        <tr><td>工具调用编排</td><td>客户端手动维护</td><td>服务端原生支持</td></tr>
+        <tr><td>适用场景</td><td>单轮/短对话</td><td>Agent、长任务</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-responses-pitfall"><span class="idx">D2</span> 生产避坑：Responses API 的使用注意</h2>
+    <div class="callout warn">
+      <div class="head">注意 1：响应 ID 的有效期</div>
+      <p>服务端保存的推理链有有效期（通常 30 天）。若 Agent 任务跨数天，早期的 response_id 可能过期失效，导致续接失败。长期任务仍需客户端持久化关键上下文作为兜底，不能完全依赖服务端状态。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">注意 2：分支与回放</div>
+      <p>从某个 response_id 分叉探索不同方案时，要确认服务端是否支持"一个 ID 多个子响应"。若不支持，分支需要复制状态，可能产生额外计费。设计 Agent 的 fork 功能前先验证这一点。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">注意 3：工具结果的格式约束</div>
+      <p>Responses API 对工具返回的格式有严格 schema 要求（必须是特定结构）。返回格式错误会导致整个响应失败，而非优雅降级。务必按文档严格构造，并做本地 schema 校验后再提交。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Responses API 的出现，是 Agent 后端集成的一次小革命。要点回顾：</p>
     <ul>
@@ -491,6 +592,7 @@ async fn run_turn_with_tools(session: &amp;mut ResponsesSession) -&gt; Result&lt
       <li><strong>混合策略</strong>：乐观使用 + 失效降级 + 切换重置 + 调试导出，是集成有状态依赖的通用模式。</li>
     </ul>
     <p>下一章（156 章）我们转向 Codex 的另一个核心能力——沙箱。先看 macOS 上的 seatbelt，看看 Codex 如何用 sandbox-exec 的 profile 文件把 Agent 的命令执行关进笼子。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：错误恢复 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：错误恢复 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：错误恢复 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：错误恢复 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 58 · Agent 源码深挖系列</span>
       <h1>错误恢复策略<br>重试、死循环检测与 fallback chain</h1>
@@ -608,6 +605,67 @@ ${breaker.getFailures().map((f, i) =&gt; `${i+1}. ${f}`).join("\n")}
 }</code></pre>
     <p>熔断的核心价值是 <strong>防止 Agent 在死胡同里无限消耗</strong>。没有熔断，Agent 可能连续失败 50 次（每次都烧 token），直到达到 MAX_TURNS。有熔断，5 次失败就停，把资源还给用户做更有价值的事。</p>
 
+<h2 class="section" id="deep-error-taxonomy"><span class="idx">D1</span> 源码级分析：错误恢复的分类与对策</h2>
+    <p>本章讨论了错误恢复。这一节我们把 Agent 遇到的错误分成五类，并给出每类的标准恢复策略。</p>
+
+    <pre><code class="language-python"># 错误分类与恢复策略
+class ErrorRecovery:
+    def handle(self, error, context):
+        category = self.classify(error)
+        strategy = {
+            "transient":   self.retry_with_backoff,   # 网络抖动、限流
+            "validation":  self.feedback_to_llm,       # 参数错误、格式错
+            "permission":  self.ask_user,              # 权限不足
+            "logic":       self.reflect_and_retry,     # 工具执行逻辑失败
+            "fatal":       self.abort,                 # 不可恢复
+        }[category]
+        return strategy(error, context)
+
+    def classify(self, error):
+        if isinstance(error, (TimeoutError, RateLimitError)):
+            return "transient"
+        if isinstance(error, SchemaValidationError):
+            return "validation"     # LLM 参数不对，反馈让它修正
+        if isinstance(error, PermissionDenied):
+            return "permission"
+        if isinstance(error, ToolExecutionError):
+            return "logic"          # 如 grep 没找到、文件不存在
+        return "fatal"
+
+# 关键：不同错误用不同策略
+# - transient：静默重试，不打扰用户
+# - validation：把错误反馈给 LLM，让它修正参数后重试
+# - logic：让 LLM 看到错误，重新规划（如换路径读文件）
+# - permission/fatal：必须人工介入
+</code></pre>
+
+    <p>错误分类的价值在于<strong>"对症下药"</strong>。对所有错误都重试会浪费资源（逻辑错误重试也是错）；对所有错误都中止会让 Agent 脆弱（网络抖动本可重试）。分清错误类型，瞬时错误静默重试、参数错误反馈修正、逻辑错误重新规划，才能让 Agent 既健壮又高效。</p>
+
+    <table>
+      <thead><tr><th>错误类型</th><th>示例</th><th>恢复策略</th><th>是否打扰用户</th></tr></thead>
+      <tbody>
+        <tr><td>瞬时</td><td>超时、限流、网络抖动</td><td>指数退避重试</td><td>否</td></tr>
+        <tr><td>校验</td><td>参数类型错、JSON 不合法</td><td>反馈 LLM 修正</td><td>否</td></tr>
+        <tr><td>逻辑</td><td>文件不存在、命令非零退出</td><td>让 LLM 重新规划</td><td>否</td></tr>
+        <tr><td>权限</td><td>审批被拒、无写权限</td><td>询问用户</td><td>是</td></tr>
+        <tr><td>致命</td><td>OOM、内核错误</td><td>中止并报告</td><td>是</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-error-pitfall"><span class="idx">D2</span> 生产避坑：错误恢复的反模式</h2>
+    <div class="callout warn">
+      <div class="head">反模式 1：无限重试</div>
+      <p>对逻辑错误（如文件不存在）无限重试会让 Agent 卡死——重试一万次文件也不会凭空出现。重试必须有<strong>次数上限</strong>，超限后转为"反馈 LLM 重新规划"或中止。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">反模式 2：吞掉错误</div>
+      <p>try-except 后静默忽略错误是最危险的——Agent 看似正常运行，实则工具一直失败，结果不可信。<strong>所有错误要么恢复要么上报</strong>，绝不静默吞掉。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">反模式 3：错误信息不可读</div>
+      <p>把原始 traceback 直接塞给 LLM，信息噪音大。应<strong>提取关键信息</strong>（错误类型、消息、相关参数）格式化后反馈，让 LLM 高效理解并修正。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>错误恢复是 Agent 健壮性的核心。要点回顾：</p>
     <ul>
@@ -619,6 +677,7 @@ ${breaker.getFailures().map((f, i) =&gt; `${i+1}. ${f}`).join("\n")}
       <li><strong>反馈要具体可操作</strong>：所有错误反馈都应给排查方向，不要只说「失败」。</li>
     </ul>
     <p>下一章（176 章）我们深入 MCP 协议本身——JSON-RPC、tool/resource/prompt/sampling 四类能力、stdio vs SSE 的传输细节。</p>
+
 
 </main>
 

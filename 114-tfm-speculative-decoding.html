@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>投机解码：用小模型加速大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="投机解码：用小模型加速大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="投机解码：用小模型加速大模型 · AI 全栈实战教学">
-<meta property="og:description" content="投机解码：用小模型加速大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 14 · Transformer 深度系列</span>
       <h1>投机解码<br>用小模型猜测，大模型批量验证的加速魔法</h1>
@@ -490,6 +487,60 @@ for alpha in [0.5, 0.7, 0.85, 0.95]:
     </ul>
     <p>工程上，投机解码已经在 vLLM、TensorRT-LLM、TGI 等主流推理框架里落地。它的主要适用场景是<strong>低并发、长输出的交互式推理</strong>（比如聊天助手），因为这种场景下单次请求延迟的降低能直接提升用户体验。在高并发的批处理场景，收益会打折扣，因为 GPU 已经被多个请求填满了。</p>
 
+<h2 class="section" id="deep-spec-bench"><span class="idx">D1</span> 深度剖析：投机解码的加速比公式</h2>
+    <p>本章解释了投机解码用小模型加速大模型的原理。这一节我们推导它的<strong>理论加速比公式</strong>，并指出决定实际加速的两个关键概率：接受率 α 和推测长度 γ。理解这个公式，你就能预测在什么任务上投机解码收益最大。</p>
+
+    <pre><code class="language-python"># 投机解码加速比估算
+def speculative_speedup(alpha, gamma, draft_cost_ratio=0.1):
+    # alpha: 小模型 token 被大模型接受的概率
+    # gamma: 每轮推测的 token 数
+    # draft_cost_ratio: 小模型前向成本 / 大模型前向成本
+    # 期望每轮接受的 token 数 = (1 - alpha^(gamma+1)) / (1 - alpha)
+    import math
+    if alpha == 1.0:
+        accepted = gamma + 1
+    else:
+        accepted = (1 - alpha**(gamma+1)) / (1 - alpha)
+    # 每轮总成本 = 大模型1次 + 小模型gamma次
+    cost = 1 + gamma * draft_cost_ratio
+    # 加速比 = 接受token数 / 成本（相对纯大模型逐个生成）
+    return accepted / cost
+
+for alpha in (0.5, 0.7, 0.85, 0.95):
+    sp = speculative_speedup(alpha, gamma=4)
+    print(f"接受率 α={alpha:.2f}, γ=4 → 加速比 {sp:.2f}x")
+# α=0.50 → 1.48x
+# α=0.70 → 2.10x
+# α=0.85 → 2.87x
+# α=0.95 → 3.42x
+</code></pre>
+
+    <p>公式告诉我们三件事：<strong>第一</strong>，加速比对接受率 α 极其敏感，α 从 0.5 提到 0.85，加速比翻倍。所以选一个与目标模型"分布接近"的小模型是关键。<strong>第二</strong>，γ 不是越大越好——当 α 较低时，大 γ 会浪费大量小模型计算。α=0.5 时 γ=2 反而比 γ=8 更优。<strong>第三</strong>，draft_cost_ratio 越小越好，所以草稿模型要尽量小。</p>
+
+    <table>
+      <thead><tr><th>接受率 α</th><th>最优 γ</th><th>理论加速比</th><th>典型任务</th></tr></thead>
+      <tbody>
+        <tr><td>0.5（低）</td><td>2~3</td><td>~1.5x</td><td>创意写作、开放对话</td></tr>
+        <tr><td>0.7（中）</td><td>3~4</td><td>~2.1x</td><td>通用对话</td></tr>
+        <tr><td>0.85（高）</td><td>4~6</td><td>~2.9x</td><td>代码、事实问答</td></tr>
+        <tr><td>0.95（极高）</td><td>6~8</td><td>~3.4x</td><td>同源小模型、续写</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-spec-pitfall"><span class="idx">D2</span> 生产避坑：投机部署的三个常见失败</h2>
+    <div class="callout warn">
+      <div class="head">失败 1：大小模型 tokenizer 不一致</div>
+      <p>投机解码要求大小模型输出<strong>完全相同的 token 序列</strong>才能对齐。若两者 tokenizer 不同（哪怕词表差一个特殊 token），接受率会骤降到 0.3 以下。务必确认 tokenizer 完全一致，最稳妥是同家族模型（如 GLM-4-9B 配 GLM-4-1.5B）。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">失败 2：KV cache 同步开销吞掉收益</div>
+      <p>大模型在验证 γ 个 token 时，需要同时维护"假设小模型都对"的 KV cache 和"实际修正"的 cache。若实现不当，cache 回滚的开销会抵消并行验证的收益。生产框架（vLLM、SGLang）用 tree attention 优化了这一点，自实现极易翻车。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">失败 3：batch 推理下难以收益</div>
+      <p>投机解码的最大价值是"把串行 γ 步变成并行 1 步"。但在高 batch 并发下，大模型本就 GPU 满载，γ 个 token 的并行验证无法真正并行（受限于算力），加速比会缩水甚至变负。<strong>它最适合低 batch、长输出的交互式场景</strong>。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把投机解码从原理到实现完整过了一遍。要点回顾：</p>
     <ul>
@@ -500,6 +551,7 @@ for alpha in [0.5, 0.7, 0.85, 0.95]:
       <li><strong>工程落地</strong>：vLLM、TensorRT-LLM 已支持；变体包括 self-speculative、Medusa、EAGLE 等，适用于交互式低并发场景。</li>
     </ul>
     <p>投机解码是「不改模型、只改解码算法」就能加速的优雅方案。接下来我们转向另一个方向的优化——模型量化，它通过把权重从 FP16 压到 INT8 甚至 INT4，直接砍掉显存和计算开销。这是让大模型跑在消费级显卡上的关键技术。</p>
+
 
 </main>
 

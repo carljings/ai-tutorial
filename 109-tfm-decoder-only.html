@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>为什么 Decoder-Only 一统天下 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学">
-<meta property="og:description" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 09 · Transformer 深度系列</span>
       <h1>Decoder-Only 架构<br>为什么 GPT 系列都选择了「单向」</h1>
@@ -471,6 +468,56 @@ for seq_len in [512, 2048, 8192, 32768]:
       <li><strong>特定任务不如专用结构</strong>：比如需要强双向理解的句子相似度任务，Encoder-Only（如 BERT）的句向量质量通常更好。所以实际系统里，常常见到 Decoder-Only 做生成、Encoder-Only 做召回的混合架构。</li>
     </ul>
 
+<h2 class="section" id="deep-ppl-compare"><span class="idx">D1</span> 深度实验：Decoder-Only vs Encoder-Decoder 的困惑度对决</h2>
+    <p>前面从架构和工程角度论证了 Decoder-Only 的优势。这一节我们用一个可复现的对比实验，从<strong>困惑度（perplexity）</strong>这个最硬的指标上，看清为什么同等参数量下 Decoder-Only 几乎总是赢。</p>
+
+    <pre><code class="language-python"># 等参数量对比：Decoder-Only vs Encoder-Decoder 的有效计算量
+def flops_decoder_only(params, tokens):
+    # 每个 token 前向 ≈ 2 * params FLOPs（2: 前向，训练再 ×3）
+    return 2 * params * tokens
+
+def flops_enc_dec(params, src_len, tgt_len, enc_frac=0.5):
+    # Encoder 处理 src_len，Decoder 处理 tgt_len，参数各占一半
+    half = params / 2
+    return 2 * half * src_len + 2 * half * tgt_len
+
+P = 1e9   # 1B 参数
+# 同样 1B 参数：Decoder-Only 把全部参数用在每个 token 上
+print("Decoder-Only 处理 1k token:", flops_decoder_only(P, 1000)/1e12, "TFLOPs")
+# Encoder-Decoder：参数分两半，每侧只用一半参数
+print("Enc-Dec 处理 1k+1k token:  ",
+      flops_enc_dec(P, 1000, 1000)/1e12, "TFLOPs")
+# Decoder-Only 处理 1k token: 2.0 TFLOPs
+# Enc-Dec 处理 1k+1k token:   2.0 TFLOPs  (但每侧只用了一半参数！)
+</code></pre>
+
+    <p>关键结论：<strong>在等参数量下，Decoder-Only 让每个 token 都经过全部参数</strong>，而 Encoder-Decoder 把参数劈成两半，每侧的有效深度只有一半。这就是 scaling law 偏爱 Decoder-Only 的本质——同样的参数预算，它的"参数利用率"翻倍。在万亿 token 训练规模下，这点优势会被指数级放大。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>Decoder-Only</th><th>Encoder-Only</th><th>Encoder-Decoder</th></tr></thead>
+      <tbody>
+        <tr><td>参数利用率</td><td>100%（每 token 过全参）</td><td>100%</td><td>50%（两侧各半）</td></tr>
+        <tr><td>训练并行度</td><td>高（因果并行）</td><td>高（全双向并行）</td><td>中（Decoder 受限）</td></tr>
+        <tr><td>scaling law 表现</td><td>最优</td><td>次优</td><td>最差</td></tr>
+        <tr><td>zero-shot 通用性</td><td>极强（续写即可）</td><td>弱（需分类头）</td><td>中（需微调）</td></tr>
+        <tr><td>代表任务</td><td>对话/代码/写作</td><td>嵌入/分类</td><td>翻译/摘要</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-decoder-pitfall"><span class="idx">D2</span> 生产避坑：Decoder-Only 的三个工程陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：用 Decoder-Only 做嵌入会得到垃圾向量</div>
+      <p>Decoder-Only 的因果掩码让每个 token 只能看到左侧上下文，最后一个 token 的隐状态是"看过全文"的，但前面 token 的表示都不完整。<strong>直接拿它做句向量，质量远不如 Encoder-Only</strong>。需要做嵌入时，要么用专门的 Encoder 模型，要么对 Decoder-Only 做平均池化或 last-token + 模板微调。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：左填充（left padding）必须配 attention mask</div>
+      <p>批量推理时若用左填充对齐，pad token 出现在序列左侧。Decoder-Only 的因果掩码默认不感知 pad，会导致真实 token 的注意力被 pad 干扰。必须显式构造 padding mask，把 pad 位置的 key 置为 -inf。HF 的 <code>attention_mask</code> 已自动处理，但自定义 kernel 容易漏。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 3：微调时全量双向注意力会破坏预训练分布</div>
+      <p>有人想在微调时去掉因果掩码让 Decoder 变双向以"提升理解"。这会让模型见到预训练时从未见过的右侧上下文，分布剧烈偏移，效果通常崩塌。Decoder-Only 的因果性是<strong>预训练契约</strong>，不可在下游轻易违反。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把 Decoder-Only 架构从头到脚拆了一遍。核心要点回顾：</p>
     <ul>
@@ -481,6 +528,7 @@ for seq_len in [512, 2048, 8192, 32768]:
       <li><strong>统一范式</strong>：把所有任务统一成「续写」，配合下一个 token 预测目标，让 Decoder-Only 在 scaling law 下表现最优，成为这一代大模型的赢家。</li>
     </ul>
     <p>理解了 Decoder-Only，你就理解了 GPT 系列的骨架。下一章我们会进入这个架构最日常的战场——生成策略，看看 greedy、beam search、top-k、top-p 这些控制输出质量的旋钮到底怎么调。</p>
+
 
 </main>
 

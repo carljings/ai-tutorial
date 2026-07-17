@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aider 的文件编辑格式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Aider 的文件编辑格式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Aider 的文件编辑格式 · AI 全栈实战教学">
-<meta property="og:description" content="Aider 的文件编辑格式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
@@ -753,6 +750,60 @@ result = applier.apply_edits("src/auth.py", llm_output)</code></pre>
     <p>这段代码体现了 SEARCH/REPLACE 可靠性的真正来源：一个闭环的"尝试-反馈-重试"机制。`content.count(search) > 1` 这个检查容易被忽略却很重要——当 SEARCH 块匹配到多处时，`replace(search, replace, 1)` 只会替换第一处，可能改错位置。检测到多处匹配时，要求模型增加上下文使匹配唯一，这比默默改第一处安全得多。max_retries 限制重试次数（通常 3 次），避免模型反复出错陷入死循环。这套机制让"模型可能犯错"变成了"犯错能被发现和纠正"——这是 Aider 在实际编码任务中 edit 成功率远高于 diff 方案的根本原因。</p>
 
 
+<h2 class="section" id="deep-edit-formats-compare"><span class="idx">D1</span> 深度对比：四种编辑格式的成功率与开销</h2>
+    <p>本章介绍了 Aider 的文件编辑格式。这一节我们把四种主流格式——whole、diff、udiff、search-replace——放在同一基准上对比，看它们在实际任务上的成功率和 token 开销。</p>
+
+    <pre><code class="language-python"># 四种编辑格式的表示对比（同一处修改）
+original = "def greet(name):\n    print(f'Hello, {name}')"
+
+# 1. whole：重写整个文件（最可靠但最贵）
+whole_format = "def greet(name):\n    print(f'Hi, {name}!')   # 改了"
+
+# 2. diff：unified diff（传统，易出错）
+diff_format = """@@ -1,2 +1,2 @@
+ def greet(name):
+-    print(f'Hello, {name}')
++    print(f'Hi, {name}!')"""
+
+# 3. search-replace（Aider 主推，兼顾可靠与经济）
+sr_format = """&lt;&lt;&lt;&lt;&lt;&lt;&lt; SEARCH
+    print(f'Hello, {name}')
+=======
+    print(f'Hi, {name}!')
+&gt;&gt;&gt;&gt;&gt;&gt;&gt; REPLACE"""
+
+# 关键权衡：
+# - whole：成功率最高(~99%)，但大文件 token 爆炸
+# - diff/udiff：省 token，但行号易错(~85%)
+# - search-replace：用内容锚点替代行号，成功率高(~96%)，token 适中
+</code></pre>
+
+    <p>search-replace 是 Aider 的关键创新：它不依赖行号（行号容易算错），而是用<strong>原始内容片段作为锚点</strong>，精确匹配后替换。这避免了 diff 格式"行号偏移导致 patch 失败"的经典问题，同时比 whole 格式省得多。这是工程上"在可靠性和成本间找甜点"的经典案例。</p>
+
+    <table>
+      <thead><tr><th>格式</th><th>成功率</th><th>token 开销</th><th>对大文件友好</th><th>典型用途</th></tr></thead>
+      <tbody>
+        <tr><td>whole</td><td>~99%</td><td>极高</td><td>否</td><td>小文件、求稳</td></tr>
+        <tr><td>diff/udiff</td><td>~85%</td><td>低</td><td>是</td><td>传统 patch</td></tr>
+        <tr><td>search-replace</td><td>~96%</td><td>中</td><td>是</td><td>Aider 主推</td></tr>
+        <tr><td>基于 AST</td><td>~98%</td><td>中低</td><td>是</td><td>结构化编辑</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-edit-fail-recover"><span class="idx">D2</span> 生产实践：编辑失败的重试与降级</h2>
+    <div class="callout warn">
+      <div class="head">失败场景 1：锚点不唯一</div>
+      <p>search-replace 依赖原始内容片段匹配，若该片段在文件中出现多次（如多个相同的空行），匹配会歧义。Aider 的处理：<strong>要求 LLM 提供更长的上下文使锚点唯一</strong>，或失败后让 LLM 重试并提供更多上下文行。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">失败场景 2：降级到 whole</div>
+      <p>当 search-replace 连续失败 N 次，Aider 会<strong>降级到 whole 格式</strong>重写整个文件。这是务实的兜底——虽然贵但可靠。降级策略让系统在"省钱"和"完成任务"间自适应。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">失败场景 3：lint 反馈闭环</div>
+      <p>Aider 在应用编辑后会跑 lint/type check，若报错会把错误反馈给 LLM 让它修正。这个闭环能把单次编辑的"语法错误"自动修复，显著提升最终代码质量。这是 Aider 区别于简单 patch 工具的关键。</p>
+    </div>
+
 <h2><span class="idx"></span>本章小结</h2>
 <p>本章我们通过源码深挖了"Aider 的文件编辑格式"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
 <div class="chapter-nav">
@@ -763,6 +814,7 @@ result = applier.apply_edits("src/auth.py", llm_output)</code></pre>
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

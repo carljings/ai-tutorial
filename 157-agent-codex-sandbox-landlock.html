@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学">
-<meta property="og:description" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 42 · Agent 源码深挖系列</span>
       <h1>Linux Landlock 沙箱<br>syscall 程序化的文件系统访问控制</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="what-is-landlock"><span class="idx">★</span> 一、Landlock 的设计哲学：程序化而非声明式</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、Landlock 的设计哲学：程序化而非声明式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、Landlock 的核心 syscall 流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Codex 在 Rust 里如何调用 Landlock</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、内核版本检测与降级</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、与 Seatbelt 的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、网络隔离的补足：unshare + seccomp</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Landlock 的设计哲学和 Seatbelt 截然不同。Seatbelt 是声明式的——你写一份 profile 文件，用一种专门的 DSL 描述规则，然后由 sandbox-exec 解析执行。Landlock 是程序化的——你直接在代码里调用 syscall，用 C/Rust 的 API 一条条加规则。</p>
@@ -524,6 +568,61 @@ pub fn isolate_network() -&gt; std::io::Result&lt;()&gt; {
 }</code></pre>
     <p>这种「Landlock 管文件 + unshare 管网络」的组合，在 Linux 上近似实现了 Seatbelt 的完整隔离能力。代价是实现复杂度更高——需要处理 namespace 创建、权限、代理配置等细节。这也解释了为什么 Codex 的 Linux 沙箱代码比 macOS 版本更长。</p>
 
+<h2 class="section" id="deep-landlock-seccomp"><span class="idx">D1</span> 深度剖析：Landlock 与 seccomp 的协同</h2>
+    <p>本章介绍了 Codex 在 Linux 上用 Landlock + seccomp 做沙箱。这一节我们深入这两个机制的分工与协同，并用代码展示一个组合 profile。</p>
+
+    <pre><code class="language-c">// Landlock + seccomp 组合沙箱（Linux）
+// seccomp：过滤系统调用（粗粒度，按 syscall 号）
+// Landlock：过滤文件访问路径（细粒度，按路径）
+
+// 1. seccomp：禁止危险系统调用
+struct sock_filter filter[] = {
+    // 允许 read/write/open 等常规调用
+    ALLOW_SYSCALL(read),
+    ALLOW_SYSCALL(write),
+    ALLOW_SYSCALL(openat),
+    // 禁止 ptrace（防调试器注入）
+    DENY_SYSCALL(ptrace),
+    // 禁止 mount（防文件系统篡改）
+    DENY_SYSCALL(mount),
+    // 禁止创建原始套接字（防网络绕过）
+    DENY_SYSCALL(socket),
+};
+// 2. Landlock：细粒度文件路径控制
+struct landlock_path_beneath_at paths[] = {
+    {WORKSPACE_DIR, ACCESS_RW},   // 工作目录可读写
+    {"/usr/lib", ACCESS_READ},    // 系统库只读
+    // 其余路径默认拒绝
+};
+// 协同：seccomp 挡住"危险能力"，Landlock 挡住"越界访问"
+// 两者正交，组合后防御面远大于单一机制
+</code></pre>
+
+    <p>两者的协同关系是<strong>正交互补</strong>。seccomp 工作在系统调用层，能挡住"不该有的能力"（如 ptrace、socket、mount），但它不理解文件路径语义；Landlock 工作在路径层，能精确控制"能访问哪些文件"，但不限制系统调用种类。组合使用：seccomp 关掉危险能力的大门，Landlock 给文件访问上精确的锁。</p>
+
+    <table>
+      <thead><tr><th>机制</th><th>控制粒度</th><th>能防</th><th>不能防</th><th>内核版本</th></tr></thead>
+      <tbody>
+        <tr><td>seccomp</td><td>系统调用号</td><td>ptrace/socket/mount</td><td>合法 syscall 的越界参数</td><td>3.5+</td></tr>
+        <tr><td>Landlock</td><td>文件路径</td><td>越界文件读写</td><td>网络、系统调用种类</td><td>5.13+</td></tr>
+        <tr><td>组合</td><td>syscall + 路径</td><td>两者之和</td><td>内核漏洞、提权</td><td>5.13+</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-landlock-pitfall"><span class="idx">D2</span> 生产避坑：Linux 沙箱的兼容性陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：内核版本依赖</div>
+      <p>Landlock 需要 5.13+ 内核，部分特性（如引用规则）要 6.2+。老旧服务器或容器内核可能不支持，沙箱静默失效（profile 加载失败但不报错）。<strong>务必检测内核版本并在不支持时降级到 seccomp-only</strong>，并明确告警而非静默运行在无保护状态。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：容器内的双层沙箱冲突</div>
+      <p>Docker/Podman 容器本身已有 namespace 隔离，再叠加 Landlock 可能冲突（如容器内无法加载 Landlock 规则）。需确认容器以足够权限运行 seccomp/Landlock，否则沙箱形同虚设。K8s 部署时要在 securityContext 显式放行。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：ABORT 时的资源清理</div>
+      <p>沙箱进程被强制 kill 时，可能留下临时文件、半写的文件。建议沙箱内所有写操作先到临时目录，原子 rename 到目标，保证要么完整要么不存在。这是数据库 WAL 的思路在沙箱里的应用。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Landlock 是 Linux 给 Agent 沙箱的新答案。要点回顾：</p>
     <ul>
@@ -535,6 +634,7 @@ pub fn isolate_network() -&gt; std::io::Result&lt;()&gt; {
       <li><strong>与 Seatbelt 对比</strong>：程序化 vs 声明式、无 root vs 系统 command、不管网络 vs 能限制网络，各有取舍。</li>
     </ul>
     <p>两种沙箱（Seatbelt + Landlock）让 Codex 成了一个能在双平台安全执行任意命令的 Agent。下一章（159 章）我们看沙箱之上的那一层——命令执行本身：fork、流式捕获、超时处理。</p>
+
 
 </main>
 

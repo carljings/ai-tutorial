@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cursor 的 Agent 模式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Cursor 的 Agent 模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Cursor 的 Agent 模式 · AI 全栈实战教学">
-<meta property="og:description" content="Cursor 的 Agent 模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 53 · Agent 源码深挖系列</span>
       <h1>Cursor 的 Agent 模式<br>从 Tab 到 Composer 到 Agent 的演进</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="tab"><span class="idx">★</span> 一、Cursor Tab：行内补全的技术突破</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、Cursor Tab：行内补全的技术突破</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、Composer：多文件编辑的交互革命</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、Agent 模式：自主任务执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、Cursor 的上下文工程</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、Cursor 的模型策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、对开源生态的影响</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Cursor 最早出圈的能力是 Cursor Tab——一个比 GitHub Copilot 更聪明的行内补全。它的技术突破不在模型大小（用的是专门微调的中等模型），而在 <strong>上下文构建和延迟优化</strong>。</p>
@@ -494,6 +538,65 @@ function buildAgentContext(task: string, mentions: Mention[]): Message[] {
     </ul>
     <p>理解 Cursor 的演进，有助于你看懂整个 AI 编程工具赛道的趋势——从补全到编辑到自主，AI 的角色在不断加深。开源项目在追赶这条路线，而理解路线图能帮你判断一个开源项目的成熟度和方向。</p>
 
+<h2 class="section" id="deep-cursor-agent"><span class="idx">D1</span> 深度剖析：Cursor Agent 的上下文编排</h2>
+    <p>本章介绍了 Cursor 的 Agent 模式。这一节我们深入它如何在有限上下文窗口内编排"代码库检索 + 当前文件 + 用户指令"，达到高质量代码生成。</p>
+
+    <pre><code class="language-typescript">// Cursor Agent 的上下文编排策略
+function buildAgentContext(req: AgentRequest): Message[] {
+  const budget = 100_000;   // token 预算
+  const parts: ContextPart[] = [];
+
+  // 1. 系统提示（固定，最高优先级）
+  parts.push({ priority: 100, text: SYSTEM_PROMPT });
+
+  // 2. 用户指令（必须完整）
+  parts.push({ priority: 99, text: req.userInput });
+
+  // 3. 当前文件 + 光标位置（代码补全核心）
+  parts.push({ priority: 90, text: formatActiveFile(req.activeFile, req.cursor) });
+
+  // 4. 代码库检索结果（按相关性排序，可截断）
+  const retrieved = await index.search(req.userInput, topK=10);
+  for (const r of retrieved) {
+    parts.push({ priority: 60 + r.score, text: formatSnippet(r), truncateable: true });
+  }
+
+  // 5. 按优先级打包进预算
+  const packed = packByPriority(parts, budget);
+  return [{ role: "user", content: packed }];
+}
+
+// 关键：不是把所有检索结果全塞，而是按相关性评分排序
+// 高相关的完整保留，低相关的截断或丢弃，最大化信息密度
+</code></pre>
+
+    <p>Cursor 的核心优势是<strong>"检索 + 编排"的深度整合</strong>。它不是简单 RAG（检索完就拼），而是把检索结果按相关性评分纳入优先级体系，与当前文件、用户指令竞争 token 预算。高相关片段完整保留，低相关片段截断——这让有限窗口承载最精准的上下文，生成质量显著优于"全塞"策略。</p>
+
+    <table>
+      <thead><tr><th>上下文来源</th><th>优先级</th><th>获取方式</th><th>典型大小</th></tr></thead>
+      <tbody>
+        <tr><td>系统提示</td><td>100</td><td>固定</td><td>1k token</td></tr>
+        <tr><td>用户指令</td><td>99</td><td>输入</td><td>小</td></tr>
+        <tr><td>当前文件</td><td>90</td><td>编辑器状态</td><td>中</td></tr>
+        <tr><td>检索片段</td><td>60+score</td><td>代码库索引</td><td>可变（截断）</td></tr>
+        <tr><td>对话历史</td><td>40</td><td>会话</td><td>可变（压缩）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-cursor-pitfall"><span class="idx">D2</span> 生产避坑：Agent 模式的体验陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：检索质量决定上限</div>
+      <p>Agent 模式的效果高度依赖代码库检索质量。若索引过期或嵌入模型差，检索回的片段无关，生成质量骤降。<strong>务必保持索引实时更新</strong>（文件保存即重建该文件索引），并用高质量嵌入模型。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">陷阱 2：光标位置的利用</div>
+      <p>代码补全场景下，光标位置（用户在哪个函数、哪一行）是极强的上下文信号。把它显式标记（如 <code>&lt;!-- 光标在此 --&gt;</code>）让 LLM 聚焦补全点，比把整个文件平铺效果好。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：多文件修改的协调</div>
+      <p>Agent 一次任务可能要改多个文件。若逐个文件独立生成，文件间依赖（如函数签名变更）容易不一致。高级模式应支持"跨文件原子修改"，把相关文件一起进上下文协同生成。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Cursor 的三阶段演进定义了 AI 编程工具的成熟度阶梯。要点回顾：</p>
     <ul>
@@ -505,6 +608,7 @@ function buildAgentContext(task: string, mentions: Mention[]): Message[] {
       <li><strong>生态影响</strong>：diff-first UX、@语法、检查点、Agent 模式成了开源 Agent 的标配。</li>
     </ul>
     <p>下一章（171 章）我们看 Roo Code——一个 Cline 的 fork，它在此基础上发展出了 architect/code/debug/ask 四模式切换的设计。</p>
+
 
 </main>
 

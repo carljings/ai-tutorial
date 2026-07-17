@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学">
-<meta property="og:description" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -850,6 +847,75 @@ print(f"\n专家命中次数: {counts.tolist()}")
 # 理想情况各专家命中接近 token 总数*K/n_experts
 # 若某专家长期 0 命中 → 需加 auxiliary loss 强制负载均衡
 # MoE 的本质：用路由换稀疏 → 总参数多但单次激活参数少 → 大模型可训得起</code></pre>
+<h2 class="section" id="deep-moe-bench"><span class="idx">D1</span> 深度剖析：MoE 的稀疏激活与算力经济学</h2>
+    <p>本章介绍了 MoE 的稀疏激活原理。这一节我们用真实数字算一笔账：为什么 DeepSeek/Mixtral 这样的 MoE 模型能做到"参数量大但算力省"，并把稠密模型与 MoE 在同等训练算力下的效果对比讲透。</p>
+
+    <pre><code class="language-python"># MoE vs Dense 的算力对比
+def dense_flops(params, tokens):
+    # 每个 token 经过全部参数
+    return 2 * params * tokens
+
+def moe_flops(total_params, active_params, tokens):
+    # 每个 token 只经过 active_params（稀疏激活）
+    return 2 * active_params * tokens
+
+# Mixtral 8x7B：总参数 47B，每 token 激活 ~13B（2 个专家）
+print("Dense 13B 训练 1T token:",
+      f"{dense_flops(13e9, 1e12)/1e21:.0f} ZFLOPs")
+print("MoE 8x7B 训练 1T token:",
+      f"{moe_flops(47e9, 13e9, 1e12)/1e21:.0f} ZFLOPs  (总参47B,激活13B)")
+print("→ 同样激活算力，MoE 多塞了 2.6x 的参数容量")
+# Dense 13B: 26 ZFLOPs
+# MoE 8x7B: 26 ZFLOPs  （但有效参数量是 Dense 的 ~3 倍）
+</code></pre>
+
+    <p>这就是 MoE 的核心经济学：<strong>用相同的训练/推理算力，换来更大的有效参数容量</strong>。稠密 13B 和 MoE 8x7B 每个 token 的计算量几乎相同（都是 26 ZFLOPs），但 MoE 让每个 token 都能"挑选"最适合的专家组合，等效于一个远大于 13B 的稠密模型。这正是 DeepSeek-V3 能用相对经济的算力达到顶级效果的根本原因。</p>
+
+    <table>
+      <thead><tr><th>模型</th><th>总参数</th><th>激活参数</th><th>专家数/Top-K</th><th>等效稠密</th></tr></thead>
+      <tbody>
+        <tr><td>Mixtral 8x7B</td><td>47B</td><td>13B</td><td>8 / 2</td><td>~34B</td></tr>
+        <tr><td>DeepSeek-V2</td><td>236B</td><td>21B</td><td>160 / 6</td><td>~70B+</td></tr>
+        <tr><td>DeepSeek-V3</td><td>671B</td><td>37B</td><td>256 / 8</td><td>~150B+</td></tr>
+        <tr><td>GLM-4.5 (假设MoE)</td><td>~355B</td><td>32B</td><td>细粒度</td><td>~100B+</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-moe-loadbalance"><span class="idx">D2</span> 工程难点：负载均衡与专家坍缩</h2>
+    <p>MoE 训练最大的工程难点是<strong>负载均衡</strong>——如果路由器总是把 token 送给少数几个专家，其余专家得不到训练而退化，这就是"专家坍缩"。解决方案是辅助损失（auxiliary loss）。</p>
+
+    <pre><code class="language-python"># 负载均衡辅助损失（Switch Transformer 风格）
+import torch, torch.nn.functional as F
+
+def load_balance_loss(gate_logits, top_k=2, num_experts=8):
+    # gate_logits: (tokens, num_experts)
+    # 1. 每个专家被选中的概率（按 token 平均）
+    probs = F.softmax(gate_logits, dim=-1)        # (tokens, experts)
+    # 2. 实际被路由到各专家的 token 比例
+    topk_idx = probs.topk(top_k, dim=-1).indices
+    mask = F.one_hot(topk_idx, num_experts).float().sum(dim=1)  # (tokens, experts)
+    f = mask.mean(dim=0)                            # 各专家的负载比例
+    # 3. 各专家的平均路由概率
+    p = probs.mean(dim=0)
+    # 4. 辅助损失 = num_experts * sum(f_i * p_i)
+    #    当负载均匀时 f≈1/N，p≈1/N，乘积最小
+    return num_experts * (f * p).sum()
+
+# 训练时把这个 loss（权重很小，如 0.01）加到总 loss
+# 它会"推"路由器把 token 均匀分配到所有专家
+# 若不加，常见现象：80% token 涌向 2 个专家，其余 6 个成摆设
+</code></pre>
+
+    <div class="callout warn">
+      <div class="head">专家坍缩的早期信号</div>
+      <ul style="margin:6px 0;">
+        <li>训练 loss 曲线正常，但<strong>专家利用率方差飙升</strong>（监控 f 的标准差）。</li>
+        <li>某些专家的权重范数远小于其它（没被充分训练）。</li>
+        <li>切换 seed 后效果剧烈波动（路由脆弱）。</li>
+      </ul>
+      <p>一旦发现，立即检查 aux loss 权重是否过小，或 router 的初始化是否合理。DeepSeek 用<strong>无辅助损失的负载均衡</strong>（通过偏置项动态调整）进一步优化了这一点，是较新的工程进展。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把 MoE 的基本概念和核心机制讲透了。要点回顾：</p>
     <ul>
@@ -868,6 +934,7 @@ print(f"\n专家命中次数: {counts.tolist()}")
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

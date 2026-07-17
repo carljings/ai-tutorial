@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：MCP 集成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：MCP 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：MCP 集成 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：MCP 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 59 · Agent 源码深挖系列</span>
       <h1>MCP 协议深度解析<br>JSON-RPC、四类能力与传输层</h1>
@@ -602,6 +599,68 @@
     </table>
     <p>SSE 传输在较新的 MCP 规范里被标记为 deprecated，推荐迁移到 streamable HTTP。后者用单个 HTTP 端点处理双向消息——client POST 请求，server 可以在响应里返回 SSE 流（如果需要 server 主动推送）。这种设计更兼容现代基础设施（CDN、代理、负载均衡），且支持 session 恢复。</p>
 
+<h2 class="section" id="deep-mcp-integration"><span class="idx">D1</span> 源码级分析：MCP 集成的工具路由</h2>
+    <p>本章讨论了 MCP 集成。这一节我们深入一个 Agent 如何路由多个 MCP server 的工具，并处理工具名冲突。</p>
+
+    <pre><code class="language-typescript">// 多 MCP server 的工具路由与命名空间
+class MCPToolRouter {
+  private servers = new Map<string, MCPServer>();  // serverName -> server
+  private tools = new Map<string, { server: string; tool: Tool }>();
+
+  async registerServer(name: string, server: MCPServer) {
+    this.servers.set(name, server);
+    const tools = await server.listTools();
+    for (const tool of tools) {
+      // 命名空间化：server:tool，避免不同 server 的同名工具冲突
+      const namespaced = `${name}:${tool.name}`;
+      this.tools.set(namespaced, { server: name, tool });
+    }
+  }
+
+  // 给 LLM 的工具列表：用命名空间名 + 合并描述
+  getToolsForLLM(): ToolDefinition[] {
+    return Array.from(this.tools.entries()).map(([id, { tool }]) => ({
+      name: id,                          // "github:create_issue"
+      description: tool.description,
+      inputSchema: tool.inputSchema,
+    }));
+  }
+
+  async callTool(id: string, args: any) {
+    const entry = this.tools.get(id);
+    if (!entry) throw new Error(`未知工具: ${id}`);
+    const server = this.servers.get(entry.server)!;
+    return server.callTool(entry.tool.name, args);   // 转发到对应 server
+  }
+}
+</code></pre>
+
+    <p>多 server 集成的核心难题是<strong>工具名冲突</strong>。两个 MCP server 都可能有 "search" 工具，直接合并会让 LLM 无法区分。命名空间化（server:tool）是标准解法：对 LLM 暴露 "github:search"、"local:search"，调用时路由器解析前缀转发到对应 server。这个设计让工具集可无限扩展而不冲突。</p>
+
+    <table>
+      <thead><tr><th>集成场景</th><th>工具数</th><th>主要挑战</th><th>解决手段</th></tr></thead>
+      <tbody>
+        <tr><td>单 server</td><td>&lt;10</td><td>无</td><td>直接暴露</td></tr>
+        <tr><td>多 server 无冲突</td><td>10~50</td><td>管理复杂度</td><td>统一路由器</td></tr>
+        <tr><td>多 server 有冲突</td><td>50+</td><td>命名冲突</td><td>命名空间化</td></tr>
+        <tr><td>超大规模</td><td>100+</td><td>上下文膨胀</td><td>按需加载/检索</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-mcp-pitfall-2"><span class="idx">D2</span> 生产避坑：MCP 集成的运维难点</h2>
+    <div class="callout warn">
+      <div class="head">难点 1：server 可用性监控</div>
+      <p>某个 MCP server 崩溃时，它的工具应优雅降级而非让整个 Agent 失败。路由器要<strong>健康检查</strong>，对不可达 server 的工具标记为"暂不可用"，让 LLM 改用其它方案。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">难点 2：工具结果的统一格式</div>
+      <p>不同 server 返回格式不一（有的 JSON、有的纯文本）。路由器应<strong>统一成文本格式</strong>给 LLM，避免 LLM 处理多种结构。统一格式也便于结果截断和日志。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">难点 3：权限的跨 server 一致性</div>
+      <p>不同 server 的工具有不同风险等级（读数据库 vs 发邮件）。审批策略要按工具配置，而非所有 MCP 工具一刀切。建议每个工具声明自己的 approval 级别。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>MCP 是 Agent 接入外部能力的开放标准。要点回顾：</p>
     <ul>
@@ -614,6 +673,7 @@
       <li><strong>三种传输</strong>：stdio（本地子进程）、SSE（已 deprecated）、streamable HTTP（推荐，支持 session 恢复）。</li>
     </ul>
     <p>下一章（177 章）我们看并行 Agent 执行——子 Agent spawn、结果聚合、token 预算分配，这是处理复杂任务的高级模式。</p>
+
 
 </main>
 

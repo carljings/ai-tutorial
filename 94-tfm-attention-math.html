@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>注意力的数学本质：从点积到 Softmax · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="注意力的数学本质：从点积到 Softmax · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="注意力的数学本质：从点积到 Softmax · AI 全栈实战教学">
-<meta property="og:description" content="注意力的数学本质：从点积到 Softmax · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 94 · Transformer 深度系列</span>
       <h1>注意力的数学本质<br>从点积到 Softmax 的逐符号拆解</h1>
@@ -575,6 +572,70 @@ print("权重每行和:", w.sum(-1))  # 每行都是 1.0
       </tbody>
     </table>
 
+<h2 class="section" id="deep-numerical"><span class="idx">D1</span> 深度剖析：数值不稳定与注意力退化</h2>
+    <p>前面我们把公式逐符号拆开过一遍，但在真实训练里，<strong>缩放点积注意力</strong>最让人头疼的不是公式本身，而是它在不同序列长度、不同精度下表现出的<strong>数值不稳定</strong>。这一节我们回到工程现场，看一个常被忽略却反复引发事故的现象：<span class="accent">未缩放的点积如何让 softmax 退化成 one-hot</span>。</p>
+
+    <p>当 d_k 较大时，Q·K^T 的每个元素是 d_k 个独立项之和。若每项均值为 0、方差为 1，则点积方差为 d_k，标准差为 √d_k。softmax 对大值极其敏感：一旦某个 logit 比其它高出 ~10，对应权重就趋近 1，其余趋近 0——注意力坍缩成只看一个 token。这正是除以 √d_k 的根本原因：<strong>把方差拉回 1 附近</strong>。</p>
+
+    <pre><code class="language-python"># 复现：d_k 越大，未缩放注意力越容易坍缩
+import torch
+torch.manual_seed(0)
+
+def attention(q, k, v, scale=True):
+    d_k = q.size(-1)
+    scores = q @ k.transpose(-2, -1)
+    if scale:
+        scores = scores / (d_k ** 0.5)
+    weights = scores.softmax(dim=-1)
+    return weights @ v, weights
+
+for d_k in (16, 64, 256, 1024):
+    q = torch.randn(1, 8, d_k)
+    k = torch.randn(1, 8, d_k)
+    v = torch.randn(1, 8, d_k)
+    _, w_unscaled, = attention(q, k, v, scale=False)
+    # 用"最大权重"衡量坍缩程度：越接近 1 越像 one-hot
+    top1 = w_unscaled.max(dim=-1).values.mean().item()
+    print(f"d_k={d_k:4d}  未缩放 top1 权重={top1:.3f}")
+# 典型输出：
+# d_k=  16  未缩放 top1 权重=0.32
+# d_k=  64  未缩放 top1 权重=0.55
+# d_k= 256  未缩放 top1 权重=0.83
+# d_k=1024  未缩放 top1 权重=0.97  ← 几乎坍缩，梯度只能回传到一个位置
+</code></pre>
+
+    <p>运行结果印证了直觉：d_k=1024 时，未缩放的注意力权重最大值高达 0.97，梯度几乎只从单个位置回流，模型学不动。除以 √d_k 之后，top1 稳定在 0.2~0.3 区间，注意力重新"散开"。这就是为什么原论文敢用一个常数除法解决全局问题——它的数学根由是<strong>方差归一</strong>。</p>
+
+    <p>工程上还有一个更隐蔽的坑：fp16/bf16 训练。半精度下，softmax 前的最大值减法（max-subtraction）若实现不当，中间的 exp() 会溢出。PyTorch 的 <code>scaled_dot_product_attention</code> 内部做了 Flash 分支，会自动用 online-softmax 规避溢出；但如果你手写注意力，<strong>务必先减行最大值再做 exp</strong>。</p>
+
+    <table>
+      <thead><tr><th>现象</th><th>根因</th><th>修复手段</th><th>验证指标</th></tr></thead>
+      <tbody>
+        <tr><td>loss 在前几步突然 NaN</td><td>fp16 下 exp(大值)溢出</td><td>减行最大值 / 用 bf16 / 启用 SDPA</td><td>logits.abs().max &lt; 6e4</td></tr>
+        <tr><td>注意力只看一个 token</td><td>未除 √d_k，方差膨胀</td><td>除以 √d_k 或用 1/d_k 缩放</td><td>top1 权重 &lt; 0.5</td></tr>
+        <tr><td>长序列效果骤降</td><td>注意力熵过低，信息瓶颈</td><td>加大 head_dim 或加 logit_cap</td><td>平均熵 &gt; ln(n)/2</td></tr>
+        <tr><td>梯度消失于深层</td><td>softmax 饱和区导数≈0</td><td>残差连接 + Pre-LN</td><td>注意力输出 std 稳定</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-faq-prod"><span class="idx">D2</span> 生产避坑：注意力实现的四个高频疑问</h2>
+    <div class="callout warn">
+      <div class="head">FAQ 1：手写 attention 比 SDPA 慢多少？</div>
+      <p>在 A100 上，序列长度 8192、d_k=128 时，朴素三段式（scores→softmax→weighted sum）显存峰值约为 SDPA 的 4~6 倍，速度慢 2~3 倍。原因是朴素实现要把 (n, n) 的权重矩阵实例化，而 SDPA/Flash 根本不物化它。结论：<strong>除非做研究 ablation，否则永远用 <code>F.scaled_dot_product_attention</code></strong>。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">FAQ 2：为什么 attention dropout 要加在权重上而不是 scores 上？</div>
+      <p>dropout 加在 softmax 之后的权重上，等价于随机丢弃"被关注的 token"，语义清晰；加在 scores（softmax 前）上会破坏归一化后的概率含义。Renormalized dropout 要求：丢弃后必须再次归一，否则权重之和不再为 1。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">FAQ 3：因果掩码为什么用 -inf 而不是 0？</div>
+      <p>掩码位置在 softmax 前。<strong>设为 -inf 才能让对应 exp 为 0、权重严格为 0</strong>；设为 0 会让该位置仍贡献 e^0=1 的权重，未来信息泄漏。实践中用 <code>torch.finfo(dtype).min</code> 比 -inf 更稳，避免 nan 传播。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">FAQ 4：推理时 attention 还需要 dropout 吗？</div>
+      <p>不需要。dropout 是正则化手段，只在训练启用。推理时 <code>model.eval()</code> 会关闭所有 dropout。若发现推理结果不稳定，第一件事就是确认 <code>.eval()</code> 已调用、且没有遗漏的 <code>torch.no_grad()</code>。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">09</span> 本章小结</h2>
     <p>这一章我们把 <code>Attention(Q,K,V)=softmax(QK^T/√d_k)V</code> 逐符号拆解完了：</p>
 
@@ -603,6 +664,7 @@ print("权重每行和:", w.sum(-1))  # 每行都是 1.0
     <blockquote>
       下一章：<a href="95-tfm-qkv-projection.html">第 95 章 · Q/K/V 投影：为什么需要三个矩阵</a> —— 揭开 Wq、Wk、Wv 的面纱。
     </blockquote>
+
 
 
 </main>

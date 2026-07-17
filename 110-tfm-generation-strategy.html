@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>解码策略：贪心/采样/beam 的取舍 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="解码策略：贪心/采样/beam 的取舍 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="解码策略：贪心/采样/beam 的取舍 · AI 全栈实战教学">
-<meta property="og:description" content="解码策略：贪心/采样/beam 的取舍 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 10 · Transformer 深度系列</span>
       <h1>生成策略全景<br>从贪心解码到核采样的权衡之道</h1>
@@ -508,6 +505,69 @@ for scene, cfg in configs.items():
     </ul>
     <p>当然，自动化指标只是参考，最终还是要靠人工评估或者训练一个奖励模型（这就是 RLHF 的思路）。但作为快速调参的依据，diversity 和 repetition 已经很实用了。</p>
 
+<h2 class="section" id="deep-decode-compare"><span class="idx">D1</span> 深度对比：四种解码策略的质量-速度权衡</h2>
+    <p>本章讲了贪心、采样、beam search 的基本取舍。这一节我们补全第四种<strong>对比解码（Contrastive Decoding）</strong>，并用一个统一的代码框架把四种策略实现出来，方便你在自己的任务上做 A/B。</p>
+
+    <pre><code class="language-python"># 四种解码策略的统一实现骨架
+import torch
+import torch.nn.functional as F
+
+def greedy(logits):
+    return logits.argmax(dim=-1)                  # 取最大
+
+def sample(logits, temp=0.8, top_p=0.9):
+    logits = logits / temp
+    # top-p 截断
+    sorted_logits, sorted_idx = torch.sort(logits, descending=True)
+    cumprobs = F.softmax(sorted_logits, dim=-1).cumsum(dim=-1)
+    mask = cumprobs > top_p
+    mask[..., 1:] = mask[..., :-1].clone(); mask[..., 0] = False
+    sorted_logits[mask] = float('-inf')
+    probs = F.softmax(sorted_logits, dim=-1)
+    return sorted_idx.gather(-1, torch.multinomial(probs, 1)).squeeze(-1)
+
+def beam_search_step(scores, beam_size):
+    # 每步保留 beam_size 个最优候选
+    top_scores, top_idx = scores.topk(beam_size, dim=-1)
+    return top_idx, top_scores
+
+def contrastive(logits_big, logits_small, alpha=0.1):
+    # 大模型 logits 减去小模型 logits，惩罚"小模型也自信"的平庸词
+    return (logits_big - alpha * logits_small).argmax(dim=-1)
+
+# 选用建议：
+# - 确定性事实问答 → greedy
+# - 创意写作/对话 → sample(temp=0.7~0.9, top_p=0.9)
+# - 机器翻译/摘要 → beam_search(beam=4~6)
+# - 提升上限 → contrastive（需额外一个小模型）
+</code></pre>
+
+    <p>对比解码是近年来的重要进展：它用一个<strong>额外的小模型作为"平庸惩罚项"</strong>，鼓励大模型输出小模型想不到的词，从而减少通用废话、提升事实性和细节。代价是每步要跑两次前向（大+小模型），速度约为贪心的 1/2。</p>
+
+    <table>
+      <thead><tr><th>策略</th><th>速度</th><th>多样性</th><th>事实性</th><th>典型场景</th></tr></thead>
+      <tbody>
+        <tr><td>Greedy</td><td>最快</td><td>无（确定性）</td><td>中（易重复）</td><td>分类、抽取</td></tr>
+        <tr><td>Sampling (top-p)</td><td>快</td><td>高</td><td>中</td><td>对话、创意</td></tr>
+        <tr><td>Beam Search</td><td>慢（×beam）</td><td>低</td><td>较高</td><td>翻译、摘要</td></tr>
+        <tr><td>Contrastive</td><td>较慢（×2）</td><td>中</td><td>高</td><td>追求上限的长文本</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-beam-pitfall"><span class="idx">D2</span> 生产避坑：beam search 的三个反直觉行为</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：beam 越大反而越短、越通用</div>
+      <p>很多人以为 beam=10 比 beam=4 更好。实测在开放域生成里，大 beam 倾向于选择"高概率但平庸"的短句，因为长度归一化若没做好，短句累积概率天然占优。<strong>对话场景 beam 通常设 1（即贪心或采样），翻译才用 4~6</strong>。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">坑 2：beam 与 repetition penalty 冲突</div>
+      <p>repetition penalty 通过降低已生成 token 的 logit 防重复，但 beam search 维护多条候选，各候选的"已生成"集合不同，penalty 应用不一致会导致候选排序紊乱。<strong>两者一般不同时启用</strong>，或在每条候选内独立维护已生成集合。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：length penalty 的符号</div>
+      <p>length penalty &gt; 1 鼓励长句，&lt; 1 鼓励短句。HF 默认 1.0（不偏）。若发现输出总是过早 EOS，把它调到 1.2~1.5 往往能延长输出。但调过头会产生啰嗦重复——需要配合 no_repeat_ngram_size。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把生成策略的全家桶梳理了一遍。要点回顾：</p>
     <ul>
@@ -520,6 +580,7 @@ for scene, cfg in configs.items():
       <li><strong>组合使用</strong>：实际工程里 temperature + top-p 是黄金组合，按任务类型在确定性和随机性之间找平衡。</li>
     </ul>
     <p>掌握了生成策略，你就能解释为什么同一个模型在不同配置下表现天差地别。但采样本身也会带来一个新问题：模型有时会反复输出同一个词或短语。下一章我们就来攻克这个顽疾——重复惩罚机制。</p>
+
 
 </main>
 

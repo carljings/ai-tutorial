@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：并行工具调用 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：并行工具调用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：并行工具调用 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：并行工具调用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 60 · Agent 源码深挖系列</span>
       <h1>并行 Agent 执行<br>子 Agent spawn、结果聚合与 token 预算分配</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="why-parallel"><span class="idx">★</span> 一、什么时候值得并行</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、什么时候值得并行</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、子 Agent 的 spawn 模型</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、真正的并行执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、token 预算分配</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、结果聚合：从多个摘要到一体视图</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、几种实用的并行模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>并行不是万能的，它有协调开销。值得并行的场景有几个特征：</p>
@@ -580,6 +624,68 @@ ${reviews.map((r, i) =&gt; `【${perspectives[i].role}】\n${r.summary}`).join("
 }</code></pre>
     <p>这种「多视角并行审查」比单个 Agent 做全面审查更深入——每个子 Agent 聚焦一个维度，不会因为 context 限制而浅尝辄止。代价是 token 成本是单 Agent 的 N 倍。</p>
 
+<h2 class="section" id="deep-parallel-tools"><span class="idx">D1</span> 源码级分析：并行工具调用的调度与合并</h2>
+    <p>本章讨论了并行工具调用。这一节我们深入并行调用的调度算法和结果合并，并讨论依赖检测。</p>
+
+    <pre><code class="language-python"># 并行工具调用的调度器
+import asyncio
+
+class ParallelToolScheduler:
+    async def run(self, tool_calls: list, executor):
+        # 1. 依赖分析：检测有依赖关系的调用
+        independent, dependent = self.split_by_dependency(tool_calls)
+        # 2. 独立调用并行执行
+        results = {}
+        async def run_one(tc):
+            results[tc.id] = await executor(tc)
+        await asyncio.gather(*[run_one(tc) for tc in independent])
+        # 3. 依赖调用串行执行（依赖前序结果）
+        for tc in dependent:
+            # 把前序结果填入参数模板
+            tc.args = self.fill_template(tc.args, results)
+            results[tc.id] = await executor(tc)
+        return results
+
+    def split_by_dependency(self, calls):
+        # 若一个调用的参数引用了另一个的输出（如 ${call_a.result}），则有依赖
+        independent, dependent = [], []
+        for c in calls:
+            if self.has_ref(c.args):  # 检测 ${...} 引用
+                dependent.append(c)
+            else:
+                independent.append(c)
+        return independent, dependent
+
+# 关键：并行只对"相互独立"的调用安全
+# 有数据依赖的调用必须串行（后一个需要前一个的结果）
+</code></pre>
+
+    <p>并行调用的核心是<strong>"独立可并行、依赖须串行"</strong>。LLM 一次返回多个工具调用时，若它们互不依赖（如同时读三个文件），并行执行能显著加速；但若一个的参数依赖另一个的结果（如先查 ID 再用 ID 查详情），必须串行。调度器的职责就是做这个依赖分析，最大化并行度同时保证正确性。</p>
+
+    <table>
+      <thead><tr><th>调用关系</th><th>执行方式</th><th>加速比</th><th>风险</th></tr></thead>
+      <tbody>
+        <tr><td>全独立</td><td>全并行</td><td>≈N 倍</td><td>低</td></tr>
+        <tr><td>部分依赖</td><td>独立并行+依赖串行</td><td>中</td><td>中（依赖漏检）</td></tr>
+        <tr><td>全依赖</td><td>全串行</td><td>1 倍</td><td>无</td></tr>
+        <tr><td>隐式依赖（共享文件）</td><td>需检测</td><td>—</td><td>高（竞态）</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-parallel-pitfall"><span class="idx">D2</span> 生产避坑：并行调用的并发陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：隐式依赖导致竞态</div>
+      <p>两个调用看似独立，实则操作同一文件（如一个读、一个写），并行会产生竞态。调度器难自动检测这种隐式依赖。<strong>对文件/资源操作要加显式锁</strong>，或在工具定义里声明资源依赖。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：并发数失控</div>
+      <p>LLM 一次返回 10 个并行调用，若全并发可能打爆下游（如 10 个 API 请求触发限流）。调度器要有<strong>并发上限</strong>（如最多 4 个），超出的排队等待。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">陷阱 3：部分失败的处理</div>
+      <p>并行调用中一个失败，其余成功。如何处理？常见策略：<strong>收集所有结果（含失败）反馈给 LLM</strong>，让它决定重试失败项还是基于成功项继续。不要一个失败就全盘放弃。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>并行 Agent 是处理复杂任务的高级模式。要点回顾：</p>
     <ul>
@@ -591,6 +697,7 @@ ${reviews.map((r, i) =&gt; `【${perspectives[i].role}】\n${r.summary}`).join("
       <li><strong>实用模式</strong>：探索-利用（多方案选优）、Map-Reduce（批量操作）、专家咨询（多视角审查）。</li>
     </ul>
     <p>最后一章（178 章）我们讨论 Agent 的测试方法——怎么为一个「输出不确定」的系统写测试，这是 Agent 工程化最难的环节之一。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>从零实现一个迷你 Transformer · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="从零实现一个迷你 Transformer · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="从零实现一个迷你 Transformer · AI 全栈实战教学">
-<meta property="og:description" content="从零实现一个迷你 Transformer · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 19 · Transformer 深度系列 · 收官之作</span>
       <h1>从零实现迷你 Transformer<br>用 300 行代码拼出一个能写诗的语言模型</h1>
@@ -657,6 +654,62 @@ for name, p in model.named_parameters():
     </ul>
     <p>从架构到解码，从优化到挑战者，再到亲手实现——你现在对 Transformer 这一代大模型的核心技术有了完整、扎实的理解。这份理解，是你继续深入任何细分方向（训练、推理、对齐、应用）的地基。</p>
 
+<h2 class="section" id="deep-mini-debug"><span class="idx">D1</span> 深度剖析：迷你 Transformer 的调试方法论</h2>
+    <p>本章带大家从零实现了一个迷你 Transformer。但"能跑起来"和"训得动"之间隔着一道调试鸿沟。这一节我们给出一套<strong>分层调试法</strong>——当 loss 不下降时，按顺序排查哪一层出了问题。</p>
+
+    <pre><code class="language-python"># 分层调试：逐层检查前向数值健康度
+import torch
+
+def diagnose_forward(model, input_ids):
+    hooks = []
+    stats = {}
+    def make_hook(name):
+        def hook(module, inp, out):
+            if isinstance(out, tuple): out = out[0]
+            stats[name] = {
+                'mean': out.float().mean().item(),
+                'std':  out.float().std().item(),
+                'has_nan': torch.isnan(out).any().item(),
+                'has_inf': torch.isinf(out).any().item(),
+            }
+        return hook
+    for name, m in model.named_modules():
+        if any(k in name for k in ('embed', 'attn', 'ffn', 'norm', 'lm_head')):
+            hooks.append(m.register_forward_hook(make_hook(name)))
+    model(input_ids)
+    for h in hooks: h.remove()
+    return stats
+
+# 健康信号：
+# - embed 输出 std ≈ 1.0（初始化决定）
+# - attention 输出 std 不应骤降到 <0.1（消失）或 >10（爆炸）
+# - layernorm 后 mean≈0, std≈1（恒等变换验证）
+# - lm_head logits 范围 ±10，softmax 后非 one-hot
+</code></pre>
+
+    <p>这套方法的核心是<strong>用 hook 逐层抓统计量</strong>。健康网络的特征是：每层输出的 std 在传播中保持稳定（既不消失也不爆炸），不出现 nan/inf。一旦发现某一层 std 骤降（比如 attention 输出 std=0.01），问题就锁定在那层——通常是初始化不当、学习率过大或缺少残差。</p>
+
+    <table>
+      <thead><tr><th>症状</th><th>可疑层</th><th>排查方向</th><th>典型修复</th></tr></thead>
+      <tbody>
+        <tr><td>loss = nan</td><td>首个异常层</td><td>检查 inf/nan 来源</td><td>降学习率、加梯度裁剪</td></tr>
+        <tr><td>loss 平稳不降</td><td>embedding/lm_head</td><td>检查 token 是否学到区分度</td><td>调学习率、检查数据</td></tr>
+        <tr><td>生成全重复</td><td>attention/解码</td><td>检查注意力是否坍缩</td><td>加温度、检查 mask</td></tr>
+        <tr><td>只输出单字</td><td>lm_head/embedding</td><td>检查 tie weights 是否对齐</td><td>取消绑定或对齐布局</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-mini-scaleup"><span class="idx">D2</span> 进阶实践：从迷你模型到可用的 scale-up 路径</h2>
+    <div class="callout tip">
+      <div class="head">迷你模型训通后的三条进化路线</div>
+      <ol style="margin:6px 0;">
+        <li><strong>加深加宽</strong>：n_layers 从 6→12→24，d_model 从 384→768→1024。每翻倍参数量，训练数据要同步翻 10 倍，否则过拟合。</li>
+        <li><strong>换现代组件</strong>：把绝对位置编码换 RoPE、标准 attention 换 GQA、GeLU 换 SwiGLU。这些单项替换通常不掉点，组合后接近 LLaMA 架构。</li>
+        <li><strong>上分词器与数据</strong>：从字符级升级到 BPE，数据从单文档扩到百 GB 清洗语料。数据质量对效果的影响远大于架构微调。</li>
+      </ol>
+    </div>
+    <p>一个重要提醒：<strong>不要在迷你模型上过度调参</strong>。迷你模型的价值是验证实现正确性，它的超参最优值与大模型差异巨大（比如迷你模型的最优学习率可能是大模型的 5 倍）。把迷你模型当"脚手架"，验证逻辑无误后，参数规模和数据才是决定效果的主因。</p>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章，也是整个 Transformer 深度系列的收官。我们把迷你 GPT 从零造了出来。要点回顾：</p>
     <ul>
@@ -670,6 +723,7 @@ for name, p in model.named_parameters():
       <li><strong>走向真实大模型</strong>：在迷你 GPT 骨架上叠加 BPE、RoPE、RMSNorm、SwiGLU、GQA、Flash Attention、并行训练等优化。</li>
     </ul>
     <p>恭喜你完成了整个 Transformer 深度系列。这套教程从架构原理一路讲到工程实现，希望它成为你大模型学习之路上的一块扎实基石。技术的世界永远在演进，但底层的原理是相通的——掌握了这些，无论未来出现什么新架构，你都能快速理解、从容应对。下一站，由你来定义。</p>
+
 
 </main>
 

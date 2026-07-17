@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>位置编码：没有它 Transformer 是个瞎子 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="位置编码：没有它 Transformer 是个瞎子 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="位置编码：没有它 Transformer 是个瞎子 · AI 全栈实战教学">
-<meta property="og:description" content="位置编码：没有它 Transformer 是个瞎子 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -874,6 +871,55 @@ plt.savefig("sinusoidal_pe.png", dpi=120)
 print("已保存 sinusoidal_pe.png")
 # 低维频率高 → 编码细粒度位置；高维频率低 → 编码粗粒度位置
 # 点积图的条纹说明：PE(i)·PE(j) 只依赖 i-j，这正是相对位置可加性的来源</code></pre>
+<h2 class="section" id="deep-pe-compare"><span class="idx">D1</span> 深度对比：五种位置编码的全景评测</h2>
+    <p>本章聚焦了正余弦绝对位置编码。但工业界在过去几年演化出多条路线，理解它们的差异，才能在大模型选型时做出正确决策。我们把五种主流方案放在同一张表里横向对比，再用代码复现一个关键的泛化能力测试：<strong>外推</strong>——训练时只见 2048 长度，推理时给 4096，谁还能用？</p>
+
+    <table>
+      <thead><tr><th>方案</th><th>类型</th><th>外推能力</th><th>代表模型</th><th>额外参数</th></tr></thead>
+      <tbody>
+        <tr><td>正余弦绝对编码</td><td>绝对、固定</td><td>弱（需微调）</td><td>原始 Transformer</td><td>0</td></tr>
+        <tr><td>可学习绝对编码</td><td>绝对、可学</td><td>无（超长直接越界）</td><td>GPT-2、BERT</td><td>max_len×d</td></tr>
+        <tr><td>ALiBi 偏置</td><td>相对、线性偏置</td><td>较强</td><td>BLOOM、MPT</td><td>n_heads 个斜率</td></tr>
+        <tr><td>RoPE 旋转编码</td><td>相对、旋转</td><td>强（配合 NTK/YaRN）</td><td>LLaMA、GLM、Qwen</td><td>0</td></tr>
+        <tr><td>NoPE（无编码）</td><td>隐式相对</td><td>中等（限 decoder）</td><td>部分研究模型</td><td>0</td></tr>
+      </tbody>
+    </table>
+
+    <pre><code class="language-python"># 外推实验：训练长度 2048，测试长度 4096，看注意力分布是否合理
+import torch, math
+
+def sinusoidal_pe(seq_len, d):
+    pos = torch.arange(seq_len).float().unsqueeze(1)
+    div = torch.exp(torch.arange(0, d, 2).float() * (-math.log(10000.0)/d))
+    pe = torch.zeros(seq_len, d)
+    pe[:, 0::2] = torch.sin(pos * div)
+    pe[:, 1::2] = torch.cos(pos * div)
+    return pe
+
+# 模拟：在 [0,2048) 上"熟悉"，看 [2048,4096) 区间的编码变化
+pe_train = sinusoidal_pe(2048, 64)
+pe_extra = sinusoidal_pe(4096, 64)[2048:]
+
+# 衡量外推段编码与训练段最相似位置的距离（越小说明越"撞车"，外推越差）
+sim = pe_extra @ pe_train.T   # (2048, 2048)
+nearest = sim.argmax(dim=1)   # 每个外推位置最像哪个训练位置
+overlap = (nearest < 1024).float().mean().item()   # 多少比例撞到前半段
+print(f"正余弦编码外推时，{overlap*100:.0f}% 的位置与训练段前半重叠")
+print("→ 说明绝对编码外推时位置信号会与已见位置混淆，需配合位置插值")
+</code></pre>
+
+    <p>这个实验揭示了一个反直觉的事实：<strong>正余弦编码虽然是连续函数，但外推到训练域之外时，新位置的向量会与已见位置高度相似</strong>，模型分不清"这是第 3000 个位置"还是"这是第 1000 个位置"。这正是 RoPE 配合 NTK-aware 缩放能成为主流的根本原因——它通过旋转角度的基数调整，让外推区间的相对距离信号保持单调。</p>
+
+    <div class="callout warn">
+      <div class="head">选型决策树</div>
+      <ul style="margin:6px 0;">
+        <li>需要超长上下文（&gt;32k）→ RoPE + YaRN/NTK，几乎唯一选择</li>
+        <li>短上下文、要省参数 → 可学习绝对编码，但 max_len 写死</li>
+        <li>追求训练即外推、不想调 → ALiBi，但长文本效果略逊 RoPE</li>
+        <li>科研/decoder 实验 → 可试 NoPE，省一切但效果不稳定</li>
+      </ul>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
     <p>这一章讲清了位置编码的来龙去脉：</p>
 
@@ -911,6 +957,7 @@ print("已保存 sinusoidal_pe.png")
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

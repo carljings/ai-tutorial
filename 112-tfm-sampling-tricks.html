@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>典型采样与 mirostat：动态截断 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学">
-<meta property="og:description" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 12 · Transformer 深度系列</span>
       <h1>高级采样技巧<br>Top-k / Top-p / Min-p / Typical / Mirostat 全对比</h1>
@@ -535,6 +532,67 @@ for name in ["top-k=40", "top-p=0.9", "typical_p=0.9"]:
     </ul>
     <p>记住一个原则：<strong>采样方法没有高下之分，只有适配之分</strong>。先从 top-p 起步，遇到问题（重复、失控、保守）再针对性地换方法。不要一上来就上 mirostat 这种重型武器，调参成本会拖垮你。</p>
 
+<h2 class="section" id="deep-mirostat-internals"><span class="idx">D1</span> 源码级分析：Mirostat 的反馈控制环</h2>
+    <p>本章介绍了典型采样（typical sampling）和 mirostat 的基本思想。这一节我们深入 mirostat 的源码，看它如何用一个<strong>反馈控制环（control loop）</strong>动态调节温度，把生成困惑度锁定在目标值附近——这套思路借自控制论，比固定 top-p/top-k 优雅得多。</p>
+
+    <pre><code class="language-python"># Mirostat 采样核心：PID 式反馈控制
+import torch, torch.nn.functional as F
+
+class Mirostat:
+    def __init__(self, target_surprise=3.0, learning_rate=0.1):
+        self.tau = target_surprise   # 目标困惑度（surprise = -log p）
+        self.eta = learning_rate     # 学习率（控制收敛速度）
+        self.mu = target_surprise    # 当前估计的"惊喜水平"
+
+    def step(self, logits):
+        # 1. 计算每个 token 的 surprise = -log p
+        probs = F.softmax(logits, dim=-1)
+        surprise = -torch.log(probs + 1e-12)
+
+        # 2. 只保留 surprise <= mu 的候选（top-k 截断）
+        candidates = surprise <= self.mu
+        masked = torch.where(candidates, logits, torch.full_like(logits, float('-inf')))
+        next_token = torch.multinomial(F.softmax(masked, dim=-1), 1)
+
+        # 3. 用实际生成的 surprise 更新 mu（反馈环节）
+        observed = surprise[next_token].item()
+        error = observed - self.mu
+        self.mu += self.eta * error   # 误差驱动调整
+        # mu 过低 → 候选太少、太确定 → 下次放宽；反之收紧
+        return next_token.item()
+
+# 关键：mu 是动态的。生成太"平淡"时 mu 上升，引入更多惊喜；
+# 生成太"跳脱"时 mu 下降，回到平稳。整段文本的困惑度被锁定在 tau 附近。
+m = Mirostat(target_surprise=3.0)
+print("初始 mu:", m.mu, "目标 surprise:", m.tau)
+</code></pre>
+
+    <p>这套机制的本质是一个<strong>比例-积分控制器</strong>：把"目标困惑度"当作设定值，把"每步实际困惑度"当作反馈，用误差驱动 μ 的调整。它的优势在于<strong>对全文长度自适应</strong>——短文本不会过采样，长文本不会陷入重复，全程困惑度平滑。这是固定 top-k/top-p 做不到的。</p>
+
+    <table>
+      <thead><tr><th>采样方法</th><th>截断依据</th><th>是否动态</th><th>困惑度稳定性</th><th>实现复杂度</th></tr></thead>
+      <tbody>
+        <tr><td>Top-k</td><td>概率排名前 k</td><td>否（k 固定）</td><td>差（随分布漂移）</td><td>低</td></tr>
+        <tr><td>Top-p (nucleus)</td><td>累积概率阈值</td><td>半动态</td><td>中</td><td>低</td></tr>
+        <tr><td>Typical</td><td>与熵的距离</td><td>半动态</td><td>中</td><td>中</td></tr>
+        <tr><td>Mirostat</td><td>surprise ≤ μ（反馈）</td><td>全动态</td><td>优（锁定目标）</td><td>高</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-sampling-faq"><span class="idx">D2</span> FAQ：采样参数调优的常见困惑</h2>
+    <div class="callout note">
+      <div class="head">Q1：mirostat 和 top-p 能一起用吗？</div>
+      <p>理论上可以，但不建议。mirostat 自己已经在做截断，叠加 top-p 会双重限制，候选集过窄，反而失去动态性。<strong>要么用 mirostat，要么用 top-p+temp，二选一</strong>。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">Q2：target_surprise 该设多少？</div>
+      <p>经验值 3.0 适合大多数对话；2.0 偏保守（事实性强）；4.0+ 偏创意但可能跑偏。可以用一小批 prompt 跑出来人工评估，找到甜点。它本质是"你希望模型多惊喜"的主观旋钮。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">Q3：learning_rate 多大合适？</div>
+      <p>默认 0.1 平衡收敛速度和稳定性。调大到 0.3 会让 μ 跟随更激进，文本起伏大；调小到 0.01 更平滑但反应慢。一般不动。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把采样方法的完整谱系梳理了一遍。要点回顾：</p>
     <ul>
@@ -546,6 +604,7 @@ for name in ["top-k=40", "top-p=0.9", "typical_p=0.9"]:
       <li><strong>选型原则</strong>：通用场景 top-p，长文本 mirostat，代码低温度，创意 typical，噪声敏感 min-p。先简单后复杂。</li>
     </ul>
     <p>采样技巧讲完了，接下来我们回到模型内部，看一个更底层但同样关键的话题——注意力掩码。causal mask 我们已经提过，但还有 padding mask、prefix mask 等多种掩码协同工作，下一章会完整拆解。</p>
+
 
 </main>
 

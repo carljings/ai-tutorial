@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：上下文管理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：上下文管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：上下文管理 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：上下文管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 57 · Agent 源码深挖系列</span>
       <h1>上下文窗口管理策略<br>token 计数、消息淘汰与压缩摘要</h1>
@@ -318,18 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="three-layers"><span class="idx">★</span> 一、上下文管理的三个层次</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、上下文管理的三个层次</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、token 计数：要快也要准</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、消息淘汰：删什么留什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、压缩摘要：把多条变成一条</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、主动 vs 被动：什么时候触发</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、特殊场景：工具调用历史的处理</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、不同项目的策略对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>一个成熟的上下文管理系统通常分三层，从粗到细：</p>
@@ -532,6 +575,61 @@ function safeCompress(messages: Message[]): Message[] {
     </ul>
     <p>这些策略的核心思想都是「最近优先 + 摘要回退」，差异在具体阈值和实现细节。</p>
 
+<h2 class="section" id="deep-context-strategies"><span class="idx">D1</span> 源码级分析：上下文压缩的四种策略</h2>
+    <p>本章讨论了上下文管理。这一节我们对比四种上下文压缩策略，看它们在保留信息与节省 token 上的权衡。</p>
+
+    <pre><code class="language-python"># 四种上下文压缩策略
+def sliding_window(messages, keep_recent=10):
+    """1. 滑动窗口：只保留最近 N 轮"""
+    return messages[-keep_recent:]
+
+def summarize_old(messages, llm, keep_recent=6):
+    """2. 摘要压缩：旧消息压缩成摘要，近期保留原文"""
+    old, recent = messages[:-keep_recent], messages[-keep_recent:]
+    if not old: return recent
+    summary = llm.summarize(old)   # 让 LLM 把旧对话压成一段
+    return [{"role": "system", "content": f"历史摘要: {summary}"}] + recent
+
+def selective_prune(messages, importance_fn):
+    """3. 选择性裁剪：按重要性保留，删除低价值消息"""
+    scored = [(importance_fn(m), m) for m in messages]
+    scored.sort(key=lambda x: -x[0])   # 按重要性降序
+    return [m for _, m in scored]      # 保留高分（截到预算）
+
+def hierarchical(messages, budget):
+    """4. 分层：系统提示全留，工具结果截断，历史摘要"""
+    sys_msgs = [m for m in messages if m["role"] == "system"]
+    tool_msgs = [truncate(m, 500) for m in messages if m["role"] == "tool"]
+    conv_msgs = summarize_old([m for m in messages if m["role"] in ("user","assistant")], llm)
+    return sys_msgs + tool_msgs + conv_msgs
+</code></pre>
+
+    <p>四种策略的递进关系：滑动窗口最简单但丢信息最多；摘要压缩用 LLM 智能压缩旧内容，信息保留好但有额外成本；选择性裁剪按重要性保留，灵活但需要好的评分函数；分层策略对不同类型消息用不同处理，是最精细也最有效的方案。<strong>生产系统通常组合使用</strong>——近期滑动窗口、中期摘要、工具结果截断。</p>
+
+    <table>
+      <thead><tr><th>策略</th><th>信息保留</th><th>额外成本</th><th>实现复杂度</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td>滑动窗口</td><td>差（丢旧）</td><td>无</td><td>低</td><td>短对话</td></tr>
+        <tr><td>摘要压缩</td><td>中好</td><td>LLM 调用</td><td>中</td><td>长对话</td></tr>
+        <tr><td>选择性裁剪</td><td>中</td><td>评分计算</td><td>中</td><td>工具密集</td></tr>
+        <tr><td>分层组合</td><td>优</td><td>中</td><td>高</td><td>生产系统</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-context-pitfall-2"><span class="idx">D2</span> 生产避坑：上下文管理的隐蔽陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：摘要丢失关键事实</div>
+      <p>LLM 摘要可能遗漏用户提到的关键约束（如"不要用 X 库"）。这些约束在旧对话里，摘要后丢失，Agent 后续可能违反。<strong>重要约束应在系统提示或独立"事实区"持久保留</strong>，不进入可摘要的历史。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2：压缩导致 LLM 自相矛盾</div>
+      <p>若压缩把 Agent 之前说"我要用方案 A"改成摘要"讨论了方案选择"，Agent 可能忘记自己已选 A，重新纠结。压缩要保留<strong>决策结论</strong>而非只保留"讨论过"。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：压缩时机不当</div>
+      <p>压缩应在"接近窗口上限时"触发，而非每轮都压（浪费）。但要预留余量，别等满了才压——压缩本身要调 LLM，耗时期间新消息可能已超限。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>上下文窗口管理是 Agent 能持续运行的基础。要点回顾：</p>
     <ul>
@@ -544,6 +642,7 @@ function safeCompress(messages: Message[]): Message[] {
       <li><strong>触发时机</strong>：被动（简单常用）、主动（后台复杂）、混合（增长过快时提前）。</li>
     </ul>
     <p>下一章（175 章）我们继续通用主题——错误恢复策略，看工具失败重试、死循环检测、fallback chain 这些让 Agent 更健壮的机制。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 的 Agent Loop 实现 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenCode 的 Agent Loop 实现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenCode 的 Agent Loop 实现 · AI 全栈实战教学">
-<meta property="og:description" content="OpenCode 的 Agent Loop 实现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN" data-theme="dark">
 <head>
@@ -852,6 +849,70 @@ async def resumable_agent_loop(session, user_message, checkpoint_mgr):
     <div class="callout"><strong>⚠️ 落地提醒</strong><br>checkpoint 里存的 messages 可能包含敏感信息（用户数据、API key 误暴露等）。生产环境存检查点前要做敏感字段脱敏，存储位置要加密访问。另外，检查点要设 TTL（如 24 小时后自动清理），否则会无限堆积占满磁盘。</div>
 
 
+<h2 class="section" id="deep-loop-states"><span class="idx">D1</span> 深度剖析：Agent Loop 的状态机建模</h2>
+    <p>本章拆解了 OpenCode 的 Agent Loop。这一节我们把 loop 抽象成一个<strong>显式状态机</strong>，看每个状态的进入/退出条件，并用代码展示如何用状态机模式重写一个更易测试的 loop。</p>
+
+    <pre><code class="language-typescript">// 用状态机显式建模 Agent Loop
+type LoopState =
+  | { kind: "thinking" }              // 等待 LLM 响应
+  | { kind: "tool_pending"; tool: string; args: any }  // 待执行工具
+  | { kind: "awaiting_approval"; tool: string }        // 等用户审批
+  | { kind: "tool_running"; handle: ToolHandle }       // 工具执行中
+  | { kind: "done" }
+  | { kind: "error"; message: string };
+
+async function stepLoop(state: LoopState, ctx: LoopContext): Promise<LoopState> {
+  switch (state.kind) {
+    case "thinking": {
+      const msg = await ctx.callLLM(ctx.messages);
+      if (msg.tool_calls?.length) return { kind: "tool_pending", ...msg.tool_calls[0] };
+      return { kind: "done" };
+    }
+    case "tool_pending": {
+      if (needsApproval(state.tool)) return { ...state, kind: "awaiting_approval" };
+      return { kind: "tool_running", handle: ctx.startTool(state.tool, state.args) };
+    }
+    case "awaiting_approval": {
+      const ok = await ctx.askUser(`允许执行 ${state.tool}?`);
+      return ok ? { kind: "tool_running", handle: ctx.startTool(state.tool, state.args) }
+                : { kind: "thinking" };   // 拒绝则回到思考
+    }
+    case "tool_running": {
+      const result = await state.handle;
+      ctx.messages.push({ role: "tool", content: result });
+      return { kind: "thinking" };   // 把结果喂回 LLM，继续循环
+    }
+  }
+}
+</code></pre>
+
+    <p>状态机建模的最大价值是<strong>可测试性</strong>：每个状态转移是纯函数，可以脱离真实 LLM 和文件系统单测。传统 while 循环把所有逻辑糅在一起，测试时必须 mock 整个环境。状态机模式让 loop 的复杂行为变得可推理、可回放。</p>
+
+    <table>
+      <thead><tr><th>状态</th><th>触发转移的事件</th><th>可能的下一状态</th><th>关键副作用</th></tr></thead>
+      <tbody>
+        <tr><td>thinking</td><td>LLM 返回</td><td>tool_pending / done</td><td>累加 assistant 消息</td></tr>
+        <tr><td>tool_pending</td><td>权限检查</td><td>awaiting_approval / tool_running</td><td>无</td></tr>
+        <tr><td>awaiting_approval</td><td>用户确认</td><td>tool_running / thinking</td><td>记录审批日志</td></tr>
+        <tr><td>tool_running</td><td>工具完成</td><td>thinking（喂回结果）</td><td>文件系统/命令副作用</td></tr>
+        <tr><td>done / error</td><td>终止</td><td>无</td><td>清理资源</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-loop-robust"><span class="idx">D2</span> 生产实践：让 Loop 在异常下保持健壮</h2>
+    <div class="callout warn">
+      <div class="head">健壮性要点 1：LLM 调用的重试与降级</div>
+      <p>LLM API 会超时、限流、返回非法 JSON。loop 必须对 thinking 状态做指数退避重试（如 3 次），并在持续失败时优雅降级（告诉用户当前不可用），而不是无限重试卡死。<strong>重试要 idempotent</strong>——避免重复计费或重复工具调用。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">健壮性要点 2：工具执行的超时与隔离</div>
+      <p>tool_running 状态必须有超时（如 bash 命令 120 秒强制 kill）。否则一个卡死的工具会让整个 loop 永久阻塞。OpenCode 用子进程 + 超时信号实现隔离，工具崩溃不影响主进程。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">健壮性要点 3：最大循环次数兜底</div>
+      <p>LLM 可能陷入"调用工具→不满意→再调用"的死循环。loop 必须有最大迭代次数（如 50 次）兜底，超过则强制进入 done 并提示用户。这是防止 token 爆炸的最后一道防线。</p>
+    </div>
+
 <h2><span class="idx"></span>本章小结</h2>
 <p>本章我们通过源码深挖了"OpenCode 的 Agent Loop 实现"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
 <div class="chapter-nav">
@@ -862,6 +923,7 @@ async def resumable_agent_loop(session, user_message, checkpoint_mgr):
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

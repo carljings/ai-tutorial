@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：系统提示工程 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：系统提示工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：系统提示工程 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：系统提示工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
 <!DOCTYPE html>
 <html lang="zh-CN">
 <head>
@@ -855,6 +852,54 @@ def greet(name):
       <li><strong>不可测试</strong>：写了 prompt 但没有评估集，改完不知道是变好还是变坏。prompt 迭代必须配合评估。</li>
     </ul>
 
+<h2 class="section" id="deep-prompt-anatomy"><span class="idx">D1</span> 源码级分析：系统提示词的结构解剖</h2>
+    <p>本章从源码视角讨论了系统提示工程。这一节我们解剖一个真实 Agent 系统提示的完整结构，看每一部分的设计目的。</p>
+
+    <pre><code class="language-text"># 真实 Agent 系统提示的结构骨架（综合多个开源项目）
+[1. 角色定位]    You are an expert software engineer working as a coding agent.
+[2. 工作流]      Your workflow: understand → plan → act → verify.
+[3. 工具说明]    You have these tools: read, write, bash, grep.
+                 Use read before write to confirm current content.
+[4. 约束规则]    - NEVER modify files outside the workspace.
+                 - ALWAYS run tests after changes.
+                 - If unsure, ASK the user; do not guess.
+[5. 输出格式]    When proposing changes, show: the file, the search block, the replace block.
+[6. 失败处理]    If a tool fails, read the actual content and retry with corrected context.
+[7. 安全]        Do not execute destructive commands without explicit approval.
+
+# 设计原则：
+# - 用祈使句和大写关键词（NEVER/ALWAYS）强化约束
+# - 工具说明要包含"何时用"的触发条件，不仅是"是什么"
+# - 失败处理段是最容易被遗漏却最影响鲁棒性的部分
+</code></pre>
+
+    <p>解剖真实提示词后能发现：<strong>最影响效果的不是"角色定位"这种花哨描述，而是"约束规则"和"失败处理"</strong>。前者规定边界（不能做什么），后者规定异常行为（出错怎么办）。这两段直接决定 Agent 是否会"瞎搞"或"卡死"。很多自建 Agent 效果差，根因就是缺这两段。</p>
+
+    <table>
+      <thead><tr><th>段落</th><th>设计目的</th><th>常见错误</th><th>对效果影响</th></tr></thead>
+      <tbody>
+        <tr><td>角色定位</td><td>设定基调</td><td>过于冗长</td><td>低</td></tr>
+        <tr><td>工作流</td><td>规范步骤</td><td>太抽象无指导</td><td>中</td></tr>
+        <tr><td>工具说明</td><td>正确调用</td><td>只描述不含触发条件</td><td>高</td></tr>
+        <tr><td>约束规则</td><td>划定边界</td><td>遗漏关键禁令</td><td>极高</td></tr>
+        <tr><td>失败处理</td><td>鲁棒性</td><td>完全缺失</td><td>极高</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-prompt-pitfall"><span class="idx">D2</span> 生产避坑：系统提示的常见反模式</h2>
+    <div class="callout warn">
+      <div class="head">反模式 1：冗长的角色吹捧</div>
+      <p>"你是世界顶级、最聪明、无所不能的..."这类吹捧除了消耗 token 几乎无效。LLM 不因赞美而变强，反而可能因冗长提示分散注意力。<strong>角色描述应简短精准</strong>，把 token 留给约束和工具说明。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">反模式 2：相互矛盾的规则</div>
+      <p>提示里同时写"自主完成任务不要打扰用户"和"危险操作要询问"，LLM 会困惑。规则要<strong>分级明确</strong>：什么情况自主、什么情况必须问，给出判断依据而非矛盾指令。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">反模式 3：缺少负面示例</div>
+      <p>只说"正确做法"不够，LLM 常从"错误做法"学得更快。在工具说明里加"不要在 X 情况下用此工具"的负面示例，比单纯正面描述有效。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>System prompt 是 Agent 行为的源头。要点回顾：</p>
     <ul>
@@ -874,6 +919,7 @@ def greet(name):
 <script src="assets/main.js"></script>
 </body>
 </html>
+
 
 </main>
 

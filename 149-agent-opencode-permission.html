@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 权限模型：工具级守卫 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学">
-<meta property="og:description" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 34 · Agent 源码深挖系列</span>
       <h1>OpenCode 权限模型<br>allow / ask / deny 三态下的工具级管控</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="why-permission"><span class="idx">★</span> 一、为什么二态不够：从一个误删事故说起</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、为什么二态不够：从一个误删事故说起</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、权限状态机的数据结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、决策引擎：从规则到结论</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、ask 流程：阻塞 + 用户响应</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、路径白名单：文件访问的纵深防御</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、配置文件：把权限规则写下来</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>设想一个朴素的权限模型：每个工具有一个 enabled 开关，true 就允许调用，false 就禁止。这听起来够用，但实际用起来会面临两难。比如 execute 工具——你既想让 Agent 自动跑 <code>npm test</code>（否则每次都要手动确认，体验极差），又绝对不想让它自动执行 <code>rm -rf /</code>。在二态模型下，你要么把 execute 全局打开（危险），要么全局关掉（Agent 就残废了）。</p>
@@ -493,6 +537,71 @@ export function checkPathSafety(absPath: string, cwd: string): PermissionDecisio
 }</code></pre>
     <p>注意规则的排列顺序：deny 类规则放在 allow 类之前，确保危险操作先被拦截。这种「先 deny 后 allow」的排列原则是配置权限系统时的通用最佳实践——你可以类比 iptables 防火墙规则的匹配逻辑。</p>
 
+<h2 class="section" id="deep-perm-model"><span class="idx">D1</span> 深度剖析：权限决策的三层模型</h2>
+    <p>本章介绍了 OpenCode 的工具级权限守卫。这一节我们把权限决策抽象成三层模型——<strong>静态规则、动态策略、用户交互</strong>——并展示如何用一个决策函数统一处理所有工具的权限判断。</p>
+
+    <pre><code class="language-typescript">// 三层权限决策模型
+type PermissionDecision = "allow" | "deny" | "ask";
+
+interface PermissionRule {
+  tool: string;
+  // 静态层：基于工具类型 + 参数模式的硬规则
+  staticCheck: (args: any) => PermissionDecision;
+  // 动态层：基于会话上下文的策略（如"本次会话已信任此目录"）
+  dynamicCheck?: (args: any, ctx: SessionContext) => PermissionDecision;
+}
+
+// 示例：write_file 的权限规则
+const writeFileRule: PermissionRule = {
+  tool: "write_file",
+  staticCheck(args) {
+    const path = args.path as string;
+    // 1. 绝对禁止：系统关键目录
+    if (/^\/(etc|usr|bin|System)/.test(path)) return "deny";
+    // 2. 明确安全：项目内 + 已暂存区
+    if (isInWorkspace(path) && args.dry_run) return "allow";
+    // 3. 默认询问
+    return "ask";
+  },
+  dynamicCheck(args, ctx) {
+    // 本次会话用户已对该目录"始终允许"
+    if (ctx.trustedPaths.has(dirname(args.path))) return "allow";
+    return "ask";
+  }
+};
+
+function decide(rule: PermissionRule, args: any, ctx: SessionContext): PermissionDecision {
+  return rule.staticCheck(args) !== "ask"
+    ? rule.staticCheck(args)
+    : (rule.dynamicCheck?.(args, ctx) ?? "ask");
+}
+</code></pre>
+
+    <p>三层模型的价值在于<strong>权限决策的可预测性</strong>。静态层处理"永远不该做"和"永远安全"的明确情况，避免频繁打扰用户；动态层处理会话级的信任积累（如用户本次已多次确认同一目录）；只有两者都无法决定的才进入用户交互。<strong>好的权限系统应该 90% 的决策在前两层自动完成</strong>，只在真正模糊时才询问。</p>
+
+    <table>
+      <thead><tr><th>层级</th><th>判断依据</th><th>响应速度</th><th>典型决策</th><th>失败模式</th></tr></thead>
+      <tbody>
+        <tr><td>静态规则</td><td>工具+参数模式</td><td>瞬时</td><td>deny 系统/allow 只读</td><td>规则过粗误伤</td></tr>
+        <tr><td>动态策略</td><td>会话上下文</td><td>快</td><td>本次信任目录</td><td>信任累积过度</td></tr>
+        <tr><td>用户交互</td><td>人工确认</td><td>慢（阻塞）</td><td>一次性/始终允许</td><td>用户疲劳乱点</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-perm-pitfall"><span class="idx">D2</span> 生产避坑：权限系统的安全陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：路径规范化绕过</div>
+      <p>若权限检查基于字符串匹配（如"禁止写 /etc"），LLM 可能传入 <code>/etc/../etc/passwd</code> 或符号链接绕过。<strong>必须先 realpath 规范化再做权限判断</strong>，否则路径遍历攻击防不胜防。OpenCode 在权限层统一做路径解析。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">陷阱 2："始终允许"的信任蔓延</div>
+      <p>用户为图方便对某目录选"始终允许"，后续会话中 LLM 可能在该目录任意写文件。建议给"始终允许"加<strong>会话有效期 + 范围限定</strong>（如仅限特定文件名模式），避免信任无限蔓延。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：bash 工具是权限黑洞</div>
+      <p>bash 能执行任意命令，权限很难细化（一条命令可能同时读写多处）。OpenCode 对 bash 采用<strong>命令分类</strong>：只读命令（ls/cat/grep）自动放行，写命令（rm/mv/curl）必询问。这是务实折中——纯白名单太碎，纯询问太烦。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>OpenCode 的权限模型是它在「能力」和「安全」之间找平衡的核心机制。要点回顾：</p>
     <ul>
@@ -504,6 +613,7 @@ export function checkPathSafety(absPath: string, cwd: string): PermissionDecisio
       <li><strong>配置可版本化</strong>：权限规则写成 JSON，团队共享，deny 规则排在前面是通用最佳实践。</li>
     </ul>
     <p>权限解决了「能不能调用」的问题。下一章（150 章）我们转向另一个核心挑战——上下文管理：当对话越来越长、读过的文件越来越多，OpenCode 如何在有限的 context window 里塞下最有价值的信息。</p>
+
 
 </main>
 

@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 与 MCP 协议 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenCode 与 MCP 协议 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenCode 与 MCP 协议 · AI 全栈实战教学">
-<meta property="og:description" content="OpenCode 与 MCP 协议 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 36 · Agent 源码深挖系列</span>
       <h1>OpenCode 的 MCP 集成<br>stdio / SSE 传输与三类能力接入</h1>
@@ -503,6 +500,75 @@ async function dispatchToolCall(
     <p>懒加载是指 MCP server 不是 OpenCode 启动时就全部拉起，而是在第一次被需要时才 spawn——这减少了启动开销。自动重启是指当一次 tools/call 失败且检测到 transport 断开时，OpenCode 会重新 spawn 进程、重新握手，然后重试一次调用。失败降级是指如果重启后仍然失败，就把这个 server 标记为 unavailable，后续调用直接返回错误，不再无限重试。</p>
     <p>这种「重启 + 重试 + 降级」的三段式策略，是处理外部依赖故障的通用模式。我们在第 175 章讲错误恢复时会再次看到这个模式。</p>
 
+<h2 class="section" id="deep-mcp-lifecycle"><span class="idx">D1</span> 深度剖析：MCP server 的连接与工具发现</h2>
+    <p>本章介绍了 OpenCode 与 MCP 协议的集成。这一节我们深入 MCP server 的生命周期——从启动握手、工具发现、到调用执行——并用代码展示一个最小可用的 MCP server。</p>
+
+    <pre><code class="language-python"># 最小 MCP server（基于官方 Python SDK）
+from mcp import Server, Tool
+import json
+
+server = Server("my-tools")
+
+@server.list_tools()
+async def list_tools():
+    # 工具发现：客户端连接后调用，获取所有可用工具
+    return [
+        Tool(
+            name="query_db",
+            description="查询内部数据库。当用户问'查一下X的记录'时使用。",
+            inputSchema={
+                "type": "object",
+                "properties": {
+                    "table": {"type": "string", "description": "表名"},
+                    "filter": {"type": "string", "description": "过滤条件"}
+                },
+                "required": ["table"]
+            }
+        )
+    ]
+
+@server.call_tool()
+async def call_tool(name: str, arguments: dict):
+    # 实际工具调用：客户端发起，server 执行并返回结果
+    if name == "query_db":
+        rows = await db.query(arguments["table"], arguments.get("filter"))
+        # 关键：结果必须是文本，且要控制大小
+        text = "\n".join(f"{r}" for r in rows[:100])
+        return [{"type": "text", "text": f"查询到 {len(rows)} 行（显示前100）:\n{text}"}]
+
+# 启动方式：通过 stdio（本地）或 SSE（远程）
+if __name__ == "__main__":
+    import asyncio
+    asyncio.run(server.run_stdio())
+</code></pre>
+
+    <p>MCP 的核心价值是<strong>解耦工具实现与 Agent 宿主</strong>。一个 MCP server 可以被任何支持 MCP 的客户端（OpenCode、Claude Desktop、Cursor）复用，工具逻辑只写一次。这比每个 Agent 各自实现一套工具插件扩展性强得多——这也是 MCP 成为事实标准的原因。</p>
+
+    <table>
+      <thead><tr><th>阶段</th><th>客户端动作</th><th>服务器动作</th><th>协议消息</th></tr></thead>
+      <tbody>
+        <tr><td>握手</td><td>发起连接</td><td>返回能力声明</td><td>initialize</td></tr>
+        <tr><td>发现</td><td>请求工具列表</td><td>返回 Tool[]</td><td>tools/list</td></tr>
+        <tr><td>调用</td><td>发起调用请求</td><td>执行并流式返回</td><td>tools/call</td></tr>
+        <tr><td>资源</td><td>读取资源</td><td>返回内容</td><td>resources/read</td></tr>
+        <tr><td>断开</td><td>关闭连接</td><td>清理资源</td><td>—</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-mcp-pitfall"><span class="idx">D2</span> 生产避坑：MCP 集成的常见问题</h2>
+    <div class="callout warn">
+      <div class="head">问题 1：stdio server 的缓冲区阻塞</div>
+      <p>stdio 模式下，server 的 stdout 若被 print 语句占用（如调试日志），会破坏 JSON-RPC 协议帧，导致客户端解析失败。<strong>MCP server 的所有日志必须走 stderr</strong>，stdout 只留给协议消息。这是最常见的"server 突然不响应"根因。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">问题 2：远程 server 的鉴权与网络</div>
+      <p>SSE/HTTP 模式的远程 MCP server 需要鉴权。若用裸 HTTP 无鉴权，工具接口暴露在内网可能被滥用。生产环境应加 token/OAuth，并对 tools/call 做速率限制。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">问题 3：工具数量爆炸导致上下文膨胀</div>
+      <p>接入多个 MCP server 后，工具总数可能上百，每个工具的 schema 都要发给 LLM，挤占上下文。优化方向：<strong>按需加载工具</strong>（根据用户意图只发相关工具）、或用工具检索而非全量注入。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>MCP 让 OpenCode 从一个「自带几个工具的 Agent」变成了「能接入无限外部能力的平台」。要点回顾：</p>
     <ul>
@@ -515,6 +581,7 @@ async function dispatchToolCall(
       <li><strong>崩溃恢复</strong>：懒加载 + 自动重启 + 失败降级，三段式策略应对外部依赖故障。</li>
     </ul>
     <p>下一章（152 章）是 OpenCode 系列的最后一篇——会话管理。我们会看到 OpenCode 如何用 JSONL 日志把整个会话持久化下来，让你关掉终端、第二天回来还能从断点继续。</p>
+
 
 </main>
 

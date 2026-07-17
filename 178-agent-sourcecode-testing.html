@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：Agent 测试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="源码级启示：Agent 测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="源码级启示：Agent 测试 · AI 全栈实战教学">
-<meta property="og:description" content="源码级启示：Agent 测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 61 · Agent 源码深挖系列</span>
       <h1>Agent 测试方法<br>mock LLM、工具响应固定与工具调用序列断言</h1>
@@ -646,6 +643,68 @@ async function runRegressionSuite() {
       <li><strong>预算控制</strong>：CI 里的真实 LLM 调用要设预算上限，防止失控烧钱。</li>
     </ul>
 
+<h2 class="section" id="deep-agent-testing"><span class="idx">D1</span> 源码级分析：Agent 测试的金字塔模型</h2>
+    <p>本章讨论了 Agent 测试。这一节我们设计一个 Agent 测试金字塔——单元、集成、端到端三层，并给出每层的实现。</p>
+
+    <pre><code class="language-python"># Agent 测试金字塔
+# 1. 单元测试：测单个工具/函数（最多，最快）
+def test_command_classifier():
+    c = CommandClassifier()
+    assert c.classify("ls -la") == "read_only"
+    assert c.classify("rm -rf /") == "dangerous"
+    assert c.classify("curl http://x") == "network"
+
+# 2. 集成测试：测 loop 的状态转移（中等数量，中速）
+@pytest.mark.asyncio
+async def test_loop_approval_flow(mock_llm, mock_fs):
+    # mock LLM 返回一个写文件调用
+    mock_llm.set_response(tool_call=write_file("test.txt", "hi"))
+    agent = Agent(llm=mock_llm, fs=mock_fs, approval="always")
+    # 验证 loop 进入 awaiting_approval 状态
+    state = await agent.step()
+    assert state.kind == "awaiting_approval"
+    # 用户批准后进入 tool_running
+    mock_llm.set_user_approval(True)
+    state = await agent.step()
+    assert state.kind == "tool_running"
+
+# 3. 端到端测试：测完整任务（最少，最慢，最脆弱）
+@pytest.mark.e2e
+async def test_fix_bug_e2e(real_llm, temp_repo):
+    # 用真实 LLM 在临时仓库完成"修复 bug"任务
+    repo = temp_repo.create_from_fixture("buggy_project")
+    agent = Agent(llm=real_llm, cwd=repo.path)
+    await agent.run("修复 main.py 里的空指针 bug")
+    # 验证：bug 已修 + 测试通过 + 无副作用
+    assert repo.run_tests()  # 测试通过
+    assert "None" not in repo.read("main.py")  # 简单断言
+</code></pre>
+
+    <p>测试金字塔的核心是<strong>"数量与速度的反比"</strong>。单元测试多而快（毫秒级），覆盖单个工具和函数；集成测试中等，验证组件协作（loop 状态转移）；端到端测试少而慢（依赖真实 LLM），验证完整任务。<strong>80% 的测试应是单元测试</strong>——它们快、稳定、不依赖 LLM，能覆盖绝大多数逻辑。端到端测试因 LLM 不确定性而脆弱，只测关键路径。</p>
+
+    <table>
+      <thead><tr><th>层级</th><th>数量占比</th><th>速度</th><th>稳定性</th><th>覆盖范围</th></tr></thead>
+      <tbody>
+        <tr><td>单元测试</td><td>~80%</td><td>毫秒</td><td>高</td><td>单个工具/函数</td></tr>
+        <tr><td>集成测试</td><td>~15%</td><td>秒</td><td>中高</td><td>组件协作</td></tr>
+        <tr><td>端到端测试</td><td>~5%</td><td>分钟</td><td>低（依赖LLM）</td><td>完整任务</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-testing-pitfall"><span class="idx">D2</span> 生产避坑：Agent 测试的特有难题</h2>
+    <div class="callout warn">
+      <div class="head">难题 1：LLM 输出的不确定性</div>
+      <p>端到端测试里，同一个 prompt 每次得到的工具调用序列可能不同，传统断言（"第三步必须调 X"）会flake。解决：<strong>断言结果而非过程</strong>——验证"任务完成、测试通过"，而非"走了特定路径"。或用 temperature=0 + 固定 seed 降低随机性。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">难题 2：测试成本</div>
+      <p>端到端测试每次都调真实 LLM，成本和耗时高。优化：<strong>录制回放（record-replay）</strong>——首次跑录制 LLM 响应，后续回放，不再调用真实 LLM。这把每次运行的分钟级测试降到秒级。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">难题 3：文件系统副作用</div>
+      <p>Agent 测试会真实读写文件，污染工作区。每个测试应在<strong>独立临时目录</strong>运行，测试后自动清理。用 fixture（pytest 的 tmp_path）管理生命周期最稳妥。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Agent 测试是工程化最难的环节，需要方法论转变。要点回顾：</p>
     <ul>
@@ -660,6 +719,7 @@ async function runRegressionSuite() {
       <li><strong>CI 策略</strong>：单元测试每次跑，回归集 nightly，金丝雀每次跑，预算控制防烧钱。</li>
     </ul>
     <p>至此，我们的 30 篇开源 Agent 源码分析系列全部完成。从 OpenCode 的 TypeScript 架构，到 Codex 的 Rust 内核，到 Aider/Continue/Cline 的各异设计，再到通用工程主题——我们系统地拆解了现代 AI Agent 的技术全貌。希望这个系列能成为你理解和构建 Agent 的实用参考。</p>
+
 
 </main>
 

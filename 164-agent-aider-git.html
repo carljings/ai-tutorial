@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aider 的 Git 集成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Aider 的 Git 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Aider 的 Git 集成 · AI 全栈实战教学">
-<meta property="og:description" content="Aider 的 Git 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 47 · Agent 源码深挖系列</span>
       <h1>Aider 的 Git 集成<br>auto-commit、git undo 与 SEARCH/REPLACE diff</h1>
@@ -318,17 +315,64 @@
       </div>
     </section>
 
-    <h2 class="section" id="auto-commit"><span class="idx">★</span> 一、auto-commit：每轮改动一个 commit</h2>
+    
+    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
+    
+    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
+    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
+    
+    <h3>Q2: 生产环境部署时需要注意什么？</h3>
+    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
+    <pre><code class="language-python"># 生产级成本控制示例
+import time
+from collections import defaultdict
 
+class BudgetGuard:
+    def __init__(self, daily_limit=1_000_000):
+        self.daily_limit = daily_limit
+        self.usage = defaultdict(int)
+        self.day = time.strftime("%Y-%m-%d")
+    
+    def check_and_deduct(self, tokens, model="default"):
+        today = time.strftime("%Y-%m-%d")
+        if today != self.day:  # 新的一天，重置
+            self.usage = defaultdict(int)
+            self.day = today
+        
+        if self.usage[today] + tokens > self.daily_limit:
+            # 降级到更便宜的模型
+            if model == "glm-5":
+                return "glm-5-flash", tokens // 2  # flash模型更便宜
+            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
+        
+        self.usage[today] += tokens
+        return model, tokens
+
+guard = BudgetGuard(daily_limit=500_000)
+model, tokens = guard.check_and_deduct(8000, "glm-5")
+    </code></pre>
+    
+    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
+    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
+    
     <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>一、auto-commit：每轮改动一个 commit</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>二、git undo：精确撤销 AI 的改动</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>三、SEARCH/REPLACE：为什么不用 unified diff</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四、apply 的核心逻辑与容错</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>五、多 hunk 与多文件编辑</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>六、为什么用文本协议而非工具调用</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
+      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
+      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
+      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+    </table>
+    
+    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
+    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
+    
+    <h3>Q5: 未来的演进方向是什么？</h3>
+    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
+    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
+
+
+</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
     <p>Aider 的默认行为是：每当 AI 修改了文件（无论是新增还是编辑），立即自动生成一个 git commit。这个 commit 的 message 由 LLM 根据本轮对话生成，通常是「feat: 添加用户登录验证」这种符合规范的描述。用户不需要手动 commit，每轮交互都自然成为一个可回滚的检查点。</p>
@@ -520,6 +564,59 @@ def register(name, email):
     <p>一个历史原因：Aider 比 tool-use API 出现得早，最初只能用纯文本交互。但更深层的原因是 <strong>模型兼容性</strong>。SEARCH/REPLACE 是纯文本，任何能生成文本的模型都能用——包括本地模型、开源模型、不支持 function calling 的小模型。而 tool-call 要求模型支持特定 API，限制了选择范围。Aider 作为一个支持「用任何模型」的工具，文本协议是更普适的选择。</p>
     <p>代价是 <strong>解析复杂度和容错负担</strong>——如上面所见，要写很多容错代码来处理 LLM 输出的格式偏差。tool-call 把这个负担转移给了 API 层（模型 provider 保证结构化输出的正确性）。两种方案的权衡，本质是「兼容性 vs 工程复杂度」的取舍。</p>
 
+<h2 class="section" id="deep-git-workflow"><span class="idx">D1</span> 深度剖析：Aider 的 git 自动提交策略</h2>
+    <p>本章介绍了 Aider 的 git 集成。这一节我们深入它"每次编辑自动提交"的策略，并对比它与手动提交工作流的优劣。</p>
+
+    <pre><code class="language-python"># Aider 的自动提交策略（简化）
+class AutoCommitter:
+    def __init__(self, repo, auto_commit=True):
+        self.repo = repo
+        self.auto_commit = auto_commit
+
+    def after_edit(self, edited_files, commit_message):
+        if not self.auto_commit:
+            return   # 关闭自动提交，用户手动控制
+        # 1. 暂存被编辑的文件（只提交 Agent 改的，不动其它）
+        for f in edited_files:
+            self.repo.index.add([f])
+        # 2. 用 LLM 生成的描述性 commit message
+        #    格式约定：以动词开头，描述做了什么
+        self.repo.index.commit(f"aider: {commit_message}")
+        # 3. 关键：每次提交都是独立可回滚的快照
+        #    用户不满意可 git reset 回上一版，无损重做
+
+# commit message 由 LLM 根据编辑内容生成，例如：
+# "aider: refactor greet() to use f-string and add type hint"
+# 这让 git log 成为 Agent 操作的完整审计日志
+</code></pre>
+
+    <p>自动提交的核心价值是<strong>"每次编辑都是可回滚的检查点"</strong>。Agent 改错了？<code>git reset --hard HEAD~1</code> 一秒回到上一版，不污染工作区。这比"改一堆最后手动提交"安全得多——后者一旦中间出错，很难分离出哪步错了。Aider 把 git 变成了 Agent 的"无限撤销栈"。</p>
+
+    <table>
+      <thead><tr><th>维度</th><th>自动提交（Aider）</th><th>手动提交</th></tr></thead>
+      <tbody>
+        <tr><td>回滚粒度</td><td>每次编辑可独立回滚</td><td>只能回到上次提交</td></tr>
+        <tr><td>审计能力</td><td>git log 即操作日志</td><td>需另记日志</td></tr>
+        <tr><td>提交噪音</td><td>高（提交多）</td><td>低</td></tr>
+        <tr><td>message 质量</td><td>LLM 生成，描述性强</td><td>依赖人</td></tr>
+        <tr><td>适用场景</td><td>探索性、高风险</td><td>确定性任务</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-git-pitfall"><span class="idx">D2</span> 生产避坑：git 集成的注意事项</h2>
+    <div class="callout warn">
+      <div class="head">坑 1：自动提交污染主分支</div>
+      <p>若直接在 main 上自动提交，会产生大量噪音 commit。建议<strong>在独立分支上工作</strong>（Aider 支持 --git-branch），完成后再 squash 合并到主分支，保持主分支历史干净。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">坑 2：与未提交改动的冲突</div>
+      <p>用户若有未提交的手动改动，Agent 自动提交可能把它们一起卷进去。Aider 在提交前会<strong>区分 Agent 编辑的文件和用户改动</strong>，只提交前者。但保险起见，开始 Agent 任务前最好 commit 或 stash 手动改动。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">坑 3：commit message 的规范性</div>
+      <p>LLM 生成的 message 偶尔不符合团队规范（如缺 ticket 号）。可配置 message 模板，强制带上前缀或编号，让自动提交的 commit 也能通过 CI 的 commit lint。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>Aider 的 Git 集成和编辑协议是「以用户为中心」的设计典范。要点回顾：</p>
     <ul>
@@ -531,6 +628,7 @@ def register(name, email):
       <li><strong>文本协议的代价与价值</strong>：兼容任何模型（包括不支持 tool-call 的），但解析复杂度高，是兼容性 vs 工程复杂度的取舍。</li>
     </ul>
     <p>下一章（165 章）我们转向 Continue——一个 IDE 扩展形态的 Agent，看它如何在 VSCode 和 JetBrains 里同时运行，以及 autocomplete + chat 双模式的设计。</p>
+
 
 </main>
 

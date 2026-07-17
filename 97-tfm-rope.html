@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RoPE 旋转位置编码：现代大模型的标配 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="RoPE 旋转位置编码：现代大模型的标配 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="RoPE 旋转位置编码：现代大模型的标配 · AI 全栈实战教学">
-<meta property="og:description" content="RoPE 旋转位置编码：现代大模型的标配 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 97 · Transformer 深度系列</span>
       <h1>RoPE 旋转位置编码<br>现代大模型的事实标准</h1>
@@ -598,6 +595,71 @@ for method in ["base", "pi", "ntk"]:
       <p>RoPE 也有局限：①超长外推仍需微调，纯外推性能衰减；②旋转操作在高维时数值精度敏感，低精度量化（如 INT4）可能丢失位置信息；③θ 频率和 base 的选择需要随模型规模调整，没有「一刀切」的最优值。这些是当前长上下文研究的活跃方向。</p>
     </div>
 
+<h2 class="section" id="deep-ntk-yarn"><span class="idx">D1</span> 深度剖析：RoPE 外推的三大缩放方案</h2>
+    <p>RoPE 本身的外推能力并不强——直接把训练在 4k 的模型用到 32k，效果会崩。真正让 RoPE 成为长上下文标配的，是它背后的<strong>位置缩放技术</strong>。这一节我们对比三种主流缩放：Linear、NTK-aware、YaRN，并用代码展示它们对旋转基座的不同修改方式。</p>
+
+    <pre><code class="language-python"># 三种 RoPE 缩放的频率修改对比
+import torch, math
+
+def rope_freqs(d_head, base=10000.0):
+    # 原始 RoPE 频率：theta_i = base^(-2i/d)
+    return 1.0 / (base ** (torch.arange(0, d_head, 2).float() / d_head))
+
+def linear_scale(freqs, scale):           # 直接把位置除以 scale
+    return freqs / scale
+
+def ntk_aware_scale(d_head, base, scale):
+    # 修改 base，让高频几乎不变、低频拉伸
+    new_base = base * (scale ** (d_head / (d_head - 2)))
+    return 1.0 / (new_base ** (torch.arange(0, d_head, 2).float() / d_head))
+
+d, scale = 128, 8     # 训练 4k → 外推到 32k
+orig = rope_freqs(d)
+lin  = linear_scale(orig, scale)
+ntk  = ntk_aware_scale(d, 10000.0, scale)
+
+print("维度\t原始频率\tLinear\t\tNTK")
+for i in (0, 1, 16, 32, 63):
+    print(f"{i:2d}\t{orig[i]:.3e}\t{lin[i]:.3e}\t{ntk[i]:.3e}")
+# 观察：NTK 对高频维(小 i)几乎不变，对低频维(大 i)大幅拉伸
+# → 局部相对位置(高频)保持精度，全局绝对距离(低频)被重新标定
+</code></pre>
+
+    <p>关键洞察：Linear 缩放粗暴地把所有频率除以同一个因子，导致<strong>高频（局部细节）信号也被稀释</strong>；NTK-aware 只调整 base，让高频维度几乎不动、低频维度大幅拉伸，从而"局部看精度、全局看范围"。YaRN 在 NTK 基础上又对注意力温度做了插值，进一步稳定外推。</p>
+
+    <table>
+      <thead><tr><th>缩放方案</th><th>修改对象</th><th>局部精度</th><th>外推范围</th><th>是否需微调</th></tr></thead>
+      <tbody>
+        <tr><td>Linear (PI)</td><td>位置 / scale</td><td>下降明显</td><td>线性</td><td>少量微调更稳</td></tr>
+        <tr><td>NTK-aware</td><td>base 指数缩放</td><td>保持好</td><td>强</td><td>可免微调</td></tr>
+        <tr><td>YaRN</td><td>频率+注意力温度</td><td>最优</td><td>最强</td><td>免微调即用</td></tr>
+        <tr><td>Dynamic NTK</td><td>随当前长度动态算</td><td>自适应</td><td>中</td><td>免微调</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-rope-impl"><span class="idx">D2</span> 工程实现：旋转的高效应用与常见 bug</h2>
+    <p>RoPE 在前向时是把 Q、K 的相邻两维当成复数做旋转。高效实现有两种主流写法：复数乘法版（直观但需 complex 支持）和<strong>两两交错版</strong>（纯实数，最高效）。后者是 LLaMA / GLM 实际采用的写法。</p>
+
+    <pre><code class="language-python"># 高效 RoPE：两两交错旋转（LLaMA 风格）
+def apply_rope(x, cos, sin):
+    # x: (b, n_heads, seq, d_head)；cos/sin: (seq, d_head)
+    d = x.shape[-1]
+    x1, x2 = x[..., :d//2], x[..., d//2:]      # 前半/后半
+    # 旋转：[x1, x2] 经 [[cos,-sin],[sin,cos]] 作用
+    rot1 = x1 * cos - x2 * sin
+    rot2 = x1 * sin + x2 * cos
+    return torch.cat([rot1, rot2], dim=-1)
+
+# 常见 bug：cos/sin 的展开顺序与权重 QKV 布局不匹配
+# 症状：模型不报错，但 ppl 比 baseline 高 2~5
+# 排查：打印 (q*rope) 与参考实现逐元素 diff，应 < 1e-5
+</code></pre>
+
+    <div class="callout warn">
+      <div class="head">高频 Bug：cos/sin 缓存的 dtype 与设备</div>
+      <p>推理时 cos/sin 通常预计算成 buffer。若模型用 bf16 训练，而 buffer 留成 fp32，<code>(x1*cos)</code> 会触发类型提升，性能下降且偶现数值偏差。务必把 buffer 同步成模型 dtype，并在 <code>.to(device)</code> 时一起迁移。另一个坑：缓存长度写死成 max_position_embeddings，动态 batch 超长时直接越界报错——要做 <code>assert seq_len &lt;= cos.size(0)</code>。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">10</span> 本章小结</h2>
     <p>RoPE 这一章信息量大，核心要点梳理：</p>
 
@@ -627,6 +689,7 @@ for method in ["base", "pi", "ntk"]:
     <blockquote>
       下一章：<a href="98-tfm-multihead.html">第 98 章 · 多头注意力：为什么「多看几个角度」更有效</a>
     </blockquote>
+
 
 
 </main>

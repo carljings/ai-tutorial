@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Continue 的代码库索引 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Continue 的代码库索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Continue 的代码库索引 · AI 全栈实战教学">
-<meta property="og:description" content="Continue 的代码库索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -308,6 +304,7 @@
     </div>
   </aside>
 <main class="content">
+
     <section class="hero">
       <span class="eyebrow">◆ CHAPTER 49 · Agent 源码深挖系列</span>
       <h1>Continue codebase 索引<br>@codebase 检索与 tf-idf + 向量混合检索</h1>
@@ -600,6 +597,73 @@ export class IncrementalIndex {
 }</code></pre>
     <p>用 hash 判断文件是否真的变了——保存时的 touch 不触发重建。删旧加新保证索引里不会有过期块。这种增量策略让索引始终保持最新，且每次只花毫秒级（单文件）而非分钟级（全量）。</p>
 
+<h2 class="section" id="deep-indexing-pipeline"><span class="idx">D1</span> 深度剖析：代码库索引的构建管线</h2>
+    <p>本章介绍了 Continue 的代码库索引。这一节我们设计一个完整的索引管线，从文件遍历、分块、嵌入到存储，并讨论增量的实现。</p>
+
+    <pre><code class="language-python"># 代码库索引构建管线
+import pathlib, hashlib
+
+class CodebaseIndexer:
+    def __init__(self, root, embedder, store):
+        self.root = pathlib.Path(root)
+        self.embedder = embedder      # 嵌入模型
+        self.store = store            # 向量库
+        self.file_hashes = {}         # 文件内容指纹，用于增量
+
+    def build(self):
+        # 1. 遍历代码文件（按扩展名过滤）
+        files = [f for f in self.root.rglob("*")
+                 if f.suffix in ('.py', '.ts', '.js', '.go')]
+        # 2. 增量：只处理指纹变化的文件
+        new_files = []
+        for f in files:
+            h = hashlib.md5(f.read_bytes()).hexdigest()
+            if self.file_hashes.get(str(f)) != h:
+                new_files.append((f, h))
+        # 3. 分块（按函数/类边界，而非固定行数）
+        chunks = []
+        for f, h in new_files:
+            chunks.extend(self._chunk_by_ast(f))
+        # 4. 批量嵌入
+        embeddings = self.embedder.embed_batch([c.text for c in chunks])
+        # 5. 存入向量库（带文件路径、行号、指纹元数据）
+        self.store.upsert(chunks, embeddings)
+        for f, h in new_files:
+            self.file_hashes[str(f)] = h
+        return len(chunks)
+
+    def _chunk_by_ast(self, f):
+        # 按 AST 节点分块：函数、类各成一块，保留完整语义
+        # 比固定行数分块的检索质量高得多
+        ...
+</code></pre>
+
+    <p>索引管线的两个关键设计：<strong>第一，基于 AST 的语义分块</strong>。按固定行数切块会割裂函数/类，破坏语义；按 AST 节点分块保证每块是完整的逻辑单元，检索质量大幅提升。<strong>第二，基于内容指纹的增量</strong>。用文件 md5 判断是否变化，只重新索引改动文件，万文件级仓库的增量更新秒级完成。</p>
+
+    <table>
+      <thead><tr><th>分块策略</th><th>语义完整性</th><th>实现复杂度</th><th>检索质量</th></tr></thead>
+      <tbody>
+        <tr><td>固定行数</td><td>差（割裂函数）</td><td>低</td><td>中</td></tr>
+        <tr><td>按空行</td><td>中</td><td>低</td><td>中</td></tr>
+        <tr><td>按 AST 节点</td><td>优（完整逻辑）</td><td>高</td><td>高</td></tr>
+        <tr><td>AST + 重叠窗口</td><td>优</td><td>高</td><td>最高</td></tr>
+      </tbody>
+    </table>
+
+    <h2 class="section" id="deep-indexing-pitfall"><span class="idx">D2</span> 生产避坑：代码库索引的运维难点</h2>
+    <div class="callout warn">
+      <div class="head">难点 1：嵌入模型的成本与延迟</div>
+      <p>万文件代码库全量索引可能产生数十万 chunk，嵌入调用成本和耗时都不小。优化：用本地嵌入模型（如 bge-small）省 API 费用；批量嵌入提高吞吐；后台低优先级构建不阻塞用户。</p>
+    </div>
+    <div class="callout warn">
+      <div class="head">难点 2：索引与代码的同步</div>
+      <p>用户编辑代码后，索引可能过期。理想是文件保存即增量更新该文件的 chunk。Continue 用文件监听 + 防抖实现：保存后延迟 500ms 触发单文件重建，避免频繁保存时的重复索引。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">难点 3：超大仓库的内存控制</div>
+      <p>百万文件级仓库的索引可能占数 GB。需支持磁盘存储（如 LanceDB）而非纯内存，并做分页加载，只把热数据放内存。索引构建也要分批，避免 OOM。</p>
+    </div>
+
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>@codebase 是 Continue 让 Agent 真正理解项目的核心能力。要点回顾：</p>
     <ul>
@@ -611,6 +675,7 @@ export class IncrementalIndex {
       <li><strong>增量更新</strong>：hash 判断文件变更，删旧加新，单文件毫秒级而非全量分钟级。</li>
     </ul>
     <p>下一章（167 章）我们专门看 Continue 的 embedding 选择——本地 vs 云端、Jina vs BGE vs OpenAI，这些模型在代码检索上到底差在哪。</p>
+
 
 </main>
 
