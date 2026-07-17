@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Computer Use agent：操作图形界面 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Computer Use agent：操作图形界面 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Computer Use agent：操作图形界面 · AI 全栈实战教学">
+<meta property="og:description" content="Computer Use agent：操作图形界面 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -621,6 +625,19 @@
       </div>
     </section>
     <h2 class="section" id="what-is-computer-use"><span class="idx">★</span> Computer Use 是什么:从"对话"到"操作"</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>Computer Use 是什么:从"对话"到"操作"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>为什么 Computer Use 极其困难</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Anthropic Computer Use API 的工作原理</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>实操:用 Computer Use API 完成一个任务</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>安全:Computer Use 最大的红线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>典型应用场景</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Computer Use 与 RPA 的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>当前局限与未来方向</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在 Computer Use 出现之前,Agent 与外部世界的交互主要靠 API。要让 Agent 发邮件,你得提供邮件 API;要让它操作 Excel,你得接入 Office SDK。每接一个新软件都要写新集成,这是 Agent 能力扩展的根本瓶颈。</p>
     <p>Computer Use 提供了一条截然不同的路径:既然人类是通过"看屏幕 + 操作鼠标键盘"来使用所有软件的,那让 AI 也学会这套通用接口,就能操作任意软件,无需专门集成。这是一个极具想象力的思路——GUI 是人类为人类设计的最通用的人机接口,让 AI 掌握它,等于打开了"整个数字世界"的入口。</p>
     <p>Anthropic 的 Computer Use 能力让 Claude 能够:截取屏幕截图理解当前界面状态、识别界面上的元素(按钮、输入框、菜单)、计算需要移动到的坐标、执行点击/输入/滚动等操作、然后再次截图确认结果。这个"感知-决策-行动"的循环,正是人类操作电脑的方式。这种通用性让一个 Agent 就能处理浏览网页、填表单、操作 ERP、甚至写代码(在 IDE 里操作)等各种各样的任务。</p>

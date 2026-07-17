@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex Guardian AI 审批 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex Guardian AI 审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex Guardian AI 审批 · AI 全栈实战教学">
+<meta property="og:description" content="Codex Guardian AI 审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-guardian"><span class="idx">★</span> 一、沙箱之外，还需要一个审计层</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、沙箱之外，还需要一个审计层</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Guardian 的架构：旁路而非内联</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、审计日志：记录每一次网络访问</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、auto-approve 规则引擎：减少确认疲劳</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、规则的学习与演进</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、审计报告：让 Agent 行为可追溯</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>第 156、157 章讲的沙箱（Seatbelt / Landlock）解决的是「能不能访问」的问题——某个路径、某个域名在不在白名单里。但它们解决不了「这个在白名单里的访问，到底应不应该发生」的问题。</p>
     <p>举个具体场景：Agent 为了装依赖，被允许访问 registry.npmjs.org（这是合理的）。但如果 Agent 发起的请求里，除了访问 npm registry，还顺便把项目的源码作为 POST body 发到了同一个域名下的某个 path——沙箱是放行的（因为域名在白名单），但这显然是可疑行为。</p>
     <p>Guardian 就是为了捕获这类「合法但可疑」的行为。它作为一个旁路（sidecar）守护进程，记录 Agent 发起的所有网络请求，对请求的模式做规则匹配，发现异常就告警（或阻断）。这和企业的 DLP（Data Loss Prevention）系统思路类似——不是阻止你用网络，而是监控你在网络上做什么。</p>

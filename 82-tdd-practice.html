@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>82 · LLM 测试驱动开发实践 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学">
+<meta property="og:description" content="82 · LLM 测试驱动开发实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -337,7 +341,7 @@
 
     <h2 class="section" id="tdd-flow"><span class="idx">03</span> LLM 的 TDD 流程</h2>
     <div class="code-title">llm_tdd.py —— LLM 测试驱动开发</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 llm_tdd.py —— LLM 应用的测试驱动开发
 先写评估集，再开发，每次改动回归测试
 """</span>
@@ -385,7 +389,7 @@ EVAL_SET = [
 
     <h2 class="section" id="ci-cd"><span class="idx">05</span> 把测试放进 CI/CD</h2>
     <div class="code-title">CI 集成</div>
-    <pre><code><span class="c"># .github/workflows/eval.yml —— GitHub Actions 跑评估</span>
+    <pre><code class="language-python"><span class="c"># .github/workflows/eval.yml —— GitHub Actions 跑评估</span>
 name: LLM Eval
 on: [push, pull_request]
 jobs:
@@ -401,7 +405,7 @@ jobs:
     <p>前三节讲了「为什么测」「测什么」「怎么放进 CI」，但都默认<strong>测试是人写的</strong>。实际上 2026 年的 TDD 已经是「AI 写测试、人评审」的双人舞。这里给出一套完整的 AI 辅助 TDD 工作流：从一个需求描述出发，到产出可运行的测试和实现，全程可复现。</p>
     <p>关键原则只有一条：<strong>红 → 绿 → 重构</strong>的顺序不变，但每一步都用 AI 加速。AI 写的测试，人必须读懂、必须能跑红；AI 写的实现，必须先跑过测试才能合并。</p>
     <div class="code-title">ai_tdd.py —— AI 辅助 TDD 的端到端循环</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 ai_tdd.py —— 从需求到通过测试的自动化 TDD 循环
 步骤：生成测试 → 跑红 → 生成实现 → 跑绿 → 重构
 """</span>
@@ -480,7 +484,7 @@ client = ZhipuAI()
       </tbody>
     </table>
     <div class="code-title">test_prompts.py —— 三类高频模板</div>
-    <pre><code><span class="c"># 模板 1：LLM 调用封装 —— 必须 mock 模型，不能真调</span>
+    <pre><code class="language-python"><span class="c"># 模板 1：LLM 调用封装 —— 必须 mock 模型，不能真调</span>
 PROMPT_LLM_WRAPPER = <span class="s">"""
 你正在为函数 {fn_name} 写 pytest 测试。
 这个函数内部会调用 LLM。请：

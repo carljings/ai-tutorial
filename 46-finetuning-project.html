@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>46 · LLM 微调完整项目实战 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学">
+<meta property="og:description" content="46 · LLM 微调完整项目实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -317,7 +321,7 @@
 
     <h2 class="section" id="data"><span class="idx">01</span> 第一步：准备微调数据</h2>
     <div class="code-title">prepare_data.py —— 构造医疗 SFT 数据</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 prepare_data.py —— 从原始医疗 QA 数据构造 SFT 格式
 关键是：质量 &gt; 数量，格式统一
 """</span>
@@ -353,7 +357,7 @@ print(f<span class="s">"训练集 {split} 条，验证集 {len(sft_data)-split} 
 
     <h2 class="section" id="train"><span class="idx">02</span> 第二步：QLoRA 训练</h2>
     <div class="code-title">train.py —— 完整 QLoRA 训练脚本</div>
-    <pre><code><span class="k">import</span> torch
+    <pre><code class="language-python"><span class="k">import</span> torch
 <span class="k">from</span> datasets <span class="k">import</span> load_dataset
 <span class="k">from</span> peft <span class="k">import</span> LoraConfig, get_peft_model, prepare_model_for_kbit_training
 <span class="k">from</span> transformers <span class="k">import</span> (AutoModelForCausalLM, AutoTokenizer,
@@ -393,7 +397,7 @@ print(<span class="s">"✅ 训练完成"</span>)</code></pre>
 
     <h2 class="section" id="eval"><span class="idx">03</span> 第三步：评估</h2>
     <div class="code-title">评估微调效果</div>
-    <pre><code><span class="c"># 对比：基座 GLM vs 微调后，在验证集上的表现</span>
+    <pre><code class="language-python"><span class="c"># 对比：基座 GLM vs 微调后，在验证集上的表现</span>
 test_cases = [
     {<span class="s">"q"</span>: <span class="s">"最近经常头晕，是怎么回事"</span>, <span class="s">"expect_contains"</span>: <span class="s">"就医"</span>},
     {<span class="s">"q"</span>: <span class="s">"孩子发烧 39 度怎么办"</span>, <span class="s">"expect_contains"</span>: <span class="s">"物理降温"</span>},
@@ -403,7 +407,7 @@ test_cases = [
 
     <h2 class="section" id="deploy"><span class="idx">04</span> 第四步：合并与部署</h2>
     <div class="code-title">合并 LoRA + vLLM 部署</div>
-    <pre><code><span class="c"># 合并 LoRA 到基座（推理零开销）</span>
+    <pre><code class="language-python"><span class="c"># 合并 LoRA 到基座（推理零开销）</span>
 merged = model.merge_and_unload()
 merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
 
@@ -418,7 +422,7 @@ merged.save_pretrained(<span class="s">"./medical-glm-merged"</span>)
 
     <h2 class="section" id="log-analysis"><span class="idx">★</span> 训练日志分析：读懂 loss 曲线</h2>
     <p>微调不是点一下「开始」就完事——真正的功夫在<strong>看日志</strong>。一份健康的训练日志应该长什么样？loss 平滑下降、验证集 loss 同步下降且与训练集差距可控、学习率按预热-衰减曲线走。下面这段脚本读取训练日志，画出训练/验证 loss、梯度范数、学习率三条曲线，并自动标出「过拟合拐点」——这是决定何时早停的关键依据。</p>
-    <pre><code><span class="c">"""analyze_train_log.py —— 微调日志可视化与诊断"""</span>
+    <pre><code class="language-python"><span class="c">"""analyze_train_log.py —— 微调日志可视化与诊断"""</span>
 <span class="k">import</span> json, matplotlib.pyplot <span class="k">as</span> plt, numpy <span class="k">as</span> np
 
 log = [json.loads(line) <span class="k">for</span> line <span class="k">in</span> open(<span class="s">"trainer_state.jsonl"</span>)]
@@ -442,7 +446,7 @@ plt.tight_layout(); plt.savefig(<span class="s">"train_diag.png"</span>, dpi=<sp
 
     <h2 class="section" id="hptuning"><span class="idx">★</span> 超参数调优记录</h2>
     <p>微调效果好坏，超参数占一半功劳。但超参不是玄学，是<strong>有控制的搜索</strong>。下面是一份真实的超参调优记录——围绕 LoRA 秩 <code>r</code>、学习率 <code>lr</code>、epoch 数三个最关键的旋钮做网格搜索，记录每组配置在医疗问答评估集上的分数。从这张表能读出明确的规律：<code>r=8</code> 太小学不住，<code>r=64</code> 开始过拟合，<code>lr=2e-4</code> 是甜点，3 epoch 后开始退化。</p>
-    <pre><code><span class="c">"""hparam_search.py —— LoRA 超参网格搜索 + 记录"""</span>
+    <pre><code class="language-python"><span class="c">"""hparam_search.py —— LoRA 超参网格搜索 + 记录"""</span>
 <span class="k">import</span> itertools, json
 
 grid = {
@@ -475,7 +479,7 @@ print(<span class="s">"最佳配置:"</span>, results[<span class="n">0</span>])
 
     <h2 class="section" id="eval-compare"><span class="idx">★</span> 效果评估：微调前后对比</h2>
     <p>调完超参，最后一关是拿出一份让人信服的评估报告。只看一个分数不够——要分维度看，并和「未微调基座」对比，证明微调确实带来了增益。下面这段代码跑一个多维评估：专业性、安全性（是否建议就医）、忠实度（是否编造）、拒答率，每个维度都对比微调前后。这种「分维度 + 基线对比」的评估，是让微调成果经得起质疑的标准做法。</p>
-    <pre><code><span class="c">"""eval_compare.py —— 微调前后多维效果对比"""</span>
+    <pre><code class="language-python"><span class="c">"""eval_compare.py —— 微调前后多维效果对比"""</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
 
 base = <span class="s">"THUDM/glm-4-9b-chat"</span>          <span class="c"># 未微调基座</span>

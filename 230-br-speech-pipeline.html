@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>语音 AI 全链路：ASR → LLM → TTS · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="语音 AI 全链路：ASR → LLM → TTS · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="语音 AI 全链路：ASR → LLM → TTS · AI 全栈实战教学">
+<meta property="og:description" content="语音 AI 全链路：ASR → LLM → TTS · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -621,6 +625,15 @@
       </div>
     </section>
     <h2 class="section" id="pipeline-overview"><span class="idx">★</span> 四段式pipeline：为什么是这个顺序</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>四段式pipeline：为什么是这个顺序</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>流式chunk处理：把延迟藏在流水线里</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>生产化要点：从能跑到稳定跑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>VAD 简单实现：能量阈值法</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>语音对话系统的标准架构是 VAD → ASR → LLM → TTS → 播放。VAD（Voice Activity Detection，端点检测）负责判断"用户开始说话了"和"用户说完了"，这是触发后续流程的开关。没有VAD，系统要么需要用户手动按按钮（体验差，不像对话），要么持续把环境噪声送进ASR（浪费算力且增加误识别）。VAD的核心任务是区分语音和静音/噪声，常用算法有基于能量的WebRTC VAD（轻量、延迟低、但抗噪差）、基于神经网络的Silero VAD（更鲁棒、对低信噪比场景友好），生产环境两者经常组合使用——WebRTC做初步过滤，神经网络做精细判定。</p>
     <p>ASR（Automatic Speech Recognition，语音识别）把音频转成文本。Whisper是OpenAI开源的语音识别模型，支持99种语言，在噪声环境、口音、专业术语上都表现出色，是目前开源ASR的事实标准。它的流式版本Whisper-streaming能在用户说话的同时持续识别，不用等整句说完，这对降低端到端延迟至关重要。除了Whisper，国内场景还常用阿里FunASR（Paraformer模型，中文识别精度高、支持热词定制）、字节SeamlessM4T（支持语音到语音的直接翻译）。选型主要看目标语言、热词定制需求、以及是否能本地部署（隐私场景必须本地）。</p>
     <p>LLM拿到文本后做理解和生成回复，这部分和文本对话完全一样，可以直接复用任何Agent框架——LangGraph、AutoGen、或自己写的orchestrator。关键设计是让LLM输出支持流式（streaming），即逐token返回而非整句返回，因为下游TTS可以提前消费这些token开始合成。TTS（Text-to-Speech）把LLM的文本回复合成成语音，CosyVoice是2024年开源的高质量TTS，支持声音克隆（几秒参考音频即可复刻音色）、情感控制（让合成语音带开心/悲伤/严肃语气）、流式合成（不等整句合成完就能开始播放）。商业方案还有Azure TTS、ElevenLabs，效果更稳但成本高。</p>

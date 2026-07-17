@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 芯片与算力 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="AI 芯片与算力 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="AI 芯片与算力 · AI 全栈实战教学">
+<meta property="og:description" content="AI 芯片与算力 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>All-Reduce 通信开销估算</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>All-Reduce 通信开销估算</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>用 Roofline 模型诊断算子瓶颈</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>算力即权力：AI 时代的硬通货</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>GPU、TPU、NPU 的架构哲学</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>存储层级：HBM、DDR、SRAM 的金字塔</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Roofline 模型：一眼看出性能瓶颈</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>芯片互联：多卡训练的隐形战场</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>多卡训练的瓶颈往往不是算力而是<strong>通信</strong>。梯度同步用 Ring All-Reduce，其通信量与卡数无关（约 2×模型大小×(N-1)/N），但延迟随卡数对数增长。算清这笔账，能帮你判断'加更多卡到底划不划算'。</p>
 <pre class="code"><code class="language-python"># Ring All-Reduce 通信量与时间估算
 def allreduce_time(model_bytes, n_gpu, bw_GBps=25e9, latency_us=2):

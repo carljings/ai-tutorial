@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学">
+<meta property="og:description" content="LLMOps 全景：从实验到生产的生命周期 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="why-mlops"><span class="idx">★</span> 为什么需要 MLOps:从实验到生产的鸿沟</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要 MLOps:从实验到生产的鸿沟</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七阶段全景:一张图看懂生命周期</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段一:需求定义——把业务问题翻译成 ML 问题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段二:数据准备——最耗时也最被低估</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段三:模型训练——从笔记本到可复现流水线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段四:模型评估——offline 指标不是终点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段五:模型部署——不止是把模型塞进容器</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>阶段六:线上监控——模型衰减不会通知你</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在传统软件工程里,DevOps 解决的是"代码写完到运行起来"的自动化问题。而机器学习多了一个关键变量——<strong>数据</strong>。同一份代码,喂进去不同的数据,产出的模型行为可能完全不同。这意味着仅靠 Git 管版本、靠 CI 跑测试是远远不够的。</p>
     <p>Google 在 2015 年提出的经典论文《Hidden Technical Debt in Machine Learning Systems》里有一个广为流传的数据:在一个真实的 ML 系统中,机器学习相关的代码只占很小一部分,周围围绕着数据收集、特征工程、服务部署、监控等大量"胶水代码",这些隐藏的技术债往往是系统崩溃的真正原因。</p>
     <p>MLOps 正是为了系统性地管理这些复杂度而诞生的。它借鉴了 DevOps 的理念(CI/CD、自动化、可观测性),同时引入了 ML 特有的机制:数据版本化、实验追踪、模型注册、漂移监控。一个成熟的 MLOps 体系,能让一个数据科学家在笔记本上训练的模型,经过几条命令就安全地部署到线上,并在出现性能下降时自动告警、甚至触发重训练。</p>

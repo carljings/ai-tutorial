@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>技能发现与匹配：agent 如何选对技能 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="技能发现与匹配：agent 如何选对技能 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="技能发现与匹配：agent 如何选对技能 · AI 全栈实战教学">
+<meta property="og:description" content="技能发现与匹配：agent 如何选对技能 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -310,6 +314,19 @@
     <p class="lead">技能发现与匹配</p>
     <div class="meta"><span class="chip">Skills 技能体系</span><span class="chip">源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
     <h2><span class="idx"></span>匹配问题的本质</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>匹配问题的本质</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>匹配的两种实现路线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>description 怎么写才能被精准匹配</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多技能冲突的处理</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>语义匹配算法：从关键词到向量相似度</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>技能加载代码：从匹配到执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多级发现路径：本地 → 团队 → 市场 → 动态</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>当 agent 装了 30 个技能，用户说了一句话，agent 怎么知道该用哪个技能（或者不用任何技能）？这就是"技能发现与匹配"问题。它的本质是一个语义检索问题：把用户意图（query）和技能描述（documents）做匹配，找出最相关的。</p>
     <p>听起来简单，但有几个难点。第一，用户的表述千变万化——"帮我做个 PPT""弄个演示文稿""我要汇报用 slides"说的都是一回事，技能描述里可能只写了"演示文稿"。第二，多个技能可能都沾边——"生成报告"和"数据分析"都可能和"帮我看看这月销售情况"相关。第三，有时候不该用任何技能——闲聊或简单问题不需要触发技能。</p>
     <h2><span class="idx"></span>匹配的两种实现路线</h2>

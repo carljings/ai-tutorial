@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>38 · LLM 数据工程完整流水线 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="38 · LLM 数据工程完整流水线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="38 · LLM 数据工程完整流水线 · AI 全栈实战教学">
+<meta property="og:description" content="38 · LLM 数据工程完整流水线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -328,7 +332,7 @@
     <h2 class="section" id="dedup"><span class="idx">01</span> 去重：MinHash 与 SimHash</h2>
     <p>重复数据让模型「死记」而非「泛化」，必须去除。精确去重（完全相同）用哈希，<strong>近似去重</strong>（高度相似）用 MinHash。</p>
     <div class="code-title">dedup.py —— MinHash 近似去重</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 dedup.py —— MinHash + LSH 近似去重
 处理百万级文档，找出相似度 &gt; 阈值的文档对
 """</span>
@@ -361,7 +365,7 @@ print(result)  <span class="c"># ['doc1', 'doc2'] —— doc2 被识别为近似
 
     <h2 class="section" id="quality"><span class="idx">02</span> 质量过滤：多级漏斗</h2>
     <div class="code-title">quality_filter.py —— 多级质量过滤</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 quality_filter.py —— 数据质量过滤流水线
 启发式规则 + 小模型打分 + 去乱码
 """</span>
@@ -395,7 +399,7 @@ print(qf.filter(<span class="s">"啊啊啊啊啊啊啊啊啊啊"</span>))       
 
     <h2 class="section" id="pii"><span class="idx">03</span> PII 脱敏：法律红线</h2>
     <div class="code-title">pii_redact.py —— 个人信息脱敏</div>
-    <pre><code><span class="c">"""pii_redact.py —— 识别并脱敏个人信息"""</span>
+    <pre><code class="language-python"><span class="c">"""pii_redact.py —— 识别并脱敏个人信息"""</span>
 <span class="k">import</span> re
 
 PATTERNS = {
@@ -434,7 +438,7 @@ print(redact_pii(<span class="s">"联系 13812345678 或 test@gmail.com"</span>)
 
     <h2 class="section" id="minhash-opt"><span class="idx">★</span> MinHash 去重的工程优化</h2>
     <p>前面的 MinHash 示例是「教学版」，真要处理十亿级文档会遇到两个瓶颈：<strong>内存爆炸</strong>（每篇文档存 128 个 4 字节哈希，10 亿篇就是 500GB）和<strong>逐条插入太慢</strong>。工业界有三招优化。第一招是<strong>降低 num_perm</strong>——128 位精度对应阈值 0.8，但若只想去掉「几乎一模一样」的文档（阈值 0.9+），64 位甚至 32 位就够了，内存直接减半再减半。第二招是<strong>MinHash LSH 的 band 分桶</strong>，它把签名切成多段（band），只有落在同一段的文档才进候选集，把两两比较从 O(n²) 降到近 O(n)。第三招是<strong>分片 + 并行</strong>，用 Spark/Dask 把文档按哈希分到不同节点，各自去重后再合并。</p>
-    <pre><code><span class="c">"""minhash_opt.py —— 大规模 MinHash 去重的工程优化版"""</span>
+    <pre><code class="language-python"><span class="c">"""minhash_opt.py —— 大规模 MinHash 去重的工程优化版"""</span>
 <span class="k">from</span> datasketch <span class="k">import</span> MinHash, MinhashLSH
 <span class="k">import</span> hashlib, re
 
@@ -474,7 +478,7 @@ lsh = MinhashLSH(threshold=<span class="n">0.9</span>, num_perm=NUM_PERM, weight
 
     <h2 class="section" id="quality-score"><span class="idx">★</span> 数据质量评分：从规则到模型</h2>
     <p>前面质量过滤用的是「过/不过」的硬阈值。更精细的做法是给每篇文档<strong>打一个连续的质量分</strong>，下游可以按分数采样、按分数加权——高质量文档多采、低质量文档少采。下面这段代码把长度、重复率、困惑度、信息密度四个维度归一化后加权求和，输出 0~1 的质量分。它可以直接接进数据配比模块，让「玄学配比」变成「数据驱动的配比」。</p>
-    <pre><code><span class="c">"""quality_score.py —— 多维数据质量打分器"""</span>
+    <pre><code class="language-python"><span class="c">"""quality_score.py —— 多维数据质量打分器"""</span>
 <span class="k">import</span> math, re
 
 <span class="k">def</span> entropy_rate(text):
@@ -529,7 +533,7 @@ lsh = MinhashLSH(threshold=<span class="n">0.9</span>, num_perm=NUM_PERM, weight
 
     <h2 class="section" id="contamination"><span class="idx">★</span> 数据污染：评测集泄露的红线</h2>
     <p>数据工程里有一条看不见但致命的红线——<strong>评测集污染</strong>。如果你训练数据里混进了 MMLU、GSM8K 这些 benchmark 的题目和答案，模型在评测时会「假性」飙高，但真实能力毫无提升。这会让你的所有评估失真，进而做出完全错误的决策（比如以为微调有效其实是在背题）。所以严肃的数据流水线都必须有一道「去污染」工序：把训练语料和评测集做严格匹配，命中就剔除。</p>
-    <pre><code><span class="c">"""decontaminate.py —— 训练数据去评测集污染"""</span>
+    <pre><code class="language-python"><span class="c">"""decontaminate.py —— 训练数据去评测集污染"""</span>
 <span class="k">import</span> re, json
 <span class="k">from</span> datasketch <span class="k">import</span> MinHash, MinHashLSH
 

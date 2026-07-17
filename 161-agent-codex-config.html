@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 配置：config.toml 全解 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex 配置：config.toml 全解 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex 配置：config.toml 全解 · AI 全栈实战教学">
+<meta property="og:description" content="Codex 配置：config.toml 全解 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-toml"><span class="idx">★</span> 一、为什么是 TOML</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么是 TOML</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、三层覆盖：全局 → 项目 → 命令行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、profiles：一套配置，多种场景</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、approval_mode 的四档语义</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、sandbox_mode 的语义</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、配置校验：失败要早且明确</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Codex 选 TOML 而非 JSON 或 YAML 作为配置格式。这个选择有几个理由。第一，<strong>TOML 的注释友好</strong>——配置文件里大量需要解释「这个选项是什么意思」，TOML 用 <code>#</code> 注释，可以紧贴每一行；JSON 不支持注释；YAML 的注释虽然支持但语法古怪。第二，<strong>TOML 的类型清晰</strong>——字符串、数字、布尔、数组的写法一目了然，不像 YAML 有隐式类型转换的坑（<code>yes</code> 被解析成布尔 true）。第三，<strong>Rust 生态对 TOML 支持极好</strong>——Cargo 本身就用 TOML，serde + toml crate 是标配，解析和序列化几乎零成本。</p>
     <pre><code class="language-toml"># config.toml 示例
 # 用户级配置，放在 ~/.config/codex/config.toml

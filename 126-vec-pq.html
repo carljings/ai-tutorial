@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>乘积量化 PQ：把向量压到 1/16 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="乘积量化 PQ：把向量压到 1/16 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="乘积量化 PQ：把向量压到 1/16 · AI 全栈实战教学">
+<meta property="og:description" content="乘积量化 PQ：把向量压到 1/16 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -622,6 +626,19 @@
 
 
     <h2><span class="idx"></span>ADC 异步距离查表</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>ADC 异步距离查表</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Product Quantizer 完整实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>向量存储的现实困境</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>PQ 的数学原理：分而治之的聚类</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ADC：非对称距离计算</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>用 Python 实现 ProductQuantizer</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>FAISS 的 IVFPQ：工业级组合</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>压缩质量的影响因素</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>PQ 检索之所以快，关键在 ADC（Asymmetric Distance Computation）：不用解码重建向量，而是预计算 query 到每个码字的距离表，检索时查表累加。理解 ADC，你才懂 PQ 为什么能做亿级毫秒检索。</p>
 <pre class="code"><code class="language-python"># ADC: 用查表代替向量运算, O(N*M) 极快
 import numpy as np

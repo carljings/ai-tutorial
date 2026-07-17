@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>16 · 端侧与私有化部署 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="16 · 端侧与私有化部署 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="16 · 端侧与私有化部署 · AI 全栈实战教学">
+<meta property="og:description" content="16 · 端侧与私有化部署 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -393,7 +397,7 @@
 
     <h2 class="section" id="glm-private"><span class="idx">05</span> GLM 私有化部署实战</h2>
     <div class="code-title">deploy_glm.sh —— 用 vLLM 部署 GLM</div>
-    <pre><code><span class="c"># 1. 用 Ollama 本地体验（最简单）</span>
+    <pre><code class="language-python"><span class="c"># 1. 用 Ollama 本地体验（最简单）</span>
 $ ollama run glm4         <span class="c"># 一行命令，自动下载量化版</span>
 &gt; 你好                    <span class="c"># 直接对话</span>
 
@@ -426,7 +430,7 @@ $ ./main -m glm4-9b-chat-GGUF/ggml-model-q4_k_m.gguf \
 
     <h2 class="section" id="deploy-script"><span class="idx">★</span> 一键部署脚本 deploy.sh</h2>
     <p>理论讲完了，来点能直接跑的。下面这个 <code>deploy.sh</code> 把「拉模型 → 量化 → 起 vLLM 服务 → 健康检查」串成一个可复现的流程，适合做私有化部署的起点。把它放进 CI/CD，换台机器也能一键拉起一个 OpenAI 兼容的推理服务。</p>
-    <pre><code><span class="c">#!/usr/bin/env bash</span>
+    <pre><code class="language-python"><span class="c">#!/usr/bin/env bash</span>
 <span class="c"># deploy.sh —— GLM-4-9B AWQ INT4 私有化部署一键脚本</span>
 <span class="k">set</span> -euo pipefail
 
@@ -475,7 +479,7 @@ print(f'首token延迟≈{dt:.2f}s, 生成{tok}字, 速率≈{tok/dt:.1f}字/s')
 
     <h2 class="section" id="benchmark"><span class="idx">★</span> 性能 Benchmark 压测</h2>
     <p>服务起来了还不够，上线前必须知道它能扛多少并发、延迟分布如何。下面这段压测脚本用并发请求测量 <strong>吞吐（throughput）</strong> 和 <strong>每请求尾延迟（p50/p95 latency）</strong>——这两个指标决定了你能给多少用户服务、用户体验是否稳定。压测要在「服务预热」后进行，否则首次请求会包含权重加载时间，数据失真。</p>
-    <pre><code><span class="k">import</span> time, statistics, concurrent.futures, requests
+    <pre><code class="language-python"><span class="k">import</span> time, statistics, concurrent.futures, requests
 
 URL = <span class="s">"http://localhost:8000/v1/chat/completions"</span>
 PAYLOAD = {

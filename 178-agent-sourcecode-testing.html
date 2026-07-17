@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：Agent 测试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="源码级启示：Agent 测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="源码级启示：Agent 测试 · AI 全栈实战教学">
+<meta property="og:description" content="源码级启示：Agent 测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="challenge"><span class="idx">★</span> 一、Agent 测试的根本困难</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Agent 测试的根本困难</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Mock LLM：让不可预测变可预测</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Mock 工具：隔离外部依赖</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、断言的层次：从严格到宽松</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、固定 fixture：可重复的测试环境</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、回归测试集：追踪质量变化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、CI 集成的考量</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统的单元测试基于一个假设：<strong>给定相同输入，函数产生相同输出</strong>。这个假设让测试可重复、可自动化。但 Agent 打破了这个假设——LLM 是非确定性的，即使 temperature=0，不同版本的模型、不同的请求批次，输出都可能略有差异。</p>
     <p>更麻烦的是，Agent 的「正确性」本身难以定义。对于「帮我修复这个 bug」的任务，什么是正确的测试断言？是断言 LLM 说了特定的话？是断言它调用了特定工具？是断言最终代码能通过测试？这些都是不同层面的正确性，需要不同的测试方法。</p>
     <p>Agent 测试的核心策略转变是：<strong>从测试「输出」转向测试「行为」</strong>。不关心 LLM 说了什么具体的话，关心它是否调用了正确的工具、是否遵循了预期的流程、是否最终解决了问题。这种「行为级测试」比「输出级测试」更鲁棒，因为行为比文本更稳定。</p>

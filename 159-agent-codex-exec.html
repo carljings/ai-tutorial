@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex exec 路径：命令分类 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex exec 路径：命令分类 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex exec 路径：命令分类 · AI 全栈实战教学">
+<meta property="og:description" content="Codex exec 路径：命令分类 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-not-system"><span class="idx">★</span> 一、为什么不用 system() 或 std::process::Command</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么不用 system() 或 std::process::Command</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、一次执行的完整流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、流式执行器的核心实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、超时处理的细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、环境变量的隔离与注入</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、输出格式化：给 LLM 看的格式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>最朴素的命令执行是 C 的 <code>system()</code> 或 Rust 标准库的 <code>std::process::Command::output()</code>。它们的接口是同步阻塞的——调用了就等命令跑完，拿到全部 stdout/stderr 再返回。这对 Agent 来说有几个致命问题。</p>
     <p>第一，<strong>无流式输出</strong>。Agent 要把命令的实时输出反馈给用户（用户想看到 <code>npm test</code> 一个个用例的输出，而不是等几十秒后一次性蹦出来）。system() 做不到。第二，<strong>无法中断</strong>。命令跑起来后，用户按 Esc 想停，system() 没有提供取消接口，得 kill 整个进程组。第三，<strong>阻塞线程</strong>。在 tokio 的异步世界里，一个阻塞调用会卡住整个 runtime 的工作线程，影响其他并发任务。</p>
     <p>所以 Codex 用的是 tokio 的 <code>tokio::process::Command</code>，它是异步的、支持流式读取 stdout/stderr、可以通过 Child handle 发送 kill 信号。这是构建生产级命令执行器的基础。</p>

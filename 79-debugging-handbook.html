@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 调试手册 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLM 调试手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLM 调试手册 · AI 全栈实战教学">
+<meta property="og:description" content="LLM 调试手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-hard"><span class="idx">★</span> 一、为什么 LLM 应用特别难调试</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么 LLM 应用特别难调试</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Bug 1：输出格式不稳定</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Bug 2：RAG 召回质量差</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Bug 3：模型产生幻觉</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、Bug 4：模型效果随时间退化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、Bug 5：流式响应中断</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、通用的 LLM 调试方法论</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统软件的 Bug 有个特点：可复现。同样的输入一定产生同样的错误。但 LLM 应用的 Bug 经常是「概率性」的——temperature 大于 0 时，同样的 prompt 可能 10 次里有 8 次正常、2 次出错。这让调试变得极其困难。</p>
     <pre><code class="language-python"># LLM Bug 的特殊性
 llm_bug_characteristics = {

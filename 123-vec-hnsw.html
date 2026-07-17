@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HNSW 分层小世界图：低延迟之王 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="HNSW 分层小世界图：低延迟之王 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="HNSW 分层小世界图：低延迟之王 · AI 全栈实战教学">
+<meta property="og:description" content="HNSW 分层小世界图：低延迟之王 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -622,6 +626,19 @@
 
 
     <h2><span class="idx"></span>HNSW 构建时间与内存估算</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>HNSW 构建时间与内存估算</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>HNSW 参数调优实战实验</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>为什么图结构比聚类更适合增量场景</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多层跳表与 NSW 的关键区别</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三个参数：M、efConstruction、efSearch</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>hnswlib 实操：从建库到查询</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>插入算法的内部逻辑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>生产调参的实战经验</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>调 HNSW 不能只看查询性能，还要预估<strong>建索引的耗时和内存占用</strong>——这两者在亿级数据上可能决定方案可行性。下面给出基于参数的解析估算，帮你在建库前做容量规划。</p>
 <pre class="code"><code class="language-python"># HNSW 构建时间与内存解析估算
 def hnsw_estimate(N, dim, M, efC):

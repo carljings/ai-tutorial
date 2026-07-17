@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>08 · Skills 技能体系 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="08 · Skills 技能体系 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="08 · Skills 技能体系 · AI 全栈实战教学">
+<meta property="og:description" content="08 · Skills 技能体系 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -341,7 +345,7 @@
     <p>一个完整的 Skill 通常包含四部分：</p>
 
     <div class="code-title">一个 Skill 的结构（SKILL.md 风格）</div>
-    <pre><code><span class="t">name</span>: pdf-report-generator
+    <pre><code class="language-python"><span class="t">name</span>: pdf-report-generator
 <span class="t">description</span>: 把 Markdown 内容生成精美的 PDF 报告，支持封面、目录、图表
 <span class="t">trigger</span>:                              <span class="c"># 什么时候触发这个技能</span>
   - <span class="s">"生成 PDF 报告"</span>
@@ -439,7 +443,7 @@
 
     <h3>写一个最简 MCP Server</h3>
     <div class="code-title">用官方 SDK 写一个 MCP 工具服务</div>
-    <pre><code><span class="c"># weather_server.py —— 一个极简 MCP Server</span>
+    <pre><code class="language-python"><span class="c"># weather_server.py —— 一个极简 MCP Server</span>
 <span class="k">from</span> mcp.server.fastmcp <span class="k">import</span> FastMCP
 
 mcp = FastMCP(<span class="s">"weather"</span>)
@@ -525,7 +529,7 @@ mcp = FastMCP(<span class="s">"weather"</span>)
     <h2 class="section" id="skill-loader"><span class="idx">09</span> 代码实战：Skill 加载器与技能发现</h2>
     <p>第 5 节讲了技能发现的理念。这里实现一个<strong>基于相关性的技能发现系统</strong>——从一堆 Skill 里动态选出当前任务最相关的：</p>
     <div class="code-title">skill_loader.py —— 技能发现 + 渐进式加载</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 skill_loader.py —— 技能发现：根据任务动态选出相关 Skill
 避免把所有 Skill 都塞进上下文
 """</span>
@@ -563,7 +567,7 @@ embedder = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
     <h2 class="section" id="mcp-server-full"><span class="idx">10</span> 代码实战：完整的 MCP Server（带资源 + 工具）</h2>
     <p>第 3.3 节给了极简版，这里是一个<strong>更完整的 MCP Server</strong>，包含工具、资源、错误处理：</p>
     <div class="code-title">db_mcp_server.py —— 数据库查询 MCP Server</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 db_mcp_server.py —— 一个数据库查询的 MCP Server
 提供「查表结构、执行 SQL、导出结果」三个工具
 任何 MCP 客户端（Claude/GLM/Cursor）连上即可用

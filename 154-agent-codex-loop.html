@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学">
+<meta property="og:description" content="Codex 的 Turn 模型与推理持久化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="loop-anatomy"><span class="idx">★</span> 一、把一轮循环切成五段</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、把一轮循环切成五段</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、段 2：流式调用与中断的协作</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、段 3：判停策略——什么时候算一轮结束</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、段 4：审批的异步等待</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、段 4 续：沙箱执行的隔离</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、与 OpenCode 循环的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>一个成熟的 Agent 循环，单轮（turn）内部其实可以切成五段。我们用伪代码标出边界，再逐段拆解。</p>
     <pre><code class="language-rust">// 一轮 turn 的五段结构
 async fn run_turn(session: &amp;mut Session) {

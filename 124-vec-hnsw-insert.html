@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>HNSW 插入算法详解 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="HNSW 插入算法详解 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="HNSW 插入算法详解 · AI 全栈实战教学">
+<meta property="og:description" content="HNSW 插入算法详解 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="skip-list-intuition"><span class="idx">★</span> 一切的起点：跳表思想</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一切的起点：跳表思想</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第一件事：新节点放进哪一层</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第二件事：从顶层下沉找到候选邻居</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>启发式邻居选择：图质量的真正秘密</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>efConstruction 实测：构建质量 vs 速度</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>M 参数与 mL：邻居度数的权衡</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>动态插入与并发构建的工程考量</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>HNSW 名字里的 "SW" 是 Small World（小世界图），前面的 "H" 是 Hierarchical（分层的）。要理解它，先回到一个更简单的数据结构：跳表（Skip List）。</p>
     <p>跳表解决的问题是：在一个有序链表里查找，朴素做法要 O(n)。跳表的巧思是额外维护几层"稀疏的链表"，上层链表的节点是下层的一个子集，越往上越稀疏。查找时从最顶层开始，因为节点稀疏可以大步跳跃，逐层下沉做精细定位，整体复杂度降到 O(log n)。这就是"<strong>分层加速</strong>"的核心思想，被 Redis 的有序集合、LevelDB 的 MemTable 广泛使用。</p>
     <p>HNSW 把这个思想搬到图上。它构建的不是一棵链表，而是一组近邻图，叠加成多层。最底层（layer 0）包含<strong>所有</strong>节点，边最密集，负责精细检索；上层节点逐层按指数衰减抽稀，边稀疏，负责跨大距离快速接近目标。查询时从最高层的入口点出发，每层做一次贪心搜索，逐层下沉到 layer 0 取最终结果。</p>

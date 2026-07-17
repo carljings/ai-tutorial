@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>14 · 多模态大模型深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="14 · 多模态大模型深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="14 · 多模态大模型深度 · AI 全栈实战教学">
+<meta property="og:description" content="14 · 多模态大模型深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -431,7 +435,7 @@
 
     <h2 class="section" id="vit-impl"><span class="idx">★</span> ViT patch 化的最小实现</h2>
     <p>前面讲了 ViT 把图像切成 patch。但「切 patch」到底在代码里是什么操作？其实就三步：<strong>把图像切成网格 → 每个小块展平成向量 → 加位置编码</strong>。下面这段 PyTorch 代码用十几行实现了 ViT 的 PatchEmbed 模块——它是一切视觉 Transformer 的入口。跑一遍你就会发现，「图像变成 token 序列」没有任何黑魔法，本质就是一个 reshape + 线性投影。</p>
-    <pre><code><span class="k">import</span> torch
+    <pre><code class="language-python"><span class="k">import</span> torch
 <span class="k">import</span> torch.nn <span class="k">as</span> nn
 
 <span class="k">class</span> <span class="t">PatchEmbed</span>(nn.Module):
@@ -462,7 +466,7 @@ print(tokens.shape)   <span class="c"># torch.Size([1, 197, 768])</span>
 
     <h2 class="section" id="llava-connector"><span class="idx">★</span> LLaVA 式跨模态连接器实现</h2>
     <p>有了视觉 token，还差最后一步——把它们「翻译」成 LLM 能懂的语言。LLaVA 用了一个极其简单却出奇有效的方案：一个<strong>单层线性投影（MLP）</strong>，把 ViT 输出的视觉向量映射到 LLM 的嵌入空间，然后直接当作「特殊的文本 token」拼到 prompt 前面。就这么朴素，LLaVA 却成了开源多模态的事实基线。下面是它的核心实现。</p>
-    <pre><code><span class="k">import</span> torch.nn <span class="k">as</span> nn
+    <pre><code class="language-python"><span class="k">import</span> torch.nn <span class="k">as</span> nn
 
 <span class="k">class</span> <span class="t">LLaVAConnector</span>(nn.Module):
     <span class="s">"""LLaVA 式连接器：把视觉编码器输出投影到 LLM 词嵌入空间"""</span>
@@ -491,7 +495,7 @@ print(tokens.shape)   <span class="c"># torch.Size([1, 197, 768])</span>
 
     <h2 class="section" id="code"><span class="idx">06</span> 代码实战：调用多模态模型</h2>
     <div class="code-title">multimodal_demo.py —— 用 GLM-4V 理解图像</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 multimodal_demo.py —— 调用多模态模型理解图像
 """</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI

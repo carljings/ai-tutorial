@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>52 · CUDA/GPU 编程入门 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="52 · CUDA/GPU 编程入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="52 · CUDA/GPU 编程入门 · AI 全栈实战教学">
+<meta property="og:description" content="52 · CUDA/GPU 编程入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -347,7 +351,7 @@
 
     <h2 class="section" id="first-kernel"><span class="idx">02</span> 第一个 CUDA 程序</h2>
     <div class="code-title">vector_add.cu —— GPU 向量加法</div>
-    <pre><code><span class="c">// vector_add.cu —— 最简 CUDA 班序：GPU 上做向量加法</span>
+    <pre><code class="language-python"><span class="c">// vector_add.cu —— 最简 CUDA 班序：GPU 上做向量加法</span>
 <span class="k">__global__</span> <span class="t">void</span> <span class="f">vector_add</span>(<span class="t">float</span>* a, <span class="t">float</span>* b, <span class="t">float</span>* c, <span class="t">int</span> n) {
     <span class="c">// 每个线程算一个元素</span>
     <span class="t">int</span> i = blockIdx.x * blockDim.x + threadIdx.x;
@@ -379,7 +383,7 @@
 
     <h2 class="section" id="pytorch-gpu"><span class="idx">03</span> PyTorch 怎么用 GPU</h2>
     <div class="code-title">PyTorch 的 GPU 使用</div>
-    <pre><code><span class="k">import</span> torch
+    <pre><code class="language-python"><span class="k">import</span> torch
 
 <span class="c"># 检查 GPU</span>
 print(torch.cuda.is_available())   <span class="c"># True/False</span>
@@ -419,7 +423,7 @@ model = torch.nn.DataParallel(model)  <span class="c"># 简单但效率一般</s
     <p>第 04 节把「共享内存」作为优化要点之一带过，但没给代码。这是 CUDA 性能优化的<strong>最核心技巧</strong>，单独拎出来讲透。问题背景：朴素矩阵乘法里，每个输出元素要从全局显存（HBM）重复读取一整行 A 和一整列 B，全局显存带宽是瓶颈。共享内存（shared memory）是每个 Block 私有的片上 SRAM，延迟比 HBM 低 100 倍。</p>
     <p>思路：把 A 和 B 切成 <code>TILE_SIZE × TILE_SIZE</code> 的小块，每个 Block 协作地把一块 A 和一块 B <strong>从 HBM 一次性加载到 shared memory</strong>，然后所有线程从 shared memory 高速读取做局部乘加，再累加到下一块。这就是「分块（tiling）」——把 O(N²) 次慢速访问换成 O(N²/TILE) 次。</p>
     <div class="code-title">matmul_tiled.cu —— 共享内存分块矩阵乘法</div>
-    <pre><code><span class="c">// matmul_tiled.cu —— 用 shared memory 做分块矩阵乘法</span>
+    <pre><code class="language-python"><span class="c">// matmul_tiled.cu —— 用 shared memory 做分块矩阵乘法</span>
 <span class="cp">#define TILE 16</span>
 
 <span class="k">__global__</span> <span class="t">void</span> <span class="f">matmul_tiled</span>(<span class="t">const</span> <span class="t">float</span>* A, <span class="t">const</span> <span class="t">float</span>* B,
@@ -468,7 +472,7 @@ model = torch.nn.DataParallel(model)  <span class="c"># 简单但效率一般</s
     <p>Block 是软件概念，GPU 硬件真正执行的最小单位是 <strong>warp——连续的 32 个线程</strong>。同一 warp 内的线程<strong>锁步执行</strong>（同一时刻执行同一条指令），因此 warp 内的通信不需要 <code>__syncthreads()</code>，可以用更轻量的 warp 级原语。掌握 warp 级编程是从「能写出正确 CUDA」到「能写出快 CUDA」的分水岭。</p>
     <p>最典型的应用是<strong>warp 内归约（reduction）</strong>：求 32 个数的和/最大值。朴素写法要 5 轮循环 + 全局同步；用 <code>__shfl_sync</code>（warp 内数据交换）只要 5 轮且无需同步，速度快一个数量级。</p>
     <div class="code-title">warp_reduce.cu —— 用 shuffle 做 warp 内求和</div>
-    <pre><code><span class="c">// warp_reduce.cu —— warp 内 32 个值求和，用 __shfl_xor_sync</span>
+    <pre><code class="language-python"><span class="c">// warp_reduce.cu —— warp 内 32 个值求和，用 __shfl_xor_sync</span>
 <span class="k">__device__</span> <span class="t">float</span> <span class="f">warp_reduce_sum</span>(<span class="t">float</span> val) {
     <span class="c">/*
       __shfl_xor_sync(mask, val, laneMask):

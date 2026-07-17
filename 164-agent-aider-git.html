@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aider 的 Git 集成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Aider 的 Git 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Aider 的 Git 集成 · AI 全栈实战教学">
+<meta property="og:description" content="Aider 的 Git 集成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="auto-commit"><span class="idx">★</span> 一、auto-commit：每轮改动一个 commit</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、auto-commit：每轮改动一个 commit</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、git undo：精确撤销 AI 的改动</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、SEARCH/REPLACE：为什么不用 unified diff</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、apply 的核心逻辑与容错</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、多 hunk 与多文件编辑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、为什么用文本协议而非工具调用</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Aider 的默认行为是：每当 AI 修改了文件（无论是新增还是编辑），立即自动生成一个 git commit。这个 commit 的 message 由 LLM 根据本轮对话生成，通常是「feat: 添加用户登录验证」这种符合规范的描述。用户不需要手动 commit，每轮交互都自然成为一个可回滚的检查点。</p>
     <p>这个设计解决了一个真实痛点：用 AI 写代码时，改动很快、很多，如果人工管理 commit，要么忘记 commit 导致没法回滚，要么 commit 粒度太粗（一次包含太多改动）失去回滚价值。auto-commit 让每次 AI 改动都成为原子提交，配合 git undo 可以精确撤销任何一步。</p>
     <pre><code class="language-python"># aider/coders/base_coder.py（简化）

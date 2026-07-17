@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>74 · AI 设计模式与最佳实践 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学">
+<meta property="og:description" content="74 · AI 设计模式与最佳实践 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -342,7 +346,7 @@
     <h2 class="section" id="router"><span class="idx">01</span> 模式 1-2：Router 与 Cascade</h2>
     <p><strong>问题</strong>：所有请求都调大模型，简单问题浪费资源。</p>
     <div class="code-title">cascade.py —— 级联模式</div>
-    <pre><code><span class="c">"""级联：简单问题→小模型（快/省），难问题→大模型（强/贵）"""</span>
+    <pre><code class="language-python"><span class="c">"""级联：简单问题→小模型（快/省），难问题→大模型（强/贵）"""</span>
 <span class="k">def</span> <span class="f">cascade_answer</span>(question):
     <span class="c"># ① 先用小模型尝试</span>
     answer, confidence = small_model.answer_with_confidence(question)
@@ -364,7 +368,7 @@
 
     <h2 class="section" id="guard"><span class="idx">03</span> 模式 7-9：Guardrail / Human-in-Loop / Fallback</h2>
     <div class="code-title">三层防护模式</div>
-    <pre><code><span class="c">"""Guardrail + Human-in-Loop + Fallback 三模式组合"""</span>
+    <pre><code class="language-python"><span class="c">"""Guardrail + Human-in-Loop + Fallback 三模式组合"""</span>
 <span class="k">def</span> <span class="f">safe_generate</span>(request):
     <span class="c"># ① Guardrail：输入过滤</span>
     <span class="k">if</span> is_harmful(request):
@@ -409,7 +413,7 @@
     <h3>模式 A · Evaluator-Optimizer（带预算的生成-评估循环）</h3>
     <p>它的核心不是「生成→评估→重来」，而是<strong>「为重试设置预算，避免无限循环」</strong>。新手实现最大的坑就是不设上限，结果一次坏答案烧光 token 预算。下面是一个生产可用的版本，包含预算、早停、和评分日志。</p>
     <div class="code-title">evaluator_optimizer.py</div>
-    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+    <pre><code class="language-python"><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 
 <span class="nd">@dataclass</span>
 <span class="k">class</span> <span class="f">GenResult</span>:
@@ -455,7 +459,7 @@
     <h3>模式 B · Self-Consistency（带早停的多采样投票）</h3>
     <p>直接采样 N 次再多数投票，token 成本是单次的 N 倍。但研究显示：<strong>多数答案通常在前 3-5 次采样内出现</strong>。只要做早停，成本就能压到 2-3 倍。</p>
     <div class="code-title">self_consistency.py</div>
-    <pre><code><span class="k">from</span> collections <span class="k">import</span> Counter
+    <pre><code class="language-python"><span class="k">from</span> collections <span class="k">import</span> Counter
 
 <span class="k">def</span> <span class="f">self_consistent_answer</span>(question, llm,
                             n=<span class="n">8</span>, temperature=<span class="n">0.7</span>,
@@ -480,7 +484,7 @@
     <h3>模式 C · Structured Output（带 schema 自愈的 JSON 强约束）</h3>
     <p>单纯用 <code>response_format={"type":"json_object"}</code> 只保证语法合法，不保证字段对。生产代码必须做 schema 校验，并在失败时<strong>让 LLM 自己修</strong>。</p>
     <div class="code-title">structured.py</div>
-    <pre><code><span class="k">import</span> json, jsonschema
+    <pre><code class="language-python"><span class="k">import</span> json, jsonschema
 <span class="k">from</span> functools <span class="k">import</span> lru_cache
 
 <span class="nd">@lru_cache</span>(maxsize=<span class="k">None</span>)
@@ -506,7 +510,7 @@
     <h3>模式 D · Memory Store（分层 + 容量控制）</h3>
     <p>第 29 章深入讲了记忆，这里只补一个常被忽略的工程细节：<strong>工作记忆必须显式控制容量，超出时自动「晋升」到长期记忆</strong>，否则上下文会无声地溢出。</p>
     <div class="code-title">memory_store.py</div>
-    <pre><code><span class="k">from</span> collections <span class="k">import</span> deque
+    <pre><code class="language-python"><span class="k">from</span> collections <span class="k">import</span> deque
 
 <span class="k">class</span> <span class="t">TieredMemory</span>:
     <span class="k">def</span> <span class="f">__init__</span>(self, working_capacity=<span class="n">8</span>, long_term_store=<span class="k">None</span>):
@@ -529,7 +533,7 @@
     <h3>模式 E · Tool Registry（MCP 风格的工具发现）</h3>
     <p>第 8 章的 MCP 是平台级方案，这里给一个<strong>进程内的最小实现</strong>：用装饰器自动注册、按描述做语义匹配。Agent 在每轮决定用哪个工具时，只需要一句话描述需求。</p>
     <div class="code-title">tool_registry.py</div>
-    <pre><code><span class="k">import</span> inspect
+    <pre><code class="language-python"><span class="k">import</span> inspect
 REGISTRY = []
 
 <span class="k">def</span> <span class="f">tool</span>(description):

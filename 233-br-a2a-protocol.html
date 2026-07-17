@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>A2A 协议：Agent 间通信标准 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学">
+<meta property="og:description" content="A2A 协议：Agent 间通信标准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,6 +318,19 @@
       </div>
     </section>
     <h2 class="section" id="why-a2a"><span class="idx">★</span> 为什么需要 A2A 协议</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要 A2A 协议</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>A2A 的核心概念</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Agent Card 实例解析</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>用 FastAPI 实现一个 A2A Agent</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>实现一个编排 Agent 调用多 Agent</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>任务委派的几种模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>工程考量:异步、容错、安全</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>A2A 与 MCP 的关系</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>过去一年,Agent 框架百花齐放:LangChain、AutoGen、CrewAI、LangGraph……每个框架都能搭出强大的 Agent,但它们之间是孤岛。用 LangChain 写的 Agent 很难直接调用一个用 AutoGen 写的 Agent,更不用说跨组织、跨厂商的 Agent 协作了。这就像互联网早期,每家网络用自己的协议,无法互联。</p>
     <p>A2A 协议要解决的就是这个"互联"问题。它定义了一套标准的 HTTP/JSON-RPC 接口,让任何 Agent 只要实现这套接口,就能被其他 Agent 发现和调用,无论它底层用什么框架。这带来了几个重要的能力。</p>
     <p><strong>能力组合</strong>:一个编排 Agent 可以根据任务,动态调用"代码 Agent"、"搜索 Agent"、"数据库 Agent"等专职 Agent,组合完成复杂任务,而无需把这些能力都塞进一个巨型 Agent。<strong>解耦演进</strong>:每个 Agent 可以独立开发、独立部署、独立升级,互不影响。<strong>跨框架协作</strong>:团队 A 用 LangGraph,团队 B 用 CrewAI,只要都遵循 A2A,就能无缝协作。<strong>安全边界</strong>:Agent 之间的调用是显式的网络请求,便于审计、限流、权限控制。</p>

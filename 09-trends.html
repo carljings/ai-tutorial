@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>09 · 2026 AI 趋势盘点 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="09 · 2026 AI 趋势盘点 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="09 · 2026 AI 趋势盘点 · AI 全栈实战教学">
+<meta property="og:description" content="09 · 2026 AI 趋势盘点 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -817,7 +821,7 @@
     <h2 class="section" id="tools-tracking"><span class="idx">13</span> 实战：用代码量化技术趋势</h2>
     <p>讲了一整章趋势，但「凭什么说某项技术在火」不能只凭感觉。下面两个脚本示范<strong>如何用代码量化趋势</strong>：第一个调 GitHub API 抓取项目的 star 增长曲线，第二个把多个技术按「采用度/成熟度」画成技术雷达，这是技术选型报告里最常见的可视化。</p>
     <div class="code-title">github_stars.py · 抓取项目 star 趋势</div>
-    <pre><code><span class="c">"""调 GitHub API 获取某仓库的 star 增长曲线，判断热度趋势。"""</span>
+    <pre><code class="language-python"><span class="c">"""调 GitHub API 获取某仓库的 star 增长曲线，判断热度趋势。"""</span>
 <span class="k">import</span> requests, datetime
 <span class="k">from</span> collections <span class="k">import</span> Counter
 
@@ -847,7 +851,7 @@ HEADERS = {<span class="s">"Authorization"</span>: <span class="s">f"token {TOKE
 <span class="c"># 输出近 6 月 star 曲线，若月均仍在涨说明生态在扩张，可纳入「技术雷达」</span></code></pre>
 
     <div class="code-title">tech_radar.py · 用 matplotlib 绘制技术采用雷达</div>
-    <pre><code><span class="c">"""把多项技术按 采用度(角度) × 成熟度(半径) 画成技术雷达。"""</span>
+    <pre><code class="language-python"><span class="c">"""把多项技术按 采用度(角度) × 成熟度(半径) 画成技术雷达。"""</span>
 <span class="k">import</span> numpy <span class="k">as</span> np
 <span class="k">import</span> matplotlib.pyplot <span class="k">as</span> plt
 

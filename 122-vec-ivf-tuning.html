@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IVF 调参实战：nlist 与 nprobe 的取舍 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="IVF 调参实战：nlist 与 nprobe 的取舍 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="IVF 调参实战：nlist 与 nprobe 的取舍 · AI 全栈实战教学">
+<meta property="og:description" content="IVF 调参实战：nlist 与 nprobe 的取舍 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="ivf-basics"><span class="idx">★</span> IVF 的工作原理：倒排 + 聚类</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>IVF 的工作原理：倒排 + 聚类</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>nlist 怎么选：从经验公式到实测</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>nprobe 调优：画出召回-QPS 曲线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>进阶：IVFPQ 把内存再压一个量级</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>调参避坑指南</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多阶段检索：IVF 粗筛 + 精排的工程组合</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>什么时候选 IVF 而不是 HNSW</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>FAISS IVF 的高级特性：预计算与 GPU 加速</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>IVF 的核心思想借自传统搜索引擎的倒排索引，只不过传统倒排是"词 -> 文档列表"，IVF 是"空间区域 -> 向量列表"。它分两步：</p>
     <ol>
       <li><strong>训练阶段</strong>：用 K-means 把全库向量聚成 nlist 个簇（FAISS 里叫"倒排列表"，inverted list）。每个簇有一个质心（centroid），质心是这簇向量的均值。这一步是离线的、一次性的。</li>

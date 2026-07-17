@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>投机解码：用小模型加速大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="投机解码：用小模型加速大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="投机解码：用小模型加速大模型 · AI 全栈实战教学">
+<meta property="og:description" content="投机解码：用小模型加速大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="motivation"><span class="idx">★</span> 一、为什么需要投机解码</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么需要投机解码</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、投机解码的完整流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、接受拒绝采样的数学保证</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、从零实现投机解码</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、加速效果分析</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、投机解码的变体与工程实践</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>先理解大模型推理慢在哪。Decoder-Only 模型生成时，每吐出一个 token 都要跑一次完整的前向传播，而前向里最贵的是 attention 的 KV 计算和 FFN 的矩阵乘。假设要生成 100 个 token，就要串行跑 100 次前向，延迟和 token 数严格成正比。</p>
     <p>更关键的是，现代 GPU 的并行计算能力在「只生成一个 token」时严重浪费——一次前向只算一个 query，但 attention 的 key/value 和 FFN 的矩阵都铺满了显存带宽。这就像用一辆大卡车一次只运一个快递，运力利用率极低。</p>
     <p>投机解码的核心洞察是：<strong>大模型并行处理多个 token 的成本，和处理单个 token 几乎一样</strong>。因为前向的主要开销是读取权重和 KV cache（memory-bound），多算几个 query 的增量很小。于是，如果我们能让小模型先猜出一串 token，再让大模型一次性验证这串 token，就能用「一次大模型前向」替代「多次小步前进」，把延迟大幅压缩。</p>

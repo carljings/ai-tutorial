@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Aider 的 Repo Map · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Aider 的 Repo Map · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Aider 的 Repo Map · AI 全栈实战教学">
+<meta property="og:description" content="Aider 的 Repo Map · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="problem"><span class="idx">★</span> 一、问题：大仓库塞不进 context</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、问题：大仓库塞不进 context</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、第一步：用 tree-sitter 抽取符号</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、第二步：基于引用关系建图</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、第三步：PageRank 排序选最重要的节点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、格式化与注入：压缩成几百 token</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、动态预算：根据剩余 context 调整 map 大小</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Aider 的核心场景是「帮我改这个项目里的某个功能」。要做到这点，LLM 需要知道整个项目的结构——哪些模块存在、它们之间怎么依赖、关键类和函数叫什么。最朴素的做法是把所有文件内容塞进 context，但一个中型项目（比如 Django 框架本身）就有几万个文件、几百万行代码，远超任何模型的 context window。</p>
     <p>另一种做法是只给当前文件，让 LLM 自己探索。但这要求 LLM 反复调用 read_file，每个文件都要一轮交互，效率极低，而且 LLM 不知道该读哪些文件——它可能在一个无关的目录里转半天。</p>
     <p>Aider 的洞察是：<strong>LLM 需要的不是文件内容，而是「项目里有什么」的高层视图</strong>。就像你接手一个项目时，第一件事不是读所有代码，而是看目录结构、看主要类名和函数名，建立心智模型。repo map 就是给 LLM 建立这种心智模型的「项目导航图」。</p>

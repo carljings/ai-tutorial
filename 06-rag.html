@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>06 · RAG 知识库搭建 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="06 · RAG 知识库搭建 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="06 · RAG 知识库搭建 · AI 全栈实战教学">
+<meta property="og:description" content="06 · RAG 知识库搭建 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -464,7 +468,7 @@
     </div>
 
     <div class="code-title">用 LangChain 做递归分块（最常用）</div>
-    <pre><code><span class="k">from</span> langchain_text_splitters <span class="k">import</span> RecursiveCharacterTextSplitter
+    <pre><code class="language-python"><span class="k">from</span> langchain_text_splitters <span class="k">import</span> RecursiveCharacterTextSplitter
 
 splitter = RecursiveCharacterTextSplitter(
     chunk_size=<span class="n">500</span>,            <span class="c"># 每块约 500 字符</span>
@@ -629,7 +633,7 @@ chunks = splitter.split_text(long_document)
     <p>把前面所学串起来，搭一个完整可用的文档问答系统：</p>
 
     <div class="code-title">doc_qa.py —— 一个最小但完整的 RAG（用智谱 GLM + BGE）</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 最小可用 RAG：文档问答
 依赖：pip install zhipuai langchain-community chromadb sentence-transformers
 """</span>
@@ -718,7 +722,7 @@ print(ask(<span class="s">"这个项目的部署方式是什么？"</span>))</co
     <p>第 2 节讲了分块的理念，这里把<strong>最常用的几种分块策略</strong>都用代码实现出来，让你能直观对比它们的差异。</p>
 
     <div class="code-title">chunking_strategies.py —— 八种分块策略对比</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 chunking_strategies.py —— 八种分块策略的实现与对比
 """</span>
 <span class="k">import</span> re
@@ -815,7 +819,7 @@ chunking_strategies.py —— 八种分块策略的实现与对比
     <p>把第 5 节的「向量 + BM25 混合检索 + Rerank」用代码完整实现。这是生产级 RAG 检索的核心：</p>
 
     <div class="code-title">hybrid_retrieval.py —— 混合检索 + RRF 融合 + Rerank</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 hybrid_retrieval.py —— 生产级混合检索
 向量检索（语义）+ BM25（关键词）+ RRF 融合 + Cross-Encoder Rerank
 """</span>
@@ -899,7 +903,7 @@ results = retriever.search(<span class="s">"GLM 上下文多长"</span>)
     <h2 class="section" id="late-chunking-code"><span class="idx">14</span> 代码实战：Late Chunking 实现</h2>
     <p>第 6.1 节讲的 Late Chunking，核心是「先 embedding 整文档，再切」。实现：</p>
     <div class="code-title">late_chunking.py —— 先 embedding 后切分</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 late_chunking.py —— Late Chunking 实现
 需要支持长输入的 Embedding 模型（如 BGE-m3，支持 8K token）
 """</span>
@@ -933,7 +937,7 @@ model = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
     <h2 class="section" id="agentic-rag-code"><span class="idx">15</span> 代码实战：Agentic RAG——让检索自主化</h2>
     <p>第 6.5 节的 Agentic RAG 是 2026 的主流。把 RAG 放进 Agent Loop，让智能体自主决定怎么查：</p>
     <div class="code-title">agentic_rag.py —— 智能体驱动的多轮探索式 RAG</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 agentic_rag.py —— Agentic RAG：智能体自主决定检索策略
 能：改写查询、多次检索、跨库检索、判断是否查够了
 """</span>

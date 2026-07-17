@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>73 · LLM 面试题全集 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="73 · LLM 面试题全集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="73 · LLM 面试题全集 · AI 全栈实战教学">
+<meta property="og:description" content="73 · LLM 面试题全集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -770,7 +774,7 @@
     <h3>题目：手写一个最小 RAG 检索器</h3>
     <p>这是面试出场率极高的题——考你是否真懂 embedding + 向量相似度。要求：给定一批文档和 query，返回最相关的 top-k。</p>
     <div class="code-title">mini_rag.py · 手写最小 RAG 检索</div>
-    <pre><code><span class="c">"""最小 RAG：embedding + 余弦相似度 top-k 检索，不依赖向量库。"""</span>
+    <pre><code class="language-python"><span class="c">"""最小 RAG：embedding + 余弦相似度 top-k 检索，不依赖向量库。"""</span>
 <span class="k">import</span> numpy <span class="k">as</span> np
 <span class="k">from</span> openai <span class="k">import</span> OpenAI
 
@@ -807,7 +811,7 @@ EMB_MODEL = <span class="s">"embedding-3"</span>
     <h3>系统设计题答题模板</h3>
     <p>系统设计题（如「设计一个智能客服系统」）最怕答得散。用一个<strong>固定模板</strong>能保证结构清晰、不漏关键点。下面是把模板编码成一个可复用的检查清单函数。</p>
     <div class="code-title">system_design_template.py · 系统设计答题检查清单</div>
-    <pre><code><span class="c">"""系统设计题的通用答题模板：6 步走，每步带检查点。"""</span>
+    <pre><code class="language-python"><span class="c">"""系统设计题的通用答题模板：6 步走，每步带检查点。"""</span>
 
 SYSTEM_DESIGN_TEMPLATE = {
     <span class="s">"1. 澄清需求"</span>: [

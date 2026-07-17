@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>元数据过滤：ANN 与 WHERE 子句 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="元数据过滤：ANN 与 WHERE 子句 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="元数据过滤：ANN 与 WHERE 子句 · AI 全栈实战教学">
+<meta property="og:description" content="元数据过滤：ANN 与 WHERE 子句 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="the-problem"><span class="idx">★</span> 为什么这是个难题</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么这是个难题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三种策略详解</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>FAISS IVFPQ + IDMap 实操</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>实战选型指南</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>过滤的进阶：复杂条件与多租户</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>过滤性能的量化分析与调优</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>真实业务的复杂过滤场景与方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>向量过滤的内存与索引开销分析</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>纯向量索引（HNSW/IVF）是为"在全部 N 个向量里找最近的 k 个"优化的，它<strong>不知道属性过滤的存在</strong>。当过滤条件命中率高（比如筛掉 10%），影响不大；但当过滤条件命中率很低（比如只要 2024-Q3 的数据，全库 5% 命中），问题就来了：纯向量检索返回的 top-100 里可能只有 3 个满足过滤，top-10 凑不齐。</p>
     <p>这就引出三种解决策略：<strong>先过滤后检索（pre-filter）</strong>、<strong>检索中过滤（in-filter）</strong>、<strong>检索后过滤（post-filter）</strong>。它们在召回、性能、实现复杂度上各有取舍，没有银弹。</p>
 

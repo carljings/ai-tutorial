@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ANN 基准测试：ann-benchmark 实战 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="ANN 基准测试：ann-benchmark 实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="ANN 基准测试：ann-benchmark 实战 · AI 全栈实战教学">
+<meta property="og:description" content="ANN 基准测试：ann-benchmark 实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="recall-k"><span class="idx">★</span> recall@k：最核心也最易被滥用的指标</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>recall@k：最核心也最易被滥用的指标</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ANN-benchmarks：算法层面的标杆</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>VectorDBBench：产品层面的标杆</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>标准数据集：测什么很重要</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>评测常见误区</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>自己搭一套评测流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>设计自己的 benchmark：数据集与场景设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>benchmark 的常见误读与陷阱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>recall@k 是评估 ANN 算法的基石指标。定义：对每个查询 q，先用暴力检索算出真正的 top-k（ground truth），再用 ANN 算法算出近似 top-k，recall@k = |近似 top-k ∩ 真实 top-k| / k。对一组查询取平均，就是系统的 recall@k。</p>
     <p>这个定义看似简单，实操中却有几个易被滥用的细节：</p>
     <ul>

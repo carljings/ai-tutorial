@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>02 · GLM-5.2 从 0 到 1 训练 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="02 · GLM-5.2 从 0 到 1 训练 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="02 · GLM-5.2 从 0 到 1 训练 · AI 全栈实战教学">
+<meta property="og:description" content="02 · GLM-5.2 从 0 到 1 训练 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -587,7 +591,7 @@
     <h3>SFT：监督微调</h3>
     <p>SFT（Supervised Fine-Tuning）是最直接的对齐手段。做法是构造<strong>高质量的「指令-回答」对</strong>，让模型学着模仿：</p>
     <div class="code-title">SFT 训练样本示例（JSONL 格式）</div>
-    <pre><code>{
+    <pre><code class="language-python">{
   <span class="s">"messages"</span>: [
     {<span class="s">"role"</span>: <span class="s">"system"</span>,    <span class="s">"content"</span>: <span class="s">"你是一个简洁的编程助手。"</span>},
     {<span class="s">"role"</span>: <span class="s">"user"</span>,      <span class="s">"content"</span>: <span class="s">"Python 里怎么反转字符串？"</span>},
@@ -655,7 +659,7 @@
     <p>对齐阶段用的是「单轮/多轮对话」，而智能体后训练用的是<strong>轨迹数据（Trajectories）</strong>——一条轨迹是一串「思考-行动-观察」的完整执行过程：</p>
 
     <div class="code-title">一条智能体轨迹的简化示意</div>
-    <pre><code><span class="c"># 任务：找出当前目录下最大的文件</span>
+    <pre><code class="language-python"><span class="c"># 任务：找出当前目录下最大的文件</span>
 
 [Thought]  我需要先列出所有文件及其大小，可以用 ls -la 或 du。
 [Action]   run_shell(command=<span class="s">"du -ah . | sort -rh | head -5"</span>)
@@ -863,7 +867,7 @@
     <p>讲了这么多原理，不如亲手训一个。下面是一个<strong>真正能在 CPU 上跑起来的最小 GPT</strong>——它有 Tokenizer、Embedding、Self-Attention、训练循环。虽然只有几万参数，但骨架和 GLM-5.2 完全一致。理解它，就理解了大模型训练的「最小内核」。</p>
 
     <div class="code-title">mini_gpt.py —— 一个能在 CPU 上训练的最小 GPT（PyTorch）</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 mini_gpt.py —— 最小可训练 GPT
 理解这个文件 = 理解大模型训练的最小内核
 依赖：pip install torch
@@ -993,7 +997,7 @@ data = torch.randint(<span class="n">0</span>, VOCAB, (<span class="n">1000</spa
     <p>第 8 节讲了合成数据的理念，这里给一个<strong>可运行的合成数据生成 + 质量过滤流水线</strong>，用于训练一个「会解数学题」的模型：</p>
 
     <div class="code-title">synthetic_data.py —— 合成数据生成与过滤流水线</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 synthetic_data.py —— 用强模型生成数学题解法，再用验证器过滤
 这是 RLVR / 自我提升飞轮的最小实现
 """</span>
@@ -1176,7 +1180,7 @@ data = self_improve_loop(problems, rounds=<span class="n">2</span>)
     <p>训练大模型时，工程师盯着一系列指标看。读懂它们，就读懂了训练的「健康状态」：</p>
 
     <div class="code-title">一份典型的预训练日志（简化）</div>
-    <pre><code>step  1000  loss 3.214  grad_norm 0.82  lr 3.0e-4  tokens/sec 125k  mem 78%
+    <pre><code class="language-python">step  1000  loss 3.214  grad_norm 0.82  lr 3.0e-4  tokens/sec 125k  mem 78%
 step  2000  loss 2.856  grad_norm 0.91  lr 3.0e-4  tokens/sec 124k  mem 78%
 step  3000  loss 2.634  grad_norm 1.12  lr 2.9e-4  tokens/sec 126k  mem 78%
 step  3100  loss 4.201  grad_norm 8.74  lr 2.9e-4  tokens/sec  88k  mem 82%  ⚠️ spike!

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>GraphRAG：知识图谱增强检索 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="GraphRAG：知识图谱增强检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="GraphRAG：知识图谱增强检索 · AI 全栈实战教学">
+<meta property="og:description" content="GraphRAG：知识图谱增强检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="limit-of-vector"><span class="idx">★</span> 向量 RAG 的全局理解短板</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>向量 RAG 的全局理解短板</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第一步：用 LLM 从文本抽取知识图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第二步：社区检测 + 分层摘要</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第三步：两种查询模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>微软 GraphRAG 的工程架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>什么时候用 GraphRAG</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>GraphRAG 的成本控制与增量更新</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>GraphRAG vs 向量 RAG vs 混合架构的决策</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>考虑一个查询："总结这份 500 页财报里公司的主要战略主题。" 向量 RAG 的做法是 embed 这个查询，召回最相似的若干段落，拼给 LLM。问题在于：</p>
     <ul>
       <li>"主要主题"是<strong>全局性</strong>信息，分散在整份文档的几百个段落里，召回 top-10 远不能覆盖。</li>

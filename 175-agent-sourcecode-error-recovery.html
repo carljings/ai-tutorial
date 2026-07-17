@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：错误恢复 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="源码级启示：错误恢复 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="源码级启示：错误恢复 · AI 全栈实战教学">
+<meta property="og:description" content="源码级启示：错误恢复 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,17 @@
     </section>
 
     <h2 class="section" id="retry"><span class="idx">★</span> 一、重试：不是简单地再来一次</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、重试：不是简单地再来一次</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、死循环检测：Agent 最怕的故障</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Fallback Chain：一种不行换另一种</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、超时的恢复策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、熔断：连续失败时停下来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>最朴素的错误恢复是重试——失败了再来一次。但「再来一次」如果完全不改变输入，大概率还是失败（爱因斯坦对疯狂的定义：做同样的事期待不同结果）。有效的重试必须 <strong>改变某些条件</strong>。</p>
     <p>对 Agent 来说，重试通常不是代码层面的自动重试（那是 API client 的活，如 axios-retry），而是 <strong>把错误反馈给 LLM，让它在下一轮自己修正</strong>。这是 Agent 比传统软件更灵活的地方——传统软件遇到错误只能按预设逻辑处理，Agent 能理解错误并创造性应对。</p>
     <pre><code class="language-typescript">// Agent 层面的重试（反馈给 LLM）

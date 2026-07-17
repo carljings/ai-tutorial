@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>IVF 倒排索引：用聚类加速检索 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="IVF 倒排索引：用聚类加速检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="IVF 倒排索引：用聚类加速检索 · AI 全栈实战教学">
+<meta property="og:description" content="IVF 倒排索引：用聚类加速检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -622,6 +626,19 @@
 
 
     <h2><span class="idx"></span>IVF 参数选择公式</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>IVF 参数选择公式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>IVF 聚类可视化与 nprobe 实验</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>暴力扫描的天花板在哪里</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>IVF 的核心思想：聚类倒排</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>nlist 与 nprobe：召回率与速度的旋钮</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>FAISS IVFFlat 完整实操代码</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>训练聚类中心的工程细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>生产环境的取舍：IVF vs HNSW vs IVFPQ</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>IVF 的 nlist 和 nprobe 不是拍脑袋定的，有经验公式。下面把这套公式编码，给定数据规模自动推荐参数，省去手动试错。</p>
 <pre class="code"><code class="language-python"># IVF 参数推荐: 基于经验公式
 import math

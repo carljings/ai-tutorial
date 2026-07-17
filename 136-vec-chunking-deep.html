@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>分块进阶：表格、代码、长文档 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="分块进阶：表格、代码、长文档 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="分块进阶：表格、代码、长文档 · AI 全栈实战教学">
+<meta property="og:description" content="分块进阶：表格、代码、长文档 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="the-problem"><span class="idx">★</span> 分块的根本病：上下文剥离</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>分块的根本病：上下文剥离</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Late Chunking：先 embed 整篇，再切</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Contextual Retrieval：用 LLM 给每块加上下文</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>parent-child 分块：召回小块，返回大块</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三种方案对比与选型</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Contextual Retrieval 的成本控制实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Late Chunking 的工程落地细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>上下文增强方法的组合与选型矩阵</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统的分块流程是"先切再 embed"：把文档切成块，每个块独立送进 embedding 模型。问题在于，embedding 模型是 transformer，它的力量来自 self-attention——句子的每个 token 通过 attention 互相参照来生成表示。当你把一个孤立的块喂进去，它<strong>只能看到块内的 token</strong>，看不到这个块在原文档里的位置、所属章节、上文提到的主语。</p>
     <p>举个例子，一篇财报里有这么一段：</p>
     <pre><code class="language-text">Acme Corp 2024 年 Q3 财报显示，公司营收同比增长 20%，达到 50 亿美元。

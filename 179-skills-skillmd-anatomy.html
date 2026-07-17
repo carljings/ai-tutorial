@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学">
+<meta property="og:description" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -310,6 +314,18 @@
     <p class="lead">SKILL.md 的解剖</p>
     <div class="meta"><span class="chip">Skills 技能体系</span><span class="chip">源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
     <h2><span class="idx"></span>SKILL.md 是什么：技能的入口契约</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>SKILL.md 是什么：技能的入口契约</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>正文的分层结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>技能文件夹的完整结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>完整 SKILL.md 模板：拿来即用的标准结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>frontmatter 字段详解：每个字段的作用</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>渐进式披露三层：省 token 的精妙设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在 Claude、ZCode、以及任何支持 Skills 的 agent 里，一个"技能"本质上是一个文件夹，里面装着指令、模板、参考文件。而这个文件夹的灵魂是一个叫 SKILL.md 的文件——它是 agent 认识这个技能的唯一入口。agent 启动时不会把整个技能文件夹塞进上下文（那样太占 token），而是只读每个 SKILL.md 的头部元信息（name + description），等真正需要用这个技能时才加载完整内容。这就是"渐进式披露"（progressive disclosure）的第一层。</p>
     <p>可以把 SKILL.md 理解成"技能的名片 + 使用说明书"。名片部分（YAML frontmatter）告诉 agent"我叫什么、我擅长什么"，让 agent 在遇到相关任务时能想起我；说明书部分（正文）告诉 agent"具体该怎么做"。前者必须精简（占用最少 token），后者可以详尽（只在需要时加载）。</p>
     <h3>YAML frontmatter：技能的元信息</h3>

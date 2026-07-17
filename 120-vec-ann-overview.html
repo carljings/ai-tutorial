@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ANN 概览：为什么不能用暴力 kNN · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="ANN 概览：为什么不能用暴力 kNN · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="ANN 概览：为什么不能用暴力 kNN · AI 全栈实战教学">
+<meta property="og:description" content="ANN 概览：为什么不能用暴力 kNN · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-ann"><span class="idx">★</span> 为什么需要 ANN：暴力检索的天花板</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要 ANN：暴力检索的天花板</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>维度灾难：为什么朴素方法在高维失效</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四大流派：树、图、量化、哈希</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>一张表搞定选型</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>召回-QPS 曲线：唯一诚实的评价标准</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>距离度量的选择：L2、IP 还是 cosine</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>别只信榜单：自建 benchmark 的标准动作</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>所谓最近邻检索（Nearest Neighbor, NN），就是给定一个查询向量 q，在数据库 N 个向量里找出"最相似"的那一个或 k 个。"相似"通常用距离来度量——欧氏距离（L2）、内积（IP）或余弦距离（cosine）。这三者在向量归一化后等价，工程实现里经常互换。</p>
     <p>最直觉的做法就是暴力检索（Brute Force / Flat）：把 q 和库里每个向量都算一次距离，然后排序取 top-k。它的复杂度是 O(N·d)，其中 d 是向量维度。这种做法准确率是 100%（它就是 ground truth 的定义），而且实现只有三行代码，但它有一个致命弱点：<strong>它的延迟和库大小成正比</strong>。</p>
     <p>做一个简单的算术题。假设你有 1 亿条 768 维的向量（一个中等规模的 embedding 库），用 float32 存储，单次暴力检索要做 1 亿次 768 维的点积。单次 768 维点积在现代 CPU 上（AVX2/AVX-512）大约 0.1-0.5 微秒，所以单次查询要 10-50 秒。即便用上 GPU 批处理、SIMD 向量化、内存对齐优化，单机单线程也至少几百毫秒到秒级。而在真实的搜索/RAG 场景里，用户对延迟的容忍度通常在 50ms 以内——差了一个数量级。</p>

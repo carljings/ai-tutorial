@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>31 · 联邦学习与隐私计算 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="31 · 联邦学习与隐私计算 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="31 · 联邦学习与隐私计算 · AI 全栈实战教学">
+<meta property="og:description" content="31 · 联邦学习与隐私计算 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,17 @@
     </section>
 
     <h2 class="section" id="intro"><span class="idx">★</span> 数据孤岛与隐私悖论</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>数据孤岛与隐私悖论</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>FedAvg 算法：联邦学习的基石</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>梯度隐私攻击：令人不寒而栗的真相</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>差分隐私：用噪声换取数学证明的安全</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>安全聚合：多方计算的加密盾牌</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>AI 的发展受限于三个字：数据、数据、数据。但现实世界中，最有价值的数据恰恰是被法律和商业逻辑锁死的：医疗机构的电子病历受 HIPAA 保护，银行的风控数据受银监监管，个人手机数据受 GDPR 约束。这些数据分散在无数"孤岛"中，无法集中训练。让所有医院把数据传到一个中心服务器？法律不允许。各自训练再拼模型？精度远不如联合训练。</p>
     <p>2016 年，Google 在手机输入法 Gboard 上首创了联邦学习（Federated Learning）——手机本地训练模型，只把"模型更新"（梯度）上传到云端聚合，原始数据永远不离开设备。这个思路看似完美：数据隐私保住了，模型也能从百万设备的多样性中学习。但很快，研究人员发现了一个可怕的漏洞：梯度本身可能泄露原始数据。于是，一场围绕"梯度隐私"的攻防战开始了。</p>
 

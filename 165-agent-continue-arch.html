@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Continue 的 IDE 架构 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Continue 的 IDE 架构 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Continue 的 IDE 架构 · AI 全栈实战教学">
+<meta property="og:description" content="Continue 的 IDE 架构 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="two-modes"><span class="idx">★</span> 一、两种模式，两种约束</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、两种模式，两种约束</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、core 与 extension 的分层</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、config.json：Continue 的配置中心</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、autocomplete 的极速流水线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、debounce 与触发时机</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、chat 模式的上下文与工具</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、WebView：chat 界面的渲染</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Continue 同时服务两个场景，而它们对系统的约束几乎相反：</p>
     <ul>
       <li><strong>Autocomplete</strong>：用户每敲几个字符就触发，要求 <strong>亚秒级响应</strong>（&gt;500ms 就觉得卡）。只能用极小的本地模型或专门的 fill-in-the-middle 模型。上下文只有当前文件附近几行。不能打扰用户，补全结果直接显示在光标处，用户按 Tab 接受或继续打字忽略。</li>

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：流式输出处理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="源码级启示：流式输出处理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="源码级启示：流式输出处理 · AI 全栈实战教学">
+<meta property="og:description" content="源码级启示：流式输出处理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-stream"><span class="idx">★</span> 一、为什么必须流式：延迟心理学</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么必须流式：延迟心理学</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、SSE：服务端推送的标准协议</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、客户端渲染：从 SSE 到屏幕</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Markdown 流式渲染的难题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、中断处理：优雅地停下来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、背压：客户端消化不及怎么办</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>从纯技术角度看，流式和非流式（一次性返回）的总体延迟差不多——模型生成完所有 token 的时间是固定的。但用户体验差异巨大，这背后是 <strong>延迟心理学</strong>。</p>
     <p>研究表明，用户对「立即开始有反馈」的容忍度，远高于「等待完整结果」。具体来说：</p>
     <ul>

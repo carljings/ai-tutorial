@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>50 · LLM 术语表与速查手册 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学">
+<meta property="og:description" content="50 · LLM 术语表与速查手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -470,7 +474,7 @@
 
     <h3>Token 与 BPE：文本如何变成数字</h3>
     <p>BPE（Byte-Pair Encoding）做的事就是把一段文本切成子词，再映射成整数 id。这是所有大模型输入的起点。</p>
-    <pre><code><span class="k">from</span> transformers <span class="k">import</span> AutoTokenizer
+    <pre><code class="language-python"><span class="k">from</span> transformers <span class="k">import</span> AutoTokenizer
 
 tok = AutoTokenizer.from_pretrained(<span class="s">"THUDM/glm-4-9b"</span>)
 ids = tok(<span class="s">"多模态大模型"</span>)[<span class="s">"input_ids"</span>]        <span class="c"># [151331, 36489, 102123, 99489]</span>
@@ -479,7 +483,7 @@ print(ids, <span class="s">"→"</span>, tok.convert_ids_to_tokens(ids))
 
     <h3>Embedding：把整数 id 映射成稠密向量</h3>
     <p>Embedding 本质就是一张「查表」——用 token id 当行号，从权重矩阵里取出一行。用 numpy 三行就能模拟：</p>
-    <pre><code><span class="k">import</span> numpy <span class="k">as</span> np
+    <pre><code class="language-python"><span class="k">import</span> numpy <span class="k">as</span> np
 
 vocab_size, dim = 32000, 4096
 W = np.random.randn(vocab_size, dim).astype(np.float32) * 0.02   <span class="c"># 嵌入矩阵</span>
@@ -489,7 +493,7 @@ embedding = W[token_ids]           <span class="c"># shape=(2, 4096)，这就是
 
     <h3>Self-Attention：Q/K/V 的五行实现</h3>
     <p>整个 Transformer 的灵魂就是注意力。剥掉所有工程细节，核心公式只有一句：<code>scores = softmax(Q·Kᵀ/√d) · V</code>。</p>
-    <pre><code><span class="k">import</span> torch, torch.nn.functional <span class="k">as</span> F
+    <pre><code class="language-python"><span class="k">import</span> torch, torch.nn.functional <span class="k">as</span> F
 
 <span class="k">def</span> attention(Q, K, V):                       <span class="c"># Q,K,V: (seq, d)</span>
     d = Q.shape[-1]
@@ -507,7 +511,7 @@ embedding = W[token_ids]           <span class="c"># shape=(2, 4096)，这就是
 
     <h3>Cross-Entropy：语言模型的损失函数</h3>
     <p>语言模型的训练目标极简——预测下一个 token。损失就是预测分布和真实 token 的 one-hot 分布的交叉熵：</p>
-    <pre><code><span class="c"># logits: 模型对每个候选 token 的打分 (vocab_size,)</span>
+    <pre><code class="language-python"><span class="c"># logits: 模型对每个候选 token 的打分 (vocab_size,)</span>
 <span class="c"># target: 真实的下一个 token id</span>
 loss = F.cross_entropy(logits.unsqueeze(0), torch.tensor([target]))
 <span class="c"># 等价于 -log(logits[target] 经 softmax 后的概率)</span>
@@ -518,7 +522,7 @@ loss = F.cross_entropy(logits.unsqueeze(0), torch.tensor([target]))
 
     <h3>RAG：检索增强生成</h3>
     <p>RAG 的核心是「先检索、再生成」。它解决的是大模型知识过期、幻觉、私有数据不知道的问题。术语表里一连串的 Embedding / Vector DB / HNSW / Rerank / RRF 都是为这条链路服务的：</p>
-    <pre><code><span class="c"># RAG 的三步骨架</span>
+    <pre><code class="language-python"><span class="c"># RAG 的三步骨架</span>
 query_vec = embed(question)                 <span class="c"># 1. 问题转向量</span>
 chunks = vector_db.search(query_vec, k=5)   <span class="c"># 2. 向量库召回 top-5 片段</span>
 chunks = rerank(question, chunks)           <span class="c"># 3. Cross-Encoder 精排（可选）</span>

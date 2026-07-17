@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>典型采样与 mirostat：动态截断 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学">
+<meta property="og:description" content="典型采样与 mirostat：动态截断 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="recap"><span class="idx">★</span> 一、为什么需要更多采样方法</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么需要更多采样方法</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Min-p：相对阈值过滤</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Typical Sampling：信息论视角的采样</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Mirostat：恒定熵的「恒温器」</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、五种方法的横向大对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、选型指南：什么场景用什么采样</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>复习一下：top-k 固定取概率最高的 k 个词，top-p 按累积概率截断。它们已经是工业界的主力，但仍有盲区。top-k 在分布尖锐时会引入多余噪声，top-p 在分布平坦时候选集又会过宽。更微妙的是，它们都只关注「概率绝对值」，忽略了分布的整体形状（信息熵），导致在某些场景下生成质量不稳定。</p>
     <p>后续的研究者从不同角度提出了新的采样方法：Min-p 关注「相对显著性」，Typical Sampling 关注「信息熵的期望」，Mirostat 则把目标锁定在「保持固定的困惑度」。每一种都在解决前一种留下的某个痛点。理解它们的思路，你才能在面对具体任务时做出最优选择。</p>
 

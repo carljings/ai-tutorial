@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>STORM：多视角提问的研究 agent · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="STORM：多视角提问的研究 agent · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="STORM：多视角提问的研究 agent · AI 全栈实战教学">
+<meta property="og:description" content="STORM：多视角提问的研究 agent · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="writing-challenge"><span class="idx">★</span> 长文写作的真正难点</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>长文写作的真正难点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>STORM 的四阶段流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>核心创新:多视角模拟对话</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>大纲驱动:结构决定深度</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>分章节生成与全局润色</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>STORM 带来的设计启示</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>复现 STORM 的简化实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>效果评估与局限</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>让大模型写一段营销文案,它已经做得很好。但让它写一篇维基百科式的、有深度的长文,效果往往令人失望——内容空泛、视角单一、缺乏权威引用、还容易编造。要理解 STORM 为什么有效,先要理解长文写作到底难在哪。</p>
     <p>第一个难点是<strong>视角多样性</strong>。一篇好的百科条目,要从多个角度展开:历史背景、技术原理、社会影响、不同流派的观点。而直接让 LLM"写一篇关于 X 的文章",它倾向于从一个"平均视角"铺陈,内容扁平。人类编辑会刻意地问自己:"从历史学家的视角该写什么?从批评者的视角呢?"——这种多视角提问是深度的来源。</p>
     <p>第二个难点是<strong>信息充分性</strong>。长文需要大量事实和细节支撑,直接基于 LLM 的参数知识写,难免挂一漏万或编造。必须先做充分的调研,收集可靠来源,再基于这些来源写作。这本质上是一个"研究 + 写作"的复合任务。</p>

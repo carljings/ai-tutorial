@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ADC 与对称距离计算 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="ADC 与对称距离计算 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="ADC 与对称距离计算 · AI 全栈实战教学">
+<meta property="og:description" content="ADC 与对称距离计算 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="pq-intuition"><span class="idx">★</span> PQ 的核心思想：分而治之的码本</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>PQ 的核心思想：分而治之的码本</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SDT vs ADC：两种距离计算方式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>IVF + PQ：工业级的标准组合</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>PQ 训练的工程细节与坑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>PQ 在实际系统里的应用模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>PQ 的常见疑问与误区澄清</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>标量量化的补充：从 PQ 到 SQ8</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>量化（quantization）的本质是把一个连续空间离散化：把无穷多个可能的向量映射到有限个"代表向量"（码字）上，存储时只存代表向量的编号。最朴素的量化是 K-means：把整个 768 维空间聚成 K 个簇，存簇心编号。问题在于 K 要大到覆盖所有细节，比如 K=2^16=65536 时，每个码字仍是 768 维 float32，光码本就要 65536×768×4 = 192MB，且 65536 个簇心对 768 维空间只是杯水车薪，量化误差巨大。</p>
     <p>PQ 的巧思是<strong>分而治之</strong>：把 d 维向量切成 m 段，每段 d/m 维，对每段独立做 K-means 量化。假设每段聚成 256 个簇心（用 1 字节即 8 比特编码，记作 nbits=8），那么一个向量编码成 m 字节，每段一个簇心编号。整个码本是 m 个独立的子码本，每个子码本 256 个簇心。</p>
     <p>关键的数学魔法在于<strong>组合爆炸</strong>：m=8、每段 256 个簇心，看起来只有 8×256=2048 个子簇心，但它们能组合出 256^8 = 2^64 ≈ 1.8×10^19 个不同的"等效全向量"。也就是说，PQ 用 2048 个子码字，等价表达了 10^19 量级的码本——这正是它能兼顾低存储和高表达力的原因。</p>

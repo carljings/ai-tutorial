@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAG 评估：RAGAS 与忠实度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="RAG 评估：RAGAS 与忠实度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="RAG 评估：RAGAS 与忠实度 · AI 全栈实战教学">
+<meta property="og:description" content="RAG 评估：RAGAS 与忠实度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-eval"><span class="idx">★</span> 为什么需要自动评估</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要自动评估</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAGAS 的四个核心指标</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAGAS 代码实操</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>评估驱动的调优工作流</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>构建好的评估集：成功的一半</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAGAS 之外：更多评估维度</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LLM-as-Judge 的可靠性与校准</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>评估驱动的 RAG 迭代工作流实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>RAG 系统调优是个高频迭代的过程：换了 embedding 模型、加了 rerank、改了 chunk_size、调了 prompt，每改一处都要回答"效果变好还是变差"。靠人工看几十个 case 既慢又不稳定，容易陷入"我觉得好了"的自欺。自动化评估的目标是给每次改动一个可比较的数字，让调优从"凭感觉"变成"凭数据"。</p>
     <p>评估 RAG 的难点在于它有两段——检索和生成——出问题可能出在任一段。如果只看"答案对不对"，你分不清是检索没召回（应该改检索）还是召回了但 LLM 没用好（应该改 prompt 或换模型）。RAGAS 的贡献就是把这两段拆开，分别给指标。</p>
 

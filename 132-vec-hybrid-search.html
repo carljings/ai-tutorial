@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>混合检索：BM25 + 向量的正确姿势 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="混合检索：BM25 + 向量的正确姿势 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="混合检索：BM25 + 向量的正确姿势 · AI 全栈实战教学">
+<meta property="og:description" content="混合检索：BM25 + 向量的正确姿势 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-hybrid"><span class="idx">★</span> 为什么需要混合：两种检索的互补盲区</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要混合：两种检索的互补盲区</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RRF 融合：用排名而非分数</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Elasticsearch 混合检索实操</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>进阶：加权融合与多路扩展</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>混合检索的进阶：多路融合与权重学习</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>混合检索的部署与延迟控制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>混合检索的真实落地：Elasticsearch 与 Milvus 对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>混合检索的权重调优与离线/在线策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>纯向量检索的盲区在于<strong>精确词形</strong>。用户搜"GPT-4o"，embedding 可能把"GPT-4"、"GPT4o"、"GPT 4 o"都映射到相近向量，返回一堆"差不多的"结果，但用户要的就是那个精确型号——这种"精确 ID/型号/专有名词/错误码"的查询，向量检索容易失焦。</p>
     <p>纯 BM25 的盲区在于<strong>语义</strong>。用户问"怎么解决内存泄漏"，文档里写的是"OutOfMemoryError 怎么排查"，BM25 因为词不重叠而召回失败，但向量检索能抓住语义。</p>
     <p>真实查询往往同时有这两种诉求。所以混合检索的思路是：<strong>两路并行召回，结果融合取长补短</strong>。BM25 保证精确词形命中的结果不被埋没，向量保证语义相近的结果能进来。</p>

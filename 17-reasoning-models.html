@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>17 · 推理模型深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="17 · 推理模型深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="17 · 推理模型深度 · AI 全栈实战教学">
+<meta property="og:description" content="17 · 推理模型深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -724,7 +728,7 @@ for pred, gold in cases:
     <p><strong>Chain-of-Thought（CoT，思维链）</strong>是一切的起点。2022 年 Google 发现：在 prompt 里加一句「Let's think step by step」（让我们一步步思考），模型就会生成中间推理步骤，准确率大幅提升。</p>
 
     <div class="code-title">CoT 的效果对比</div>
-    <pre><code><span class="c"># 不用 CoT（直接答）</span>
+    <pre><code class="language-python"><span class="c"># 不用 CoT（直接答）</span>
 问：一个商店有 23 个苹果，卖了 17 个，又进了 12 个，现在有几个？
 答：18 个。  <span class="c"># ❌ 错误！正确是 18... 凑巧对了，换题就错</span>
 
@@ -845,7 +849,7 @@ for pred, gold in cases:
 
     <h2 class="section" id="code"><span class="idx">05</span> 代码实战：调用推理模型</h2>
     <div class="code-title">reasoning_demo.py —— 调用推理模型并观察思维链</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 reasoning_demo.py —— 调用推理模型，观察其思维链
 """</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>知识图谱与 LLM · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="知识图谱与 LLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="知识图谱与 LLM · AI 全栈实战教学">
+<meta property="og:description" content="知识图谱与 LLM · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-graph"><span class="idx">★</span> 一、纯向量检索的局限</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、纯向量检索的局限</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、知识图谱的基本概念</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、知识图谱的构建流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Neo4j 实操：图数据库入门</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、GraphRAG：微软的前沿方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、混合检索：向量 + 图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、什么场景该用知识图谱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>向量检索（RAG 的基础）的核心逻辑是「语义相似」——把文本编码成向量，用余弦相似度找最相关的片段。这对「找相关内容」很有效，但对「找关系」很无力。</p>
     <p>举一个真实场景：用户问「和特斯拉在同一个供应链里的公司有哪些」。纯向量检索会找和「特斯拉供应链」语义相近的文本片段，但它不理解「供应链」是一种关系，也不知道哪些公司通过哪些零部件和特斯拉关联。这种多跳关系推理，正是知识图谱的强项。</p>
     <pre><code class="language-python"># 向量检索 vs 图谱检索的差异

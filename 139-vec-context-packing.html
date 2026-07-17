@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>上下文组装：Lost in the Middle · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="上下文组装：Lost in the Middle · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="上下文组装：Lost in the Middle · AI 全栈实战教学">
+<meta property="og:description" content="上下文组装：Lost in the Middle · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="litm"><span class="idx">★</span> Lost in the Middle：LLM 的注意力 U 型曲线</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>Lost in the Middle：LLM 的注意力 U 型曲线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三种重排序打包策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>上下文窗口利用率</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>进阶：上下文压缩与引用标注</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>上下文工程：从打包到提示词设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>上下文不足时的兜底策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>流式生成与上下文的动态管理</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>上下文中的引用与可追溯性</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>《Lost in the Middle: How Language Models Use Long Contexts》这篇论文做了一个简洁有力的实验：给 LLM 一份长文档，在里面某个位置插入一个关键事实，然后问一个必须依赖这个事实才能回答的问题。结果发现：<strong>LLM 的回答准确率随关键事实所在位置呈 U 型曲线</strong>——在文档开头和结尾时准确率高（70-80%），在中间时显著下降（30-40%）。</p>
     <p>原因在于 transformer 的注意力机制（虽然长上下文模型用了 RoPE、滑动窗口等优化，但本质问题仍在）：每个 token 对其他 token 的注意力在长上下文里被稀释，中间位置的 token 既不被"开头强注意力"也不被"结尾近因效应"覆盖，容易被忽略。</p>
     <p>这对 RAG 的直接影响是：<strong>你精心检索回来的 top-10 文档，如果按检索分数降序塞进 prompt，排在第 4-7 位的文档（中间位置）很可能被 LLM 忽略</strong>。而很多时候最相关的文档恰好在中间——这就解释了为什么有时明明检索到了正确文档，LLM 还是答错。</p>

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Continue 的代码库索引 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Continue 的代码库索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Continue 的代码库索引 · AI 全栈实战教学">
+<meta property="og:description" content="Continue 的代码库索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-hybrid"><span class="idx">★</span> 一、为什么纯向量检索对代码不够好</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么纯向量检索对代码不够好</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、分块策略：代码不能按字数切</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、向量索引：embedding 与存储</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、tf-idf 索引：关键词精确匹配</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、混合检索的合并策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、增量更新：文件改了不用全量重建</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>向量检索（embedding + cosine similarity）是 RAG 的主流方案：把文档切成块，每块算 embedding 存进向量数据库，查询时算 query 的 embedding，找最相似的块。这对自然语言文档效果很好，但对代码有个先天弱点。</p>
     <p>代码里大量信息是 <strong>精确的标识符</strong>——类名、函数名、变量名。如果用户问「AuthService 在哪里被调用」，最相关的是包含字面量 "AuthService" 的代码。但向量检索把 "AuthService" 变成一个向量后，可能和 "LoginService"、"UserService" 这些语义相近但字面不同的代码相似度更高——这恰恰是错的，用户要的是字面匹配。</p>
     <p>纯关键词检索（tf-idf/BM25）则相反：它精确匹配字面量，"AuthService" 只匹配 "AuthService"。但它不懂语义——用户问「登录相关代码」，关键词检索找不到不含「登录」二字但实际是 login 函数的代码。</p>

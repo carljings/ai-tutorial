@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>渐进式披露：技能如何省着用上下文 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学">
+<meta property="og:description" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -353,7 +357,7 @@ class SkillRegistry:
     <h2><span class="idx"></span>三层模型的完整实现：带预算与淘汰</h2>
     <p>上面的伪代码只演示了「能读」，没有解决两个生产级问题：<strong>第三层内容加载后什么时候移除</strong>（否则上下文会被细节文件一点点塞满），以及<strong>单次加载的 token 上限</strong>（防止一个超大模板直接吃光预算）。下面这份实现加入了 token 预算管理和 LRU 淘汰，对应了真正的「虚拟内存换页」。</p>
     <div class="code-title">progressive_registry.py —— 带 LRU 与预算的三层加载器</div>
-    <pre><code><span class="k">import</span> os, time, hashlib
+    <pre><code class="language-python"><span class="k">import</span> os, time, hashlib
 <span class="k">from</span> collections <span class="k">import</span> OrderedDict
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 
@@ -432,7 +436,7 @@ class SkillRegistry:
     </table>
     <p>工具结果是最大的「吞 token 怪兽」——一次 <code>read_file</code> 读一个大文件就能吃掉几万 token。下面这个守卫函数在每个工具返回前主动截断，是生产里几乎必须有的：</p>
     <div class="code-title">token_budget.py —— 工具结果的预算守卫</div>
-    <pre><code><span class="k">class</span> <span class="t">TokenBudget</span>:
+    <pre><code class="language-python"><span class="k">class</span> <span class="t">TokenBudget</span>:
     <span class="k">def</span> <span class="f">__init__</span>(self, total=<span class="n">128000</span>, reserve_reply=<span class="n">23000</span>):
         self.total = total
         self.reserve_reply = reserve_reply

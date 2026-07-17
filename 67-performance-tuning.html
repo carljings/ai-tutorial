@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 性能调优手册 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLM 性能调优手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLM 性能调优手册 · AI 全栈实战教学">
+<meta property="og:description" content="LLM 性能调优手册 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="three-dimensions"><span class="idx">★</span> 一、理解三个维度的权衡</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、理解三个维度的权衡</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、延迟优化：让用户尽快看到输出</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、吞吐优化：榨干 GPU 的每一滴算力</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、成本优化：让每一分算力都花在刀刃上</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、量化对比：INT4 到底香不香</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、Continuous Batching：吞吐优化的核心</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、Speculative Decoding：延迟优化的新武器</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>八、智能路由：分级处理</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>LLM 推理优化有三个核心维度，它们之间是互相制约的：</p>
     <ul>
       <li><strong>延迟（Latency）</strong>：首 token 延迟（TTFT）和每 token 延迟（TPOT）。决定用户体验，越低越好。</li>

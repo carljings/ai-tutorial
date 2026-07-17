@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>扩散模型与图像生成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="扩散模型与图像生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="扩散模型与图像生成 · AI 全栈实战教学">
+<meta property="og:description" content="扩散模型与图像生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>CFG 引导与 DDIM 加速</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>CFG 引导与 DDIM 加速</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>DDPM 反向去噪采样循环详解</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>为什么扩散模型改变了世界</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>前向过程：给图像加噪的数学之美</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>反向过程：学习从噪声中重建图像</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Stable Diffusion：潜空间扩散的革命</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>5 行代码生成你的第一张图</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p> diffusion 生成质量提升的两个核心技巧：CFG（Classifier-Free Guidance）用引导强度控制'多听 prompt'，DDIM 用确定性跳步采样把步数从 50 降到 20。理解它们，你就能在质量和速度间精准调权。</p>
 <pre class="code"><code class="language-python"># Classifier-Free Guidance: 混合条件/无条件预测
 import torch

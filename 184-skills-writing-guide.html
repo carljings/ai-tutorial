@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学">
+<meta property="og:description" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -684,7 +688,7 @@ description: &gt;
     <h2><span class="idx"></span>完整 SKILL.md 实战：commit-message 技能</h2>
     <p>前面的代码审查技能介绍了结构，但缺少一份<strong>能直接拷贝就用的完整 SKILL.md</strong>。下面是一个更小但更完整的例子——「生成团队规范 commit message」技能。它的好处是行为足够简单（输入 diff，输出一行 message），适合用来验证 SKILL.md 的每一部分是否真的被 agent 正确读取。</p>
     <div class="code-title">commit-message/SKILL.md —— 可直接使用的完整技能</div>
-    <pre><code>---
+    <pre><code class="language-python">---
 name: commit-message
 description: &gt;
   根据代码 diff 生成符合团队规范的 Git commit message。
@@ -738,7 +742,7 @@ description: &gt;
     </table>
     <p>调试时有一招特别好用：<strong>让 agent 自己解释它读了什么</strong>。在测试模式下，加一句「在执行前，先复述你从 SKILL.md 读到的三条最重要的规则」。如果它复述不出来，说明那条规则被 agent 的注意力机制忽略了，必须改写法或挪位置。</p>
     <div class="code-title">skill_debug.py —— 自动化回归测试脚本</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 skill_debug.py —— 给技能建一个回归测试集
 每个 case = (用户输入, 期望触发的技能名, 至少应包含的关键词)
 """</span>

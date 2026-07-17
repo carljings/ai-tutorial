@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学">
+<meta property="og:description" content="Codex 沙箱：Linux Landlock + seccomp · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="what-is-landlock"><span class="idx">★</span> 一、Landlock 的设计哲学：程序化而非声明式</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Landlock 的设计哲学：程序化而非声明式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Landlock 的核心 syscall 流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Codex 在 Rust 里如何调用 Landlock</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、内核版本检测与降级</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、与 Seatbelt 的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、网络隔离的补足：unshare + seccomp</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Landlock 的设计哲学和 Seatbelt 截然不同。Seatbelt 是声明式的——你写一份 profile 文件，用一种专门的 DSL 描述规则，然后由 sandbox-exec 解析执行。Landlock 是程序化的——你直接在代码里调用 syscall，用 C/Rust 的 API 一条条加规则。</p>
     <p>这种差异有几个深层原因。第一，Linux 内核社区更偏爱「程序化、可组合」的接口（看 io_uring、eBPF 的设计），而非引入新的 DSL。第二，Landlock 的规则是 <strong>绑定到进程的</strong>——你的程序自己创建 ruleset，然后把自己关进去，不需要外部 daemon 或 wrapper 命令。第三，Landlock 是非特权用户也能用的——不需要 root，任何进程都能给自己加限制，这降低了使用门槛。</p>
     <p>一个关键特性：<strong>Landlock 规则一旦应用（enforce），就不可撤销</strong>。进程无法自己解除限制，子进程继承父进程的限制且只能加更多。这种「单向收紧」保证了沙箱的不可逃逸性——即使进程被攻陷，也无法提权解除限制。</p>

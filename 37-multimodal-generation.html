@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多模态生成前沿 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="多模态生成前沿 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="多模态生成前沿 · AI 全栈实战教学">
+<meta property="og:description" content="多模态生成前沿 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>提示词增强与采样参数</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>提示词增强与采样参数</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>文生视频 Pipeline 实战与调参</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多模态生成的三重飞跃</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>文生视频：Sora 的时空 Patch 架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>文生音乐：把声波变成"语言"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>文生 3D：从 NeRF 到 3D Gaussian Splatting</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>时序一致性：多模态生成的终极 Boss</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>文生视频/图像的质量，一半取决于 prompt 写法，一半取决于采样参数。下面这段代码演示一个 prompt 增强器（自动补画质词）和采样参数的推荐组合，帮你稳定产出高质量结果。</p>
 <pre class="code"><code class="language-python"># Prompt 增强器 + 采样参数推荐
 def enhance_prompt(subject, style="电影质感", quality=True):

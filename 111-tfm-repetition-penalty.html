@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>重复惩罚与可控生成 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="重复惩罚与可控生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="重复惩罚与可控生成 · AI 全栈实战教学">
+<meta property="og:description" content="重复惩罚与可控生成 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,17 @@
     </section>
 
     <h2 class="section" id="the-problem"><span class="idx">★</span> 一、模型为什么会重复：一个概率陷阱</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、模型为什么会重复：一个概率陷阱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Repetition Penalty：乘法式压制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Frequency 与 Presence Penalty：OpenAI 的加法方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、No-Repeat Ngram：硬性禁止重复</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、调参实战：如何在你的任务上找到最佳参数</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>要理解重复惩罚，先得搞清楚重复是怎么产生的。假设模型已经生成了「我想」，下一步它预测「想」的概率是 0.4，「说」是 0.3。如果选了「想」，变成「我想想」，下一步在「我想想」的上下文里，「想」的概率可能被进一步放大到 0.5——因为「想想」这个 bigram 在训练数据里就经常跟着更多「想」。</p>
     <p>这就形成了一个正反馈循环：越重复，重复词的概率越高；概率越高，越容易被选中（尤其是 greedy 或低温度采样）。最终模型陷入死循环，吐出一长串重复 token。这不是模型「变笨了」，而是解码过程缺少负反馈机制。</p>
     <p>重复惩罚的本质，就是人为注入这个负反馈：一旦某个词已经在历史里出现过，就降低它再次被选中的概率。不同的惩罚方法，区别只在「怎么降、降多少」。</p>

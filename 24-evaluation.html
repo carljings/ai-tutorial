@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AI 评估方法论 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="AI 评估方法论 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="AI 评估方法论 · AI 全栈实战教学">
+<meta property="og:description" content="AI 评估方法论 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -360,7 +364,7 @@ JUDGE_PROMPT = """你是一个严格的评估员。
     <h2><span class="idx"></span>RAGAS 完整评估代码实战</h2>
     <p>前面讲了 RAGAS 的三个维度，但没有给可运行代码。这里给出一份能直接接到现有 RAG 管线上的完整实现，并且补上第四个常被忽略的维度 <strong>Context Recall（召回率）</strong>——衡量「该召回的相关内容是否都召回了」。四个维度齐全后，RAG 调优才真正做到可定位。</p>
     <div class="code-title">ragas_eval.py —— 完整的 RAG 四维评估</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
 依赖：pip install ragas datasets
 四个维度：faithfulness / answer_relevancy / context_precision / context_recall
@@ -411,7 +415,7 @@ ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
     <h2><span class="idx"></span>A/B 测试框架：线上才是终极裁判</h2>
     <p>离线评估再准，也无法覆盖线上真实用户问法。当一个版本离线指标持平甚至略低，但产品直觉觉得更好时，只有 <strong>A/B 测试</strong>能给出答案。下面是一个最小可用的 A/B 测试框架，包含流量分配、指标收集和统计显著性判断。</p>
     <div class="code-title">ab_test.py —— 线上 A/B 测试骨架</div>
-    <pre><code><span class="k">import</span> hashlib, time
+    <pre><code class="language-python"><span class="k">import</span> hashlib, time
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
 <span class="k">from</span> typing <span class="k">import</span> Callable
 
@@ -471,7 +475,7 @@ ragas_eval.py —— 用 RAGAS 框架评估 RAG 系统
     </table>
     <p>「毒丸」是常被忽略的一环：在 golden set 里放几条<strong>表述相近但答案相反</strong>的题，能发现模型是不是在背答案而不是真懂。如果版本升级后毒丸答对率反而下降，说明模型在过拟合 golden set，必须立刻扩集。</p>
     <div class="code-title">golden_set.py —— golden set 的版本化与回归</div>
-    <pre><code><span class="k">import</span> json, hashlib
+    <pre><code class="language-python"><span class="k">import</span> json, hashlib
 <span class="k">from</span> pathlib <span class="k">import</span> Path
 
 <span class="k">class</span> <span class="t">GoldenSet</span>:

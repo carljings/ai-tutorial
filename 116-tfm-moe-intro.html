@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学">
+<meta property="og:description" content="MoE 混合专家：用稀疏激活做大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -621,6 +625,19 @@
     </section>
 
     <h2 class="section" id="the-dilemma"><span class="idx">★</span> 一、稠密模型的困境</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、稠密模型的困境</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、稀疏激活：MoE 的核心机制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、负载均衡：MoE 训练的头号难题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、从零实现一个简单 MoE 层</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、MoE 与稠密模型的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、MoE 的工程变体</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MoE Top-K Gating 实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在讲 MoE 之前，先看清传统「稠密」模型面临什么瓶颈。Transformer 的每一层有两个主要计算：attention 和 FFN。其中 FFN 通常占整个模型参数的 60% 到 70%，是计算和显存的大头。稠密模型的特点是：<strong>每个 token 都要经过 FFN 的全部参数</strong>。</p>
     <p>这意味着模型参数量和计算量是绑定的——参数翻倍，计算也翻倍。所以训练一个 700B 的稠密模型，每个 token 的计算量是 70B 模型的 10 倍，训练成本和推理延迟都爆炸。scaling law 告诉我们参数越多越好，但计算预算是有限的，怎么破这个「参数越多计算越贵」的死结？</p>
 

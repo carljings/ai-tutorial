@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 上下文收集 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="OpenCode 上下文收集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="OpenCode 上下文收集 · AI 全栈实战教学">
+<meta property="og:description" content="OpenCode 上下文收集 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="window-reality"><span class="idx">★</span> 一、context window 不是「有多大」，而是「能用多少」</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、context window 不是「有多大」，而是「能用多少」</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、实时 token 计数：知道还剩多少弹药</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、消息压缩：当历史变成负担</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、文件树注入：给 Agent 一张「地图」</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、消息淘汰的优先级：什么该留，什么该扔</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、压缩的成本与质量权衡</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>现代模型的 context window 已经从 GPT-3 的 2K 涨到了 128K 甚至 1M，但「标称容量」和「实际可用容量」是两回事。原因有三：第一，输入越长，推理延迟越高，token 计费也线性增长；第二，研究表明模型对超长上下文存在「lost in the middle」现象——中间位置的信息容易被忽略；第三，工具调用的输入输出本身就占大量 token，一次 read_file 几百行代码就可能吃掉几千 token。</p>
     <p>所以 OpenCode 的策略不是「尽量塞满」，而是 <strong>「主动留白」</strong>：始终给当前轮的输出预留空间，主动淘汰过时消息，用摘要替代历史细节。它把 context 管理分成了三层：实时 token 计数、消息压缩、文件树注入。我们逐个看。</p>
 

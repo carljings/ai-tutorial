@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>07 · LLM Wiki 知识中枢 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="07 · LLM Wiki 知识中枢 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="07 · LLM Wiki 知识中枢 · AI 全栈实战教学">
+<meta property="og:description" content="07 · LLM Wiki 知识中枢 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -797,7 +801,7 @@ print("RAG 召回:", [t[:20] for t, _ in rag.search("GLM", topk=2)])</code></pre
     <h3>写：把新知识沉淀下来</h3>
     <p>AI 在工作中发现的新知识（用户告诉它的事实、推理出的结论、查到的新资讯），可以<strong>写回 Wiki</strong>：</p>
     <div class="code-title">AI 写入 Wiki 的伪代码</div>
-    <pre><code><span class="c"># 智能体在工作中发现了一个值得记的事实</span>
+    <pre><code class="language-python"><span class="c"># 智能体在工作中发现了一个值得记的事实</span>
 <span class="k">def</span> <span class="f">maybe_write_to_wiki</span>(interaction):
     fact = extract_notable_fact(interaction)      <span class="c"># 抽取值得记的事实</span>
     <span class="k">if</span> not fact.is_noteworthy:
@@ -874,7 +878,7 @@ print("RAG 召回:", [t[:20] for t, _ in rag.search("GLM", topk=2)])</code></pre
     <h2 class="section" id="impl"><span class="idx">07</span> 代码实战：一个最小 LLM Wiki</h2>
     <p>把前面讲的「词条 + 双向链接 + 读写」实现成一个可运行的 Wiki 核心：</p>
     <div class="code-title">llm_wiki.py —— 带双向链接的 AI 可读写 Wiki</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 llm_wiki.py —— 最小 LLM Wiki：词条 + 双向链接 + 向量检索 + AI 写入
 """</span>
 <span class="k">import</span> re, json

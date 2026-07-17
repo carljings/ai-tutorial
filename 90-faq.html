@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>90 · LLM 常见 FAQ 与疑难解答 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="90 · LLM 常见 FAQ 与疑难解答 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="90 · LLM 常见 FAQ 与疑难解答 · AI 全栈实战教学">
+<meta property="og:description" content="90 · LLM 常见 FAQ 与疑难解答 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -765,7 +769,7 @@
     <p>FAQ 里最常被问的两类问题是「这个报错什么意思」和「我环境配对了吗」。光靠文字解释效率低，下面用两个<strong>可直接运行的脚本</strong>来兜底：第一个诊断常见 API 调用报错并给出修复建议，第二个一键自检本地 AI 开发环境是否就绪。</p>
 
     <div class="code-title">diagnose_api_error.py · 常见 LLM API 报错的自动诊断</div>
-    <pre><code><span class="c">"""捕获 LLM API 调用异常，按错误类型给出修复建议。"""</span>
+    <pre><code class="language-python"><span class="c">"""捕获 LLM API 调用异常，按错误类型给出修复建议。"""</span>
 <span class="k">import</span> openai
 
 <span class="c"># 常见报错 → (关键词, 原因, 修复建议)</span>
@@ -812,7 +816,7 @@ ERROR_TABLE = [
 <span class="c"># 输出会指出 AuthenticationError → 检查 API_KEY，而不是让人面对一堆 traceback 发呆</span></code></pre>
 
     <div class="code-title">check_env.py · AI 开发环境一键自检</div>
-    <pre><code><span class="c">"""检查本地 AI 开发环境：Python 版本、GPU、关键库、API Key 是否就绪。"""</span>
+    <pre><code class="language-python"><span class="c">"""检查本地 AI 开发环境：Python 版本、GPU、关键库、API Key 是否就绪。"""</span>
 <span class="k">import</span> sys, os, importlib
 
 <span class="k">def</span> <span class="f">status</span>(ok, msg):

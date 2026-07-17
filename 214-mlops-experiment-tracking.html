@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>实验追踪：让每次实验可复现 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="实验追踪：让每次实验可复现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="实验追踪：让每次实验可复现 · AI 全栈实战教学">
+<meta property="og:description" content="实验追踪：让每次实验可复现 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,6 +318,19 @@
       </div>
     </section>
     <h2 class="section" id="what-is-tracking"><span class="idx">★</span> 实验追踪到底在追踪什么</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>实验追踪到底在追踪什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>没有追踪会怎样:三个真实痛点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MLflow 核心概念:Experiment、Run、Artifact</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MLflow 实操:从记录到对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>让实验真正可复现的三个细节</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>进阶:把追踪和超参数搜索结合</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>工具选型:不只是 MLflow</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>很多人对实验追踪的理解停留在"记一下 loss 和 accuracy",其实远远不止。一次完整的实验追踪,应该能把一个模型"再生产"出来所需的所有信息都记录在案。具体来说,它追踪五类信息。</p>
     <p><strong>代码版本</strong>:这次实验用的是哪个 Git commit,有没有未提交的本地改动。这是可复现的第一道防线——代码变了,实验结果就失去意义。</p>
     <p><strong>运行环境</strong>:Python 版本、依赖库版本、CUDA/cuDNN 版本、硬件配置。深度学习里同样代码在不同环境跑出不同结果,十有八九是环境差异,所以环境必须记录。</p>

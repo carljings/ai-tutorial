@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多轮对话状态管理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="多轮对话状态管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="多轮对话状态管理 · AI 全栈实战教学">
+<meta property="og:description" content="多轮对话状态管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -680,7 +684,7 @@ if not missing:
     <h2><span class="idx"></span>对话状态机：把闲聊和任务流分开</h2>
     <p>前面给的订机票状态只解决了"提取字段"，但真实对话里还有一个更难的问题：<strong>用户会在任务中途切换话题</strong>。比如订机票到一半，用户突然问"上海明天天气怎样？"——这是闲聊，不应该污染订单状态。生产级助手需要一个明确的<strong>对话状态机</strong>：每个意图有自己的状态，切换意图时自动挂起前一个任务。</p>
     <div class="code-title">dialog_state_machine.py —— 多意图状态机</div>
-    <pre><code><span class="k">from</span> enum <span class="k">import</span> Enum
+    <pre><code class="language-python"><span class="k">from</span> enum <span class="k">import</span> Enum
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass, field
 <span class="k">from</span> typing <span class="k">import</span> Optional
 
@@ -741,7 +745,7 @@ if not missing:
     </table>
     <p>下面给出滚动摘要的实现。它最大的好处是<strong>边界清晰</strong>：每次只在超出预算时压缩最旧的一个「块」，避免一次性摘要整段历史时的精度下降。</p>
     <div class="code-title">rolling_summary.py —— 滚动摘要 + token 预算控制</div>
-    <pre><code><span class="k">import</span> tiktoken
+    <pre><code class="language-python"><span class="k">import</span> tiktoken
 
 <span class="k">def</span> <span class="f">num_tokens</span>(text, model=<span class="s">"gpt-4o-mini"</span>):
     <span class="k">return</span> <span class="f">len</span>(tiktoken.encoding_for_model(model).encode(text))

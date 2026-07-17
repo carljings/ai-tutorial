@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>RAG 系统架构：从查询到引用 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="RAG 系统架构：从查询到引用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="RAG 系统架构：从查询到引用 · AI 全栈实战教学">
+<meta property="og:description" content="RAG 系统架构：从查询到引用 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="naive"><span class="idx">★</span> Naive RAG：最简版的三段式</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>Naive RAG：最简版的三段式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Advanced RAG：检索前/中/后全优化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Modular RAG：可插拔、可路由、可迭代</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>我的系统处于哪个阶段</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAG 系统的典型失败模式与诊断</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAG 系统的成本与延迟优化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Modular RAG 的核心模块深入：Router 与 Self-RAG</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RAG 系统的成本建模与优化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Naive RAG 就是 RAG 教程里第一个 demo：用户问 query → embedding → 向量库召回 top-k → 拼到 prompt 里 → LLM 生成答案。它结构清晰，50 行代码能跑通，是 RAG 的"hello world"。</p>
 
     <pre><code class="language-text">Naive RAG 流程

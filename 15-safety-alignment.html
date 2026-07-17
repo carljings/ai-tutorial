@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>15 · AI 安全与对齐 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="15 · AI 安全与对齐 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="15 · AI 安全与对齐 · AI 全栈实战教学">
+<meta property="og:description" content="15 · AI 安全与对齐 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -792,7 +796,7 @@ for step in range(2000):
     <h2 class="section" id="constitutional"><span class="idx">05</span> Constitutional AI 详解</h2>
     <p>Anthropic 的 Constitutional AI 是对齐方法的重大创新。核心思想：<strong>给模型一部「宪法」，让它自我监督</strong>。</p>
     <div class="code-title">Constitutional AI 的工作流（伪代码）</div>
-    <pre><code><span class="c"># Constitutional AI 的核心循环</span>
+    <pre><code class="language-python"><span class="c"># Constitutional AI 的核心循环</span>
 CONSTITUTION = [
     <span class="s">"不要输出有害、暴力、歧视内容"</span>,
     <span class="s">"保护用户隐私，不泄露敏感信息"</span>,
@@ -844,7 +848,7 @@ CONSTITUTION = [
     <h2 class="section" id="cai-impl"><span class="idx">★</span> 实战：Constitutional AI 的最小可运行实现</h2>
     <p>前面用伪代码讲了循环，这里给一个<strong>真实可跑的 Python 实现</strong>——用任意 OpenAI 兼容 API（如 GLM）扮演「被修正的模型」和「批评模型」两个角色，跑完 Constitutional AI 的「生成→批评→重写」三步，产出可用于 SFT 的安全偏好数据。</p>
     <div class="code-title">constitutional_ai.py · 用 LLM API 实现自我批评与修正</div>
-    <pre><code><span class="c">"""Constitutional AI 最小实现：生成 → 批评 → 重写，产出对齐训练数据。"""</span>
+    <pre><code class="language-python"><span class="c">"""Constitutional AI 最小实现：生成 → 批评 → 重写，产出对齐训练数据。"""</span>
 <span class="k">import</span> json
 <span class="k">from</span> openai <span class="k">import</span> OpenAI
 

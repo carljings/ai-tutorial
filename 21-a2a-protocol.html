@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>21 · A2A 多智能体协议实战 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="21 · A2A 多智能体协议实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="21 · A2A 多智能体协议实战 · AI 全栈实战教学">
+<meta property="og:description" content="21 · A2A 多智能体协议实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -347,7 +351,7 @@
 
     <h2 class="section" id="a2a-code"><span class="idx">03</span> 代码实战：A2A 智能体</h2>
     <div class="code-title">a2a_agent.py —— 发布 Agent Card 并响应任务</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 a2a_agent.py —— 一个符合 A2A 协议的智能体
 其他任意 A2A 客户端都能发现并调用它
 """</span>
@@ -388,7 +392,7 @@ AGENT_CARD = {
 <span class="c"># 启动后，任何 A2A 客户端都能通过 agent.json 发现并调用这个翻译智能体</span></code></pre>
 
     <div class="code-title">a2a_client.py —— 调用其他智能体</div>
-    <pre><code><span class="c">"""a2a_client.py —— 作为 A2A 客户端，发现并调用翻译智能体"""</span>
+    <pre><code class="language-python"><span class="c">"""a2a_client.py —— 作为 A2A 客户端，发现并调用翻译智能体"""</span>
 <span class="k">import</span> requests
 
 <span class="c"># ① 发现：读 Agent Card</span>
@@ -421,7 +425,7 @@ print(result[<span class="s">"output"</span>][<span class="s">"translation"</spa
 
     <h2 class="section" id="agent-card-deep"><span class="idx">★</span> Agent Card 完整规范</h2>
     <p>前面给了一个简化版 Agent Card。在生产环境里，一张完整的 Agent Card 要能回答三个问题：「我是什么」「我能做什么」「怎么调用我」。下面是一张接近真实规范的 Agent Card JSON，它比简化版多了 <strong>skills、inputModes/outputModes、securitySchemes、limits</strong> 等字段——这些字段让智能体可以像微服务一样被注册中心自动索引、被其他智能体自动匹配。</p>
-    <pre><code>{
+    <pre><code class="language-python">{
   <span class="s">"name"</span>: <span class="s">"research-assistant"</span>,
   <span class="s">"description"</span>: <span class="s">"深度研究智能体：能联网检索、阅读论文、生成结构化报告"</span>,
   <span class="s">"version"</span>: <span class="s">"2.3.1"</span>,
@@ -460,7 +464,7 @@ print(result[<span class="s">"output"</span>][<span class="s">"translation"</spa
 
     <h2 class="section" id="collab-flow"><span class="idx">★</span> 多智能体协作流程实战</h2>
     <p>光有 Agent Card 还不够。真正让 A2A 落地的是「编排者（Orchestrator）」——它负责发现合适的智能体、分配子任务、汇总结果。下面这段代码模拟了一个常见场景：<strong>用户要一份「某技术趋势报告」</strong>，编排者把任务拆成「检索 → 论文速读 → 报告写作」三步，分别交给三个不同框架的智能体，全程用 A2A 通信。</p>
-    <pre><code><span class="k">import</span> requests, json
+    <pre><code class="language-python"><span class="k">import</span> requests, json
 
 <span class="c"># ① 注册中心：发现可用智能体（也可直接用已知 URL）</span>
 <span class="k">def</span> discover(capability_tag):
@@ -503,7 +507,7 @@ print(result[<span class="s">"output"</span>][<span class="s">"translation"</spa
 
     <h2 class="section" id="async-task"><span class="idx">★</span> 异步任务的生命周期管理</h2>
     <p>前面的 <code>call_agent</code> 是同步阻塞的——任务跑多久客户端就等多久。但真实场景里，一个深度研究任务可能要跑几分钟，HTTP 连接早超时了。A2A 定义了一套<strong>任务状态机</strong>来支持异步：<code>submitted → working → input-required → completed / failed / canceled</code>。客户端提交任务拿到 task_id 后就可以放手，之后通过轮询或 webhook 拿结果。下面是这套异步模式的骨架，它让「长任务不阻塞、能查进度、能交互式追问」。</p>
-    <pre><code><span class="k">import</span> requests, time
+    <pre><code class="language-python"><span class="k">import</span> requests, time
 
 <span class="c"># ① 提交异步任务，立刻返回 task_id 而非最终结果</span>
 <span class="k">def</span> submit_async(card, task_type, payload):

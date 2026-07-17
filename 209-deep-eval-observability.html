@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent 评估与可观测性 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Agent 评估与可观测性 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Agent 评估与可观测性 · AI 全栈实战教学">
+<meta property="og:description" content="Agent 评估与可观测性 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,6 +318,17 @@
       </div>
     </section>
     <h2 class="section" id="why-observability"><span class="idx">★</span> 为什么 Agent 比普通服务更需要可观测性</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么 Agent 比普通服务更需要可观测性</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LLM 调用追踪与 OpenTelemetry</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Token 成本监控：从计费到预算控制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>错误率告警：把被动救火变成主动响应</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LangSmith 集成：调试与评测一体化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统微服务的可观测性聚焦于"请求耗时、错误率、资源占用"这三板斧，因为服务的逻辑是确定的——同样的输入几乎一定走同样的代码路径。但 Agent 完全不同：它是模型驱动的，每一次执行可能走完全不同的工具调用序列，模型输出本身具有随机性，错误既可能是代码异常，也可能是模型生成了不合规的内容或陷入了无限循环。这种"非确定性 + 多步组合"让传统监控手段力不从心。</p>
     <p>举个具体场景：一个客服 Agent 在某次对话中给用户报了错误订单号。要定位根因，你需要回看完整的调用链——它先调用了 <code>search_user</code>，再调了 <code>get_order</code>，最后调了 <code>reply</code>。是 <code>search_user</code> 返回了错误的用户？是 <code>get_order</code> 取错了订单？还是模型在 <code>reply</code> 里编造了号？没有完整的 trace，你只能靠日志一行行翻，而生产环境的日志量让你绝望。</p>
     <p>Agent 可观测性的三大支柱因此被重新定义：第一是<strong>调用追踪（Tracing）</strong>，记录每次 LLM 调用、工具调用、子 Agent 调用的输入输出和耗时，组织成树状的执行轨迹；第二是<strong>成本监控（Cost）</strong>，按用户、按租户、按场景统计 token 消耗和折算金额；第三是<strong>质量监控（Quality）</strong>，追踪幻觉率、拒答率、人工反馈分布等业务指标。下面我们逐个展开。</p>

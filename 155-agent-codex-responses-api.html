@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 用 Responses API · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex 用 Responses API · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex 用 Responses API · AI 全栈实战教学">
+<meta property="og:description" content="Codex 用 Responses API · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="chat-completions"><span class="idx">★</span> 一、Chat Completions 时代的负担</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Chat Completions 时代的负担</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Responses API 的核心变化：服务端状态</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Codex 如何集成 Responses API</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、工具调用循环的简化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、stateful 不是免费的午餐</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、混合策略：Codex 的实际选择</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在 Responses API 出现之前，Agent 用的是 Chat Completions API。这个 API 是 <strong>stateless（无状态）</strong> 的——每次请求都要把完整的对话历史发上去。第一轮发 [用户消息1]，第二轮发 [用户消息1, assistant回复1, 用户消息2]，第三轮发 [前5条 + 用户消息3]……历史越来越长，请求体越来越大。</p>
     <p>这带来三个问题。第一，<strong>token 成本线性增长</strong>：到第 20 轮，你可能每次请求都要发几万 token 的历史，哪怕这轮只说了一句话。第二，<strong>延迟增加</strong>：服务端要重新处理整个历史才能生成回复，长历史意味着高首 token 延迟。第三，<strong>客户端要管理状态</strong>：Agent 必须自己维护消息列表、自己做压缩、自己处理工具调用的多轮关联，逻辑复杂。</p>
     <pre><code class="language-typescript">// Chat Completions 时代的请求（每轮重发全部历史）

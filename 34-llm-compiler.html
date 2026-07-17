@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 编译器与推理引擎 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLM 编译器与推理引擎 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLM 编译器与推理引擎 · AI 全栈实战教学">
+<meta property="og:description" content="LLM 编译器与推理引擎 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>量化方法精度基准</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>量化方法精度基准</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>llama.cpp 编译与部署脚本</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>推理优化：被低估的战场</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>vLLM：PagedAttention 的吞吐量革命</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>TensorRT-LLM：NVIDIA 的极致延迟优化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>llama.cpp：让大模型跑在任何 CPU 上</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MLC-LLM：跨平台部署到手机浏览器</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四大引擎横向对比与选型指南</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>不同量化方法（INT8/INT4/GPTQ/AWQ）的精度损失差异很大，不能只看'压了几倍'。下面这段代码模拟量化误差对比，帮你建立'精度损失 vs 压缩比'的直觉。</p>
 <pre class="code"><code class="language-python"># 量化方法精度对比基准
 import numpy as np

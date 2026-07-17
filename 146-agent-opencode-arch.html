@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学">
+<meta property="og:description" content="OpenCode 架构：客户端/服务器分离 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>事件总线最小实现</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>事件总线最小实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>OpenCode 插件开发实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>一、为什么选 Bun：一个运行时决定了一个项目的气质</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、顶层目录：一个 monorepo 的骨架</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、事件总线：OpenCode 的中枢神经</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Session：Agent 运行的基本单元</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、插件系统：用钩子而非继承来扩展</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、TUI 渲染循环：Ink + 流式更新</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>OpenCode 的 plugin 架构核心是事件总线。理解它最好的方式是亲 手写一个最小 bus——你会发现它就是一个'订阅-发布'字典，却撑起了整个系统的解耦。</p>
 <pre class="code"><code class="language-python"># 最小事件总线: 理解 OpenCode plugin 架构的基石
 class EventBus:

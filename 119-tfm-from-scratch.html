@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>从零实现一个迷你 Transformer · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="从零实现一个迷你 Transformer · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="从零实现一个迷你 Transformer · AI 全栈实战教学">
+<meta property="og:description" content="从零实现一个迷你 Transformer · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="overview"><span class="idx">★</span> 一、我们要造什么</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、我们要造什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Embedding 与位置编码</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、多头因果注意力</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、FFN 与 LayerNorm</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、组装完整的迷你 GPT</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、训练循环：让模型学会续写</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、生成函数：让模型开口说话</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>八、如何验证实现正确</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>目标很明确：从零实现一个 Decoder-Only 的迷你 GPT。它包含一个完整的语言模型该有的所有部件：词表和 Embedding、位置编码、若干层 Transformer Block（每层含多头因果注意力 + FFN + LayerNorm）、最终的输出投影。配上训练循环（前向 + 损失 + 反向）和生成函数（greedy 和采样），它就能在一个小语料上训练并生成文本。</p>
     <p>我们的设计原则有三条。第一，<strong>不依赖任何高级封装</strong>——不用 nn.Transformer，不用 Hugging Face，所有部件手写，让你看清每个细节。第二，<strong>可在 CPU 上跑通</strong>——模型尺寸控制得很小，普通笔记本几分钟就能训练，无需 GPU。第三，<strong>代码即教学</strong>——每个组件对应前面章节讲过的概念，读完代码就等于复习了一遍整个系列。</p>
 

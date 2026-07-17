@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>03 · Harness 工程 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="03 · Harness 工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="03 · Harness 工程 · AI 全栈实战教学">
+<meta property="og:description" content="03 · Harness 工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -480,7 +484,7 @@
     <h3>权限的配置方式</h3>
     <p>成熟的 Harness 通常支持多层配置：</p>
     <div class="code-title">权限配置示例（rules 文件，YAML 风格）</div>
-    <pre><code><span class="c"># .agent/rules.yaml —— 项目级权限规则</span>
+    <pre><code class="language-python"><span class="c"># .agent/rules.yaml —— 项目级权限规则</span>
 <span class="t">permissions</span>:
   <span class="t">allow</span>:
     - <span class="s">"read:./**"</span>           <span class="c"># 读本项目所有文件</span>
@@ -539,7 +543,7 @@
     </div>
 
     <div class="code-title">一个 PreToolUse Hook 示例：阻止删除 .env 文件</div>
-    <pre><code><span class="c"># hooks/pre_tool_use.py</span>
+    <pre><code class="language-python"><span class="c"># hooks/pre_tool_use.py</span>
 <span class="k">import</span> sys, json, re
 
 <span class="k">def</span> <span class="f">main</span>():
@@ -655,7 +659,7 @@
     <p>讲这么多，不如写一个。下面是一个<strong>不到 100 行的最小 Harness</strong>，它包含：系统提示、工具定义、权限确认、PEV 环。用 GLM-5.2 的 OpenAI 兼容 API：</p>
 
     <div class="code-title">mini_harness.py —— 一个可运行的最小 Harness</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 mini_harness.py —— 最小可用 AI Harness
 特性：系统提示 / 工具调用 / 权限确认 / PEV 反馈环
 依赖：pip install openai
@@ -764,7 +768,7 @@ SYSTEM = <span class="s">"""你是一个终端助手。完成任务时：
     <p>第 3 节讲了权限模型的理念，这里给一个<strong>真正可用的权限引擎</strong>——支持 allow/ask/deny 三态、glob 模式匹配、多规则优先级合并。它是任何生产级 Harness 的安全基石。</p>
 
     <div class="code-title">permissions.py —— 生产级权限引擎</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 permissions.py —— Harness 权限引擎
 支持 allow/ask/deny 三态 + glob 匹配 + 规则合并
 """</span>
@@ -825,7 +829,7 @@ engine = PermissionEngine(rules)
     <p>第 2.2 节讲了上下文装配的理念。这里给一个<strong>带优先级和预算控制的装配器</strong>——它是 Harness 把「上百 KB 候选内容」裁剪到「模型窗口预算」内的核心算法。</p>
 
     <div class="code-title">context_assembler.py —— 优先级 + 预算的上下文装配</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 context_assembler.py —— 把候选内容按优先级装进有限预算
 """</span>
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass
@@ -879,7 +883,7 @@ print(<span class="s">f"装入了 {len(pieces)} 块，共 {used} tokens（预算
     <p>第 4 节讲了 Hook 的理念。这里实现一个<strong>支持多种 Hook 类型、可插拔的 Hook 管理器</strong>：</p>
 
     <div class="code-title">hooks.py —— 可插拔的 Hook 管理器</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 hooks.py —— Harness 的 Hook 系统
 支持 PreToolUse / PostToolUse / OnError / OnStep 等多种钩子
 """</span>
@@ -952,7 +956,7 @@ hooks.run(HookEvent.PRE_TOOL, {<span class="s">"tool"</span>: <span class="s">"s
     <p>把权限、上下文装配、Hook、PEV 环组合成一个<strong>完整的 Harness</strong>。这是本章所有理念的集大成：</p>
 
     <div class="code-title">production_harness.py —— 集大成的 Harness</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 production_harness.py —— 生产级 Harness：权限 + 上下文 + Hook + PEV + 子任务
 这是本章所有理念的集成。约 120 行，可直接跑。
 """</span>

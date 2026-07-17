@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Deep Research agent：长周期的深度研究 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学">
+<meta property="og:description" content="Deep Research agent：长周期的深度研究 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,6 +318,19 @@
       </div>
     </section>
     <h2 class="section" id="what-is-deep-research"><span class="idx">★</span> 深度研究与普通问答的本质区别</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>深度研究与普通问答的本质区别</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>完整架构:五个核心模块</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>任务规划器:把大问题拆成可搜索的小问题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>搜索与抽取:把网页变成结构化要点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>综合与报告:从要点到论述</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>引用与溯源:可信度的基石</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>迭代深化:让研究越做越深</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>串联成完整系统</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>普通问答(包括 RAG)的模式是"一次检索 + 一次生成":用户提问,系统检索几条相关文档,LLM 基于这些文档回答。它适合"事实性问题"——比如"法国首都是哪里"。但研究型问题远比这复杂,它们有几个本质特征。</p>
     <p><strong>问题宽泛且开放</strong>。"新能源汽车行业现状"这类问题没有唯一答案,需要从多个维度(市场、技术、政策、竞争)分别调研。<strong>需要多轮检索</strong>。第一轮搜索后,你才会发现需要更深入的子问题(如"固态电池进展"),触发第二轮搜索,如此迭代。<strong>需要综合多方信息</strong>。单一来源往往片面或有偏见,好的研究要交叉验证多个来源。<strong>需要引用溯源</strong>。研究的可信度建立在引用之上,每个论断都应能追溯到具体来源。</p>
     <p>深度研究 Agent 正是为满足这些特征设计的。它把研究流程拆解成多个步骤,由 Agent 自主规划、迭代、综合,最终产出一份结构化、有引用的报告。这个过程模拟了人类研究员的工作方式,但速度和广度远超人类。</p>

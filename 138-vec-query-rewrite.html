@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>查询改写：让检索更准 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="查询改写：让检索更准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="查询改写：让检索更准 · AI 全栈实战教学">
+<meta property="og:description" content="查询改写：让检索更准 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-rewrite"><span class="idx">★</span> 为什么原始 query 不适合直接检索</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么原始 query 不适合直接检索</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>HyDE：让 LLM 先编一个假设答案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Query Decomposition：把复杂问题拆成子问题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Step-back Prompting：把具体问题抽象化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三种策略怎么选 + 组合</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多轮对话场景的查询改写</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>查询改写效果的评估与调优</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>查询改写的路由：什么时候改写、改写成什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>真实用户的查询有几个共性问题，每一个都会让向量检索的召回质量打折：</p>
     <ul>
       <li><strong>口语化、简短</strong>："那个怎么用"——信息量极低，embed 出来的向量分不清指向。</li>

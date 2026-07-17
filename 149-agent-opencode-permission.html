@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 权限模型：工具级守卫 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学">
+<meta property="og:description" content="OpenCode 权限模型：工具级守卫 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-permission"><span class="idx">★</span> 一、为什么二态不够：从一个误删事故说起</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么二态不够：从一个误删事故说起</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、权限状态机的数据结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、决策引擎：从规则到结论</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、ask 流程：阻塞 + 用户响应</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、路径白名单：文件访问的纵深防御</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、配置文件：把权限规则写下来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>设想一个朴素的权限模型：每个工具有一个 enabled 开关，true 就允许调用，false 就禁止。这听起来够用，但实际用起来会面临两难。比如 execute 工具——你既想让 Agent 自动跑 <code>npm test</code>（否则每次都要手动确认，体验极差），又绝对不想让它自动执行 <code>rm -rf /</code>。在二态模型下，你要么把 execute 全局打开（危险），要么全局关掉（Agent 就残废了）。</p>
     <p>OpenCode 的解法是引入第三个状态 <strong>ask</strong>：对于无法预判安全性的工具调用，先暂停，把「要执行什么」展示给用户，由用户现场决定。这样三类工具就有了清晰的归属：</p>
     <ul>

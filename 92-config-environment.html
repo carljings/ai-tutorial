@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>92 · LLM 配置与环境管理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="92 · LLM 配置与环境管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="92 · LLM 配置与环境管理 · AI 全栈实战教学">
+<meta property="og:description" content="92 · LLM 配置与环境管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -329,7 +333,7 @@
     <h2 class="section" id="python-env"><span class="idx">01</span> Python 环境管理</h2>
     <h3>虚拟环境：项目隔离的基础</h3>
     <div class="code-title">三种主流虚拟环境方案</div>
-    <pre><code><span class="c"># 方案 1: venv（Python 内置，最简单）</span>
+    <pre><code class="language-python"><span class="c"># 方案 1: venv（Python 内置，最简单）</span>
 python3 -m venv .venv
 source .venv/bin/activate
 pip install -r requirements.txt
@@ -361,7 +365,7 @@ uv pip install -r requirements.txt  <span class="c"># 比 pip 快 10-100 倍</sp
 
     <h3>依赖锁定：可复现的关键</h3>
     <div class="code-title">requirements.txt 的最佳实践</div>
-    <pre><code><span class="c"># requirements.txt —— 不要只写包名！</span>
+    <pre><code class="language-python"><span class="c"># requirements.txt —— 不要只写包名！</span>
 
 <span class="c"># ❌ 错误写法（不可复现）</span>
 torch
@@ -392,7 +396,7 @@ uvicorn==0.30.6
 
     <h3>HuggingFace Hub（标准方案）</h3>
     <div class="code-title">从 HuggingFace 下载和管理模型</div>
-    <pre><code><span class="c"># 方式 1: transformers 自动下载（会缓存到 ~/.cache/huggingface/）</span>
+    <pre><code class="language-python"><span class="c"># 方式 1: transformers 自动下载（会缓存到 ~/.cache/huggingface/）</span>
 <span class="k">from</span> transformers <span class="k">import</span> AutoModelForCausalLM, AutoTokenizer
 model = AutoModelForCausalLM.from_pretrained(<span class="s">"THUDM/glm-4-9b-chat"</span>)
 tokenizer = AutoTokenizer.from_pretrained(<span class="s">"THUDM/glm-4-9b-chat"</span>)
@@ -410,7 +414,7 @@ os.environ[<span class="s">"HF_ENDPOINT"</span>] = <span class="s">"https://hf-m
 
     <h3>ModelScope（国内替代）</h3>
     <div class="code-title">用 ModelScope 下载（国内更快）</div>
-    <pre><code><span class="c"># pip install modelscope</span>
+    <pre><code class="language-python"><span class="c"># pip install modelscope</span>
 <span class="k">from</span> modelscope <span class="k">import</span> snapshot_download
 model_dir = snapshot_download(<span class="s">'ZhipuAI/glm-4-9b-chat'</span>)
 <span class="c"># 模型下载到 ~/.cache/modelscope/，国内速度比 HF 快很多</span></code></pre>
@@ -431,7 +435,7 @@ model_dir = snapshot_download(<span class="s">'ZhipuAI/glm-4-9b-chat'</span>)
 
     <h3>分层配置设计</h3>
     <div class="code-title">config.py —— 分层配置系统</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 config.py —— 三层配置：默认 → 环境变量 → 本地覆盖
 """</span>
 <span class="k">import</span> os, json
@@ -484,7 +488,7 @@ config = load_config()</code></pre>
 
     <h3>环境变量管理</h3>
     <div class="code-title">.env 文件最佳实践</div>
-    <pre><code><span class="c"># .env.example —— 提交到 Git 的模板（不含真实值）</span>
+    <pre><code class="language-python"><span class="c"># .env.example —— 提交到 Git 的模板（不含真实值）</span>
 GLM_API_KEY=your-key-here
 MODEL_NAME=glm-5.2
 DB_PATH=./vectordb
@@ -510,7 +514,7 @@ MODEL_NAME=glm-5.2
 
     <h3>AI 项目的 Dockerfile</h3>
     <div class="code-title">Dockerfile —— AI 项目容器化</div>
-    <pre><code><span class="c"># 基础镜像：带 CUDA 的 Python</span>
+    <pre><code class="language-python"><span class="c"># 基础镜像：带 CUDA 的 Python</span>
 FROM nvidia/cuda:12.1.1-runtime-ubuntu22.04
 
 <span class="c"># 安装 Python 和系统依赖</span>
@@ -537,7 +541,7 @@ EXPOSE 8000
 CMD [<span class="s">"uvicorn"</span>, <span class="s">"main:app"</span>, <span class="s">"--host"</span>, <span class="s">"0.0.0.0"</span>, <span class="s">"--port"</span>, <span class="s">"8000"</span>]</code></pre>
 
     <div class="code-title">docker-compose.yml —— 含 GPU 的编排</div>
-    <pre><code>version: <span class="s">'3.8'</span>
+    <pre><code class="language-python">version: <span class="s">'3.8'</span>
 services:
   ai-app:
     build: .
@@ -580,7 +584,7 @@ volumes:
     </table>
 
     <div class="code-title">GPU 环境初始化脚本</div>
-    <pre><code><span class="c"># gpu_check.py —— GPU 环境检查</span>
+    <pre><code class="language-python"><span class="c"># gpu_check.py —— GPU 环境检查</span>
 <span class="k">import</span> torch
 
 <span class="k">def</span> <span class="f">check_gpu</span>():
@@ -602,7 +606,7 @@ check_gpu()</code></pre>
     <p>AI 项目需要追踪<strong>每次实验的完整上下文</strong>——代码版本、超参数、数据版本、结果。</p>
 
     <div class="code-title">experiment_tracking.py —— 轻量实验追踪</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 experiment_tracking.py —— 不依赖外部服务的轻量实验追踪
 记录每次实验的完整上下文，支持回溯和对比
 """</span>
@@ -643,7 +647,7 @@ log_experiment(
 
     <h2 class="section" id="cicd"><span class="idx">07</span> CI/CD for AI</h2>
     <div class="code-title">.github/workflows/ai-ci.yml</div>
-    <pre><code>name: AI CI
+    <pre><code class="language-python">name: AI CI
 on: [push, pull_request]
 jobs:
   test:

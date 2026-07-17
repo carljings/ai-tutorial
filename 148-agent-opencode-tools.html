@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学">
+<meta property="og:description" content="OpenCode 工具系统：read/write/bash/grep · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="tool-interface"><span class="idx">★</span> 一、Tool 接口：一个工具长什么样</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Tool 接口：一个工具长什么样</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、read_file：最基础也最讲究的工具</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、write_file：从覆盖到 patch 的演进</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、execute：执行 shell 命令的工具</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、为什么 schema 的措辞决定工具是否被正确调用</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、tools 列表：动态拼装与发送给 LLM</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在 OpenCode 里，所有工具——无论是内置的还是 MCP 提供的还是插件注册的——都遵循同一个接口契约。这个契约最关键的部分是三样东西：<strong>name</strong>（LLM 用它来引用工具）、<strong>description</strong>（告诉 LLM 这个工具能干嘛）、<strong>schema</strong>（参数的 JSON Schema，约束 LLM 传什么进来）。加上一个 execute 函数，就构成了一个完整工具。</p>
     <pre><code class="language-typescript">// packages/opencode-core/src/tool/types.ts（简化）
 export interface Tool&lt;TParams = any, TResult = any&gt; {

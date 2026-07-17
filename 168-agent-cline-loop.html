@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cline 的工具循环与审批 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Cline 的工具循环与审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Cline 的工具循环与审批 · AI 全栈实战教学">
+<meta property="og:description" content="Cline 的工具循环与审批 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-xml"><span class="idx">★</span> 一、为什么用 XML 而非 function calling</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么用 XML 而非 function calling</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、XML 解析与流式提取</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、plan / act 双模式：先规划后执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Agent 循环与工具执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、工具结果的表达：XML 化的反馈</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、与 function calling 方案的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>大多数现代 Agent（OpenCode、Codex）用 LLM 的 function calling API——模型返回结构化的 JSON，包含工具名和参数。但 Cline 选择让模型在文本输出里用 XML 标签描述工具调用。这是一个有争议但有趣的选择。</p>
     <p>选择 XML 的第一个理由是 <strong>模型兼容性</strong>。和 Aider 的 SEARCH/REPLACE 一样（参见 164 章），纯文本协议不依赖 function calling API，任何模型都能用。Cline 早期专注 Claude，但后来要支持 GPT、DeepSeek、本地模型，XML 让这种扩展零成本。</p>
     <p>第二个理由是 <strong>可读性</strong>。XML 标签在文本流里是可见的，用户在 chat 界面能看到 Agent「正在调用什么工具」——这是透明的。而 function calling 的 JSON 通常被 UI 隐藏，用户不知道 Agent 在干什么。Cline 把工具调用作为文本流的一部分展示，增强了用户对 Agent 行为的感知。</p>

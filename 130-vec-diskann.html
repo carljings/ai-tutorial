@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>DiskANN：内存装不下的亿级索引 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="DiskANN：内存装不下的亿级索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="DiskANN：内存装不下的亿级索引 · AI 全栈实战教学">
+<meta property="og:description" content="DiskANN：内存装不下的亿级索引 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="problem"><span class="idx">★</span> HNSW 的内存天花板与 DiskANN 的破局</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>HNSW 的内存天花板与 DiskANN 的破局</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Vamana 图：比 HNSW 更激进的剪枝</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SSD Beam Search：把随机读变批量读</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>内外存混合：三层数据布局</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>实战：用 DiskANN 的官方实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>什么时候选 DiskANN</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>DiskANN 的扩展：FreshDiskANN 与混合索引</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>DiskANN 生产部署的实操经验</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>HNSW 的性能优势建立在一个前提上：<strong>整张图常驻内存</strong>。一张 1 亿节点的 HNSW 图，光存原始向量就要 300GB（768 维 float32），加上图的边（每节点 M=16 个邻居，约 64 字节），再算上优先队列等运行时结构，轻松突破 400GB。这在生产环境意味着一台机器装不下，要上集群——成本、运维复杂度都陡增。</p>
     <p>DiskANN 的洞察是：<strong>SSD 的随机读取带宽（NVMe 可达 10-50 万 IOPS）足以支撑图遍历，前提是把随机小读转成批量读</strong>。普通 HNSW 查询是"取一个邻居 → 算距离 → 取下一个邻居"的串行随机访问，每次只读几十字节，对 SSD 极不友好（IOPS 浪费）。DiskANN 的核心改造就是用 beam search 把这种串行随机读变成<strong>批量并行读</strong>——一次取一批邻居，把 SSD 的吞吐榨干。</p>
     <p>这样做的结果是：图可以放 SSD（百亿向量只要几 TB SSD，内存只放压缩后的向量和图的入口点），单机就能搞定。代价是延迟比纯内存 HNSW 高（毫秒到几十毫秒），但对于"内存装不下"的超大规模场景，这是唯一可行解。</p>

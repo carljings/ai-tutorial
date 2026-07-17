@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>29 · LLM 记忆系统深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="29 · LLM 记忆系统深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="29 · LLM 记忆系统深度 · AI 全栈实战教学">
+<meta property="og:description" content="29 · LLM 记忆系统深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -342,7 +346,7 @@
 
     <h2 class="section" id="read-write"><span class="idx">02</span> 记忆的读写循环</h2>
     <div class="code-title">memory_system.py —— 完整的读写记忆循环</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 memory_system.py —— 带重要性判断、去重、检索的记忆系统
 """</span>
 <span class="k">class</span> <span class="t">SmartMemory</span>:
@@ -410,7 +414,7 @@ memory_system.py —— 带重要性判断、去重、检索的记忆系统
     </table>
     <p>下面给出一份基于 <strong>pgvector</strong> 的可落地的长期记忆存储抽象，把上一节的「相关性×重要性×时效」直接写进 SQL 检索，由数据库一次性算分。</p>
     <div class="code-title">long_term_memory.py —— 基于 pgvector 的持久化记忆</div>
-    <pre><code><span class="k">import</span> time, json, asyncio
+    <pre><code class="language-python"><span class="k">import</span> time, json, asyncio
 <span class="k">import</span> asyncpg            <span class="c"># pip install asyncpg</span>
 
 CREATE_SQL = <span class="s">"""
@@ -496,7 +500,7 @@ CREATE INDEX ON memory (user_id, importance DESC);
     </table>
     <p>下面是分层检索的一个典型陷阱：用户问「上次提到的那个项目怎么样了」，<strong>事实层（语义记忆）查不到，必须去情景层找历史事件</strong>。把两类记忆混在一个表里、用同一套 embedding 检索，恰恰是新手最常踩的坑。</p>
     <div class="code-title">hybrid_retrieval.py —— 语义 + 情景双通道</div>
-    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">hybrid_recall</span>(memory, user_id, query, llm, top_k=<span class="n">5</span>):
+    <pre><code class="language-python"><span class="k">async</span> <span class="k">def</span> <span class="f">hybrid_recall</span>(memory, user_id, query, llm, top_k=<span class="n">5</span>):
     <span class="s">"""先做意图分类，决定从哪个通道召回，再合并"""</span>
     intent = llm(<span class="s">"判断查询属于 fact（问事实/偏好）还是 event（问上次/那次发生的事），"</span>
                  <span class="s">"只回 fact 或 event："</span> + query).strip().lower()
@@ -522,7 +526,7 @@ CREATE INDEX ON memory (user_id, importance DESC);
     <h2 class="section" id="forget-mechanism"><span class="idx">08</span> 主动遗忘机制</h2>
     <p>第 04 节讲了「为什么要遗忘」，这里讲「<strong>怎么具体实现</strong>」。生产系统通常同时跑三种遗忘：被动衰减、定期压缩、显式 TTL。压缩这一步尤其关键——它不是简单删除，而是把 N 条旧记忆用 LLM 摘成 1 条，把信息密度提上去。</p>
     <div class="code-title">forget.py —— 衰减 + 压缩 + TTL 三重遗忘</div>
-    <pre><code><span class="k">async</span> <span class="k">def</span> <span class="f">passive_decay</span>(memory):
+    <pre><code class="language-python"><span class="k">async</span> <span class="k">def</span> <span class="f">passive_decay</span>(memory):
     <span class="s">"""每周跑一次：长期未命中的记忆 importance 衰减"""</span>
     <span class="k">await</span> memory.pool.execute(<span class="s">"""
         UPDATE memory SET importance = importance * 0.85

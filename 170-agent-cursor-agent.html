@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cursor 的 Agent 模式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Cursor 的 Agent 模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Cursor 的 Agent 模式 · AI 全栈实战教学">
+<meta property="og:description" content="Cursor 的 Agent 模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="tab"><span class="idx">★</span> 一、Cursor Tab：行内补全的技术突破</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Cursor Tab：行内补全的技术突破</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Composer：多文件编辑的交互革命</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Agent 模式：自主任务执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Cursor 的上下文工程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、Cursor 的模型策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、对开源生态的影响</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Cursor 最早出圈的能力是 Cursor Tab——一个比 GitHub Copilot 更聪明的行内补全。它的技术突破不在模型大小（用的是专门微调的中等模型），而在 <strong>上下文构建和延迟优化</strong>。</p>
     <p>普通的补全（包括早期 Copilot）只看当前文件的光标前后文。Cursor Tab 的特别之处是它能跨文件补全——当你在 A 文件里写 <code>import { User } from "./</code>，它能基于你最近编辑过的 B 文件里的 export，补全出 <code>models"</code>。这要求它维护一个「最近编辑历史」和「跨文件引用图」的轻量索引，在补全时快速检索相关上下文。</p>
     <pre><code class="language-typescript">// Cursor Tab 的上下文构建（基于公开信息推断）

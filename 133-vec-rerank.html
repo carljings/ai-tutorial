@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>重排序 Rerank：精排召回结果 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="重排序 Rerank：精排召回结果 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="重排序 Rerank：精排召回结果 · AI 全栈实战教学">
+<meta property="og:description" content="重排序 Rerank：精排召回结果 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="cross-vs-bi"><span class="idx">★</span> cross-encoder vs bi-encoder：精度与速度的根本权衡</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>cross-encoder vs bi-encoder：精度与速度的根本权衡</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>bge-reranker 实操</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>top-N 选择策略：召回多少、重排多少、喂 LLM 多少</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>主流 rerank 模型对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>重排序的进阶：级联、长文档与成本控制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>重排序的成本与延迟优化实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>重排序在不同业务场景的差异化应用</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>重排序模型的微调与业务适配</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>embedding 模型（用于检索）是 <strong>bi-encoder（双塔）</strong>：query 和 document 分别独立编码成向量，再用余弦相似度比较。因为 document 可以离线编码好存进向量库，查询时只需要编码 query + 一次向量检索，速度极快（毫秒级，可扛上万 QPS）。代价是 query 和 document 的交互发生在"最后的相似度计算"——只有点积这一步，没有更深的信息流动，精度有天花板。</p>
     <p>rerank 模型是 <strong>cross-encoder（交叉编码）</strong>：把 query 和 document 拼成一个序列 [CLS] query [SEP] document [SEP]，喂给一个 transformer，让它们在 self-attention 里充分交互，最后输出一个相关性分数。这种深度交互让 cross-encoder 的精度远高于 bi-encoder（在 MS MARCO 上，cross-encoder 的 MRR 通常比 bi-encoder 高 10-20 个点）。</p>
     <p>代价是<strong>速度</strong>：cross-encoder 不能离线编码 document，每次都要把 (query, document) 一起喂进模型算一次 forward。所以它不能用于全库检索（1 亿次 forward 要几小时），只能用于<strong>对少量候选重排序</strong>。这就是经典的"先 bi-encoder 粗召 → 再 cross-encoder 精排"两阶段架构。</p>

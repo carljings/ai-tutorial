@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ScaNN 与各向异性量化 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="ScaNN 与各向异性量化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="ScaNN 与各向异性量化 · AI 全栈实战教学">
+<meta property="og:description" content="ScaNN 与各向异性量化 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="motivation"><span class="idx">★</span> PQ 的盲区：各向同性假设</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>PQ 的盲区：各向同性假设</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>各向异性量化的核心思想</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>类比：和 AWQ 思想的共通之处</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ScaNN 的完整架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>实战：用 ScaNN 官方库跑一遍</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ScaNN vs IVFPQ：实测对比与选型</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ScaNN 的部署与集成考量</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ScaNN 的内部机制：分区、量化、重排的协同</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>回顾上一篇的 PQ：它把向量切成 m 段，每段独立用 K-means 量化。K-means 的目标是最小化重建误差 Σ||x - x̂||²，这是个<strong>各向同性</strong>的目标——它在所有方向上等同看待误差。但向量检索里，误差的方向其实并不等价。</p>
     <p>考虑最大内积搜索（MIPS）的场景：查询 q 和数据库向量 x 的内积 q·x = q·x̂ + q·(x - x̂)，其中 x̂ 是量化重建。量化带来的内积误差是 q·(x - x̂) = ||q||·||(x-x̂)||·cos θ。关键洞察是：如果量化误差 (x - x̂) <strong>垂直于</strong> q（cos θ=0），那么内积误差为零；如果误差<strong>平行于</strong> q（|cos θ|=1），误差最大。换句话说，<strong>平行于查询方向的量化误差最致命，垂直方向的误差无所谓</strong>。</p>
     <p>PQ 不知道这个事，它均匀地把误差分散到所有方向，等于在"无所谓"的垂直方向上浪费了比特预算，而在"最致命"的平行方向上预算不足。ScaNN 的各向异性量化就是为了纠正这个浪费。</p>

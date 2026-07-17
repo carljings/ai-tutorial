@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>10 · 开源资源与精选 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="10 · 开源资源与精选 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="10 · 开源资源与精选 · AI 全栈实战教学">
+<meta property="og:description" content="10 · 开源资源与精选 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -735,7 +739,7 @@
     </table>
     <p>读源码的一个通用心法：<strong>先读 tests/examples，再读 src</strong>。tests 和 examples 是作者写给自己的「最小用法」，从它们入手能立刻看清 API 形状，而直接啃 src 容易陷入实现细节。下面这段脚本可以帮你快速定位任意仓库的「最小入口」。</p>
     <div class="code-title">find_entry.py —— 自动定位仓库的最小入口文件</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 find_entry.py —— clone 一个仓库后，快速找到值得先读的入口文件
 思路：优先找 tests/examples/docs 下的最小文件，其次找 src 下带 __main__ 的文件
 """</span>
@@ -778,7 +782,7 @@ SKIP = {<span class="s">"node_modules"</span>, <span class="s">".git"</span>, <s
     <h2 class="section" id="five-week-plan"><span class="idx">09</span> 5 周学习计划：从 API 调用到多 Agent 系统</h2>
     <p>第 07 节给了五步路径，但只有标题没有可执行细节。这里把它扩成一份<strong>带代码任务和验收标准</strong>的 5 周计划，每周一个 milestone，做完一个再进下一个。这份计划本身可以用下面的脚本跟踪进度。</p>
     <div class="code-title">five_week_plan.py —— 可跟踪的学习计划</div>
-    <pre><code><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
+    <pre><code class="language-python"><span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 <span class="k">from</span> datetime <span class="k">import</span> date, timedelta
 
 <span class="nd">@dataclass</span>

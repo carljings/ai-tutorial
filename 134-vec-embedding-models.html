@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>嵌入模型选型：BGE、E5、Cohere · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="嵌入模型选型：BGE、E5、Cohere · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="嵌入模型选型：BGE、E5、Cohere · AI 全栈实战教学">
+<meta property="og:description" content="嵌入模型选型：BGE、E5、Cohere · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="four-families"><span class="idx">★</span> 四大主流家族</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>四大主流家族</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>架构差异：为什么同样的维度效果不同</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>维度 vs 效果：不是越高越好</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>中文场景实测建议</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>怎么自己测：别只信榜单</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Embedding 模型的训练原理：为什么有的模型更好</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>业务微调：让通用模型贴合你的数据</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Embedding 服务的部署与推理优化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
 
     <h3>BGE（BAAI）—— 中文开源标杆</h3>
     <p>智源研究院的 BGE 系列是中文开源 embedding 的事实标准。代表作 bge-large-zh-v1.5（1024 维）、bge-m3（多语言/多功能，1024 维）。训练特点是大规模弱监督预训练 + 对比学习微调，并在中文 MTEB 上长期霸榜。BGE 还提供配套的 reranker 和 icl（in-context learning）版本，生态完整。</p>

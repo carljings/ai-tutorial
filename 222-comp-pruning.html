@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>剪枝：删掉模型里的冗余 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="剪枝：删掉模型里的冗余 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="剪枝：删掉模型里的冗余 · AI 全栈实战教学">
+<meta property="og:description" content="剪枝：删掉模型里的冗余 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,17 @@
       </div>
     </section>
     <h2 class="section" id="two-routes"><span class="idx">★</span> 非结构化 vs 结构化：剪枝的两大路线</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>非结构化 vs 结构化：剪枝的两大路线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Lottery Ticket 假说：稠密网络里藏着一注中奖彩票</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Magnitude Pruning：最朴素也最稳健的基线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Wanda 与 SparseGPT：训练后一次性剪枝的革命</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>PyTorch 结构化剪枝实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>非结构化剪枝（unstructured pruning）是最直觉的做法：逐个参数看它"重不重要"，把不重要的直接置零。判断重要性的最经典指标是 magnitude（幅度）——权重的绝对值越小，对输出的贡献越小，置零后对 loss 的影响也越小。这种方法实现极简，理论上能把参数量砍到原来的 10% 甚至 1%，还几乎不掉点。但它有个致命的工程缺陷：稀疏矩阵在现有通用硬件上没有加速。GPU 是围绕稠密矩阵乘法设计的，一个 90% 是 0 的矩阵，跑起来和稠密矩阵一样慢，甚至更慢（因为多了零值判断和不确定的内存访问）。所以非结构化剪枝更适合"省内存、省存储"而非"省算力"的场景。</p>
     <p>结构化剪枝（structured pruning）则把"删单个参数"升级为"删一整组参数"。最常见的是通道剪枝（channel pruning）——把卷积的整个输出通道或全连接的一整行一整列直接删掉，这样权重矩阵物理上变小，稠密矩阵乘法就能真正加速。还有注意力头剪枝、层剪枝（直接删整个 Transformer 层，DistilBERT 就是删了 6 层中的 2 层）。结构化剪枝的好处是硬件友好、部署简单、延迟真实下降，坏处是相同稀疏率下精度损失更大——因为你不能精确挑"最该删的那个参数"，只能按块删，误删一个关键通道的代价远大于误删一个权重。</p>
     <p>两者的取舍本质上是"理论压缩率 vs 实际加速比"的权衡。非结构化给你更漂亮的稀疏率数字，结构化给你更真实的延迟下降。生产环境几乎都选结构化，或者用 2:4 这种半结构化稀疏（NVIDIA Ampere 及之后硬件原生支持，每 4 个连续权重里恰好 2 个非零），在稀疏率和加速之间取得平衡——2:4 稀疏能带来约 1.5x 的真实矩阵乘法加速，且精度损失可控，是当前 LLM 部署里"既要又要"的甜点方案。</p>

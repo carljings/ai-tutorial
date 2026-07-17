@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>模型注册与版本管理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="模型注册与版本管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="模型注册与版本管理 · AI 全栈实战教学">
+<meta property="og:description" content="模型注册与版本管理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="why-registry"><span class="idx">★</span> 为什么需要模型注册中心</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么需要模型注册中心</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>注册中心该有哪些核心能力</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MLflow Model Registry:开源首选</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Weights & Biases:协作与可视化的强者</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>DVC:与 Git 深度融合的轻量方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三大工具横向对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>模型卡:让模型会"自我介绍"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>最佳实践与避坑要点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>先看一个真实的尴尬场景:某团队的风控模型线上效果突然下降,工程师想回滚到上个版本,却发现在共享盘上找不到对应的文件,更想不起它当时是用哪份数据、哪个 commit、什么超参数训练出来的。排查花了三天,期间的损失由业务承担。这种"模型失忆症"在没有注册中心的团队里非常普遍。</p>
     <p>模型注册中心要解决的核心问题有三个。<strong>第一是版本管理</strong>:每个模型有唯一标识和版本号,能清楚地说出"线上跑的是 ctr-gbm v7",而不是"那个 final 的"。<strong>第二是溯源</strong>:每个模型能追溯到训练它的代码、数据、超参数和实验记录,出现问题时能快速定位原因。<strong>第三是生命周期管理</strong>:模型从 Staging 到 Production 到 Archived 的状态变迁被显式记录,谁能发布、谁能回滚有明确的流程。</p>
     <p>可以说,模型注册中心是 MLOps 流水线里的"中央枢纽":训练阶段产出的模型先进入注册中心,评估通过后被提升到 Production,部署服务从注册中心拉取指定版本,监控发现问题时回滚也通过注册中心完成。它让"模型"这个资产像"代码"一样可治理。</p>

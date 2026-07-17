@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>注意力掩码：因果、双向、文档级 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学">
+<meta property="og:description" content="注意力掩码：因果、双向、文档级 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="what-is-mask"><span class="idx">★</span> 一、掩码到底是什么</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、掩码到底是什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Causal Mask：单向注意力的根基</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Padding Mask：屏蔽无意义的填充位</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、组合掩码：训练时的标准操作</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、Prefix Mask：给前缀开绿灯</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、把掩码接进一个完整的注意力层</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、调试掩码的实用技巧</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在注意力计算里，每个位置都要和其他所有位置算一个注意力分数，然后通过 softmax 归一化得到权重。但有些「位置对」之间是不应该有注意力联系的——比如未来位置不能被当前看到，padding 位置不携带任何语义信息。掩码的作用就是在 softmax 之前，把这些不该存在的注意力分数压成负无穷，让它们归一化后变成 0。</p>
     <p>用一句话概括：<strong>掩码的本质是「注意力关系的开关」</strong>。1 表示允许关注，0（实现上常用 -inf）表示禁止关注。不同的掩码对应不同的「禁止规则」，组合使用就能精确控制谁能看到谁。</p>
 

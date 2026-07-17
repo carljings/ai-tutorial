@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Roo Code 的多模式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Roo Code 的多模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Roo Code 的多模式 · AI 全栈实战教学">
+<meta property="og:description" content="Roo Code 的多模式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-modes"><span class="idx">★</span> 一、从双模式到四模式：场景化的深化</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、从双模式到四模式：场景化的深化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、四种模式的角色定义</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、模式切换的 UX 与状态保持</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、工具守卫：模式约束的硬执行</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、自动模式建议</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、用户自定义模式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、与 Cline 双模式的对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Cline 的 plan/act 双模式（参见 168 章）解决了「先想后做」的基本分离。但实际使用中，用户会发现「plan」这个模式太宽泛——有时候你只是想让 AI 回答一个关于代码的问题（不需要规划任何改动），有时候你想让它专注排查一个 bug（需要的是诊断而非规划）。把这些都塞进「plan」模式，system prompt 会变得臃肿而泛泛。</p>
     <p>Roo Code 的解法是 <strong>进一步场景化</strong>，把 plan 拆成 architect（架构规划）、debug（调试）、ask（问答）三个独立模式，加上完整的 code 模式，共四种。每种模式有：</p>
     <ul>

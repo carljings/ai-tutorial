@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>时间序列预测：从数据中看趋势 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="时间序列预测：从数据中看趋势 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="时间序列预测：从数据中看趋势 · AI 全栈实战教学">
+<meta property="og:description" content="时间序列预测：从数据中看趋势 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="ts-basics"><span class="idx">★</span> 时间序列预测的基本范式</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>时间序列预测的基本范式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>方法演进:四代模型的脉络</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Prophet:工业界最稳的基线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Informer:长序列 Transformer 的代表作</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Time-LLM:用大模型做 zero-shot 时序预测</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多步预测策略:递归、直接、多输出</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>评估指标:别用错尺度</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>选型决策:一个实用框架</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>时间序列预测的核心任务,是给定一段历史观测值 {x_1, x_2, ..., x_t},预测未来 h 个时间点的值 {x_{t+1}, ..., x_{t+h}}。其中 h 称为预测步长(horizon),h 较小是短期预测(如明天销量),h 较大是长期预测(如明年季度规划)。</p>
     <p>时间序列有几个特殊的成分,理解它们是建模的基础。<strong>趋势(Trend)</strong>是长期上升或下降的方向;<strong>季节性(Seasonality)</strong>是固定周期的波动(如每天的早晚高峰、每年的节假日);<strong>周期(Cycle)</strong>是非固定周期的波动(如经济周期);<strong>噪声(Noise)</strong>是随机的不可解释部分。好的模型要能分解并捕捉这些成分。</p>
     <p>预测还有一个关键区分:<strong>单步预测</strong>只预测下一个点,<strong>多步预测</strong>预测未来多个点。多步预测的难点在于误差会累积——用预测值再预测,偏差会像滚雪球一样放大。如何稳健地做多步预测,是工程实践的核心问题之一,我们后面会专门讨论。</p>

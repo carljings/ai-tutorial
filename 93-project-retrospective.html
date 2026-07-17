@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>93 · AI 项目从0到1完整复盘 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="93 · AI 项目从0到1完整复盘 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="93 · AI 项目从0到1完整复盘 · AI 全栈实战教学">
+<meta property="og:description" content="93 · AI 项目从0到1完整复盘 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -337,7 +341,7 @@
     <h3>POC 验证（第 2 周）</h3>
     <p>用最简方案快速验证「AI 能不能回答公司问题」：</p>
     <div class="code-title">poc.py —— 最小验证（30 分钟搭完）</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 poc.py —— 30 分钟验证：GLM 能否回答公司文档问题？
 """</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI
@@ -401,7 +405,7 @@ print(f<span class="s">"准确率: {correct}/10"</span>)
 
     <h3>文档解析与索引（第 4 周）</h3>
     <div class="code-title">ingest.py —— 多源文档解析+索引（简化版）</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 ingest.py —— 从 Confluence/飞书/Slack 解析文档，分块，索引
 """</span>
 <span class="k">from</span> langchain_community.document_loaders <span class="k">import</span> ConfluenceLoader, UnstructuredMarkdownLoader
@@ -461,7 +465,7 @@ index_all()</code></pre>
 
     <h3>检索 + 生成 Pipeline（第 5 周）</h3>
     <div class="code-title">qa_pipeline.py —— 核心问答逻辑</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 qa_pipeline.py —— 查询改写 → 检索 → Rerank → 生成 → 带引用
 """</span>
 <span class="k">from</span> zhipuai <span class="k">import</span> ZhipuAI

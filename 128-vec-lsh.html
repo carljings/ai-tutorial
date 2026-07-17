@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LSH 局部敏感哈希 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LSH 局部敏感哈希 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LSH 局部敏感哈希 · AI 全栈实战教学">
+<meta property="og:description" content="LSH 局部敏感哈希 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="lsh-core-idea"><span class="idx">★</span> LSH 的核心定义：近的更易碰撞</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>LSH 的核心定义：近的更易碰撞</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>p-stable 分布：欧氏距离 LSH 的数学基础</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>AND/OR 构造：调出 p1 和 p2 的差距</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>从零实现一个可用的 LSH 索引</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>为什么 LSH 在主流向量库里退场</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LSH 的变体：MinHash、SimHash 与场景适配</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>为什么 LSH 的思想在现代系统里仍有回响</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LSH 的理论保证：为什么 ρ 决定一切</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>普通哈希函数（如 MD5）的设计目标是"输入差一点，输出完全不同"——用于去重和查找。LSH 反其道而行：它要的是<strong>"输入越近，哈希碰撞概率越高"</strong>。形式化定义是：一个哈希函数族 H 称为 (r, cr, p1, p2)-敏感的，如果对任意两点 p, q：</p>
     <ul>
       <li>当 dist(p,q) ≤ r 时，Pr[h(p)=h(q)] ≥ p1</li>

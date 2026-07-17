@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 数学基础 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLM 数学基础 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLM 数学基础 · AI 全栈实战教学">
+<meta property="og:description" content="LLM 数学基础 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-math"><span class="idx">★</span> 一、为什么写大模型应用也得懂数学</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么写大模型应用也得懂数学</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、向量与矩阵：大模型的世界观</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、用数学拆解 Attention：手写一个注意力</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、softmax 求导：训练时梯度怎么回传</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、概率论基础：采样、温度与生成策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、链式法则与反向传播</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>你可能会问：我调 OpenAI 的 API 写业务逻辑，又不需要训练模型，数学跟我有什么关系？关系很大。举几个真实场景：</p>
     <ul>
       <li><strong>调温度（temperature）和 top_p</strong>：这两个参数本质上是在操控 softmax 分布的尖锐程度，不懂 softmax，你就是在盲调。</li>

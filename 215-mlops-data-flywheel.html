@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学">
+<meta property="og:description" content="数据飞轮：从线上反馈到模型迭代 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="flywheel-concept"><span class="idx">★</span> 数据飞轮:飞轮为什么能转起来</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>数据飞轮:飞轮为什么能转起来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五个环节的拆解</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>反馈类型:显式、隐式、延迟</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>数据收集:把预测和反馈关联起来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>主动学习:聪明地选择要标注的样本</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>持续学习:避免灾难性遗忘</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>飞轮常见的卡点与对策</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>数据质量自动评分</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>物理上的飞轮,启动时费力,但一旦转起来,惯性会让它越转越快、越转越省力。数据飞轮是同一个道理的隐喻:前期积累训练数据、打磨模型成本很高,但一旦闭环建立,系统会自我强化,数据质量和模型性能螺旋上升。</p>
     <p>一个完整的数据飞轮由五个环节组成,首尾相接形成闭环:<strong>生产数据收集 → 数据筛选与标注 → 模型训练 → 模型评估 → 模型部署 → 回到数据收集</strong>。每个环节都为下一环节提供输入,任何一个环节断裂,飞轮就会停转。</p>
     <p>飞轮之所以能"加速",关键在于两个正反馈机制。第一,<strong>模型越好,收集到的数据质量越高</strong>。一个准确的推荐模型,能让用户产生更多有意义的点击行为(而不是乱点或流失),这些行为反过来是更干净的训练信号。第二,<strong>数据越多,模型越能捕捉长尾</strong>。随着数据积累,模型能覆盖更多小众场景,提升整体体验,吸引更多用户,产生更多数据。</p>

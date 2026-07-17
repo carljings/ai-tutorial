@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学">
+<meta property="og:description" content="66 · LLM 推理引擎源码深度剖析 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -723,7 +727,7 @@ def scheduler_step(waiting, running, kv_pool):
     <h2 class="section" id="scheduler"><span class="idx">01</span> 调度器：推理引擎的大脑</h2>
     <p>vLLM 的 Scheduler 是核心——它决定<strong>哪些请求一起跑、什么时候跑</strong>。核心逻辑：</p>
     <div class="code-title">scheduler.py —— vLLM 调度器简化逻辑</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 scheduler.py —— vLLM 调度器的核心逻辑（简化版）
 决定每个 step 哪些请求参与计算
 """</span>
@@ -756,7 +760,7 @@ scheduler.py —— vLLM 调度器的核心逻辑（简化版）
 
     <h2 class="section" id="block-manager"><span class="idx">02</span> Block Manager：PagedAttention 的实现</h2>
     <div class="code-title">block_manager.py —— KV Cache 分页管理</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 block_manager.py —— PagedAttention 的 block 管理逻辑
 KV Cache 被切成固定大小的 block，按需分配
 """</span>
@@ -816,7 +820,7 @@ BLOCK_SIZE = <span class="n">16</span>   <span class="c"># 每 block 存 16 个 
 
     <h2 class="section" id="streaming"><span class="idx">05</span> 流式输出实现</h2>
     <div class="code-title">流式输出的内部机制</div>
-    <pre><code><span class="c"># 流式：每生成一个 token 就 yield 给客户端</span>
+    <pre><code class="language-python"><span class="c"># 流式：每生成一个 token 就 yield 给客户端</span>
 <span class="k">async def</span> <span class="f">generate_stream</span>(request):
     <span class="k">while</span> <span class="k">True</span>:
         <span class="c"># 调度器安排这个请求参与一步 decode</span>

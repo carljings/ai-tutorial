@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLMOps 工程化入门 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLMOps 工程化入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLMOps 工程化入门 · AI 全栈实战教学">
+<meta property="og:description" content="LLMOps 工程化入门 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="ops-challenges"><span class="idx">★</span> 一、LLM 运维和传统 Web 服务有什么不同</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、LLM 运维和传统 Web 服务有什么不同</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、部署架构：从单机到分布式</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、自动扩容：基于什么指标扩</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Prometheus 监控体系</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、告警规则设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、灰度发布：怎么安全上线新模型</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、故障回滚：多快能回</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>八、SLO 定义与服务质量保障</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>如果你做过传统 Web 服务的运维，上手 LLM 运维会遇到几个新挑战：</p>
     <ul>
       <li><strong>延迟分布特殊</strong>：LLM 的首 token 延迟（TTFT）和每 token 延迟（TPOT）是两个独立指标，传统服务的「请求延迟」概念不够用。</li>

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学">
+<meta property="og:description" content="Mamba 与 SSM：挑战 Transformer 的新路线 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -621,6 +625,19 @@
     </section>
 
     <h2 class="section" id="motivation"><span class="idx">★</span> 一、Transformer 的长序列痛点</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Transformer 的长序列痛点</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、状态空间模型 SSM 是什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、从连续到离散：让 SSM 能处理序列</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Mamba 的核心创新：选择性机制</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、最小 Mamba 块实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、Mamba 与 Transformer 的全面对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、SSM 家族的演化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SSM 状态更新代码</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Transformer 的成功建立在自注意力上，但自注意力有一个原罪：<strong>每个 token 都要和所有其他 token 算注意力，复杂度是 O(n²)</strong>。序列长度 n=1000 时，注意力矩阵是 100 万个元素；n=100000 时，就是 100 亿个。计算和显存都吃不消。</p>
     <p>这限制了 Transformer 处理超长上下文的能力。虽然有 Flash Attention、稀疏注意力、滑动窗口等优化，但 O(n²) 的本质没变，长序列仍是瓶颈。于是研究者一直在寻找一种<strong>线性复杂度</strong>（O(n)）的替代方案，能像 RNN 一样高效，又能像 Transformer 一样并行训练、有长距离建模能力。</p>
     <p>Mamba（2023 年发表）就是这条路径上的一个里程碑。它把控制论里的状态空间模型做了「选择性」改造，既保留了线性复杂度，又获得了强大的建模能力，在长序列任务上超越了同规模的 Transformer。</p>

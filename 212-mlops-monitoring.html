@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>线上监控与告警 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="线上监控与告警 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="线上监控与告警 · AI 全栈实战教学">
+<meta property="og:description" content="线上监控与告警 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,6 +318,19 @@
       </div>
     </section>
     <h2 class="section" id="why-monitor"><span class="idx">★</span> 为什么 ML 监控是一门独立的学问</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么 ML 监控是一门独立的学问</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三种衰减:数据漂移、概念漂移、性能衰减</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>数据漂移检测:从 PSI 到统计检验</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>概念漂移检测:等待标签的艺术</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>监控架构:Prometheus + Grafana 实战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>告警策略:别让告警变成噪声</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>超越 Prometheus:专用 ML 监控平台</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统软件系统遵循"代码即逻辑"的原则:只要代码不变、输入合法,输出就是确定的。监控的主要对象是系统的"运行健康"——CPU、内存、磁盘、网络、错误率、延迟。这套体系在 DevOps 时代已经相当成熟。</p>
     <p>但 ML 系统多了一个维度:<strong>数据</strong>。模型的"逻辑"不是写死的,而是从训练数据中学来的。一旦线上输入数据的分布偏离训练分布,模型的预测就会变得不可靠——而此时系统层面往往一切正常,接口照常返回 200,延迟照常在 50ms 以内。这就是为什么 ML 监控不能照搬 DevOps,必须额外引入"数据质量"和"模型质量"两个维度的监控。</p>
     <p>用一句话概括:DevOps 监控问的是"系统还在不在工作",MLOps 监控还要问"模型还在不在做对的事"。后者的答案往往比前者更难获取,也更晚才能知道。</p>

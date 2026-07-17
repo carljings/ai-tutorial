@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>分块策略：固定/递归/语义/父子 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="分块策略：固定/递归/语义/父子 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="分块策略：固定/递归/语义/父子 · AI 全栈实战教学">
+<meta property="og:description" content="分块策略：固定/递归/语义/父子 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-chunk"><span class="idx">★</span> 为什么必须分块</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么必须分块</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>固定分块：最简单的基线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>递归分块：尊重文档结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>语义分块：按内容语义切</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>针对不同文档类型的进阶策略</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>常见坑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>分块质量的量化评估</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>分块的元数据与上下文保留</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>三个原因决定了 RAG 必须分块：</p>
     <ol>
       <li><strong>embedding 模型的输入长度限制</strong>：大多数 embedding 模型 max_length=512 token，超长会被截断，截断的部分信息全丢。</li>

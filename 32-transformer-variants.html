@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Transformer 变体深度 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Transformer 变体深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Transformer 变体深度 · AI 全栈实战教学">
+<meta property="og:description" content="Transformer 变体深度 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="bottleneck"><span class="idx">★</span> O(n²) 之痛：为什么需要新架构</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>O(n²) 之痛：为什么需要新架构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Mamba：状态空间模型的复兴</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>RWKV：把注意力伪装成 RNN</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>MoE：稀疏激活的算力魔法</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>长上下文工程：把窗口推到百万级</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四条路线横向对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>标准 Transformer 的核心是自注意力机制——每个 token 要和序列中所有其他 token 计算注意力分数。一个长度为 n 的序列，注意力矩阵是 n×n，计算量和显存占用都是 O(n²)。当 n=2048 时还好，当 n=128000 时，注意力矩阵就有 160 亿个元素，仅存储就需要数十 GB。</p>
     <p>这个瓶颈直接限制了模型能"看多远"。一本小说几十万字，但 GPT-4 的上下文最初只有 8K，连一章都放不下。于是学界和工业界从两个方向突围：<strong>改架构</strong>（用非注意力机制降低复杂度）和 <strong>改工程</strong>（在保留注意力的前提下优化长序列计算）。Mamba、RWKV、MoE 属于前者，Ring Attention、YaRN 等长上下文方案属于后者。它们各有取舍，没有银弹。</p>
 

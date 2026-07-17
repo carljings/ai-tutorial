@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>源码级启示：系统提示工程 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="源码级启示：系统提示工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="源码级启示：系统提示工程 · AI 全栈实战教学">
+<meta property="og:description" content="源码级启示：系统提示工程 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>Prompt 版本管理与 A/B</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>Prompt 版本管理与 A/B</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>System Prompt 模板生成器</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>一、System Prompt 的四个组成部分</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、角色定义：锚定 Agent 的「自我认知」</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、行为约束：用「不要」划定边界</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、工具描述：在 prompt 里 vs 在 tools 字段里</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、Few-shot 示例：用范例校准输出</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、Prompt 版本管理与迭代</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>把 system prompt 当代码管理后，下一步是做<strong>版本化 A/B 测试</strong>：让不同用户随机命中不同 prompt 版本，用下游指标决定哪个更好。这是 prompt 工程走向数据驱动的关键一环。</p>
 <pre class="code"><code class="language-python"># Prompt 版本管理与流量分配
 import hashlib, random

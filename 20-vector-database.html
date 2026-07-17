@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>20 · 向量数据库原理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="20 · 向量数据库原理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="20 · 向量数据库原理 · AI 全栈实战教学">
+<meta property="og:description" content="20 · 向量数据库原理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -824,7 +828,7 @@ for name, req in scenarios:
 
     <h2 class="section" id="code"><span class="idx">06</span> 代码：用 HNSW 从零建索引</h2>
     <div class="code-title">hnsw_demo.py —— 感受 HNSW 的速度</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 hnsw_demo.py —— 对比暴力搜索 vs HNSW 的速度
 """</span>
 <span class="k">import</span> numpy <span class="k">as</span> np, time
@@ -859,7 +863,7 @@ print(f<span class="s">"recall@10: {overlap/10:.0%}"</span>)
     <h2 class="section" id="faiss-ivf"><span class="idx">★</span> 实战：用 FAISS 构建 IVF 索引</h2>
     <p>上一节用 hnswlib 演示了 HNSW 图索引。这里换成 <strong>FAISS</strong>（Facebook 的向量检索库）构建 <strong>IVF（倒排文件）索引</strong>——它先对向量做 K-Means 聚类，查询时只搜索最近的几个聚类桶，是超大规模（千万~亿级）场景的常见选择。下面对比 IVF 与暴力（Flat）索引的召回率和速度。</p>
     <div class="code-title">faiss_ivf.py · 创建 IVF 索引并对比召回率与延迟</div>
-    <pre><code><span class="c">"""用 FAISS 构建 IVF 索引，对比暴力搜索的 recall 与延迟。"""</span>
+    <pre><code class="language-python"><span class="c">"""用 FAISS 构建 IVF 索引，对比暴力搜索的 recall 与延迟。"""</span>
 <span class="k">import</span> numpy <span class="k">as</span> np
 <span class="k">import</span> faiss, time
 

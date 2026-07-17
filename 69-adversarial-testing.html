@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LLM 对抗性测试 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="LLM 对抗性测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="LLM 对抗性测试 · AI 全栈实战教学">
+<meta property="og:description" content="LLM 对抗性测试 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-adversarial"><span class="idx">★</span> 一、为什么 AI 应用必须做对抗性测试</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么 AI 应用必须做对抗性测试</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、Prompt Injection：最危险的攻击</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、越狱测试：绕过安全对齐</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、数据泄露测试</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、防御实战：多层防护体系</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、红队测试的自动化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、OWASP LLM Top 10 检查清单</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>传统 Web 应用有成熟的渗透测试体系（OWASP Top 10），但 AI 应用引入了全新的攻击面——用户可以通过自然语言操纵模型的行为。这不是理论威胁：2023 年已有真实案例，攻击者通过 prompt injection 让一个 AI 客服机器人泄露了公司的内部文档，甚至执行了未授权的操作。</p>
     <p>对抗性测试（Adversarial Testing）就是系统地模拟这些攻击，在上线前发现漏洞。OWASP 在 2023 年专门发布了 LLM 应用的 Top 10 安全风险，第一名就是 prompt injection。这一章我们聚焦三类最危险的攻击：prompt injection、越狱（jailbreak）、数据泄露。</p>
 

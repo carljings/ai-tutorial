@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>量化：让大模型跑在消费级显卡上 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学">
+<meta property="og:description" content="量化：让大模型跑在消费级显卡上 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="why-quantization"><span class="idx">★</span> 一、为什么必须量化</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、为什么必须量化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、线性量化：最朴素的方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、GPTQ：基于二阶信息的后训练量化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、AWQ：激活感知的权重量化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、GGUF：端侧部署的事实标准</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、实战：用 bitsandbytes 做 INT8/INT4 量化</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、精度损失从何而来</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>八、如何选择量化方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>大模型的显存占用主要由两部分构成：模型权重和 KV cache。权重部分，每个参数在 FP16（半精度浮点）下占 2 字节，一个 7B 模型就要 14GB，一个 70B 模型要 140GB。这远超单张消费级显卡的容量（RTX 4090 是 24GB）。</p>
     <p>量化的目标就是把每个参数的存储位宽从 16 位压缩到 8 位甚至 4 位。从 FP16 到 INT8，显存直接砍半；到 INT4，再砍一半，只剩原来的四分之一。这意味着 7B 模型能在 8GB 显存上跑，70B 模型能在一张 40GB 显卡上跑。量化是大模型走向端侧、走向消费硬件的必经之路。</p>
 

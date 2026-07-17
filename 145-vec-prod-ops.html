@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>向量库运维：重建、调优、成本 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="向量库运维：重建、调优、成本 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="向量库运维：重建、调优、成本 · AI 全栈实战教学">
+<meta property="og:description" content="向量库运维：重建、调优、成本 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="index-rebuild"><span class="idx">★</span> 索引重建：写入与检索的永恒矛盾</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>索引重建：写入与检索的永恒矛盾</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>分片：水平扩展的必修课</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>副本与灾备</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>监控告警：生产系统的眼睛</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>生产上线清单</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>常见生产事故与应对</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>向量库的水平扩展与容量规划</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>深度监控与故障演练</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>HNSW、IVF 这些索引是为"静态数据"优化的——一次性构建好，查询高效。但生产环境的向量库会持续写入新向量（新文档、新图片、新行为日志），这就和索引的"静态"假设冲突。</p>
     <p>几种应对策略：</p>
     <ul>

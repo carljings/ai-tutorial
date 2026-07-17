@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多语言 NLP · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="多语言 NLP · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="多语言 NLP · AI 全栈实战教学">
+<meta property="og:description" content="多语言 NLP · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,16 @@
       </div>
     </section>
     <h2 class="section" id="cjk-tokenization"><span class="idx">★</span> 中文分词：NLP里最特殊的"第一公里"</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>中文分词：NLP里最特殊的"第一公里"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>跨语言迁移：XLM-R 与 mBERT 为什么能"举一反百"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>低资源语言：当训练数据只有几 MB 时怎么办</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多语言评测基准：怎么客观衡量"懂多种语言"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多语言模型加载与跨语言推理</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>英文NLP在很长一段时间里，分词几乎等于按空格切。直到 BPE、WordPiece 出现，大家才把 subword 当成默认选项。但中文、日文这类 CJK 语言天然没有空格，分词从一开始就是一道独立的工程难题。"南京市长江大桥"到底是"南京市/长江大桥"还是"南京市长/江大桥"？这种歧义在英文里几乎不存在，在中文里却几乎每一句话都会遇到。</p>
     <p>传统中文分词的两大流派是基于词典的最大匹配和基于统计模型的序列标注（CRF/HMM）。Jieba 是词典派最经典的实现，它的核心思路是：先构建一个大规模的前缀词典，用 DAG（有向无环图）枚举所有可能的切分路径，再用基于词频的动态规划选出概率最大的路径，最后对未登录词用 HMM 做一次识别。这套机制在 2014 年开源时几乎是中文分词的事实标准，时至今日它在轻量、确定性强、部署成本低的场景里依然是首选。</p>
     <p>HanLP 则代表了统计/深度学习派的集大成者。它不仅提供感知机、CRF 等多种分词模型，还内置了词性标注、命名实体识别、依存句法分析、语义依存等一整套管道。对于需要"不只是分个词"的复杂业务，HanLP 几乎是开源方案里最完整的选择。它还提供了基于预训练词向量的神经网络分词模型，准确率在标准数据集上能压过很多商业服务。</p>

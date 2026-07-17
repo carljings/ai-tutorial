@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>05 · 智能体深度实战 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="05 · 智能体深度实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="05 · 智能体深度实战 · AI 全栈实战教学">
+<meta property="og:description" content="05 · 智能体深度实战 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -407,7 +411,7 @@
     </div>
 
     <div class="code-title">Reflection 的极简实现：生成 → 批评 → 修正</div>
-    <pre><code><span class="k">def</span> <span class="f">reflect_and_improve</span>(task):
+    <pre><code class="language-python"><span class="k">def</span> <span class="f">reflect_and_improve</span>(task):
     <span class="c"># ① 初版产出</span>
     draft = llm(f<span class="s">"完成这个任务：{task}"</span>)
 
@@ -646,7 +650,7 @@
     <h2 class="section" id="memory-code"><span class="idx">09</span> 代码实战：智能体记忆系统</h2>
     <p>第 3 节讲了记忆的四类。这里实现一个<strong>可用的长期记忆系统</strong>——带读写、相关性检索、重要性判断：</p>
     <div class="code-title">memory.py —— 智能体的长期记忆系统</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 memory.py —— 智能体长期记忆：写入、检索、重要性判断
 结合向量检索 + 元数据，让智能体跨会话记住事情
 """</span>
@@ -702,7 +706,7 @@ embedder = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
     <h2 class="section" id="multiagent-code"><span class="idx">10</span> 代码实战：多智能体层级编排</h2>
     <p>第 4 节讲了多智能体三种模式。这里实现<strong>层级模式</strong>——主 Agent 派子 Agent，子 Agent 汇报，主 Agent 综合：</p>
     <div class="code-title">multi_agent.py —— 层级式多智能体编排</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 multi_agent.py —— 主 Agent + 多个专业子 Agent 的层级编排
 每个子 Agent 有自己的角色、工具、独立上下文
 """</span>
@@ -762,7 +766,7 @@ orchestrator(<span class="s">"做一个能查询天气的命令行小工具"</sp
     <h3>Self-Consistency（自洽性采样）</h3>
     <p>对同一个问题，用高温度采样<strong>生成多个不同的推理路径</strong>，然后取<strong>多数答案</strong>。原理：正确答案往往被多条路径支持，错误答案路径各异。</p>
     <div class="code-title">self_consistency.py —— 多数投票提升准确率</div>
-    <pre><code><span class="k">def</span> <span class="f">self_consistency</span>(question, llm, n=<span class="n">5</span>):
+    <pre><code class="language-python"><span class="k">def</span> <span class="f">self_consistency</span>(question, llm, n=<span class="n">5</span>):
     <span class="c"># 生成 n 条不同的推理路径</span>
     answers = []
     <span class="k">for</span> _ <span class="k">in</span> <span class="f">range</span>(n):

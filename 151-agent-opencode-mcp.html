@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenCode 与 MCP 协议 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="OpenCode 与 MCP 协议 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="OpenCode 与 MCP 协议 · AI 全栈实战教学">
+<meta property="og:description" content="OpenCode 与 MCP 协议 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="what-is-mcp"><span class="idx">★</span> 一、MCP 到底解决了什么问题</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、MCP 到底解决了什么问题</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、MCP server 配置：声明即接入</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、stdio vs SSE：两种传输的本质差异</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、握手与能力发现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、tool / resource / prompt：三类能力的差异</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、一次 MCP 工具调用的完整流程</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>七、MCP server 的生命周期与崩溃恢复</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在 MCP 出现之前，每个 Agent 想接入一个外部能力（比如查 GitHub issue），都得自己写一个专用工具——硬编码 API 调用、自己处理鉴权、自己定义参数 schema。这导致 Agent 的工具系统是封闭的：换一个 Agent，所有集成都要重写。</p>
     <p>MCP 把这件事标准化了。它定义了一套基于 JSON-RPC 的协议，规定了三件事：<strong>如何发现能力</strong>（tools/list、resources/list）、<strong>如何描述能力</strong>（JSON Schema）、<strong>如何调用能力</strong>（tools/call）。任何一个符合 MCP 协议的 server，都能被任何支持 MCP 的 client（Agent）直接使用。OpenCode 就是这样一个 client。</p>
     <p>用一个比喻：MCP 之于 Agent，就像 USB 之于电脑。你不需要为每个外设定制接口，只要它是 USB 设备，插上就能用。OpenCode 通过集成 MCP，一夜之间获得了上百个现成的能力接入。</p>

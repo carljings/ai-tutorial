@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>语音大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="语音大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="语音大模型 · AI 全栈实战教学">
+<meta property="og:description" content="语音大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -623,6 +627,19 @@
 
 
     <h2><span class="idx"></span>VAD 语音活动检测</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>VAD 语音活动检测</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Whisper 识别结果后处理流水线</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>从声波到语义：语音处理的范式变迁</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Mel 频谱图：语音模型的"图像化"输入</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>Whisper 架构拆解：弱监督的胜利</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>语音克隆：CosyVoice 与 Bark</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>端到端语音 Agent：真正的自然对话</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>ASR 之前通常先做 VAD（Voice Activity Detection）切出'有说话的片段'，避免把静音也送去识别——既省算力又提升准确率。下面给一个基于能量的极简 VAD，是语音管线的常见前置组件。</p>
 <pre class="code"><code class="language-python"># 基于短时能量的 VAD(语音活动检测)
 import numpy as np

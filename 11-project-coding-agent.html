@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>11 · 实战项目：企业级 AI 编程助手 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="11 · 实战项目：企业级 AI 编程助手 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="11 · 实战项目：企业级 AI 编程助手 · AI 全栈实战教学">
+<meta property="og:description" content="11 · 实战项目：企业级 AI 编程助手 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,6 +322,19 @@
     </section>
 
     <h2 class="section" id="goal"><span class="idx">★</span> 项目目标与最终形态</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>项目目标与最终形态</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>整体架构设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>项目文件结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第一步：搭建 Harness 骨架</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第二步：代码库 RAG 索引</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第三步：核心 Agent Loop</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第四步：工具实现（文件/Shell/Git）</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>第五步：内置技能（SKILL.md）</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>我们要造的东西，叫 <strong>「CodeMate」</strong>——一个终端里的 AI 编程助手。它能：</p>
     <ul>
       <li>读懂你的代码库（RAG 索引整个项目）；</li>
@@ -375,7 +392,7 @@
 
     <h2 class="section" id="file-structure"><span class="idx">02</span> 项目文件结构</h2>
     <div class="code-title">CodeMate 项目结构</div>
-    <pre><code>codemate/
+    <pre><code class="language-python">codemate/
 ├── codemate/
 │   ├── __init__.py
 │   ├── cli.py                  <span class="c"># 入口：CLI 交互循环</span>
@@ -411,7 +428,7 @@
     <p>Harness 是 CodeMate 的地基。我们整合第 3 章的权限、Hook、上下文装配，成一个统一的 Harness 类：</p>
 
     <div class="code-title">codemate/harness/__init__.py —— Harness 整合</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 codemate/harness/__init__.py —— Harness 整合层
 把权限、Hook、上下文、成本控制组合起来
 """</span>
@@ -465,7 +482,7 @@ codemate/harness/__init__.py —— Harness 整合层
         <span class="k">return</span> self.cost.can_spend(tokens)</code></pre>
 
     <div class="code-title">codemate/harness/cost.py —— 成本追踪</div>
-    <pre><code><span class="c">"""codemate/harness/cost.py —— 成本与预算控制"""</span>
+    <pre><code class="language-python"><span class="c">"""codemate/harness/cost.py —— 成本与预算控制"""</span>
 <span class="k">class</span> <span class="t">CostTracker</span>:
     <span class="k">def</span> <span class="f">__init__</span>(self, budget_tokens=<span class="n">500000</span>):
         self.budget = budget_tokens
@@ -488,7 +505,7 @@ codemate/harness/__init__.py —— Harness 整合层
     <p>CodeMate 要「懂」你的项目，得先把整个代码库索引成可检索的知识。这是第 6 章的实战应用——而且针对<strong>代码</strong>有特殊处理：</p>
 
     <div class="code-title">codemate/knowledge/indexer.py —— 代码库索引</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 codemate/knowledge/indexer.py —— 把代码库索引成可检索的知识
 特殊处理：按函数/类切分，保留符号元数据
 """</span>
@@ -555,7 +572,7 @@ embedder = SentenceTransformer(<span class="s">"BAAI/bge-m3"</span>)
     <p>整合 Harness、RAG、工具，写出 CodeMate 的核心循环。这是全书第 4 章的工业级落地：</p>
 
     <div class="code-title">codemate/agent/loop.py —— CodeMate 核心 Loop</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 codemate/agent/loop.py —— CodeMate 的核心 Agent Loop
 整合 Harness（权限/Hook/成本）+ RAG 检索 + 工具调用 + PEV
 """</span>
@@ -666,7 +683,7 @@ SYSTEM = <span class="s">"""你是 CodeMate，企业级 AI 编程助手。工作
 
     <h2 class="section" id="build-tools"><span class="idx">06</span> 第四步：工具实现（文件/Shell/Git）</h2>
     <div class="code-title">codemate/tools/filesystem.py —— 文件读写工具</div>
-    <pre><code><span class="c">"""codemate/tools/filesystem.py —— 文件系统工具"""</span>
+    <pre><code class="language-python"><span class="c">"""codemate/tools/filesystem.py —— 文件系统工具"""</span>
 <span class="k">import</span> os
 
 <span class="k">def</span> <span class="f">read_file</span>(path, max_chars=<span class="n">10000</span>):
@@ -694,7 +711,7 @@ SYSTEM = <span class="s">"""你是 CodeMate，企业级 AI 编程助手。工作
     <span class="k">return</span> <span class="s">"</span><span class="d">\n</span><span class="s">"</span>.join(items[:<span class="n">50</span>])</code></pre>
 
     <div class="code-title">codemate/tools/shell.py —— Shell 命令工具</div>
-    <pre><code><span class="c">"""codemate/tools/shell.py —— 执行 shell 命令"""</span>
+    <pre><code class="language-python"><span class="c">"""codemate/tools/shell.py —— 执行 shell 命令"""</span>
 <span class="k">import</span> subprocess
 
 <span class="k">def</span> <span class="f">run_shell</span>(command, timeout=<span class="n">30</span>):
@@ -713,7 +730,7 @@ SYSTEM = <span class="s">"""你是 CodeMate，企业级 AI 编程助手。工作
     <p>CodeMate 的「聪明」很大程度来自内置技能。每个技能是一个 Markdown 文件，描述「这类任务怎么做」：</p>
 
     <div class="code-title">codemate/skills/builtin/testing.md —— 「写测试」技能</div>
-    <pre><code>---
+    <pre><code class="language-python">---
 name: write-tests
 description: 为指定函数或模块编写单元测试
 trigger: ["写测试", "加单元测试", "补测试", "test coverage"]
@@ -740,7 +757,7 @@ tools: [read_file, write_file, run_shell]
 - 覆盖率不是目的，测对关键路径才是</code></pre>
 
     <div class="code-title">codemate/skills/builtin/debugging.md —— 「调试」技能</div>
-    <pre><code>---
+    <pre><code class="language-python">---
 name: debug
 description: 定位并修复 bug
 trigger: ["修 bug", "报错", "不工作", "崩溃", "调试"]
@@ -765,7 +782,7 @@ tools: [read_file, run_shell, list_dir]
 
     <h2 class="section" id="build-cli"><span class="idx">08</span> 第六步：CLI 入口</h2>
     <div class="code-title">codemate/cli.py —— 命令行入口</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 codemate/cli.py —— CodeMate 命令行入口
 用法：python -m codemate "给 utils.py 加测试"
      或交互模式：python -m codemate
@@ -828,7 +845,7 @@ TOOLS = {<span class="s">"read_file"</span>: read_file, <span class="s">"write_f
 
     <h2 class="section" id="demo"><span class="idx">09</span> 实跑演示</h2>
     <div class="code-title">实际运行 CodeMate</div>
-    <pre><code><span class="c"># 首次运行，索引代码库</span>
+    <pre><code class="language-python"><span class="c"># 首次运行，索引代码库</span>
 $ python -m codemate --reindex
 📚 索引代码库...
 ✅ 索引完成：47 个代码符号
@@ -859,7 +876,7 @@ $ python -m codemate "给 utils.py 里的 calculate_price 函数加单元测试"
     <h2 class="section" id="evaluate"><span class="idx">10</span> 怎么评估和迭代 CodeMate</h2>
     <p>做出来只是开始，要持续打磨。建议建立<strong>任务回归集</strong>：</p>
     <div class="code-title">tests/tasks.py —— 任务回归集</div>
-    <pre><code><span class="c"># 一批标准任务，每次改 CodeMate 都跑，确保不退化</span>
+    <pre><code class="language-python"><span class="c"># 一批标准任务，每次改 CodeMate 都跑，确保不退化</span>
 TASKS = [
     {<span class="s">"task"</span>: <span class="s">"给 utils.py 的 calculate_price 加测试"</span>, <span class="s">"expect"</span>: <span class="s">"测试文件被创建且通过"</span>},
     {<span class="s">"task"</span>: <span class="s">"修复 main.py 第 42 行的 bug"</span>,      <span class="s">"expect"</span>: <span class="s">"bug 修复且测试通过"</span>},

@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SPLADE 稀疏向量：学习型 BM25 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="SPLADE 稀疏向量：学习型 BM25 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="SPLADE 稀疏向量：学习型 BM25 · AI 全栈实战教学">
+<meta property="og:description" content="SPLADE 稀疏向量：学习型 BM25 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="sparse-vs-dense"><span class="idx">★</span> 稠密 vs 稀疏：两种表示的本质区别</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>稠密 vs 稀疏：两种表示的本质区别</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>稀疏激活怎么实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>学习型倒排索引：为什么 SPLADE 比 BM25 强</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>dense + sparse 混合检索</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SPLADE vs 其他方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>什么时候用 SPLADE</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SPLADE 的工程落地与调优</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>SPLADE vs BM25：何时升级</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>BM25 本质是一种<strong>稀疏表示</strong>：把文档表示成一个 vocab_size 维（如 3 万维）的向量，每维对应一个词项，值是该词的 BM25 权重，绝大多数维度是 0（文档只含少量词）。这种表示的优点是<strong>精确匹配</strong>——搜"GPT-4o"就只看 GPT-4o 这一维，干脆利落；缺点是<strong>无语义</strong>——"GPT-4"和"GPT-4o"是两个维度，互相看不到。</p>
     <p>稠密向量是另一种极端：所有维度都有值（稠密），维度数小（768），通过训练每个维度捕捉某种语义特征。优点是<strong>有语义</strong>（"GPT-4"和"GPT-4o"向量接近），缺点是<strong>无精确匹配</strong>（被语义相似性主导，精确词形可能被淹没）。</p>
     <p>SPLADE 的核心思想：<strong>用 transformer 学一个稀疏的高维表示</strong>——维度数仍是 vocab_size（几万），但每个维度对应一个词项（可解释），值由 transformer 学出来（带语义）。这样既保留了词项的精确匹配（某维度非 0 就是"提到了这个词"），又通过 transformer 的语义理解让"近义词"在某些维度上同时激活。</p>

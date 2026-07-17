@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Codex 沙箱：macOS Seatbelt · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学">
+<meta property="og:description" content="Codex 沙箱：macOS Seatbelt · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="what-is-seatbelt"><span class="idx">★</span> 一、Seatbelt：macOS 内核里的安全栅栏</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、Seatbelt：macOS 内核里的安全栅栏</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、读一份真实的 profile 文件</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、Codex 如何动态生成 profile</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、调试 profile：为什么我的命令被拒了</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、Seatbelt 的局限</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、网络白名单的实战考量</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>Seatbelt 是 macOS（确切说是 XNU 内核）里的 mandatory access control（MAC）框架，它的用户态接口是 <code>sandbox-exec</code> 命令。和 Linux 的 AppArmor 或 SELinux 类似，Seatbelt 允许你定义一套规则——某个进程能访问哪些路径、能连哪些网络、能 spawn 什么子进程——然后强制执行。</p>
     <p>Seatbelt 的规则是用一种 Scheme 方言写的（没错，是 Lisp 风格的语法）。一条规则大致长这样：<code>(allow file-write* (subpath "/Users/me/project/node_modules"))</code>，意思是「允许在 node_modules 目录下写文件」。所有未明确 allow 的操作，默认被 deny。</p>
     <p>关键特性是：<strong>规则只对 sandbox-exec 拉起的进程及其所有子进程生效</strong>，对系统其他进程无影响。这意味着你可以把 Agent 的命令执行隔离在一个沙箱里，而你的终端、IDE、其他应用完全不受影响。这种「进程级隔离」比修改系统全局配置安全得多。</p>

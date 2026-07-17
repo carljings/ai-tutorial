@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>微调策略决策：什么时候该微调 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="微调策略决策：什么时候该微调 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="微调策略决策：什么时候该微调 · AI 全栈实战教学">
+<meta property="og:description" content="微调策略决策：什么时候该微调 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -620,6 +624,19 @@
       </div>
     </section>
     <h2 class="section" id="why-finetune"><span class="idx">★</span> 为什么要微调:三种动机</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>为什么要微调:三种动机</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>全量微调:效果天花板,成本地狱</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>LoRA:参数高效微调的明星</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>QLoRA:在消费级显卡上微调大模型</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>P-Tuning 与 Prompt Tuning:只调"提示"</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>决策树:四种方法怎么选</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>比策略更重要的是数据质量</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>常见陷阱与避坑</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在讨论"怎么微调"之前,先想清楚"为什么要微调"。不是所有任务都需要微调,很多时候 prompt 工程或 RAG 就够了。微调的动机通常有三类,动机不同,策略选择也不同。</p>
     <p><strong>动机一:领域适配</strong>。通用大模型在法律、医疗、金融等垂直领域表现平平,因为它没见过足够多的专业语料。通过在领域数据上微调,让模型"学会"专业知识和术语。这类微调通常数据量较大,目标是注入知识,适合全量微调或高秩 LoRA。</p>
     <p><strong>动机二:风格与格式对齐</strong>。你希望模型以特定格式输出(比如 JSON、特定代码风格、某种语气),通用模型做不到稳定遵循。这类微调数据量小,目标是调整行为而非注入知识,适合 LoRA、P-Tuning 等轻量方法。</p>

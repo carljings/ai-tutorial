@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>为什么 Decoder-Only 一统天下 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学">
+<meta property="og:description" content="为什么 Decoder-Only 一统天下 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="why-decoder-only"><span class="idx">★</span> 一、从一篇论文说起：砍掉 Encoder 之后发生了什么</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、从一篇论文说起：砍掉 Encoder 之后发生了什么</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、因果掩码：Decoder-Only 的核心机关</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、与 Encoder-Decoder 的正面对决</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、Decoder-Only 的推理加速神器：KV Cache</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、为什么 Decoder-Only 赢得了规模竞赛</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、Decoder-Only 也不是万能的</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>2017 年的《Attention Is All You Need》提出的是完整的 Encoder-Decoder：左半边 Encoder 负责把输入「读进去」，右半边 Decoder 负责「写出来」，两者之间靠 cross-attention 连接。这套结构天生为翻译任务设计——输入是一段源语言，输出是一段目标语言，长度可以不一样。</p>
     <p>但 2018 年 OpenAI 的 GPT-1 做了一个大胆的减法：既然语言模型本质上就是「给定前文，预测下一个词」，那为什么还要 Encoder？于是它只保留了 Decoder，去掉 cross-attention，让模型自己看着自己前面的 token 去预测下一个。这个决定，后来被证明是这一代大模型最关键的架构选择之一。</p>
     <p>打个比方：Encoder-Decoder 像是「同声传译」，一边听一边译；Decoder-Only 则像是「续写小说」，作者只盯着自己已经写下的段落，琢磨下一句该是什么。后者天然契合「生成」这件事。</p>

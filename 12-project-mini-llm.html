@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>12 · 实战：从零训练迷你大模型 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="12 · 实战：从零训练迷你大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="12 · 实战：从零训练迷你大模型 · AI 全栈实战教学">
+<meta property="og:description" content="12 · 实战：从零训练迷你大模型 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -341,7 +345,7 @@
     <p>第 1 章讲了 BPE。这里我们用 HuggingFace 的 tokenizers 库，<strong>从零训练一个 BPE 分词器</strong>：</p>
 
     <div class="code-title">train_tokenizer.py —— 从零训练 BPE Tokenizer</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 train_tokenizer.py —— 训练自己的 BPE 分词器
 这就是第 1 章 BPE 算法的工业实现
 """</span>
@@ -374,7 +378,7 @@ print(<span class="s">f"IDs: {enc.ids}"</span>)</code></pre>
     <p>大模型吃 token 序列。我们要把文本变成模型能消化的格式：</p>
 
     <div class="code-title">prepare_data.py —— 数据准备</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 prepare_data.py —— 把文本语料转成预训练用的 token 序列
 """</span>
 <span class="k">from</span> tokenizers <span class="k">import</span> Tokenizer
@@ -402,7 +406,7 @@ prepare_corpus(<span class="s">"data/corpus.txt"</span>, <span class="s">"data/t
     <p>第 1 章的 MiniGPT 用了简单位置编码。这里升级为<strong>带 RoPE 的完整 Transformer</strong>，更接近真实模型：</p>
 
     <div class="code-title">tinylm/model.py —— 带 RoPE 的迷你 GPT</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 tinylm/model.py —— TinyLM 模型：带 RoPE 的 Decoder-Only Transformer
 约 200 万参数，结构上与 GLM-5.2 同源
 """</span>
@@ -495,7 +499,7 @@ tinylm/model.py —— TinyLM 模型：带 RoPE 的 Decoder-Only Transformer
 
     <h2 class="section" id="pretrain"><span class="idx">04</span> 第四步：预训练（就是下一个 token 预测）</h2>
     <div class="code-title">pretrain.py —— 预训练循环</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 pretrain.py —— 预训练：让 TinyLM 学会预测下一个 token
 这就是第 2 章讲的「预训练」的最小实现
 """</span>
@@ -536,7 +540,7 @@ print(<span class="s">"✅ 预训练完成，模型已保存"</span>)</code></pr
     <h2 class="section" id="sft"><span class="idx">05</span> 第五步：SFT 对齐（让它会对话）</h2>
     <p>预训练后的模型只会「续写」，不会「回答」。SFT 让它学会问答格式：</p>
     <div class="code-title">sft.py —— 监督微调</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 sft.py —— SFT：让模型学会「问-答」格式
 用少量高质量对话数据微调（第 2 章第 5 节）
 """</span>
@@ -571,7 +575,7 @@ SFT_DATA = [
 
     <h2 class="section" id="generate"><span class="idx">06</span> 第六步：推理生成（带 KV Cache）</h2>
     <div class="code-title">generate.py —— 带采样与 KV Cache 的生成</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 generate.py —— 文本生成（带温度采样 + KV Cache 加速）
 """</span>
 <span class="k">import</span> torch
@@ -607,7 +611,7 @@ tokenizer = Tokenizer.from_file(<span class="s">"tinylm-tokenizer.json"</span>)
 
     <h2 class="section" id="run-it"><span class="idx">07</span> 完整运行流程</h2>
     <div class="code-title">从零到能用，六步走</div>
-    <pre><code><span class="c"># 0. 准备语料 data/corpus.txt（几千行中文/英文文本）</span>
+    <pre><code class="language-python"><span class="c"># 0. 准备语料 data/corpus.txt（几千行中文/英文文本）</span>
 $ echo <span class="s">"大模型是当代最重要的技术之一..."</span> &gt; data/corpus.txt
 
 <span class="c"># 1. 训练 Tokenizer</span>

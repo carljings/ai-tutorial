@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ColBERT 与多向量检索 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="ColBERT 与多向量检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="ColBERT 与多向量检索 · AI 全栈实战教学">
+<meta property="og:description" content="ColBERT 与多向量检索 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,19 @@
     </section>
 
     <h2 class="section" id="single-vec-limit"><span class="idx">★</span> 单向量的信息瓶颈</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>单向量的信息瓶颈</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>late interaction：token 级的 MaxSim</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多向量索引的工程挑战</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ColBERTv2 的优化：让多向量可扩展</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>单向量 vs ColBERT vs cross-encoder</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>什么时候选 ColBERT</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>ColBERT 的工程落地与替代方案</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>多向量检索的生态：ColBERT 之外的选项</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>回顾传统 bi-encoder：一个文档（比如 300 token）经过 embedding 模型，所有 token 的表示被 pooling（CLS 或 mean）压成一个固定维度（如 768）的向量。这个向量要"代表"整个文档。问题在于：<strong>300 个 token 的语义被压成 768 个数字，平均每个 token 的语义信息被稀释到几个数字</strong>。</p>
     <p>这对"文档讲什么主题"这种粗粒度匹配够用，但对"文档里有没有提到 X 的 Y 属性"这种细粒度匹配就吃力——因为细节信息在 pooling 时和其它信息混在一起、被稀释了。这就是单向量召回在高精度场景（如法律条款匹配、技术规格查询）的瓶颈。</p>
     <p>cross-encoder（rerank）解决了精度问题但太慢。ColBERT 是个绝妙的中间路线：<strong>保留 token 级向量（精度高），但在最后用一种叫 late interaction 的轻量交互（速度快）</strong>。</p>

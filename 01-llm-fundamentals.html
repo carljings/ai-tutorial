@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>01 · LLM 基础与原理 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="01 · LLM 基础与原理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="01 · LLM 基础与原理 · AI 全栈实战教学">
+<meta property="og:description" content="01 · LLM 基础与原理 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -665,7 +669,7 @@
     <p>这样训练出来的词表有个绝妙性质：<strong>常见词整体进词表</strong>（如 "the"、"learning"），<strong>罕见词被拆成可复用的子词</strong>（如 "tokenization" → "token" + "ization"），<strong>完全没见过的词也能用字符兜底</strong>。这就解决了词典爆炸和未登录词（OOV）的难题。</p>
 
     <div class="code-title">用 Python 直观感受 BPE 的合并过程</div>
-    <pre><code><span class="c"># 一个极简的 BPE 训练演示（仅教学用）</span>
+    <pre><code class="language-python"><span class="c"># 一个极简的 BPE 训练演示（仅教学用）</span>
 <span class="k">from</span> collections <span class="k">import</span> Counter
 
 <span class="k">def</span> <span class="f">get_pairs</span>(word):
@@ -927,7 +931,7 @@ vocab  = {w: <span class="k">tuple</span>(w + <span class="s">'$'</span>) <span 
     <p>理解 Attention 最好的方式就是手写一遍。下面用 NumPy 实现，每一步对应上面的数学：</p>
 
     <div class="code-title">attention_from_scratch.py —— 用 NumPy 手写 Self-Attention</div>
-    <pre><code><span class="c">"""
+    <pre><code class="language-python"><span class="c">"""
 attention_from_scratch.py —— 从零实现 Self-Attention
 每一步都对应数学公式，无任何抽象
 """</span>

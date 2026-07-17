@@ -5,6 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Cline 的差异编辑 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
+<meta name="description" content="Cline 的差异编辑 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:title" content="Cline 的差异编辑 · AI 全栈实战教学">
+<meta property="og:description" content="Cline 的差异编辑 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
+<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -315,6 +319,18 @@
     </section>
 
     <h2 class="section" id="two-strategies"><span class="idx">★</span> 一、两种策略的本质权衡</h2>
+
+    <table>
+      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
+          <tr><td>一、两种策略的本质权衡</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>二、策略选择：什么时候用哪种</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>三、SEARCH/REPLACE 的实现与容错</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>四、全文件重写的实现</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>五、错误恢复：失败 → 反馈 → 重试 → 降级</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>六、检查点：每步改动可回滚</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
+          
+    </table>
     <p>在深入 Cline 的实现前，我们先把两种策略的权衡讲清楚。</p>
     <p><strong>SEARCH/REPLACE（精确补丁）</strong>：LLM 输出「要找的旧代码块」和「替换的新代码块」，工具在文件里搜索旧块并替换。优点是 token 高效——一个 1000 行的文件，如果只改 3 行，LLM 只需输出那 3 行的上下文 + 新内容，可能只要 50 token，而不是 1000 行全文。缺点是匹配依赖——如果 LLM 输出的旧块和文件实际内容有任何差异（多一个空格、tab vs 空格），匹配就失败。</p>
     <p><strong>full-file rewrite（全文件重写）</strong>：LLM 输出整个文件的新内容，工具直接覆盖。优点是绝对可靠——不存在匹配问题，LLM 输出什么就是什么。缺点是 token 浪费——改一个 1000 行文件里的 3 行，也要输出 1000 行，成本高且慢。还有个风险：LLM 在重写长文件时可能在某一行「抄错」，引入意料之外的改动。</p>
