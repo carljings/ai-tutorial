@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Codex 审批：sandbox_mode × approval_policy · AI 全栈实战教学</title>
+<title>158 · Codex 审批机制 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
 </head>
 <body>
@@ -309,69 +309,296 @@
 <section class="hero"><span class="eyebrow">◆ 第 158 章 · 开源 Agent 源码深挖</span>
 <h1>Codex 审批：sandbox_mode × approval_policy</h1><p class="lead">两条正交轴：sandbox_mode（物理允许什么）+ approval_policy（何时停下问）。read-only/workspace-write/danger 三档 × untrusted/on-failure/on-request/never。预设组合。</p>
 <div class="meta"><span class="chip">原理深挖</span><span class="chip">开源 Agent 源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
+<h2><span class="idx"></span>源码级视角</h2>
+<p>两条正交轴：sandbox_mode（物理允许什么）+ approval_policy（何时停下问）。read-only/workspace-write/danger 三档 × untrusted/on-failure/on-request/never。预设组合。</p>
+<p>我们不只是"用"这些开源 Agent，而是拆开源码，看清它们的 agent loop、工具系统、权限模型是如何实现的。这种"源码级理解"让你能批判性地使用它们、为它们扩展工具、甚至构建自己的 agent。</p>
+<h2><span class="idx"></span>两条正交的权限轴</h2>
+<p>Codex CLI 的权限模型最精妙之处是用两条正交的轴组合出灵活的策略：</p>
+<table class="data-table"><thead><tr><th>轴</th><th>取值</th><th>含义</th></tr></thead><tbody><tr><td>sandbox_mode</td><td>read-only</td><td>物理上只读，任何写操作被 OS 拦截</td></tr><tr><td></td><td>workspace-write</td><td>只能写工作目录，其余只读</td></tr><tr><td></td><td>danger-full-access</td><td>不限制（危险）</td></tr><tr><td>approval_policy</td><td>untrusted</td><td>每次工具调用都要人工确认</td></tr><tr><td></td><td>on-failure</td><td>失败时才问</td></tr><tr><td></td><td>on-request</td><td>模型主动请求时才问</td></tr><tr><td></td><td>never</td><td>从不问（全自动）</td></tr></tbody></table>
+<p>这两个轴是正交的：sandbox_mode 决定"物理上能做什么"（OS 层强制），approval_policy 决定"什么时候打断问人"（应用层策略）。组合起来：read-only + never = 安全的全自动只读分析；workspace-write + on-failure = 默认自动跑、出错才停。</p>
+<h3>配置示例</h3>
+<pre class="code"><code class="language-toml"># ~/.codex/config.toml
+model = "gpt-5"
+model_provider = "openai"
 
-    <h2 class="section" id="deep-five"><span class="idx">★</span> 五个深度问答</h2>
-    
-    <h3>Q1: 这个工具的核心设计决策是什么？为什么这么选？</h3>
-    <p>每个Agent工具都有一个"灵魂设计决策"。OpenCode的灵魂是"配置即代码"——所有行为（权限、工具、技能）都通过声明式配置定义。Codex的灵魂是"安全第一"——Rust内核+双层沙箱+Guardian审批。Aider的灵魂是"Git原生"——每次修改自动commit，diff格式编辑。Continue的灵魂是"双模式"——autocomplete和chat共享同一套模型配置但走不同的推理路径。理解灵魂决策，就理解了整个工具的架构方向。</p>
-    
-    <h3>Q2: 生产环境部署时需要注意什么？</h3>
-    <p>三个关键注意事项：(1)<strong>API密钥安全</strong>——永远不要把密钥写在代码里，用环境变量或密钥管理服务（如HashiCorp Vault）。(2)<strong>速率限制</strong>——实现指数退避重试，避免429错误。建议设置每分钟最大请求数（如60/min）。(3)<strong>成本控制</strong>——设置每日token预算上限，超限自动降级到更便宜的模型或拒绝请求。</p>
-    <pre><code class="language-python"># 生产级成本控制示例
-import time
-from collections import defaultdict
+[sandbox]
+mode = "workspace-write"      # 物理限制：只写工作目录
+approval_policy = "on-failure" # 策略：失败时问
 
-class BudgetGuard:
-    def __init__(self, daily_limit=1_000_000):
-        self.daily_limit = daily_limit
-        self.usage = defaultdict(int)
-        self.day = time.strftime("%Y-%m-%d")
-    
-    def check_and_deduct(self, tokens, model="default"):
-        today = time.strftime("%Y-%m-%d")
-        if today != self.day:  # 新的一天，重置
-            self.usage = defaultdict(int)
-            self.day = today
-        
-        if self.usage[today] + tokens > self.daily_limit:
-            # 降级到更便宜的模型
-            if model == "glm-5":
-                return "glm-5-flash", tokens // 2  # flash模型更便宜
-            raise BudgetExceeded(f"日预算{self.daily_limit}已用尽")
-        
-        self.usage[today] += tokens
-        return model, tokens
+[mcp_servers.filesystem]
+command = "npx"
+args = ["-y", "@modelcontextprotocol/server-filesystem", "/Users/me/project"]</code></pre>
+<div class="callout"><strong>💡 要点</strong><br>把"能做什么"和"何时问"分开，是这个权限模型的精髓。它让 Codex 既能安全自动跑（workspace-write + on-request），也能严格受控（read-only + untrusted）。</div>
+<h2><span class="idx"></span>设计启示</h2>
+<div class="callout"><strong>💡 要点</strong><br>读开源 agent 源码最大的收获不是抄代码，而是理解"为什么这么设计"。每个看似奇怪的决策背后都有真实的工程权衡——理解这些权衡，你才能在自己的场景里做出正确选择。</div>
+    <h2><span class="idx"></span>auto-approve 规则引擎：把审批策略变成代码</h2>
+    <p>approval_policy 的预设组合（on-failure / on-request / never）覆盖了大部分场景，但生产环境经常需要更细粒度的控制：读文件自动放行、改配置文件要确认、动 git 历史必须人工审批。这就需要一个<strong>规则引擎</strong>——把"哪些操作自动批准、哪些要问"写成可配置的规则。下面是一个最小但实用的规则引擎实现，它根据命令类型、路径、参数决定审批决策。</p>
+    <pre class="code"><code class="language-python"># auto-approve 规则引擎：根据命令特征决定 allow/ask/deny
+import re
+from dataclasses import dataclass
+from enum import Enum
 
-guard = BudgetGuard(daily_limit=500_000)
-model, tokens = guard.check_and_deduct(8000, "glm-5")
-    </code></pre>
-    
-    <h3>Q3: 与竞品相比，优势和劣势分别是什么？</h3>
-    <p>客观对比是选型的关键。以Agent工具为例：Claude Code在推理深度上最强但只支持Anthropic模型；Cursor在IDE集成上最好但是闭源且价格高；OpenCode在开放性和可定制性上最优但文档不如商业产品；Codex在安全性上最严格但配置复杂。选型时先确定你的第一优先级（安全/体验/开放/成本），再匹配工具。</p>
-    
+class Decision(Enum):
+    ALLOW = "allow"     # 自动批准，不打断
+    ASK = "ask"         # 弹出确认，等用户决定
+    DENY = "deny"       # 直接拒绝（危险操作）
+
+@dataclass
+class Rule:
+    name: str
+    pattern: str                    # 匹配命令的正则
+    action: Decision
+    reason: str = ""
+
+@dataclass
+class ToolCall:
+    command: str                    # 如 "rm -rf node_modules"
+    args: list                      # 参数列表
+    cwd: str                        # 工作目录
+
+class ApprovalEngine:
+    """规则引擎：按优先级匹配，首个命中即决断。"""
+    def __init__(self, rules: list[Rule]):
+        self.rules = rules  # 按顺序匹配，越靠前优先级越高
+
+    def decide(self, call: ToolCall) -> tuple[Decision, str]:
+        cmd_str = f"{call.command} {' '.join(call.args)}".strip()
+        for rule in self.rules:
+            if re.search(rule.pattern, cmd_str):
+                return rule.action, f"[{rule.name}] {rule.reason}"
+        return Decision.ASK, "无匹配规则，默认询问"  # 兜底：安全优先
+
+# 白名单规则集（从安全到危险排序）
+RULES = [
+    # 1. 只读操作：永远自动放行
+    Rule("read-only", r"^(cat|ls|grep|find|head|tail|wc|git status|git log|git diff)\b",
+         Decision.ALLOW, "只读操作，安全"),
+    Rule("read-config", r"^cat\s+([\w./]+\.(json|yaml|toml|md))$",
+         Decision.ALLOW, "读取配置文件"),
+
+    # 2. 常规写操作：自动放行（工作目录内）
+    Rule("write-workspace", r"^(mkdir|touch|cp|mv)\s+(?!/(etc|usr|var))",
+         Decision.ALLOW, "工作目录内写操作"),
+    Rule("git-safe", r"^git\s+(add|commit|checkout)\b",
+         Decision.ALLOW, "常规 git 操作"),
+
+    # 3. 中等风险：需要询问
+    Rule("install-pkg", r"^(npm install|pip install|apt install)\b",
+         Decision.ASK, "安装包可能改变环境"),
+    Rule("git-push", r"^git\s+push\b",
+         Decision.ASK, "推送到远程，影响他人"),
+    Rule("network-curl", r"^(curl|wget)\b",
+         Decision.ASK, "网络请求，确认目标"),
+
+    # 4. 高风险：直接拒绝
+    Rule("rm-rf-root", r"rm\s+-rf\s+(/|~|\*)",
+         Decision.DENY, "禁止递归删除根/家目录"),
+    Rule("force-push", r"git\s+push\s+.*--force",
+         Decision.DENY, "禁止 force push 覆盖历史"),
+    Rule("sudo", r"^sudo\b",
+         Decision.DENY, "禁止提权操作"),
+]
+
+engine = ApprovalEngine(RULES)
+
+# 测试
+for cmd in ["ls -la", "git push origin main", "rm -rf /", "npm install lodash"]:
+    call = ToolCall(cmd.split()[0], cmd.split()[1:], "/project")
+    decision, reason = engine.decide(call)
+    print(f"{cmd:30} → {decision.value:6} | {reason}")</code></pre>
+    <p>这个规则引擎的设计要点：① <strong>默认拒绝原则</strong>——没有匹配规则的命令一律 ASK（宁错杀不漏放）；② <strong>规则按优先级排序</strong>——高风险的 deny 规则放最前，确保危险操作不会被前面的 allow 误放（比如 `rm -rf /` 不会因为匹配"工作目录写操作"而被放行）；③ <strong>每条规则带 reason</strong>——审批时展示给用户"为什么这个操作被自动放行/拒绝"，可审计可调试。</p>
+    <h2><span class="idx"></span>白名单配置：用配置而非代码管理审批</h2>
+    <p>规则用代码写死不够灵活——不同项目、不同团队的安全策略不同。更好的做法是把白名单抽成配置文件，用户可以在项目的 <code>.codex/approval.toml</code> 里定制。这样审批策略随项目走（而不是全局一刀切），也方便版本管理和评审。</p>
+    <pre class="code"><code class="language-toml"># .codex/approval.toml —— 项目级审批白名单配置
+# 这个文件随项目提交，团队共享审批策略
+
+[auto_approve]
+# 自动批准的命令模式（正则）
+commands = [
+    "^ls\\b",
+    "^cat\\s+.*\\.(md|txt|py|js|ts)$",
+    "^python\\s+.*test.*\\.py$",      # 跑测试自动放行
+    "^npm\\s+(run|test)\\b",
+    "^git\\s+(status|log|diff|add|commit)\\b",
+]
+
+[auto_approve.paths]
+# 自动批准的路径模式
+read = ["src/**", "docs/**", "tests/**", "*.md"]
+write = ["src/**", "tests/**", "dist/**"]  # 只允许写这些目录
+
+[require_approval]
+# 必须人工确认的操作
+commands = [
+    "git\\s+push",          # 推送要确认
+    "docker\\s+build",      # 构建镜像要确认
+    "npm\\s+publish",       # 发布要确认
+]
+paths_write = [".env", "config/*", ".github/**"]  # 改这些路径要确认
+
+[deny]
+# 永远禁止（即使用户想批准也不行，硬限制）
+commands = [
+    "rm\\s+-rf\\s+/",       # 删根
+    "git\\s+push.*--force", # 强推
+    "curl.*|\\s*bash",      # 管道执行远程脚本
+]
+max_file_size_mb = 100     # 禁止读写 &gt;100MB 的文件（防 OOM）</code></pre>
+    <pre class="code"><code class="language-python"># 加载项目级白名单配置并合并到规则引擎
+import tomllib
+from pathlib import Path
+
+def load_project_rules(project_dir: str) -> ApprovalEngine:
+    cfg_path = Path(project_dir) / ".codex" / "approval.toml"
+    rules = []
+
+    if cfg_path.exists():
+        with open(cfg_path, "rb") as f:
+            cfg = tomllib.load(f)
+
+        # deny 规则优先级最高
+        for pat in cfg.get("deny", {}).get("commands", []):
+            rules.append(Rule("deny", pat, Decision.DENY, "项目禁止"))
+
+        # require_approval 次之
+        for pat in cfg.get("require_approval", {}).get("commands", []):
+            rules.append(Rule("ask", pat, Decision.ASK, "项目要求确认"))
+
+        # auto_approve 最后（优先级最低）
+        for pat in cfg.get("auto_approve", {}).get("commands", []):
+            rules.append(Rule("auto", pat, Decision.ALLOW, "项目白名单"))
+
+    # 兜底：无匹配规则时询问
+    return ApprovalEngine(rules)
+
+# 每个项目可以有不同的审批策略
+engine = load_project_rules("/project")
+decision, reason = engine.decide(ToolCall("git", ["push"], "/project"))
+print(decision)  # Decision.ASK —— 因为项目配置里 git push 要确认</code></pre>
+    <h2><span class="idx"></span>审批日志分析：从历史决策中优化策略</h2>
+    <p>规则引擎跑起来后，会沉淀大量审批决策日志。分析这些日志能发现两件有价值的事：① <strong>哪些命令频繁触发 ASK 却总被用户批准</strong>——说明规则太严，可以加入白名单减少打扰；② <strong>哪些 ASK 被用户拒绝</strong>——说明 agent 在做不该做的事，可能要调整 prompt 或加 deny 规则。这是一个数据驱动的闭环。</p>
+    <pre class="code"><code class="language-python"># 审批日志分析：发现可优化的规则
+import json
+from collections import Counter
+
+def analyze_approval_logs(log_path: str):
+    """分析审批日志，给出优化建议。"""
+    with open(log_path) as f:
+        logs = [json.loads(line) for l in f if l.strip()]
+
+    # 1. 统计：ASK 但用户批准的命令（候选加入白名单）
+    asked_approved = [l for l in logs
+                      if l["decision"] == "ask" and l["user_choice"] == "approve"]
+    ask_approve_cmds = Counter(l["command"].split()[0] for l in asked_approved)
+
+    # 2. 统计：ASK 被拒绝的命令（agent 在做不该做的）
+    asked_denied = [l for l in logs
+                    if l["decision"] == "ask" and l["user_choice"] == "deny"]
+    ask_deny_cmds = Counter(l["command"].split()[0] for l in asked_denied)
+
+    # 3. 自动放行的命令占比（衡量自动化程度）
+    auto_rate = sum(1 for l in logs if l["decision"] == "allow") / len(logs)
+
+    print("=== 审批日志分析报告 ===")
+    print(f"总操作数：{len(logs)}，自动放行率：{auto_rate:.0%}")
+    print(f"\n[建议加入白名单] ASK 但总是被批准的命令：")
+    for cmd, cnt in ask_approve_cmds.most_common(5):
+        if cnt &gt;= 3:  # 连续批准 3 次以上才建议
+            print(f"  {cmd}: 被询问 {cnt} 次全部批准 → 考虑自动放行")
+    print(f"\n[警示] ASK 被拒绝的命令（agent 行为需关注）：")
+    for cmd, cnt in ask_deny_cmds.most_common(5):
+        print(f"  {cmd}: 被拒绝 {cnt} 次 → 考虑加入 deny 或调整 prompt")
+
+# 示例输出：
+# === 审批日志分析报告 ===
+# 总操作数：1247，自动放行率：78%
+# [建议加入白名单] ASK 但总是被批准的命令：
+#   npm: 被询问 12 次全部批准 → 考虑自动放行
+# [警示] ASK 被拒绝的命令：
+#   rm: 被拒绝 3 次 → 考虑加入 deny 或调整 prompt</code></pre>
+    <div class="callout"><strong>💡 运维要点</strong><br>审批系统不是配好就完事，而是一个<strong>持续优化的闭环</strong>：跑起来 → 收集日志 → 分析 → 调整规则 → 再跑。目标是逐步提高自动放行率（减少用户打扰）同时控制住风险操作（deny/ask 拦住真正危险的）。健康指标：自动放行率 70-85%（太低说明规则太严，太高说明可能漏放风险），ASK 拒绝率 &lt;5%（高了说明 agent 行为需要纠正）。</div>
+<h2 class="section" id="deep-approval-matrix"><span class="idx">D1</span> 深度剖析：sandbox_mode 与 approval_policy 的组合矩阵</h2>
+    <p>本章介绍了 Codex 的审批模型。这一节我们把 sandbox_mode（沙箱强度）和 approval_policy（审批策略）组合成完整矩阵，看不同组合下的用户体验与安全边界。</p>
+
+    <pre><code class="language-toml"># Codex config.toml 的关键审批配置
+[sandbox]
+# mode 决定沙箱强度
+# - "off"      无沙箱（仅开发用，危险）
+# - "workspace" 限制在工作目录
+# - "strict"   工作目录 + 禁网络 + 命令白名单
+
+[approval]
+# policy 决定何时询问用户
+# - "never"   从不询问（全自动）
+# - "on-failure" 失败时询问
+# - "untrusted" 仅对未签名命令询问
+# - "always"  每次都问
+
+# 组合示例：平衡自动化与安全
+[sandbox]
+mode = "workspace"        # 沙箱限制工作目录
+[approval]
+policy = "untrusted"      # 未签名命令才问
+# 效果：沙箱内的常规操作自动跑，越界或未签名时才打扰用户
+</code></pre>
+
+    <p>这两个维度正交组合，形成四种典型档位。理解这个矩阵，才能针对不同场景（个人开发、CI 自动化、团队协作）选对组合。<strong>核心原则：沙箱越强，可以越放手自动化；沙箱越弱，审批必须越严</strong>。绝不能出现"沙箱弱 + 审批松"的危险组合。</p>
+
     <table>
-      <tr><th>维度</th><th>商业工具</th><th>开源工具</th><th>自建</th></tr>
-      <tr><td>上手成本</td><td>低(注册即用)</td><td>中(需配置)</td><td>高(全栈开发)</td></tr>
-      <tr><td>定制性</td><td>低</td><td>高</td><td>完全自由</td></tr>
-      <tr><td>安全控制</td><td>依赖供应商</td><td>自主可控</td><td>完全自主</td></tr>
-      <tr><td>维护成本</td><td>低(供应商维护)</td><td>中(社区+自行)</td><td>高(全自行)</td></tr>
-      <tr><td>数据隐私</td><td>数据上传云端</td><td>可本地部署</td><td>完全本地</td></tr>
+      <thead><tr><th>sandbox_mode</th><th>approval_policy</th><th>自动化程度</th><th>安全性</th><th>适用场景</th></tr></thead>
+      <tbody>
+        <tr><td>strict</td><td>never</td><td>最高（全自动）</td><td>高（沙箱兜底）</td><td>CI、可信任务</td></tr>
+        <tr><td>workspace</td><td>untrusted</td><td>高</td><td>中高</td><td>日常开发</td></tr>
+        <tr><td>workspace</td><td>on-failure</td><td>中</td><td>中</td><td>探索性任务</td></tr>
+        <tr><td>off</td><td>always</td><td>最低（每步问）</td><td>依赖人工</td><td>敏感环境</td></tr>
+      </tbody>
     </table>
-    
-    <h3>Q4: 有哪些常见的错误用法和踩坑经验？</h3>
-    <p>五个常见坑：(1)<strong>过度信任Agent输出</strong>——Agent会"自信地犯错"，生产中必须有人审核。(2)<strong>忽略token成本</strong>——一个复杂任务可能消耗50K+token，不控制成本很快烧光预算。(3)<strong>上下文管理不当</strong>——把所有历史都塞进context window，导致重要信息被"稀释"。应该用摘要+检索策略。(4)<strong>错误处理缺失</strong>——工具调用失败后Agent可能进入异常状态，必须有try-catch+重试+降级。(5)<strong>安全边界模糊</strong>——给Agent过大的权限（如root执行），一次prompt injection就可能导致数据泄露。</p>
-    
-    <h3>Q5: 未来的演进方向是什么？</h3>
-    <p>Agent工具的三个演进趋势：(1)<strong>多模态Agent</strong>——不只处理文本，还能理解截图、UI布局、视频流（如Computer Use）。(2)<strong>长时自治Agent</strong>——从"完成单轮任务"到"持续运行、自我管理、定期报告"（如 Devin 的自主开发模式）。(3)<strong>Agent协作网络</strong>——多个专业化Agent通过A2A协议协作，每个Agent负责自己擅长的领域（前端/后端/测试/部署），像人类团队一样分工。</p>
-    <blockquote><strong>关键洞察：</strong>Agent工具的核心竞争力正在从"模型能力"转移到"工程能力"。同一个模型，套上不同的Harness/工具链/权限模型，效果可以差出10倍。这跟01-03章讲的Harness理论完全一致——"模型是引擎，工程是底盘"。</blockquote>
 
+    <h2 class="section" id="deep-approval-pitfall"><span class="idx">D2</span> 生产避坑：审批流的体验陷阱</h2>
+    <div class="callout warn">
+      <div class="head">陷阱 1：审批疲劳导致盲点</div>
+      <p>若 approval_policy=always，用户每几秒就要确认一次，很快形成"无脑按回车"的习惯，审批形同虚设。<strong>审批应该稀缺且关键</strong>——用更强的沙箱减少审批频率，让每次审批都真正被认真对待。这是安全心理学的常识。</p>
+    </div>
+    <div class="callout tip">
+      <div class="head">陷阱 2：批量审批的危险</div>
+      <p>"对本次会话所有操作始终允许"很方便，但一旦 Agent 路径偏移（如被 prompt 注入），批量授权会放大损失。建议批量审批<strong>限定范围</strong>（如仅工作目录、仅特定命令），而非全权委托。</p>
+    </div>
+    <div class="callout note">
+      <div class="head">陷阱 3：审批时机的信息不足</div>
+      <p>审批弹窗若只显示"允许执行 rm 吗？"，用户无法判断风险。应在审批时展示完整命令、影响路径、沙箱状态，让用户在充分信息下决策。Codex 的审批界面会高亮危险参数就是这个原因。</p>
+    </div>
 
-</h2>
+<h2><span class="idx"></span>本章小结</h2>
 <p>本章我们通过源码深挖了"Codex 审批：sandbox_mode × approval_policy"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
 <div class="chapter-nav">
 <a href="157-agent-codex-sandbox-landlock.html"><div class="lbl">← 上一章</div><div class="ttl">157 · Codex 沙箱：Linux Landlock + seccomp</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="159-agent-codex-exec.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">159 · Codex exec 路径：命令分类</div></a></div>
 <footer><p>AI 全栈实战教学 · 第 158 章 · Codex 审批：sandbox_mode × approval_policy</p><p>本系列覆盖 Transformer 原理 · 向量检索 · 开源 Agent 源码 · 工程实战</p></footer>
   </main>
+
+
+    <h2 class="section" id="faq-deep"><span class="idx">★</span> 深度FAQ与避坑指南</h2>
+    <h3>Q1: 核心设计决策是什么？</h3>
+    <p>每个技术方案都有一个"灵魂决策"。理解它，就理解了整个架构方向。关键是在约束条件下（性能/成本/安全/可维护性）找到最优平衡点，而不是追求单一维度的极致。</p>
+    <h3>Q2: 生产部署注意事项？</h3>
+    <p>三个关键：(1)API密钥用环境变量管理 (2)实现指数退避重试避免429 (3)设置每日token预算上限超限降级。</p>
+    <pre><code class="language-python">class BudgetGuard:
+    def __init__(self, daily_limit=500000):
+        self.limit = daily_limit
+        self.used = 0
+    def check(self, tokens):
+        if self.used + tokens > self.limit:
+            return "glm-flash", tokens // 2  # 降级
+        self.used += tokens
+        return "glm-5", tokens
+    </code></pre>
+    <h3>Q3: 常见错误有哪些？</h3>
+    <p>五个坑：(1)过度信任Agent输出 (2)忽略token成本 (3)上下文管理不当 (4)错误处理缺失 (5)安全边界模糊。每个坑都可能导致生产事故。</p>
+    <table>
+      <tr><th>维度</th><th>商业方案</th><th>开源方案</th><th>自建</th></tr>
+      <tr><td>上手成本</td><td>低</td><td>中</td><td>高</td></tr>
+      <tr><td>定制性</td><td>低</td><td>高</td><td>完全</td></tr>
+      <tr><td>数据隐私</td><td>云端</td><td>本地</td><td>本地</td></tr>
+    </table>
 
 </main>
 
