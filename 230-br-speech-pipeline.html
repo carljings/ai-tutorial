@@ -818,6 +818,10 @@ for s, e in vad.detect(audio):
 # 应输出约 1.0s ~ 3.0s 的语音段
 # 工程升级路径：能量法 → WebRTC VAD(GMM) → Silero VAD(轻量神经网络)
 # Silero VAD 在噪声环境下 F1 可达 0.95+，是当前语音 pipeline 的事实标准</code></pre>
+
+    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <p>语音Agent的五步链路（VAD→ASR→LLM→TTS→播放）中，"三重流式"是降到1秒延迟的核心。VAD推荐Silero，ASR推荐faster-whisper，TTS推荐CosyVoice。</p>
+
 </main>
 
 </div>
