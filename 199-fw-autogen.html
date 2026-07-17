@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>AutoGen：微软的多 agent 对话框架 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="AutoGen：微软的多 agent 对话框架 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="AutoGen：微软的多 agent 对话框架 · AI 全栈实战教学">
-<meta property="og:description" content="AutoGen：微软的多 agent 对话框架 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -770,6 +766,122 @@ asyncio.run(main())
     <p>最后补充一个选型视角：AutoGen（对话协作）vs LangGraph（图编排）vs CrewAI（角色团队）是三种不同的多 agent 哲学。AutoGen 适合"需要真正讨论、互相质疑"的任务（如代码评审，reviewer 要反复挑战 coder）；LangGraph 适合"流程明确、要精确控制走向"的任务（每个分支可预测）；CrewAI 适合"角色分工清晰、流水线式协作"的任务（研究→写作→审核）。没有谁更好，只有谁更匹配你的协作模式。理解这三种哲学的差异，比纠结 API 细节重要得多。</p>
 
     
+    
+    <h2><span class="idx"></span>AutoGen 的会话模式与多 agent 编排</h2>
+    <p>AutoGen 的核心特色是把多 agent 协作建模成"会话"（conversation）——多个 agent 在一个 group chat 里互相交流，由一个 manager 协调发言顺序。这种模式适合需要多视角讨论的任务（如代码评审、方案设计），但编排不好容易跑偏：讨论发散、agent 抢话、循环不收敛。理解会话模式的机制，才能让多 agent 讨论真正高效。</p>
+<p>会话模式的关键是<strong>"发言权管理"</strong>。在一个 group chat 里，谁下一个发言由 manager 决定。AutoGen 支持几种发言选择策略：<strong>round_robin</strong>（轮流，公平但机械）、<strong>auto</strong>（manager 根据上下文选最合适的发言者，灵活但依赖 manager 能力）、<strong>random</strong>（随机，用于头脑风暴激发多样性）、<strong>manual</strong>（人工指定，用于精确控制）。选对策略影响讨论质量——需要深入分析的用 round_robin 保证每个 agent 都发言，需要快速收敛的用 auto 让 manager 主导。</p>
+<p>收敛是 group chat 的核心难题。多 agent 讨论容易"发散"——越聊越偏题、或两个 agent 反复争论不下。防发散的机制：设置<strong>最大轮数</strong>（到上限强制收敛）、给 manager <strong>终止权</strong>（manager 判断已达成共识就结束）、定义<strong>共识达成条件</strong>（如"提案被多数同意"就结束）。还要防"循环争论"——检测两个 agent 连续 N 轮重复相同观点就强制 manager 介入裁决。</p>
+<table class="data-table"><thead><tr><th>发言策略</th><th>机制</th><th>优势</th><th>适合场景</th></tr></thead><tbody>
+<tr><td>round_robin</td><td>轮流发言</td><td>公平、全覆盖</td><td>深入分析、评审</td></tr>
+<tr><td>auto</td><td>manager 选人</td><td>灵活、收敛快</td><td>快速决策</td></tr>
+<tr><td>random</td><td>随机选人</td><td>激发多样性</td><td>头脑风暴</td></tr>
+<tr><td>manual</td><td>人工指定</td><td>精确控制</td><td>演示、调试</td></tr>
+<tr><td>weighted</td><td>按权重选</td><td>专家优先</td><td>专业领域</td></tr>
+</tbody></table>
+<pre><code class="language-python"># AutoGen group chat：发言权管理 + 收敛控制
+import autogen
+
+# 配置多个角色 agent
+researcher = autogen.AssistantAgent(
+    "researcher", system_message="你是研究员，负责查证事实、提供数据支撑",
+    llm_config=llm_config, max_consecutive_auto_reply=3,  # 防一个 agent 刷屏
+)
+critic = autogen.AssistantAgent(
+    "critic", system_message="你是批评者，找出方案的漏洞和风险",
+    llm_config=llm_config, max_consecutive_auto_reply=3,
+)
+writer = autogen.AssistantAgent(
+    "writer", system_message="你是写作者，把讨论整合成清晰方案",
+    llm_config=llm_config,
+)
+user_proxy = autogen.UserProxyAgent("user", human_input_mode="NEVER")
+
+# manager 控制发言顺序和收敛
+manager = autogen.GroupChatManager(
+    groupchat=autogen.GroupChat(
+        agents=[user_proxy, researcher, critic, writer],
+        messages=[],
+        max_round=15,                # 硬性上限防发散
+        speaker_selection_method="auto",  # manager 智能选发言者
+        # 收敛条件：manager 判断已达成共识则终止
+    ),
+    llm_config=llm_config,
+)
+
+# 发起讨论
+user_proxy.initiate_chat(manager, message="设计一个用户增长方案")
+# manager 会根据上下文选最合适的 agent 发言：
+# researcher 提供数据 → critic 挑刺 → writer 整合 → 收敛
+# max_round 到了或 manager 判断共识达成则结束
+
+# 防循环争论：自定义 speaker 过滤，连续重复观点的 agent 暂停一轮
+def no_loop_filter(last_speaker, history):
+    if len(history) >= 2 and history[-1]["content"] == history[-2]["content"]:
+        return False   # 重复发言，跳过
+    return True</code></pre>
+
+    <h2><span class="idx"></span>AutoGen 的代码执行与安全沙箱</h2>
+    <p>AutoGen 的一个特色能力是 agent 能"写代码并执行"——AssistantAgent 生成代码，UserProxyAgent 自动执行（本地或 Docker）。这让 agent 能处理需要计算的复杂任务（数据分析、建模、自动化脚本）。但"让 LLM 生成的代码直接执行"是巨大的安全风险——恶意或错误代码可能删文件、泄露数据、搞垮机器。安全沙箱是必选项。</p>
+<p>最低安全标准是<strong>容器隔离</strong>。永远不要在宿主机直接执行 agent 生成的代码——用 Docker 容器把执行环境隔离起来，限制文件系统访问（只挂载工作目录）、网络访问（按需禁网）、资源上限（CPU/内存/时间，防死循环或挖矿）。AutoGen 的 UserProxyAgent 支持 <code>work_dir</code> 和 Docker 配置，务必启用。更高安全要求场景用<strong>一次性容器</strong>——每次代码执行启动新容器，执行完销毁，避免状态累积和逃逸风险。</p>
+<p>代码执行的另一个工程问题是<strong>"结果反馈循环"</strong>。agent 生成的代码可能报错，需要把错误信息反馈给 agent 让它修正后重试。这个循环要有上限（最多重试 N 次），否则 agent 可能陷入"写错-报错-再写错"的死循环。还要处理"代码执行超时"——agent 写了死循环代码，执行器要能超时杀掉，把"超时"作为反馈让 agent 修。结果是 Observation 的一种，过长要先摘要再反馈。</p>
+<table class="data-table"><thead><tr><th>安全层级</th><th>机制</th><th>防护对象</th><th>残余风险</th></tr></thead><tbody>
+<tr><td>无隔离（禁用）</td><td>宿主机直接跑</td><td>无</td><td>灾难性</td></tr>
+<tr><td>容器隔离</td><td>Docker + 资源限制</td><td>文件/网络/资源</td><td>容器逃逸（低）</td></tr>
+<tr><td>一次性容器</td><td>每次新建销毁</td><td>状态累积</td><td>极低</td></tr>
+<tr><td>无网络+只读</td><td>禁网 + 只读fs</td><td>数据泄露</td><td>需联网任务受限</td></tr>
+<tr><td>审批执行</td><td>人工确认才跑</td><td>任意风险</td><td>失去自动化</td></tr>
+</tbody></table>
+<pre><code class="language-python"># AutoGen 安全代码执行：Docker 沙箱 + 重试上限
+import autogen
+
+# 安全的 UserProxyAgent：用 Docker 隔离，绝不在宿主机直接跑
+coder = autogen.UserProxyAgent(
+    "coder",
+    human_input_mode="NEVER",          # 自动执行，不等人工
+    max_consecutive_auto_reply=3,      # 重试上限：防死循环
+    is_terminator=lambda msg: "TERMINATE" in msg.get("content",""),
+    # 关键安全配置：
+    work_dir="workspace",              # 隔离的工作目录
+    use_docker=True,                   # 必须用 Docker，不在宿主机跑
+    docker_image="python:3.11-slim",   # 最小镜像，减少攻击面
+    # AutoGen 的容器会限制：只挂载 work_dir、可设网络策略
+)
+
+analyst = autogen.AssistantAgent(
+    "analyst",
+    system_message="""你是数据分析师，写 Python 代码分析数据。
+代码规范：
+1. 只读写 work_dir 内的文件，绝不访问外部路径
+2. 避免无限循环，所有循环加明确上限
+3. 完成后输出 TERMINATE 结束
+""",
+    llm_config=llm_config,
+)
+
+# 执行流程：analyst 写代码 → coder 在 Docker 里执行 → 结果/错误反馈
+coder.initiate_chat(analyst, message="分析 sales.csv 的月度趋势")
+
+# 安全加固：自定义代码执行器（更细粒度控制）
+class SafeExecutor:
+    def __init__(self, timeout=30, max_retries=3):
+        self.timeout = timeout
+        self.max_retries = max_retries
+    def execute(self, code, work_dir):
+        for attempt in range(self.max_retries):
+            try:
+                # 在一次性容器里执行，超时杀掉
+                result = run_in_ephemeral_container(
+                    code, image="python:3.11-slim",
+                    work_dir=work_dir, network=False,   # 禁网
+                    timeout=self.timeout,
+                    mem_limit="512m", cpu_quota=50000,  # 资源上限
+                )
+                return {"ok": True, "output": result.stdout[:2000]}
+            except TimeoutError:
+                return {"ok": False, "error": f"执行超时（{self.timeout}s），可能有死循环"}
+            except Exception as e:
+                if attempt == self.max_retries - 1:
+                    return {"ok": False, "error": str(e)[:500]}</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>AutoGen 用"对话"作为 agent 协作的原语：ConversableAgent 是能对话的单元、GroupChat 协调多 agent 轮流发言、0.4 版引入 actor 模型支持分布式。它适合需要多角色讨论迭代的开放性任务。</p>
     <div class="chapter-nav">

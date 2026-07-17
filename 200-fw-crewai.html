@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>CrewAI：角色驱动的多 agent 团队 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="CrewAI：角色驱动的多 agent 团队 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="CrewAI：角色驱动的多 agent 团队 · AI 全栈实战教学">
-<meta property="og:description" content="CrewAI：角色驱动的多 agent 团队 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -819,6 +815,123 @@ async def main():
     <div class="callout"><strong>💡 要点</strong><br>CrewAI 的最大价值是"把多 agent 协作降到三个概念"（Agent/Task/Crew），让非工程师也能设计 agent 流程。它的局限是控制粒度不如 LangGraph 精细（条件分支、循环不如图灵活）。选型时：如果你的协作流程能用"团队分工"描述，选 CrewAI；如果需要精确的"状态机+条件跳转"，选 LangGraph。两者不矛盾，复杂系统里 CrewAI 可作为 LangGraph 的一个子模块。</div>
 
     
+    
+    <h2><span class="idx"></span>CrewAI 的角色扮演与任务分解</h2>
+    <p>CrewAI 的核心理念是"角色扮演"——每个 agent 有明确的 role（角色）、goal（目标）、backstory（背景故事），像组建一个真实团队一样搭建多 agent 协作。这种"拟人化"的设计让非技术用户容易理解，但也有其代价：角色定义不当会导致 agent 行为偏离预期，任务分解不当会导致协作低效。</p>
+<p>角色定义的关键是<strong>"role + goal + backstory 三者一致且互补"</strong>。role 是身份标签（"数据分析师"），goal 是这个角色的核心目标（"从数据中提取可执行的洞察"），backstory 是塑造行为风格的背景（"严谨、重证据、不信直觉"）。三者要一致——不能 role 是分析师但 goal 是写文案。多个 agent 之间要互补——研究员重广度、评论员重批判、执行者重落地，能力不重叠才能协作而非内耗。新手常犯的错是角色太相似（两个"分析师"职责重叠），导致他们产出重复、互相干扰。</p>
+<p>任务分解是 CrewAI 的另一核心。Crew 把一个大目标拆成多个 Task，每个 Task 指派给一个 agent，按 process（sequential/hierarchical）执行。<strong>Sequential</strong> 是任务按声明顺序串行（前一个的输出是后一个的输入），简单可控但缺乏并行。<strong>Hierarchical</strong> 是引入一个 manager agent 统筹分配任务，更灵活但有额外开销。任务粒度是关键——太粗（一个 Task 干太多）失去分解意义，太细（每步一个 Task）通信开销大。经验是每个 Task 应该是"一个 agent 一次专注能完成"的粒度。</p>
+<table class="data-table"><thead><tr><th>设计要素</th><th>关键原则</th><th>常见错误</th><th>后果</th></tr></thead><tbody>
+<tr><td>role</td><td>身份明确、不重叠</td><td>角色相似</td><td>产出重复、内耗</td></tr>
+<tr><td>goal</td><td>与 role 一致、可衡量</td><td>目标模糊</td><td>agent 不知所措</td></tr>
+<tr><td>backstory</td><td>塑造风格、互补</td><td>风格冲突</td><td>协作摩擦</td></tr>
+<tr><td>Task 粒度</td><td>一个 agent 一次专注</td><td>太粗或太细</td><td>失控或开销大</td></tr>
+<tr><td>process</td><td>按需选 sequential/hierarchical</td><td>复杂任务用 sequential</td><td>无法并行</td></tr>
+</tbody></table>
+<pre><code class="language-python"># CrewAI 角色与任务设计：互补团队 + 合理分解
+from crewai import Agent, Task, Crew, Process
+
+# ✅ 规范：角色互补，能力不重叠
+researcher = Agent(
+    role="资深研究员",               # 身份
+    goal="收集全面、准确的信息支撑决策",  # 目标与 role 一致
+    backstory="严谨的学者，重证据轻直觉，擅长多角度查证",  # 风格
+    tools=[search_tool, read_tool],
+)
+analyst = Agent(
+    role="数据分析师",               # 与研究员互补（广度 vs 深度）
+    goal="从数据中提取可执行的洞察",
+    backstory="批判性思维强，擅长发现数据中的异常和趋势",
+    tools=[python_tool, stats_tool],
+)
+writer = Agent(
+    role="技术写作",                 # 负责落地，与上述不重叠
+    goal="把分析结果转化为清晰的报告",
+    backstory="擅长把复杂概念讲简单，注重读者体验",
+)
+
+# ✅ 任务分解：粒度适中，每个 Task 一个 agent 专注完成
+research_task = Task(
+    description="调研 {topic} 的现状、主要方案和争议点",
+    agent=researcher,
+    expected_output="结构化的调研笔记，含 3-5 个关键发现",
+)
+analysis_task = Task(
+    description="基于调研笔记，分析各方案的利弊和适用场景",
+    agent=analyst,
+    expected_output="对比分析表 + 推荐结论",
+    context=[research_task],   # 依赖前序产出
+)
+report_task = Task(
+    description="把分析整合成 1000 字的决策报告",
+    agent=writer,
+    expected_output="面向高管的决策报告",
+    context=[research_task, analysis_task],
+)
+
+crew = Crew(
+    agents=[researcher, analyst, writer],
+    tasks=[research_task, analysis_task, report_task],
+    process=Process.sequential,   # 串行：研究→分析→写作
+    verbose=True,
+)
+result = crew.kickoff(inputs={"topic": "向量数据库选型"})
+
+# ❌ 反模式：角色重叠（两个分析师）+ 任务太粗（一个 task 干所有）
+# → 产出重复、agent 互相干扰、失去分解意义</code></pre>
+
+    <h2><span class="idx"></span>CrewAI 的工具共享与冲突处理</h2>
+    <p>CrewAI 里多个 agent 共享工具池，这带来效率（一个工具多 agent 复用）也带来冲突（多 agent 同时调同一资源）。理解工具共享的机制和冲突处理，才能让多 agent 协作不互相打架。</p>
+<p>工具共享的设计有两种模式。<strong>全局共享</strong>：所有 agent 能用所有工具，灵活但易冲突（两个 agent 同时写同一文件）。<strong>按需分配</strong>：每个 agent 只绑定它角色需要的工具，职责清晰、冲突少，但灵活性低（agent 发现需要别的工具时没有）。生产推荐按需分配——它强制角色清晰，减少 agent "越界"乱用工具。CrewAI 通过 <code>tools=[...]</code> 在 Agent 层绑定工具。</p>
+<p>冲突处理针对"有状态/有副作用"的工具（写文件、调 API、改数据库）。当多个 agent 可能并发调用这类工具时，需要冲突控制。机制包括：<strong>锁</strong>（某 agent 用工具时加锁，其他等待）、<strong>序列化</strong>（有副作用的工具强制串行调用，不并发）、<strong>分区</strong>（每个 agent 操作不同的资源分区，互不干扰）。对于无副作用的工具（查询、读文件），无需冲突控制，可自由并发。</p>
+<table class="data-table"><thead><tr><th>工具类型</th><th>共享方式</th><th>冲突风险</th><th>处理机制</th></tr></thead><tbody>
+<tr><td>只读工具（查询）</td><td>全局共享</td><td>无</td><td>无需控制</td></tr>
+<tr><td>写文件工具</td><td>按需分配</td><td>覆盖/竞态</td><td>锁 / 分区</td></tr>
+<tr><td>调外部 API</td><td>按需分配</td><td>限流/重复</td><td>幂等 + 去重</td></tr>
+<tr><td>改数据库</td><td>按需分配</td><td>数据冲突</td><td>事务 + 锁</td></tr>
+<tr><td>发消息工具</td><td>按需分配</td><td>重复发送</td><td>幂等键</td></tr>
+</tbody></table>
+<pre><code class="language-python"># CrewAI 工具共享与冲突处理
+from crewai import Agent, Task, Crew
+from crewai.tools import tool
+import threading, hashlib
+
+# 只读工具：全局共享，无需冲突控制
+@tool("search_web")
+def search_web(query: str) -> str:
+    """搜索网络获取信息"""
+    return web_search(query)   # 无副作用，随便并发
+
+# 有副作用工具：加锁防并发冲突
+file_locks = {}   # path -> Lock
+@tool("write_section")
+def write_section(path: str, content: str) -> str:
+    """向报告文件写入一个章节（有副作用，需互斥）"""
+    lock = file_locks.setdefault(path, threading.Lock())
+    with lock:   # 同一文件的写入串行化，防覆盖
+        with open(path, "a") as f:
+            f.write(content + "
+
+")
+    return f"已写入 {path}"
+
+# 调外部 API：用幂等键防重复
+sent = set()
+@tool("send_notification")
+def send_notification(message: str, idempotency_key: str) -> str:
+    """发送通知（用幂等键防重复发送）"""
+    h = hashlib.md5(idempotency_key.encode()).hexdigest()
+    if h in sent:
+        return "已发送过（幂等去重）"
+    slack_api.send(message)
+    sent.add(h)
+    return "发送成功"
+
+# 按需分配工具：每个 agent 只绑定角色需要的
+writer1 = Agent(role="章节作者A", tools=[search_web, write_section])
+writer2 = Agent(role="章节作者B", tools=[search_web, write_section])
+reviewer = Agent(role="审核者", tools=[search_web])   # 只读，不写
+# writer1/2 都能写文件，靠 write_section 内部的锁防互踩
+# reviewer 只查不改，无冲突风险</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>CrewAI 用"团队"隐喻简化了多 agent 开发：Agent 是成员（带角色人设）、Task 是工作、Crew 是团队、Process 是流程。它 API 简洁、概念直观，特别适合"角色分工明确"的协作任务。</p>
     <div class="chapter-nav">

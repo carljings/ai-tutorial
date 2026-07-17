@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>路由/主管模式：一个调度器分发任务 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="路由/主管模式：一个调度器分发任务 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="路由/主管模式：一个调度器分发任务 · AI 全栈实战教学">
-<meta property="og:description" content="路由/主管模式：一个调度器分发任务 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -777,6 +773,117 @@ app = graph.compile()
     <p>最后补充一个工程实践：无论用 Router 还是 Supervisor，都要给 LLM 的路由决策加一层校验和 fallback。因为 LLM 可能输出一个不存在的专家名（比如把 "coding" 输出成 "code"），这时 route_decision 里要有兜底分支导向 fallback 节点，而不是让图卡住或抛异常。这个细节在 LangGraph 的条件边函数里体现为 `return "fallback"`——它保证了即使路由决策出错，系统也能优雅降级，而非崩溃。</p>
 
     
+    
+    <h2><span class="idx"></span>Router 的决策质量与失败兜底</h2>
+    <p>Router/Supervisor 模式里，Router 是整个系统的咽喉——它决定了每个请求走哪条路。Router 决策错了（把任务派给不擅长的 agent），后面再努力也是白费。所以 Router 的决策质量是这种模式的生命线，而它的失败兜底则是安全网。</p>
+<p>Router 决策质量取决于"分类能力"。Router 本质是个分类器：给定输入，判断它属于哪类任务、该路由给谁。质量评估看分类准确率——但要注意"代价不对称"。把简单任务误派给强 agent（过度处理）只是浪费成本，把复杂任务误派给弱 agent（处理不了）则是灾难。所以 Router 的优化要偏向"宁可过度也不漏判复杂任务"，对边界 case 倾向于派给更强或更通用的 agent。</p>
+<p>失败兜底是 Router 不可少的一环。任何分类器都有误判，关键是误判后能否自救。标准兜底是<strong>"二级路由 + 降级"</strong>：Router 主判置信度低时，进入二级（更仔细的分类，可能让 supervisor 人工或用更强模型判）；被路由的 agent 处理不了时（如发现自己能力不足），可以"退货"回 Router 重新路由。终极兜底是<strong>通用 agent</strong>——所有专门 agent 都处理不了的，fallback 到一个能力全面但效率较低的通用 agent，保证总能有输出。</p>
+<table class="data-table"><thead><tr><th>Router 问题</th><th>表现</th><th>对策</th><th>兜底机制</th></tr></thead><tbody>
+<tr><td>误判复杂度</td><td>复杂的派给弱 agent</td><td>边界偏向强 agent</td><td>agent 可"退货"</td></tr>
+<tr><td>置信度低</td><td>不确定派给谁</td><td>二级精细路由</td><td>派给通用 agent</td></tr>
+<tr><td>分类器过时</td><td>新任务类型没覆盖</td><td>定期重训 + 反馈学习</td><td>未知类→通用</td></tr>
+<tr><td>单点故障</td><td>Router 挂全系统瘫</td><td>Router 高可用</td><td>降级到轮询/广播</td></tr>
+<tr><td>路由延迟</td><td>分类本身慢</td><td>轻量分类器</td><td>超时默认路由</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 带置信度 + 二级路由 + 兜底的 Router
+class RobustRouter:
+    def __init__(self, classifier, agents, fallback_agent):
+        self.classifier = classifier   # 轻量分类器
+        self.agents = agents           # {role: agent}
+        self.fallback = fallback_agent # 通用兜底 agent
+
+    def route(self, query):
+        # 主分类
+        role, confidence = self.classifier.classify(query)
+        # 高置信度：直接派
+        if confidence >= 0.8:
+            return self._dispatch(role, query)
+        # 中置信度：二级精细判断（用更强模型或更细规则）
+        if confidence >= 0.5:
+            role2, conf2 = self.classifier.deep_classify(query)
+            if conf2 >= 0.7:
+                return self._dispatch(role2, query)
+        # 低置信度或二级仍不定：兜底通用 agent
+        return self._dispatch("general", query)
+
+    def _dispatch(self, role, query):
+        agent = self.agents.get(role) or self.fallback
+        result = agent.handle(query)
+        # agent 自评：处理不了就"退货"重路由
+        if result.get("status") == "cannot_handle":
+            if role != "general":   # 非 general 才能"退货"
+                print(f"{role} 无法处理，退货重路由 → general")
+                return self.fallback.handle(query)
+        return result
+
+# 分类器要持续学习：把"退货"和用户反馈作为负样本
+def feedback_loop(router, classifier):
+    """记录误判，定期重训分类器"""
+    misclassified = load_misclassified_logs()
+    classifier.retrain(positive=good_routes(), negative=misclassified)
+    # 关键：把"agent 退货"和"用户手动改路由"作为强负样本</code></pre>
+
+    <h2><span class="idx"></span>Supervisor 的编排策略与负载均衡</h2>
+    <p>当 Router 升级为 Supervisor，它不只是"派任务"，还要"管全程"——监督进度、协调依赖、处理异常、合并结果。Supervisor 是多 agent 系统的"项目经理"，它的编排策略决定系统的效率和韧性。</p>
+<p>编排策略的核心是<strong>"任务图调度"</strong>。Supervisor 把一个复杂请求拆成有依赖关系的任务图（DAG），然后按拓扑序调度——无依赖的任务并行、有依赖的串行。这比线性调度（一个接一个）高效得多，尤其当任务图宽（很多无依赖子任务）时。关键工程问题是资源分配：有限的 agent 资源怎么在并行的任务间分配，避免一个长任务堵塞其他。</p>
+<p>负载均衡在 supervisor 层尤为重要。要追踪每个 agent 的当前负载（在处理几个任务、平均耗时），新任务优先派给空闲 agent。还要处理<strong>"慢节点"</strong>问题——某个 agent 卡住（耗时异常长）时，supervisor 要能检测并重派任务给其他 agent，而不是无限等待。这需要超时机制和心跳检测。结果的合并也是 supervisor 的职责——多个 agent 产出的部分结果，supervisor 要按一致性规则合并成最终输出（冲突时按优先级或让一个专门的"整合 agent"裁决）。</p>
+<table class="data-table"><thead><tr><th>编排要素</th><th>Supervisor 职责</th><th>关键机制</th><th>失败处理</th></tr></thead><tbody>
+<tr><td>任务拆解</td><td>请求 → 任务图</td><td>DAG 依赖分析</td><td>拆解不全→补任务</td></tr>
+<tr><td>并行调度</td><td>无依赖并行</td><td>拓扑序 + 线程池</td><td>某枝失败→重试/降级</td></tr>
+<tr><td>负载均衡</td><td>派给空闲 agent</td><td>负载追踪</td><td>慢节点→重派</td></tr>
+<tr><td>异常监督</td><td>检测卡死/失败</td><td>超时 + 心跳</td><td>超时→换 agent</td></tr>
+<tr><td>结果合并</td><td>整合部分产出</td><td>一致性规则</td><td>冲突→优先级/裁决</td></tr>
+</tbody></table>
+<pre><code class="language-python"># Supervisor：DAG 调度 + 负载均衡 + 慢节点处理
+import time, heapq
+from concurrent.futures import ThreadPoolExecutor, as_completed
+
+class Supervisor:
+    def __init__(self, agents):
+        self.agents = {a.role: a for a in agents}
+        self.load = {a.role: 0 for a in agents}   # 当前负载
+
+    def orchestrate(self, task_graph):
+        """task_graph: {task_id: {deps:[], role, input_fn}}"""
+        results = {}
+        pending = dict(task_graph)
+        with ThreadPoolExecutor(max_workers=8) as pool:
+            futures = {}   # future -> task_id
+            while pending or futures:
+                # 找出依赖已满足的任务，派给空闲 agent
+                ready = [tid for tid,t in pending.items()
+                         if all(d in results for d in t["deps"])
+                         and self.load[t["role"]] < self.agents[t["role"]].capacity]
+                for tid in ready:
+                    t = pending.pop(tid)
+                    agent = self._pick_agent(t["role"])
+                    self.load[t["role"]] += 1
+                    inp = t["input_fn"](results)   # 依赖产出作为输入
+                    fut = pool.submit(self._timed_run, agent, inp, timeout=60)
+                    futures[fut] = tid
+                # 收割完成的
+                for fut in as_completed(list(futures), timeout=1):
+                    tid = futures.pop(fut)
+                    t = task_graph[tid]
+                    self.load[t["role"]] -= 1
+                    try:
+                        results[tid] = fut.result()
+                    except TimeoutError:
+                        # 慢节点：重派给其他 agent
+                        print(f"任务 {tid} 超时，重派")
+                        pending[tid] = t   # 放回 pending 重试
+                time.sleep(0.05) if not ready else None
+        return self._merge(results, task_graph)
+
+    def _pick_agent(self, role):
+        """负载均衡：同 role 多 agent 时挑最闲的"""
+        candidates = [a for a in self.agents.values() if a.role == role]
+        return min(candidates, key=lambda a: a.load)
+
+    def _timed_run(self, agent, inp, timeout):
+        """带超时的执行，防慢节点卡死"""
+        # 简化：实际用线程 + 超时控制
+        return agent.handle(inp)</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>路由/主管模式把"调度"和"执行"分离：一个调度 agent 负责判断"谁来做"，专家 agent 负责"怎么做"。路由是轻量的单次决策，主管是持续的循环协调。这种模式在多 agent 系统里几乎必备——没有它，用户就得自己判断该找哪个 agent。</p>
     <div class="chapter-nav">

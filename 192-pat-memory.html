@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent 记忆架构：短期、长期、情景记忆 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Agent 记忆架构：短期、长期、情景记忆 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Agent 记忆架构：短期、长期、情景记忆 · AI 全栈实战教学">
-<meta property="og:description" content="Agent 记忆架构：短期、长期、情景记忆 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -480,6 +476,139 @@ prefs = store.retrieve("用户希望怎么回复", k=3, mtype="preference")</cod
     </table>
     <p>选型的核心原则是<strong>「够用就好」</strong>：能用滑动窗口解决的，就别上向量库；能用单层向量记忆解决的，就别上 MemGPT 分层。一个常见误判是「记忆越多越聪明」——实际上记忆检索有噪声，塞太多无关历史反而会让模型分心、回答变差。正确做法是先从最简单的方案起步，用评估集量化「加记忆带来的增益」，只有增益明显时才升级到更复杂的架构。这和微调里的「控制变量」是一个道理。</p>
 
+    
+    <h2><span class="idx"></span>记忆的生命周期管理：写入、衰减与遗忘</h2>
+    <p>Agent 的记忆不能只增不减——无限累积的记忆会撑爆上下文、稀释重要信息、增加检索成本。像人一样，agent 的记忆也需要"遗忘"机制：重要的强化、不重要的衰减、过时的删除。记忆生命周期管理是长期运行 agent 的核心工程命题。</p>
+<p>写入策略决定"什么进记忆"。不是所有交互都值得记——寒暄、已解决的临时问题、重复信息不该进长期记忆。写入的判断标准是<strong>"未来会用到的概率"</strong>：用户偏好（高概率复用）、关键决策及理由（追溯用）、未解决的问题（待办）、领域事实（知识积累）。写入时要结构化（带 type、importance、timestamp、tags），而非裸文本，便于后续检索和衰减。</p>
+<p>衰减与遗忘是记忆管理的灵魂。<strong>重要性衰减</strong>：记忆有个 importance 分数，随时间衰减（如每周乘 0.95），被检索命中时回血（importance += boost，因为用到了说明还有用）。<strong>容量淘汰</strong>：当记忆总量超阈值，importance 最低的被遗忘（移出活跃记忆、归档到冷存储或删除）。<strong>合并去重</strong>：语义重复的多条记忆合并成一条（"用户喜欢简洁"出现 10 次，合并成一条高分记忆）。这套机制让记忆"活"起来——常用的越来越强、不用的逐渐淡忘，和人脑的机制神似。</p>
+<table class="data-table"><thead><tr><th>记忆操作</th><th>触发时机</th><th>判断标准</th><th>效果</th></tr></thead><tbody>
+<tr><td>写入</td><td>交互产生新信息</td><td>未来复用概率高</td><td>进入活跃记忆</td></tr>
+<tr><td>强化</td><td>被检索命中</td><td>命中即 boost</td><td>重要性回血</td></tr>
+<tr><td>衰减</td><td>定期（如每日）</td><td>时间流逝</td><td>importance × 0.95</td></tr>
+<tr><td>合并</td><td>检测到语义重复</td><td>相似度 &gt; 阈值</td><td>多条合一条</td></tr>
+<tr><td>淘汰</td><td>超容量阈值</td><td>importance 最低</td><td>移出活跃/归档</td></tr>
+<tr><td>复活</td><td>冷存储被检索</td><td>命中冷记忆</td><td>重回活跃</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 带衰减与遗忘的记忆管理器
+import time, math
+from dataclasses import dataclass, field
+
+@dataclass
+class Memory:
+    id: str
+    content: str
+    type: str                # preference / fact / decision / todo
+    importance: float = 0.5
+    tags: list = field(default_factory=list)
+    created: float = field(default_factory=time.time)
+    last_accessed: float = field(default_factory=time.time)
+    access_count: int = 0
+
+class MemoryStore:
+    def __init__(self, capacity=1000, decay_rate=0.95, decay_interval=86400):
+        self.memories = {}
+        self.capacity = capacity
+        self.decay_rate = decay_rate
+        self.decay_interval = decay_interval
+        self.last_decay = time.time()
+
+    def add(self, mem: Memory):
+        # 写入前查重：语义相似的合并而非新增
+        for existing in self.memories.values():
+            if self._similar(mem.content, existing.content) > 0.85:
+                existing.importance = min(1.0, existing.importance + 0.1)
+                existing.access_count += 1
+                return  # 合并，不新增
+        self.memories[mem.id] = mem
+        self._evict_if_needed()
+
+    def retrieve(self, query, top_k=5):
+        # 检索时对命中的记忆 boost（用到说明还有用）
+        results = sorted(self.memories.values(),
+                         key=lambda m: -self._score(m, query))[:top_k]
+        for m in results:
+            m.last_accessed = time.time()
+            m.access_count += 1
+            m.importance = min(1.0, m.importance + 0.05)  # 回血
+        return results
+
+    def decay(self):
+        """定期衰减：随时间重要性下降"""
+        now = time.time()
+        if now - self.last_decay < self.decay_interval: return
+        for m in self.memories.values():
+            days = (now - m.last_accessed) / 86400
+            m.importance *= self.decay_rate ** days   # 越久没用衰减越多
+        self.last_decay = now
+        self._evict_if_needed()
+
+    def _evict_if_needed(self):
+        """超容量淘汰 importance 最低的"""
+        if len(self.memories) <= self.capacity: return
+        sorted_mem = sorted(self.memories.values(), key=lambda m: m.importance)
+        while len(self.memories) > self.capacity:
+            victim = sorted_mem.pop(0)
+            del self.memories[victim.id]   # 遗忘最不重要的
+
+    def _score(self, mem, query):
+        recency = math.exp(-(time.time()-mem.last_accessed)/86400/7)
+        return mem.importance * 0.6 + recency * 0.4   # 重要×近期</code></pre>
+
+    <h2><span class="idx"></span>记忆的检索策略：从精确到语义的混合召回</h2>
+    <p>有了记忆还得能高效取出来用。记忆检索的质量直接决定记忆的价值——存了一堆但取不出来等于没存。检索策略要平衡三个目标：相关性（取出来的真有用）、速度（不能让 agent 等太久）、覆盖（别漏掉关键记忆）。</p>
+<p>单一检索策略各有短板。纯关键词检索快但理解不了语义（搜"汽车"取不到只写"轿车"的记忆）。纯向量检索理解语义但慢且可能跑偏（向量相近不代表真相关）。纯时间检索（取最近的）快但忽略相关性。生产系统几乎都用<strong>混合检索</strong>：多路召回 + 加权融合。典型组合是关键词召回（精确匹配，快）+ 向量召回（语义匹配，补关键词的漏）+ 时间/重要性召回（保证不漏近期和关键），三路结果按加权分数融合排序。</p>
+<p>检索的进阶是<strong>查询改写</strong>。用户当前的 query 往往不能直接用于检索记忆——比如用户说"那个怎么做来着"，原始 query 毫无信息量。检索前先用 LLM 把 query 改写成更适合检索的形式（补全指代、提取关键词、生成多个检索变体），能大幅提升召回率。另一个进阶是<strong>记忆分层检索</strong>：先在活跃记忆（高频、近期）里找，找不到再扩到冷存储（低频、归档），避免每次都扫全量。</p>
+<table class="data-table"><thead><tr><th>检索策略</th><th>优势</th><th>短板</th><th>适用场景</th></tr></thead><tbody>
+<tr><td>关键词检索</td><td>快、精确</td><td>不懂语义</td><td>明确实体/术语</td></tr>
+<tr><td>向量检索</td><td>懂语义</td><td>慢、可能跑偏</td><td>模糊/概念性查询</td></tr>
+<tr><td>时间检索</td><td>极快</td><td>忽略相关性</td><td>近期上下文</td></tr>
+<tr><td>重要性检索</td><td>抓关键</td><td>可能过时</td><td>核心信息</td></tr>
+<tr><td>混合检索</td><td>全面</td><td>实现复杂</td><td>生产标配</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 混合记忆检索：多路召回 + 加权融合 + 查询改写
+class HybridMemoryRetriever:
+    def __init__(self, store, embedder, weights=None):
+        self.store = store
+        self.embedder = embedder
+        self.w = weights or {"keyword":0.3, "vector":0.4, "importance":0.3}
+
+    def retrieve(self, query, top_k=5):
+        # 1. 查询改写：把口语化 query 改成适合检索的形式
+        expanded = self._expand_query(query)   # ["原始query", "改写1", "关键词提取"]
+        results = {}   # mem_id -> 融合分
+        # 2. 多路召回
+        for q in expanded:
+            for m in self.store.keyword_search(q):
+                results[m.id] = results.get(m.id,0) + self.w["keyword"] * m.match_score
+            for m in self.store.vector_search(self.embedder(q)):
+                results[m.id] = results.get(m.id,0) + self.w["vector"] * m.similarity
+        # 重要性加权（所有候选都加上重要性分）
+        for mid in list(results.keys()):
+            m = self.store.get(mid)
+            results[mid] += self.w["importance"] * m.importance
+        # 3. 排序取 top_k
+        ranked = sorted(results.items(), key=lambda x:-x[1])[:top_k]
+        return [self.store.get(mid) for mid,_ in ranked]
+
+    def _expand_query(self, query):
+        """用 LLM 改写 query：补指代、提关键词、生成变体"""
+        prompt = f"""把下面这句话改写成适合检索记忆的多个查询：
+原句：{query}
+要求：1. 补全代词（"那个"→具体指代）2. 提取关键词 3. 生成 1 个同义改写
+输出 JSON 数组。"""
+        # 简化：实际调 LLM
+        return [query] + extract_keywords(query) + [paraphrase(query)]
+
+# 分层检索：活跃记忆优先，不够再查冷存储
+class TieredRetriever:
+    def __init__(self, active, cold):
+        self.active = active    # 活跃记忆（热）
+        self.cold = cold        # 归档记忆（冷）
+    def retrieve(self, query, top_k=5):
+        hits = self.active.retrieve(query, top_k=top_k)
+        if len(hits) < top_k:   # 活跃不够，扩到冷存储
+            hits += self.cold.retrieve(query, top_k=top_k-len(hits))
+        return hits</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>记忆是 agent 持续运作的基础：短期记忆（上下文窗口）管当前、长期记忆（向量库）管跨会话知识、情景记忆管过往经历。MemGPT 的分层换页思路让 agent 突破上下文窗口限制。设计 agent 时要想清楚"需要记什么、记多久、怎么找回"——好的记忆系统让 agent 越用越聪明，差的记忆系统让 agent 反复犯错。</p>
     <div class="chapter-nav">

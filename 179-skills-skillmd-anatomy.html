@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学">
-<meta property="og:description" content="SKILL.md 的解剖：一个技能的最小契约 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -314,18 +310,6 @@
     <p class="lead">SKILL.md 的解剖</p>
     <div class="meta"><span class="chip">Skills 技能体系</span><span class="chip">源码深挖</span><span class="chip">★★★ 进阶</span></div></section>
     <h2><span class="idx"></span>SKILL.md 是什么：技能的入口契约</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>SKILL.md 是什么：技能的入口契约</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>正文的分层结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>技能文件夹的完整结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>完整 SKILL.md 模板：拿来即用的标准结构</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>frontmatter 字段详解：每个字段的作用</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>渐进式披露三层：省 token 的精妙设计</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>在 Claude、ZCode、以及任何支持 Skills 的 agent 里，一个"技能"本质上是一个文件夹，里面装着指令、模板、参考文件。而这个文件夹的灵魂是一个叫 SKILL.md 的文件——它是 agent 认识这个技能的唯一入口。agent 启动时不会把整个技能文件夹塞进上下文（那样太占 token），而是只读每个 SKILL.md 的头部元信息（name + description），等真正需要用这个技能时才加载完整内容。这就是"渐进式披露"（progressive disclosure）的第一层。</p>
     <p>可以把 SKILL.md 理解成"技能的名片 + 使用说明书"。名片部分（YAML frontmatter）告诉 agent"我叫什么、我擅长什么"，让 agent 在遇到相关任务时能想起我；说明书部分（正文）告诉 agent"具体该怎么做"。前者必须精简（占用最少 token），后者可以详尽（只在需要时加载）。</p>
     <h3>YAML frontmatter：技能的元信息</h3>
@@ -552,6 +536,89 @@ class ProgressiveSkillLoader:
 #   第三层：1 × 3000 = 3,000 token（偶尔用）
 #   总计：~6,000 token ✓ 可控（省了 95%+）</code></pre>
     <div class="callout"><strong>💡 设计心法</strong><br>渐进式披露的本质是<strong>"用多少加载多少"</strong>——这和操作系统的虚拟内存分页思想一致：不可能把所有数据都装进内存（上下文），而是按需调入需要的页。设计技能时要主动分层：把"决策级"信息放第一层（什么时候用）、"流程级"放第二层（怎么做）、"细节级"放第三层（模板/参数/示例）。这样既保证功能完整，又把 token 占用控制在可接受范围。判断标准：如果某信息不是每次执行都需要，就别放前两层——下沉到辅助文件按需加载。</div>
+    
+    <h2><span class="idx"></span>技能版本治理与热更新：线上不停机的演进之道</h2>
+    <p>技能一旦上线就会持续演进——修复 bug、补充边界 case、升级 prompt 模板。但 agent 往往是长驻进程，技能内容在启动时已加载进上下文，直接改文件并不会让正在运行的会话感知到。这就是"技能版本治理"要解决的核心矛盾：<strong>如何在不重启 agent、不打断用户会话的前提下，让技能更新安全生效</strong>。</p>
+<p>工程上的标准做法是<strong>分层版本控制</strong>。第一层是文件级版本：每个技能目录维护一个 <code>VERSION</code> 文件（语义化版本号）和 <code>CHANGELOG.md</code>，记录每次变更。第二层是会话级版本：agent 为每个活跃会话快照"本次会话用到的技能版本"，会话内一律使用快照版本，避免中途变更导致行为漂移。第三层是注册表级版本：一个中央 registry 记录"某技能当前推荐版本"，新会话启动时拉取最新推荐版本。</p>
+<p>热更新（hot reload）要解决的是"技能已加载但内容变了怎么办"。安全策略是<strong>会话内不热更，新会话才生效</strong>——正在进行的对话继续用旧版本，保证一致性；新对话自动用新版本。只有当技能变更涉及安全修复（如修补了 prompt 注入漏洞）时，才强制终止受影响会话并提示用户重启。这种"读时快照 + 写时不变"的思路，和数据库的 MVCC、容器的不可变镜像 philosophy 一脉相承。</p>
+<table class="data-table"><thead><tr><th>变更类型</th><th>影响范围</th><th>推荐策略</th><th>是否需用户感知</th></tr></thead><tbody>
+<tr><td>修正错别字 / 注释</td><td>无行为变化</td><td>直接提交，下个会话生效</td><td>否</td></tr>
+<tr><td>补充示例 / 模板</td><td>输出更丰富</td><td>minor 版本+1，下个会话生效</td><td>否（可在 changelog 提及）</td></tr>
+<tr><td>调整触发条件</td><td>何时被调用变化</td><td>minor 版本+1，灰度发布</td><td>是（可能影响预期）</td></tr>
+<tr><td>修改核心流程</td><td>执行步骤变化</td><td>major 版本+1，需回归测试</td><td>是（行为可能不同）</td></tr>
+<tr><td>安全漏洞修复</td><td>消除攻击面</td><td>patch 版本+1，强制热更</td><td>是（终止当前会话）</td></tr>
+</tbody></table>
+<p>版本治理常被新手忽略，但它是技能从"demo 玩具"走向"生产资产"的分水岭。没有版本控制的技能，一旦多人协作或线上运行，很快就会陷入"这个 bug 改了没、线上是哪个版本、为什么本地好的线上挂"的混乱。建议从第一个技能起就建立 VERSION + CHANGELOG 习惯，成本极低，收益随技能数量线性放大。</p>
+<pre><code class="language-bash"># 技能目录的版本治理结构
+my-skill/
+├── SKILL.md              # 主契约（不变）
+├── VERSION               # 单行：1.4.2
+├── CHANGELOG.md          # 变更记录
+├── templates/            # 模板资源
+└── tests/                # 回归测试（关键！）
+
+# CHANGELOG.md 示例
+## [1.4.2] - 2026-07-16
+### Fixed
+- 修复 SQL 模板中未转义单引号导致的注入风险（CVE-内部-007）
+### Changed
+- 触发条件增加 "数据库迁移" 关键词
+
+# 发布前自动化校验：版本号与 changelog 必须一致
+$ skill-publish check my-skill/
+✓ VERSION=1.4.2 与 CHANGELOG 最新条目一致
+✓ 回归测试 12/12 通过
+✓ 安全扫描无新增告警
+→ 可发布</code></pre>
+
+    <h2><span class="idx"></span>技能的可测试性设计：从 prompt 单测到行为回归</h2>
+    <p>技能本质是"给 LLM 的指令"，这带来一个独特挑战：<strong>指令的执行结果是概率性的</strong>——同样的输入，模型偶尔会跑偏。传统软件的单测断言"输入 X 必出 Y"，但技能断言不了"输入 X 必出某个确定输出"，只能断言"输出满足某些约束"。所以技能测试的范式必须重新设计。</p>
+<p>业界逐渐沉淀出三层测试金字塔。最底层是<strong>结构校验</strong>：SKILL.md 的 frontmatter 合法、必填字段齐全、引用的辅助文件存在、YAML 语法正确。这层是确定性的，可当 CI 门禁。中间层是<strong>约束断言</strong>：给定一批典型输入，检查输出是否满足硬性约束（如"必须调用某工具""输出必须是合法 JSON""不能包含某敏感词"）。这层用规则匹配，快但覆盖窄。最顶层是<strong>行为回归</strong>：维护一个"黄金用例集"（golden cases），每个用例是 (输入, 期望行为描述)，用 LLM-as-judge 评估当前技能版本在这些用例上的表现是否退化。这层最接近真实质量，但成本高、有评估噪声。</p>
+<p>关键是把三层组合用对：CI 跑结构校验（必过）+ 约束断言（必过）+ 行为回归（设阈值，低于阈值报警而非阻塞）。行为回归用 LLM-as-judge 时要固定评估模型、固定 prompt、多次采样取平均，把噪声压到可接受范围。这样既能在 prompt 改动后快速发现退化，又不会被评估噪声卡住迭代节奏。</p>
+<table class="data-table"><thead><tr><th>测试层级</th><th>验证对象</th><th>确定性</th><th>成本</th><th>典型工具</th></tr></thead><tbody>
+<tr><td>结构校验</td><td>frontmatter / 文件引用</td><td>完全确定</td><td>极低（毫秒级）</td><td>JSON Schema / 自研 linter</td></tr>
+<tr><td>约束断言</td><td>输出格式 / 工具调用</td><td>高（规则匹配）</td><td>低（秒级）</td><td>pytest + 正则 / 函数校验</td></tr>
+<tr><td>行为回归</td><td>语义正确性 / 用户体验</td><td>低（概率评估）</td><td>高（需调模型）</td><td>LLM-as-judge / 人工标注</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 行为回归测试：LLM-as-judge 评估技能输出是否退化
+import json, statistics
+from anthropic import Anthropic
+
+GOLDEN_CASES = [
+    {"input": "帮我把 users 表的 email 字段加唯一索引",
+     "must_call_tool": "apply_migration",
+     "must_contain_sql": "CREATE UNIQUE INDEX"},
+    {"input": "查询订单表昨天的数据",
+     "must_call_tool": "run_query",
+     "forbidden": ["DELETE", "DROP", "UPDATE"]},
+]
+
+def judge_one(client, case, actual_output):
+    rubric = f"""评估技能输出是否满足：
+1. 必须调用工具：{case.get('must_call_tool', '无要求')}
+2. 必须包含：{case.get('must_contain_sql', '无要求')}
+3. 禁止出现：{case.get('forbidden', [])}
+输出：{actual_output[:500]}
+只回 1（合格）或 0（不合格），再给一句话理由。"""
+    resp = client.messages.create(
+        model="claude-opus-4-5", max_tokens=50,
+        messages=[{"role": "user", "content": rubric}])
+    return 1 if resp.content[0].text.strip().startswith("1") else 0
+
+def run_regression(skill_output_fn, samples=3, threshold=0.85):
+    client = Anthropic()
+    scores = []
+    for case in GOLDEN_CASES:
+        # 多次采样压噪声：同一输入跑 N 次，全合格才算该用例过
+        trial = [judge_one(client, case, skill_output_fn(case["input"]))
+                 for _ in range(samples)]
+        scores.append(1.0 if sum(trial) == samples else sum(trial)/samples)
+    overall = statistics.mean(scores)
+    status = "PASS" if overall >= threshold else "REGRESSION"
+    print(f"行为回归得分 {overall:.2f}（阈值 {threshold}）→ {status}")
+    return overall >= threshold
+# 关键：固定 judge 模型 + 多次采样 + 阈值报警而非阻塞，
+# 让 prompt 迭代不被噪声卡死，又能抓住真实退化。</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>SKILL.md 是技能体系的最小契约：YAML 头部是"触发器"，正文是"说明书"，同目录的辅助文件是"参考库"。理解了这个三层结构，你就能设计出既精准触发、又高效执行的技能。下一章我们看 agent 是如何加载和匹配这些技能的。</p>
     <div class="chapter-nav">

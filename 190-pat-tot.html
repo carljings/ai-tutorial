@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Tree of Thoughts：像下棋一样探索多条推理路径 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Tree of Thoughts：像下棋一样探索多条推理路径 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Tree of Thoughts：像下棋一样探索多条推理路径 · AI 全栈实战教学">
-<meta property="og:description" content="Tree of Thoughts：像下棋一样探索多条推理路径 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -512,6 +508,102 @@ ToT：展开树搜索... 杀鸡用牛刀，30 次调用得到同样答案
 决策法则：ToT 值得当且仅当「问题需要试错/回溯」且
           「CoT 成功率低」且「单次调用成本可接受」。</code></pre>
     <div class="callout"><strong>💡 实用建议</strong><br>不要把 ToT 当万能锤。它的成本是 CoT 的 10-30 倍，只有当 CoT 在你的任务上成功率明显不够（比如低于 50%）时才考虑。而且 ToT 可以<strong>按需升级</strong>：先用 CoT 试，失败了再上 ToT——这样大部分简单问题用便宜的 CoT 解决，只有难题才付出 ToT 的成本。这种"渐进式投入"是生产环境控制成本的常用策略。</div>
+    
+    <h2><span class="idx"></span>Tree of Thoughts 的剪枝与资源分配</h2>
+    <p>Tree of Thoughts（ToT）通过显式探索多条思维路径来提升复杂推理质量，但它的致命弱点是<strong>计算成本爆炸</strong>——每个节点分支 b 个子节点、探索深度 d，总节点数是 O(b^d)。不加控制的话，哪怕 b=3、d=5 也有 243 个节点，每个节点都要调一次模型，成本和延迟都难以承受。生产里用 ToT，剪枝和资源分配是命门。</p>
+<p>剪枝的核心是<strong>"早砍差枝，把资源留给好枝"</strong>。在每个节点展开子节点后，立刻评估每个子节点的"前景分"（value），只保留 top-K 个继续深入，其余砍掉。前景分的评估可以用单独的 value model（轻量、快），也可以让生成模型自评。关键trade-off是评估的准确度与成本——评估太糙会砍错好枝，评估太细又增加成本。实践中 value model 用小模型（便宜快），生成用大模型（质量高），是常见的分工。</p>
+<p>资源分配的进阶是<strong>动态预算</strong>。不均等地给每个分支分配探索深度——前景好的分支给更多深度继续挖，前景差的早停。这比固定深度更高效。更激进的是<strong>迭代深化</strong>：先广度优先浅探索所有分支一轮，识别最有希望的几个，再对它们做深度优先深挖。这避免了在无望分支上浪费深度。</p>
+<table class="data-table"><thead><tr><th>策略</th><th>机制</th><th>成本</th><th>适用场景</th></tr></thead><tbody>
+<tr><td>固定剪枝 top-K</td><td>每层保留 K 个最优</td><td>O(K^d)</td><td>通用，实现简单</td></tr>
+<tr><td>阈值剪枝</td><td>低于前景分的全砍</td><td>取决于分布</td><td>分支质量差异大</td></tr>
+<tr><td>动态深度</td><td>好枝深挖、差枝早停</td><td>自适应</td><td>分支前景分明</td></tr>
+<tr><td>迭代深化</td><td>先广探后深挖</td><td>中等</td><td>不确定哪枝好</td></tr>
+<tr><td>预算上限</td><td>总节点数封顶</td><td>硬性可控</td><td>成本敏感场景</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 带剪枝和动态预算的 ToT
+import heapq
+class ToTSearcher:
+    def __init__(self, generator, value_model, beam_width=3, max_nodes=50):
+        self.gen = generator        # 生成思维（大模型）
+        self.value = value_model    # 评估前景（小模型，便宜）
+        self.beam = beam_width      # 每层保留几个
+        self.max_nodes = max_nodes  # 总节点预算
+
+    def search(self, problem, max_depth=5):
+        # 起始：从问题生成 b 个初始思路
+        frontier = [{"thought": t, "path": [t], "score": 0}
+                    for t in self.gen.expand(problem, n=self.beam)]
+        nodes_used = len(frontier)
+        best = None
+        for depth in range(max_depth):
+            if not frontier or nodes_used >= self.max_nodes: break
+            scored = []
+            for node in frontier:
+                # 评估当前节点前景
+                node["score"] = self.value.evaluate(node["thought"], problem)
+                scored.append(node)
+            # 剪枝：只保留 top-K
+            scored.sort(key=lambda n: -n["score"])
+            frontier = scored[:self.beam]
+            best = frontier[0]   # 记录最优
+            # 动态深度：最优分支继续深挖，其余浅探
+            if best["score"] > 0.8:
+                # 高前景：集中资源深挖这一枝
+                children = self.gen.expand_from(best, n=self.beam)
+            else:
+                # 中低前景：正常广度展开
+                children = []
+                for node in frontier:
+                    children.extend(self.gen.expand_from(node, n=2))
+            for c in children: c["path"] = best["path"] + [c["thought"]]
+            nodes_used += len(children)
+            frontier = children
+        return best
+# 关键：value model 用小模型（评估便宜），gen 用大模型（生成质量高），
+# max_nodes 硬性封顶防止成本失控。b=3,d=5 的朴素 ToT 243 节点，
+# 加 beam=3 + max_nodes=50 后实际只展开 ~50 节点，成本降 80%。</code></pre>
+
+    <h2><span class="idx"></span>ToT 与其他模式的融合：何时该用树搜索</h2>
+    <p>ToT 不是万能的，它的成本决定了只在"值得"的场景用。理解 ToT 与 ReAct、CoT、Reflection 的关系，才能在合适的场景选对工具，而不是"手里拿锤子看什么都是钉子"。</p>
+<p>ToT 适合的场景有三个特征：<strong>解空间大且需要回溯</strong>（一条路走不通要换另一条）、<strong>单步质量难判断</strong>（要走了几步才知道好不好）、<strong>错误代价高</strong>（值得花更多计算避免错误）。典型如数学证明、复杂规划、创意生成。反之，如果<strong>解空间小或线性</strong>（一条路就够）、<strong>单步即可判断好坏</strong>、<strong>错误代价低</strong>（错了重做也便宜），用 CoT 甚至直接生成就够，ToT 是过度设计。</p>
+<p>ToT 与其他模式的融合能兼顾质量和成本。常见组合：ToT 做宏观探索（找出有希望的大方向）→ 选定方向后用 CoT 深入（在这个方向上细致推理）→ Reflection 复核结果。这样把昂贵的树搜索用在最关键的"方向选择"上，而非全程都搜索。另一种组合是 ToT + ReAct：把"调工具"作为 ToT 的一个节点动作，遇到需要外部信息时分支展开不同查询，选最优结果继续。</p>
+<table class="data-table"><thead><tr><th>场景特征</th><th>推荐模式</th><th>理由</th></tr></thead><tbody>
+<tr><td>解空间大、需回溯、错误代价高</td><td>ToT</td><td>探索多路径值得</td></tr>
+<tr><td>线性推理、单步可判</td><td>CoT</td><td>ToT 是过度设计</td></tr>
+<tr><td>需调工具、动态决策</td><td>ReAct</td><td>树搜索+工具调用</td></tr>
+<tr><td>需复核关键输出</td><td>Reflection</td><td>局部反思即可</td></tr>
+<tr><td>复杂规划+执行</td><td>Plan-Execute</td><td>先规划再执行</td></tr>
+<tr><td>方向难定 + 细节难做</td><td>ToT 选向 + CoT 深入</td><td>分工降本</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 模式选择器：根据任务特征选推理模式
+def select_pattern(task):
+    score = {"tot":0, "cot":0, "react":0, "reflect":0, "plan_exec":0}
+    # 解空间大小
+    if task.get("solution_space") == "large":   score["tot"] += 2
+    else:                                        score["cot"] += 2
+    # 是否需回溯
+    if task.get("needs_backtrack"):              score["tot"] += 2
+    # 是否需调工具
+    if task.get("needs_tools"):                  score["react"] += 2
+    # 错误代价
+    if task.get("error_cost") == "high":
+        score["tot"] += 1; score["reflect"] += 2
+    # 是否复杂多步
+    if task.get("complexity") == "high":         score["plan_exec"] += 2
+    # 时间/成本约束
+    if task.get("budget") == "tight":
+        score["cot"] += 2; score["tot"] -= 2    # 紧预算时降权 ToT
+
+    best = max(score, key=score.get)
+    # 组合建议
+    combo = []
+    if score["tot"] >= 3 and score["cot"] >= 2: combo = ["tot_direct", "cot_deepen"]
+    elif best == "react" and score["tot"] >= 2: combo = ["react_with_tot_branching"]
+    return best, combo
+
+# 示例：数学证明（解空间大、需回溯、错误代价高、预算宽松）
+# → ('tot', ['tot_direct', 'cot_deepen'])
+# 即：用 ToT 选大方向，每枝内用 CoT 深入，兼顾探索与成本</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Tree of Thoughts 把推理从"一条路"升级为"一棵树"：生成多个候选、评估择优、搜索回溯。它适合需要深度探索的难题（解谜、规划、创意），代价是高昂的 LLM 调用成本。理解了 CoT→ReAct→ToT 的演进，你就掌握了 agent 推理能力的三个层次。</p>
     <div class="chapter-nav">

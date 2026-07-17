@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>OpenAI Agents SDK：官方的轻量级方案 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="OpenAI Agents SDK：官方的轻量级方案 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="OpenAI Agents SDK：官方的轻量级方案 · AI 全栈实战教学">
-<meta property="og:description" content="OpenAI Agents SDK：官方的轻量级方案 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -809,6 +805,127 @@ main_agent = Agent(
     <p>这个双层护栏的设计要点：输入护栏用一个小型 LLM 当"注入检测器"（因为它要理解语义，纯正则不够），输出护栏用正则就够（PII 是格式化的，正则比 LLM 快且确定）。`tripwire_triggered=True` 时运行时会立即中断主 agent，不执行后续步骤——这是"安全优先"的设计：宁可误杀（false positive 拒绝正常请求），也不可漏放（false positive 让攻击通过）。生产中还要加护栏的监控指标（触发率、误杀率），持续调优检测阈值。把 prompt 注入检测和 PII 泄漏检测作为"标配护栏"接进每个面向用户的 agent，是 OpenAI Agents SDK 相比 Swarm 最有价值的增量。</p>
 
     
+    
+    <h2><span class="idx"></span>OpenAI Agents SDK 的 Handoff 机制设计</h2>
+    <p>OpenAI Agents SDK 的核心特色是 <strong>Handoff</strong>——agent 之间显式交接控制权。一个 agent 处理到某个点，判断"该交给另一个专门 agent 了"，就把对话连同上下文 handoff 过去。这种模式比自由的多 agent 群聊更可控，但 handoff 的设计是成败关键。</p>
+<p>Handoff 设计的第一原则是<strong>"基于明确条件触发"</strong>。每个 agent 声明它的 handoff 条件——什么情况下该交给别人（如"涉及数据库优化时交给 dba agent"）。条件要明确且互斥，避免模糊（多个 agent 都觉得自己该接）。实现上 handoff 可以是模型自主判断（在 prompt 里告诉它何时该 handoff），也可以是规则触发（检测到特定关键词自动 handoff）。前者灵活但可能漏判，后者确定但机械，混合使用最稳。</p>
+<p>第二原则是<strong>"上下文连续性"</strong>。Handoff 不是简单转发，而要把当前对话历史、关键状态、用户意图完整传给下一个 agent，让它能无缝继续。丢失上下文的 handoff 会让用户重复说一遍，体验很差。OpenAI Agents SDK 自动处理对话历史的传递，但应用层的状态（如"用户已验证身份""当前在第 3 步"）需要显式传递，通常放在一个共享的 context 对象里。第三原则是<strong>"避免 handoff 循环"</strong>——A 交给 B、B 又交给 A 来回踢皮球。要有"handoff 深度"限制或让某个 agent 具有终局裁决权。</p>
+<table class="data-table"><thead><tr><th>Handoff 要素</th><th>设计要点</th><th>常见错误</th></tr></thead><tbody>
+<tr><td>触发条件</td><td>明确、互斥</td><td>条件模糊致抢接</td></tr>
+<tr><td>上下文传递</td><td>历史 + 状态完整</td><td>丢状态让用户重复</td></tr>
+<tr><td>防循环</td><td>深度限制 / 终局者</td><td>A→B→A 踢皮球</td></tr>
+<tr><td>handoff vs tool</td><td>handoff 转交主导权</td><td>该 handoff 却用 tool</td></tr>
+<tr><td>可观测</td><td>记录 handoff 链</td><td>不知道被谁接了</td></tr>
+</tbody></table>
+<pre><code class="language-python"># OpenAI Agents SDK：Handoff 设计
+from agents import Agent, Runner
+
+# 定义专门 agent，声明它的 handoff 去向
+triage = Agent(
+    name="分诊",
+    instructions="""你是客服分诊 agent。根据用户问题决定交给谁：
+- 涉及账单/退款 → 交给 billing
+- 涉及技术故障 → 交给 tech_support
+- 涉及账户安全 → 交给 security
+- 简单问候/闲聊 → 自己处理，不 handoff
+判断后调用对应 handoff 工具。""",
+    handoffs=["billing", "tech_support", "security"],   # 可交接的去向
+)
+
+billing = Agent(
+    name="账单",
+    instructions="""你是账单专家。处理退款、账单疑问。
+处理完或遇到非账单问题，交给分诊 agent 重新路由。
+注意：不要直接 handoff 给 tech_support，统一回分诊防循环。""",
+    handoffs=["triage"],   # 只能回分诊，不能横向跳（防 A→B→A 循环）
+)
+
+# 星型拓扑：所有专门 agent → 分诊（中心）
+# 避免网状拓扑（任意 agent 互相 handoff）导致循环
+
+# 上下文传递：用 context 对象携带应用状态
+class SessionContext:
+    def __init__(self):
+        self.user_verified = False
+        self.handoff_chain = []   # 记录交接链，便于追溯
+        self.resolution = None
+
+async def handle(message, ctx):
+    result = await Runner.run(triage, message, context=ctx)
+    # SDK 自动传递对话历史 + context 对象
+    # 应用层状态（user_verified 等）通过 ctx 跨 handoff 保持
+    return result.final_output
+
+# Handoff vs Tool 的选择：
+# - Tool：当前 agent 临时调用一个能力，主导权还在自己（如查个订单）
+# - Handoff：把整个对话的主导权交给另一个 agent（如转给专家）
+# 错误用法：该 handoff 给专家却用 tool 调专家 → 上下文割裂、体验差</code></pre>
+
+    <h2><span class="idx"></span>Guardrails 与安全防护</h2>
+    <p>OpenAI Agents SDK 强调 <strong>Guardrails</strong>——在 agent 输入和输出两端设置防护栏，拦截不安全或不合规的内容。这是生产级 agent 不可少的安全层，光靠 prompt 让 agent"自觉"是不够的。</p>
+<p>Guardrails 分输入和输出两类。<strong>输入 guardrail</strong> 在用户消息进入 agent 前检查：是否含 prompt 注入（"忽略前面指令"）、是否问敏感信息（身份证、密码）、是否在禁止话题（政治、医疗建议）。拦截后要么拒绝、要么 sanitize（清洗危险部分）后继续。<strong>输出 guardrail</strong> 在 agent 回复发出前检查：是否泄露 PII（把别人邮箱发出来）、是否含不当内容（歧视、暴力）、是否超范围（agent 答了不该答的）。拦截后要么重写、要么用兜底回复。</p>
+<p>Guardrail 的实现可以是规则（正则、关键词）或模型（用一个小模型分类）。规则快但覆盖窄，模型灵活但有延迟和误判。生产常用混合：规则做硬性拦截（已知危险模式），模型做软性判断（语义层面的不当）。关键设计是<strong>"并行 + 不阻塞"</strong>——多个 guardrail 并行检查，且尽量不增加用户感知延迟（输入 guardrail 在 agent 思考时并行跑，输出 guardrail 流式检查）。</p>
+<table class="data-table"><thead><tr><th>Guardrail 类型</th><th>检查对象</th><th>典型拦截</th><th>处置</th></tr></thead><tbody>
+<tr><td>输入-注入防护</td><td>用户消息</td><td>"忽略前面指令"</td><td>拒绝/sanitize</td></tr>
+<tr><td>输入-PII 防护</td><td>用户消息</td><td>索要密码/身份证</td><td>拒绝 + 引导</td></tr>
+<tr><td>输入-话题限制</td><td>用户消息</td><td>政治/医疗建议</td><td>拒答 + 转人工</td></tr>
+<tr><td>输出-PII 防护</td><td>agent 回复</td><td>泄露他人信息</td><td>重写/脱敏</td></tr>
+<tr><td>输出-内容合规</td><td>agent 回复</td><td>歧视/暴力</td><td>重写/兜底</td></tr>
+<tr><td>输出-范围控制</td><td>agent 回复</td><td>答非授权内容</td><td>兜底回复</td></tr>
+</tbody></table>
+<pre><code class="language-python"># OpenAI Agents SDK：Guardrails 实现
+from agents import Agent, GuardrailFunctionOutput, input_guardrail, output_guardrail
+import re, json
+
+# 输入 guardrail：防 prompt 注入 + PII 索取
+@input_guardrail
+async def injection_guard(ctx, agent, input_data):
+    text = input_data
+    # 规则层：已知注入模式
+    injection_patterns = [r"忽略.{0,10}指令", r"ignore.{0,10}previous", r"system prompt"]
+    for pat in injection_patterns:
+        if re.search(pat, text, re.I):
+            return GuardrailFunctionOutput(
+                output_info={"reason":"疑似 prompt 注入"},
+                tripwire_triggered=True,   # 触发拦截
+            )
+    # 模型层：语义判断（更灵活，略）
+    return GuardrailFunctionOutput(output_info={}, tripwire_triggered=False)
+
+@input_guardrail
+async def pii_request_guard(ctx, agent, input_data):
+    # 拦截索要敏感信息
+    sensitive = [r"密码", r"身份证", r"信用卡号", r"验证码"]
+    for pat in sensitive:
+        if re.search(pat, input_data):
+            return GuardrailFunctionOutput(
+                output_info={"reason":"索要敏感信息，拒绝"},
+                tripwire_triggered=True,
+            )
+    return GuardrailFunctionOutput(output_info={}, tripwire_triggered=False)
+
+# 输出 guardrail：防 PII 泄露 + 内容合规
+@output_guardrail
+async def output_pii_guard(ctx, agent, output):
+    # 检查回复是否含他人的 PII（邮箱/手机号等）
+    pii_patterns = [r"[\w.-]+@[\w.-]+\.\w+", r"\d{11}"]
+    for pat in pii_patterns:
+        if re.search(pat, output):
+            return GuardrailFunctionOutput(
+                output_info={"reason":"输出含疑似 PII，需脱敏"},
+                tripwire_triggered=True,
+            )
+    return GuardrailFunctionOutput(output_info={}, tripwire_triggered=False)
+
+# 注册到 agent：输入/输出各挂多个 guardrail，并行检查
+agent = Agent(
+    name="客服",
+    instructions="...",
+    input_guardrails=[injection_guard, pii_request_guard],
+    output_guardrails=[output_pii_guard],
+)
+# 任一 guardrail 触发 tripwire，该消息被拦截，走兜底处理
+# 关键：guardrail 是 agent 之外的独立检查，不依赖 agent 自觉</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>OpenAI Agents SDK 是 Swarm 的生产化版本：Agent 配置能力、Handoff 实现 agent 间转交、Guardrail 做安全校验、Tracing 提供可观测性。它轻量、官方、与 OpenAI 生态深度集成，适合追求简洁的场景。</p>
     <div class="chapter-nav">

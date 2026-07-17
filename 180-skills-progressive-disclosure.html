@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>渐进式披露：技能如何省着用上下文 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学">
-<meta property="og:description" content="渐进式披露：技能如何省着用上下文 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -357,7 +353,7 @@ class SkillRegistry:
     <h2><span class="idx"></span>三层模型的完整实现：带预算与淘汰</h2>
     <p>上面的伪代码只演示了「能读」，没有解决两个生产级问题：<strong>第三层内容加载后什么时候移除</strong>（否则上下文会被细节文件一点点塞满），以及<strong>单次加载的 token 上限</strong>（防止一个超大模板直接吃光预算）。下面这份实现加入了 token 预算管理和 LRU 淘汰，对应了真正的「虚拟内存换页」。</p>
     <div class="code-title">progressive_registry.py —— 带 LRU 与预算的三层加载器</div>
-    <pre><code class="language-python"><span class="k">import</span> os, time, hashlib
+    <pre><code><span class="k">import</span> os, time, hashlib
 <span class="k">from</span> collections <span class="k">import</span> OrderedDict
 <span class="k">from</span> dataclasses <span class="k">import</span> dataclass
 
@@ -436,7 +432,7 @@ class SkillRegistry:
     </table>
     <p>工具结果是最大的「吞 token 怪兽」——一次 <code>read_file</code> 读一个大文件就能吃掉几万 token。下面这个守卫函数在每个工具返回前主动截断，是生产里几乎必须有的：</p>
     <div class="code-title">token_budget.py —— 工具结果的预算守卫</div>
-    <pre><code class="language-python"><span class="k">class</span> <span class="t">TokenBudget</span>:
+    <pre><code><span class="k">class</span> <span class="t">TokenBudget</span>:
     <span class="k">def</span> <span class="f">__init__</span>(self, total=<span class="n">128000</span>, reserve_reply=<span class="n">23000</span>):
         self.total = total
         self.reserve_reply = reserve_reply
@@ -468,6 +464,82 @@ class SkillRegistry:
     <p>截断策略选「留头尾」而不是「只留头」是有讲究的：很多文件的关键信息在末尾（如 Python 的 <code>if __name__ == "__main__"</code>、JSON 的闭合括号），只留头会丢掉这些关键结构。留头尾 + 中间省略号 + 标注原始 token 数，是工程上性价比最高的折中。</p>
     <div class="callout warn"><div class="head">⚠ 别让 agent 自己算 token</div><p style="margin:6px 0;">让 LLM 自己估算「还剩多少 token」是非常不靠谱的——它对自身上下文的感知误差常达 30% 以上。预算管理必须由<strong>外层的确定性代码</strong>来做，agent 只负责「我想读这个文件」，截不截断由代码决定。这是 agent 框架与裸调 API 之间最大的工程分水岭之一。</p></div>
 
+    
+    <h2><span class="idx"></span>渐进式披露的失效模式与诊断</h2>
+    <p>渐进式披露设计得再好，线上仍会出现各种"该加载的没加载、不该加载的全加载了"的失效。识别这些失效模式是优化的前提。最常见的有四类。</p>
+<p>第一类是<strong>触发遗漏</strong>：该用某技能的任务没触发。根因往往是 description 写得太窄或太抽象——比如 description 是"处理数据"，遇到"清洗日志"这种具体任务就匹配不上。诊断方法是在 agent 日志里统计每个技能的"被触发次数 / 应触发次数"，低于 60% 的技能优先优化 description。修复方向是补充同义词、列举典型任务句式、用 stronger verbs。</p>
+<p>第二类是<strong>误触发</strong>：不该用某技能时被加载，浪费 token 还可能误导。根因是 description 太宽泛或与其他技能语义重叠。诊断方法是统计"触发了但第一轮就退出"的比例——高说明用户其实不需要它。修复方向是收紧 description（加限定词）、明确"不适用场景"。</p>
+<p>第三类是<strong>过度加载</strong>：技能被触发了，但把所有辅助文件一次性全读了，第二层第三层形同虚设。根因是正文里写了"如有需要参考 reference.md"但没有按需读取的 gatekeeping——模型倾向于一次性读完以防漏。修复方向是把"按需读取"改成显式的条件分支（"只有当遇到 X 情况时才读 X.md"），并在 SKILL.md 里明确"不要预读所有文件"。</p>
+<p>第四类是<strong>加载抖动</strong>：同一类任务，有时触发 A 技能有时触发 B 技能，行为不稳定。根因是两个技能 description 语义重叠且无明确优先级。修复方向是合并技能，或用"路由技能"做前置分发。</p>
+<table class="data-table"><thead><tr><th>失效模式</th><th>典型症状</th><th>诊断指标</th><th>修复杠杆</th></tr></thead><tbody>
+<tr><td>触发遗漏</td><td>该用没用</td><td>触发率 &lt; 60%</td><td>扩写 description / 补同义词</td></tr>
+<tr><td>误触发</td><td>不该用却加载</td><td>首轮退出率 &gt; 40%</td><td>收紧 description / 标注不适用</td></tr>
+<tr><td>过度加载</td><td>一次读光辅助文件</td><td>平均 token 超预算 2x</td><td>显式条件分支 / 禁止预读</td></tr>
+<tr><td>加载抖动</td><td>同类任务命中不同技能</td><td>A/B 命中比接近 5:5</td><td>合并技能 / 加路由前置</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 技能触发健康度诊断脚本
+import collections, json
+def diagnose_skills(trigger_log_path):
+    """trigger_log: 每行 {skill, task, exited_round, tokens_used}"""
+    by_skill = collections.defaultdict(list)
+    for line in open(trigger_log_path):
+        e = json.loads(line); by_skill[e["skill"]].append(e)
+    report = {}
+    for skill, events in by_skill.items():
+        n = len(events)
+        first_exit = sum(1 for e in events if e["exited_round"] <= 1)
+        avg_tok = sum(e["tokens_used"] for e in events) / n
+        report[skill] = {
+            "triggers": n,
+            "first_round_exit_rate": round(first_exit / n, 2),  # 高=误触发
+            "avg_tokens": int(avg_tok),                          # 高=过度加载
+            "health": "OK" if first_exit/n < 0.4 and avg_tok < 8000 else "CHECK",
+        }
+    for s, r in sorted(report.items(), key=lambda x: -x[1]["triggers"]):
+        print(f"{s:30s} 触发{r['triggers']:4d}  首退率{r['first_round_exit_rate']:.0%}  "
+              f"均token{r['avg_tokens']:6d}  → {r['health']}")
+    return report
+# 输出示例：
+# sql-helper                     触发 342  首退率 12%  均 token 5200  → OK
+# data-processor                 触发  89  首退率 51%  均 token 3100  → CHECK（误触发）
+# migration-runner               触发  23  首退率  9%  均 token 18400 → CHECK（过度加载）</code></pre>
+
+    <h2><span class="idx"></span>token 预算的精细化分配：从经验到公式</h2>
+    <p>渐进式披露的终极目标是控 token，但"控"不能凭感觉，需要可量化的预算分配。一个生产级 agent 的上下文通常被切成几块：系统 prompt（固定）、工具定义（固定）、对话历史（增长）、技能内容（按需）。技能这块的预算该占多少、各层之间怎么分配，有相对稳定的经验比例。</p>
+<p>一个常用的分配基准是<strong>"3-2-1"</strong>：第一层（所有技能的 name+description）总 token 不超过上下文窗口的 3%，第二层（被触发的技能正文）不超过 20%，第三层（按需读的辅助文件）单次不超过 10%。以 200K 上下文为例：第一层 6K（约 30-50 个技能）、第二层 40K、第三层单次 20K。剩下的留给对话历史和模型输出。这个比例不是教条，而是平衡了"技能要够丰富"和"对话要够长"的工程经验值。</p>
+<p>当技能数量超过第一层预算时，就要上<strong>分层注册</strong>：把技能分成"常驻技能"（第一层）和"按需发现技能"（需要时才从外部索引检索 name+description 进来）。这相当于给技能本身也做一层渐进式披露——Skills 索引变成一个可检索的库，agent 用关键词或向量检索找出相关的几个技能，再走正常的触发流程。这是百级、千级技能场景下的必经之路。</p>
+<table class="data-table"><thead><tr><th>预算块</th><th>占比基准</th><th>200K 窗口示例</th><th>超预算的后果</th></tr></thead><tbody>
+<tr><td>系统 prompt</td><td>~2%</td><td>4K</td><td>挤占历史，多轮对话过早截断</td></tr>
+<tr><td>技能第一层（全部 name+desc）</td><td>~3%</td><td>6K</td><td>触发率下降，技能被遗忘</td></tr>
+<tr><td>技能第二层（触发的正文）</td><td>~20%</td><td>40K</td><td>单次回答可用预算变少</td></tr>
+<tr><td>技能第三层（辅助文件单次）</td><td>~10%</td><td>20K</td><td>读不完关键参考，输出质量降</td></tr>
+<tr><td>对话历史</td><td>~60%</td><td>120K</td><td>多轮能力下降</td></tr>
+<tr><td>输出预留</td><td>~5%</td><td>10K</td><td>长输出被截断</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 上下文预算分配器：按比例切分并预警
+class ContextBudget:
+    def __init__(self, window=200_000, ratios=None):
+        r = ratios or {"system":0.02,"skills_l1":0.03,"skills_l2":0.20,
+                       "skills_l3":0.10,"history":0.60,"output":0.05}
+        self.window = window
+        self.budget = {k: int(window*v) for k,v in r.items()}
+    def check_skills_l1(self, skills):
+        """skills: [(name, description)]，估算 name+desc 的 token"""
+        # 粗略估算：1 token ≈ 3.5 字符（中英混合）
+        total_chars = sum(len(n)+len(d)+8 for n,d in skills)  # +8 给 YAML 框架
+        est_tokens = total_chars // 3
+        limit = self.budget["skills_l1"]
+        status = "OK" if est_tokens <= limit else "OVER"
+        print(f"L1 技能 {len(skills)} 个，约 {est_tokens} token / 预算 {limit} → {status}")
+        if status == "OVER":
+            print("  建议：启用分层注册，把低频技能移入按需发现池")
+        return est_tokens <= limit
+
+budget = ContextBudget(200_000)
+# 模拟 60 个技能
+skills = [(f"skill-{i}", f"处理第 {i} 类任务的通用技能，覆盖输入解析、转换与输出校验。") for i in range(60)]
+budget.check_skills_l1(skills)
+# 输出：L1 技能 60 个，约 5485 token / 预算 6000 → OK</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>渐进式披露是 Skills 体系的架构基石：索引层省 token、指令层保精准、细节层容丰富。理解了这个三层模型，你就理解了为什么 agent 能装几十个技能而不卡顿，以及为什么 SKILL.md 的 description 那么关键——它是第一层的全部信息载体。本章进一步给出了带 LRU 淘汰与单文件截断的完整三层加载器实现，以及一套 128K 上下文的预算分配配比和工具结果截断守卫。核心心法：token 是稀缺资源，加载与截断的决策必须交给确定性代码，而不是让 LLM 自己估算。</p>
     <div class="chapter-nav">

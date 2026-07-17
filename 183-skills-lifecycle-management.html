@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>技能生命周期管理：安装、更新、版本、权限 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="技能生命周期管理：安装、更新、版本、权限 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="技能生命周期管理：安装、更新、版本、权限 · AI 全栈实战教学">
-<meta property="og:description" content="技能生命周期管理：安装、更新、版本、权限 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -508,6 +504,65 @@ class SkillVersionManager:
         for old in backups[:-3]:
             shutil.rmtree(old)</code></pre>
     <div class="callout"><strong>💡 版本管理要点</strong><br>技能版本管理的三个关键设计：① <strong>升级前必备份</strong>——保留历史版本（最近 3 个），新版出问题能秒回滚；② <strong>大版本升级要人工确认</strong>——major 版本号变更意味着可能有破坏性改动，不能静默升级；③ <strong>升级后跑自测</strong>——每个技能应带一个自测用例（SKILL.md 里声明），升级后自动跑一遍，失败就自动回滚。这三道保险让技能升级"可进可退"，不会因为一个坏更新搞挂整个 agent。</div>
+    
+    <h2><span class="idx"></span>技能废弃与下线：被忽视的逆向生命周期</h2>
+    <p>技能生命周期管理里最被低估的一环是"下线"。大家热衷于新建技能，却很少认真废弃技能，导致技能库逐渐堆积一堆"僵尸技能"——不再被触发、或已被新技能取代、或对应业务已下线。僵尸技能有三个实际危害：占用第一层 token 预算（即便不被触发，name+description 仍常驻）、制造匹配噪声（语义重叠增加误触发）、增加维护心智负担（不知道哪个还有用）。定期下线是必须的卫生工作。</p>
+<p>下线决策不能拍脑袋，要有数据支撑。核心指标是<strong>"最近 N 天的触发次数"</strong>和<strong>"触发后的有效率"</strong>。触发次数持续为零的技能是僵尸候选；触发但有效率低（用户很快退出或换技能）的技能是失效候选。但要注意区分"真僵尸"和"低频但关键"——有些技能一年只用几次但每次都关键（如灾备、合规检查），不能按频率一刀切。判断标准是"业务必要性 × 触发频率"的乘积，而非单看频率。</p>
+<p>下线本身要分阶段，不能直接删。第一阶段<strong>软下线</strong>：从默认启用改为默认禁用但保留文件，观察一段时间无异常。第二阶段<strong>标记废弃</strong>：在 SKILL.md frontmatter 加 <code>deprecated: true</code> 和 <code>deprecated_reason</code>，匹配器跳过它但仍可手动调用。第三阶段<strong>归档移除</strong>：确认无依赖后移到 archive 目录，保留 changelog 记录。这样任何阶段都可回滚，避免"删了才发现某个老流程还在用"。</p>
+<table class="data-table"><thead><tr><th>信号</th><th>含义</th><th>处置</th><th>是否可逆</th></tr></thead><tbody>
+<tr><td>触发次数=0 持续 30 天</td><td>疑似僵尸</td><td>进入观察期</td><td>是</td></tr>
+<tr><td>触发后有效率 &lt; 30%</td><td>失效或被取代</td><td>排查是否有替代技能</td><td>是</td></tr>
+<tr><td>语义与新技能重叠 &gt; 80%</td><td>冗余</td><td>合并到新技能</td><td>是（合并）</td></tr>
+<tr><td>对应业务已下线</td><td>无存在必要</td><td>软下线 → 归档</td><td>是（归档保留）</td></tr>
+<tr><td>低频但业务必要</td><td>关键但不常用</td><td>保留，加"关键"标签</td><td>—</td></tr>
+</tbody></table>
+<pre><code class="language-bash"># 技能健康度扫描：找出僵尸候选
+$ skill-health scan --days 30
+Scanning 87 skills against last 30d trigger logs...
+
+NAME                  TRIGGERS   VALID_RATE   STATUS
+sql-helper                 342        0.91   OK
+code-review                 89        0.88   OK
+old-data-loader              0        n/a   ⚠ ZOMBIE (30d 零触发)
+legacy-report-gen            2        0.12   ⚠ INEFFECTIVE (有效率低)
+v2-migration                 5        0.95   OK (低频关键，保留)
+data-processor              45        0.29   ⚠ SUPERSEDED (与新技能重叠 87%)
+
+→ 建议：3 个进入软下线观察期，1 个合并
+
+# 软下线操作（可逆）
+$ skill-disable old-data-loader --reason "30d 零触发，疑似僵尸" --observe 14d
+✓ old-data-loader 已设为默认禁用，保留文件，14 天后复核
+  如需恢复：skill-enable old-data-loader</code></pre>
+
+    <h2><span class="idx"></span>技能间的依赖与冲突管理</h2>
+    <p>技能不是孤立存在的，它们之间有依赖（A 需要 B 先执行）和冲突（A 和 B 不能同时启用）。规模一大，这些关系不显式管理就会出乱子：依赖缺失导致技能执行到一半失败、冲突技能同时触发互相干扰。生命周期管理必须覆盖这部分。</p>
+<p>依赖管理的标准做法是在 frontmatter 声明 <code>depends_on</code> 和 <code>provides</code>。安装/启用一个技能时，系统自动检查它的依赖是否满足，缺失则提示安装或自动拉取。运行时，触发技能 A 前，系统确保 A 的依赖 B 已在上下文（或先加载 B）。这和软件包管理（npm/pip）的依赖解析思想一致，只是这里"依赖"是"另一个技能的能力"。</p>
+<p>冲突管理更微妙。显式冲突（frontmatter 声明 <code>conflicts_with</code>）好处理——同时触发时按优先级保留一个。隐式冲突（两个技能都会改同一份文件、都占用同一个外部资源）难发现，需要静态分析或运行时检测。常见策略是"写冲突检测器"：扫描所有技能的工具调用，标记可能竞争同一资源的技能对，提醒作者加 <code>conflicts_with</code> 或在技能内部加锁。</p>
+<table class="data-table"><thead><tr><th>关系类型</th><th>声明方式</th><th>处理时机</th><th>失败兜底</th></tr></thead><tbody>
+<tr><td>硬依赖</td><td>depends_on</td><td>安装时检查 + 运行时预加载</td><td>提示安装缺失依赖</td></tr>
+<tr><td>软依赖（可选）</td><td>recommends</td><td>运行时建议加载</td><td>降级运行（功能减少）</td></tr>
+<tr><td>显式冲突</td><td>conflicts_with</td><td>触发时择一</td><td>按优先级保留高者</td></tr>
+<tr><td>隐式冲突</td><td>静态分析发现</td><td>部署前扫描</td><td>提醒作者加声明</td></tr>
+<tr><td>资源竞争</td><td>工具调用图分析</td><td>运行时加锁</td><td>排队或报错</td></tr>
+</tbody></table>
+<pre><code class="language-yaml"># 技能 frontmatter 声明依赖与冲突
+---
+name: db-migration-reviewer
+description: 评审数据库迁移脚本的安全性，依赖 sql-parser 提供语法解析
+depends_on:
+  - sql-parser          # 硬依赖：缺它无法工作
+recommends:
+  - schema-visualizer   # 软依赖：有它输出更直观，没它也能跑
+conflicts_with:
+  - legacy-db-tools     # 显式冲突：两者会改同一份 schema 文件
+provides:
+  - migration-safety-check   # 供其他技能依赖的能力标签
+---
+# 系统在加载本技能前会：
+# 1. 检查 sql-parser 是否已启用（硬依赖），缺失则报错并提示安装
+# 2. 检查 legacy-db-tools 是否同时被触发（冲突），是则按优先级择一
+# 3. 自动预加载 sql-parser 到上下文（保证本技能运行时可用）</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>技能的生命周期管理决定了技能体系能否在生产环境落地。安装要方便（市场/插件）、版本要可控（语义化版本+兼容声明）、安全要有保障（权限+审计）。把这些工程问题解决好，技能才能真正成为 agent 的"可插拔能力"。</p>
     <div class="chapter-nav">

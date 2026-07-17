@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>ReAct 模式：思考与行动交织的经典循环 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="ReAct 模式：思考与行动交织的经典循环 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="ReAct 模式：思考与行动交织的经典循环 · AI 全栈实战教学">
-<meta property="og:description" content="ReAct 模式：思考与行动交织的经典循环 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -533,6 +529,118 @@ def react_with_fc(question, max_steps=8):
 print(react_with_fc("上海和北京今天哪个更热，热多少度？"))</code></pre>
     <p>对比两个版本能看清 ReAct 的演进：<strong>老版把「推理+行动」都揉在文本里靠正则切，新版让模型用结构化字段表达行动</strong>。后者更可靠、更易加防护（工具 schema 本身就限定了参数类型和取值），也更省 token（不用重复打印 Thought 文本）。但两者共享同一个内核——<strong>「思考-行动-观察」的循环</strong>。后续的 Plan-Execute 模式（下一章）把这个循环改成「先一次性规划所有步骤，再批量执行」，减少串行等待；Reflection 模式在每个循环末尾加一步「自我批判」。它们都是 ReAct 这棵树长出的枝——掌握了 ReAct，再学其他模式就只是「加规则」而已。</p>
 
+    
+    <h2><span class="idx"></span>ReAct 的工程化陷阱与调试方法论</h2>
+    <p>ReAct 模式原理简单，但工程化时有大量"原理没讲、实战全是坑"的细节。理解这些陷阱，才能让 ReAct loop 在生产里跑得稳，而不是 demo 时惊艳、上线后崩坏。最常见的五类问题值得系统性应对。</p>
+<p>第一类是<strong>循环不终止</strong>。ReAct 靠模型自己判断"够了，给最终答案"，但模型偶尔会陷入"再查一下、再确认一下"的死循环，尤其是工具返回的结果不符合预期时。解法是硬性的 loop 上限（如最多 10 轮 Thought-Action-Observation），到了上限强制让模型基于已有信息给答案。第二类是<strong>Action 格式漂移</strong>。模型本该输出结构化的 Action（如 <code>Action: search["query"]</code>），但偶尔会输出自然语言（"我想搜索一下..."），解析器解析失败就卡住。解法是宽松解析（容错多种格式）+ 失败时回查提示（把解析失败反馈给模型让它重试）。</p>
+<p>第三类是<strong>Observation 噪声淹没 Thought</strong>。工具返回的内容太长（如一整页搜索结果），塞进上下文后挤占了模型的推理空间，后续 Thought 质量下降。解法是 Observation 摘要化——长结果先过一道摘要或截断，只保留与当前 Thought 相关的部分。第四类是<strong>工具选择错误</strong>。有多个相似工具时，模型选错（该用精确查询却用了模糊搜索）。解法是工具描述里明确"何时用我、何时不用我"，并在工具名上做区分度。第五类是<strong>上下文膨胀</strong>。多轮 Observation 累积，上下文很快爆。解法是滑动窗口 + 摘要压缩历史。</p>
+<table class="data-table"><thead><tr><th>陷阱</th><th>症状</th><th>根因</th><th>工程对策</th></tr></thead><tbody>
+<tr><td>循环不终止</td><td>无限 Action</td><td>模型难判断"够了"</td><td>硬性 loop 上限 + 强制收尾</td></tr>
+<tr><td>Action 格式漂移</td><td>解析失败卡住</td><td>输出不严格遵循格式</td><td>宽松解析 + 失败回查</td></tr>
+<tr><td>Observation 淹没</td><td>后续推理变差</td><td>工具返回太长</td><td>摘要 / 截断 / 相关性过滤</td></tr>
+<tr><td>工具选错</td><td>用了错误工具</td><td>工具区分度低</td><td>明确"何时用"描述</td></tr>
+<tr><td>上下文膨胀</td><td>多轮后爆窗口</td><td>历史累积</td><td>滑动窗口 + 摘要</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 生产级 ReAct loop：带上限、容错、摘要
+import json
+def react_loop(model, tools, query, max_steps=10):
+    scratchpad = []   # 累积的 Thought/Action/Observation
+    for step in range(max_steps):
+        # 构造 prompt：系统指令 + 历史 + 当前
+        prompt = build_react_prompt(query, scratchpad, tools)
+        raw = model.generate(prompt)
+        # 宽松解析 Action：支持多种格式漂移
+        parsed = parse_action_loose(raw)
+        if parsed is None:
+            # 解析失败：反馈给模型重试，而非直接崩
+            scratchpad.append(("system", "上一条 Action 格式无法解析，请严格用 Action: tool[args]"))
+            continue
+        if parsed["tool"] == "FINISH":
+            return parsed["answer"]   # 模型主动收尾
+        # 执行工具
+        obs = tools[parsed["tool"]](**parsed["args"])
+        # Observation 摘要：超长先截断/摘要，避免淹没推理
+        if len(str(obs)) > 2000:
+            obs = model.summarize(str(obs), focus=parsed.get("thought",""))
+        scratchpad.append(("thought", parsed["thought"]))
+        scratchpad.append(("action", parsed))
+        scratchpad.append(("observation", obs))
+    # 到上限强制收尾
+    return model.generate(force_conclude_prompt(query, scratchpad))
+
+def parse_action_loose(raw):
+    """容错多种格式：Action: tool[args] / 我想调用 tool(...) / tool: args"""
+    # 严格格式
+    m = re.search(r'Action:\s*(\w+)\s*\[?(.*?)\]?\s*$', raw, re.M)
+    if m: return {"tool": m.group(1), "args": parse_args(m.group(2)), "thought": raw}
+    # 宽松：自然语言里提取工具名
+    for tname in KNOWN_TOOLS:
+        if tname in raw:
+            return {"tool": tname, "args": {}, "thought": raw}
+    if "FINISH" in raw or "最终答案" in raw:
+        return {"tool": "FINISH", "answer": raw}
+    return None   # 解析失败，上层会让模型重试</code></pre>
+
+    <h2><span class="idx"></span>ReAct 的可观测性：让黑盒循环变得可调试</h2>
+    <p>ReAct loop 是个黑盒——模型在 Thought 里"自言自语"，出了问题（结果不对、循环太久、工具选错）很难定位是哪一步出了岔子。生产系统必须给 ReAct 装上可观测性，否则排障只能靠瞎猜。可观测性的核心是<strong>"每一步都留痕、每一步都可回放"</strong>。</p>
+<p>最小可观测集是<strong>结构化 trace</strong>：每次循环记录 (step, thought, action_tool, action_args, observation_summary, latency, token_used)。这些字段足以重建整个推理过程。trace 要持久化（落库或文件），并支持按 session 回放——出问题时能精确看到"第 5 步模型想到了 X、调用了 Y、得到了 Z，然后第 6 步跑偏了"。进阶是<strong>指标聚合</strong>：从大量 trace 里统计平均步数、工具调用分布、失败率、各工具的平均延迟，发现系统性的模式问题（如某工具总导致后续跑偏）。</p>
+<p>更高级的是<strong>对比回放</strong>：当模型或 prompt 升级后，用同一批历史 query 重跑，对比新旧 trace 的差异——步数是否变多、工具选择是否变化、结果是否退化。这是 ReAct 质量回归的核心手段。没有这套可观测体系，ReAct 的任何改动都是"凭感觉"，很难持续优化。</p>
+<table class="data-table"><thead><tr><th>可观测层级</th><th>记录内容</th><th>用途</th><th>典型工具</th></tr></thead><tbody>
+<tr><td>结构化 trace</td><td>每步 thought/action/obs</td><td>单次排障回放</td><td>自研 / OpenTelemetry</td></tr>
+<tr><td>指标聚合</td><td>步数/工具/延迟分布</td><td>发现系统性模式</td><td>Prometheus / Grafana</td></tr>
+<tr><td>会话回放</td><td>完整 trace 重放</td><td>复现用户问题</td><td>trace 存储 + UI</td></tr>
+<tr><td>对比回归</td><td>新旧 trace diff</td><td>升级质量守护</td><td>评测平台</td></tr>
+<tr><td>成本追踪</td><td>token / 调用费用</td><td>单 query 成本分析</td><td>LLM 网关日志</td></tr>
+</tbody></table>
+<pre><code class="language-python"># ReAct 结构化 trace 记录器
+import json, time, uuid, pathlib
+TRACE_DIR = pathlib.Path("traces")
+
+def traced_react_step(session_id, step, thought, action, observation, model_info):
+    record = {
+        "session": session_id,
+        "step": step,
+        "thought": thought,
+        "action_tool": action.get("tool"),
+        "action_args": action.get("args"),
+        "observation_summary": str(observation)[:500],  # 摘要避免日志爆炸
+        "latency_ms": model_info.get("latency_ms"),
+        "tokens_in": model_info.get("tokens_in"),
+        "tokens_out": model_info.get("tokens_out"),
+        "ts": time.time(),
+    }
+    # 追加写 trace 文件（一个会话一个文件）
+    f = TRACE_DIR / f"{session_id}.jsonl"
+    f.parent.mkdir(exist_ok=True)
+    with f.open("a") as fp:
+        fp.write(json.dumps(record, ensure_ascii=False) + "
+")
+    return record
+
+def replay_session(session_id):
+    """回放某次会话的完整推理链，用于排障"""
+    f = TRACE_DIR / f"{session_id}.jsonl"
+    print(f"=== 回放会话 {session_id} ===")
+    for line in f.open():
+        r = json.loads(line)
+        print(f"[步{r['step']}] Thought: {r['thought'][:80]}...")
+        print(f"        Action: {r['action_tool']}({r['action_args']})")
+        print(f"        Obs:    {r['observation_summary'][:80]}...")
+        print(f"        ({r['latency_ms']}ms, {r['tokens_in']}+{r['tokens_out']} tok)")
+
+# 聚合统计：从所有 trace 发现系统性问题
+def aggregate_patterns():
+    tool_step_bloat = {}  # 哪个工具调用后平均步数最多
+    for tf in TRACE_DIR.glob("*.jsonl"):
+        steps = [json.loads(l) for l in tf.open()]
+        for i, s in enumerate(steps):
+            tool = s["action_tool"]
+            remaining = len(steps) - i   # 调用后还剩多少步
+            tool_step_bloat.setdefault(tool, []).append(remaining)
+    for tool, rems in sorted(tool_step_bloat.items()):
+        avg = sum(rems)/len(rems)
+        flag = "⚠ 可能拖累后续" if avg > 5 else ""
+        print(f"{tool:20s} 调用后平均剩余 {avg:.1f} 步  {flag}")</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>ReAct 是 agent 的基石范式：Thought（推理）→ Action（行动）→ Observation（观察）的循环。它把 LLM 从"一次性回答"升级为"持续交互"。理解了 ReAct，你就理解了所有 agent 的内核——后续的模式都是 ReAct 的扩展或改良。</p>
     <div class="chapter-nav">

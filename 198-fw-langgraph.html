@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LangGraph：把 agent 建模成状态图 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LangGraph：把 agent 建模成状态图 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LangGraph：把 agent 建模成状态图 · AI 全栈实战教学">
-<meta property="og:description" content="LangGraph：把 agent 建模成状态图 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -516,6 +512,121 @@ app.invoke(None, config={"configurable": {
     "checkpoint_id": target.config["configurable"]["checkpoint_id"],
 }})</code></pre>
     <div class="callout"><strong>💡 生产价值</strong><br>Checkpoint 持久化是 LangGraph 杀手级能力，它解决了 agent 的两大生产难题：① <strong>人工介入</strong>（interrupt）——agent 自动跑到需要人决策的点暂停，人审完再继续，这是"人在环中"(Human-in-the-loop) 系统的基础；② <strong>可恢复性</strong>——长任务（如深度研究、批量处理）中途断了能续上，不用从头重来。配合 time-travel，还能回退重跑（比如发现某步决策错了，回退到那步换条路）。这些是 AgentExecutor 完全做不到的，也是 LangGraph 成为生产级首选的原因。</div>
+    
+    <h2><span class="idx"></span>LangGraph 的状态设计与持久化</h2>
+    <p>LangGraph 把 agent 建模成状态机/图，核心抽象是 State（贯穿整个图的状态对象）和 Node（修改状态的函数）。这套模型的能力上限，取决于 State 设计得好不好。State 设计不当，会导致状态膨胀、节点耦合、调试困难。生产化 LangGraph 的第一课就是"把 State 设计对"。</p>
+<p>State 设计的第一原则是<strong>"显式声明所有流转字段"</strong>。LangGraph 用 TypedDict 或 dataclass 定义 State schema，每个字段都是图节点间共享的数据。新手常犯的错是 State 里塞太多临时字段（某节点算的中间结果其实只自己用），导致状态臃肿、每个节点都能看到不相关数据。正确做法是 State 只放"需要跨节点共享"的字段，节点内部的临时变量用普通局部变量，不进 State。</p>
+<p>第二原则是<strong>"明确字段的合并语义"</strong>。LangGraph 支持字段的 reducer（如 messages 字段用 add reducer，新消息追加而非覆盖）。不指定 reducer 默认是覆盖，容易出 bug——比如 messages 如果不指定 add，每步会覆盖前一步的消息。第三原则是<strong>"状态可序列化"</strong>——为了支持 checkpoint（断点恢复）、time travel（回滚到历史状态）、分布式执行，State 的所有字段必须可序列化（避免放 file handle、数据库连接等不可序列化对象）。</p>
+<table class="data-table"><thead><tr><th>State 设计原则</th><th>做法</th><th>违反的后果</th></tr></thead><tbody>
+<tr><td>显式声明</td><td>TypedDict 定义所有字段</td><td>隐式传递难追踪</td></tr>
+<tr><td>最小共享</td><td>只放跨节点数据</td><td>状态臃肿、节点耦合</td></tr>
+<tr><td>合并语义</td><td>指定 reducer（add/自定义）</td><td>消息被覆盖丢失</td></tr>
+<tr><td>可序列化</td><td>只用 JSON 兼容类型</td><td>checkpoint 失败</td></tr>
+<tr><td>版本兼容</td><td>新增字段给默认值</td><td>旧 checkpoint 无法恢复</td></tr>
+</tbody></table>
+<pre><code class="language-python"># LangGraph State 设计：规范 vs 反模式
+from typing import TypedDict, Annotated, Literal
+from langgraph.graph import StateGraph, START, END
+from langgraph.graph.message import add_messages
+
+# ✅ 规范：显式 schema + reducer + 最小共享
+class ResearchState(TypedDict):
+    messages: Annotated[list, add_messages]   # reducer: 追加而非覆盖
+    topic: str                                 # 跨节点共享的研究主题
+    sources: list                              # 跨节点共享的来源
+    draft: str                                 # 当前草稿（覆盖语义）
+    # 注意：节点内部临时变量（如循环计数）不进 State，用私有变量
+
+def research_node(state: ResearchState):
+    # 临时变量不污染 State
+    local_cache = {}
+    for query in expand_queries(state["topic"]):
+        local_cache[query] = search(query)   # 临时
+    sources = flatten(local_cache.values())
+    return {"sources": sources, "messages": [("ai", f"找到 {len(sources)} 条来源")]}
+
+def write_node(state: ResearchState):
+    # 只读 State 里需要的字段，写时只更新自己负责的字段
+    draft = compose(state["sources"], state["topic"])
+    return {"draft": draft}   # 只更新 draft，不动其他
+
+graph = StateGraph(ResearchState)
+graph.add_node("research", research_node)
+graph.add_node("write", write_node)
+graph.add_edge(START, "research")
+graph.add_edge("research", "write")
+graph.add_edge("write", END)
+
+# ❌ 反模式：State 里塞临时变量 / 不指定 reducer
+# class BadState(TypedDict):
+#     messages: list           # 没 reducer → 每步覆盖，历史消息全丢！
+#     temp_counter: int        # 临时计数器不该进 State
+#     db_conn: object          # 不可序列化，checkpoint 会崩</code></pre>
+
+    <h2><span class="idx"></span>LangGraph 的人机协作与断点恢复</h2>
+    <p>LangGraph 相比纯 LangChain 的两大杀手锏是<strong>人机协作（human-in-the-loop）</strong>和<strong>断点恢复（checkpointing）</strong>。这两个能力让 agent 能处理需要人工审批的场景，且长时间运行的复杂任务可以中断后继续。用好它们是 LangGraph 生产化的关键。</p>
+<p>人机协作的核心是<strong>"interrupt"机制</strong>。在图的某个节点前设置 interrupt，执行到这里会暂停，把当前 State 持久化，等待人工输入（批准/修改/拒绝）后继续。典型用法是高风险动作前的人工确认——如发邮件、执行交易、部署代码，agent 准备好动作后暂停，人审核 State 里的计划，批准后才真正执行。这把"自主性"和"安全性"平衡得很好：日常自动跑，关键节点人把关。</p>
+<p>断点恢复解决"长任务中途挂了怎么办"。LangGraph 的 checkpointer 把每步执行后的 State 存到外部（内存/SQLite/Postgres），任务任何时候中断（崩溃、人为暂停、超时），都能从最后一个 checkpoint 恢复继续，不用从头跑。这对几分钟到几小时的长任务至关重要。进阶能力是<strong>"time travel"</strong>——不仅能恢复到最后状态，还能回滚到任意历史状态重新执行（如发现第 3 步决策错了，回到第 3 步重跑）。这是调试和优化的利器。</p>
+<table class="data-table"><thead><tr><th>能力</th><th>机制</th><th>典型用途</th><th>工程要点</th></tr></thead><tbody>
+<tr><td>人机协作</td><td>interrupt 暂停</td><td>高风险动作审批</td><td>State 必须可序列化</td></tr>
+<tr><td>断点恢复</td><td>checkpointer 持久化</td><td>长任务容错</td><td>选对存储后端</td></tr>
+<tr><td>time travel</td><td>历史 State 重放</td><td>调试/优化</td><td>checkpoint 保留够多</td></tr>
+<tr><td>并发分支</td><td>fan-out/fan-in</td><td>并行加速</td><td>分支 State 隔离</td></tr>
+<tr><td>动态路由</td><td>conditional edges</td><td>条件分支</td><td>路由函数要纯</td></tr>
+</tbody></table>
+<pre><code class="language-python"># LangGraph 人机协作 + 断点恢复
+from langgraph.checkpoint.sqlite import SqliteSaver
+from langgraph.graph import StateGraph, START, END
+from langgraph.types import interrupt, Command
+
+class DeployState(TypedDict):
+    plan: str
+    approved: bool
+    result: str
+
+def plan_node(state):
+    plan = generate_deploy_plan()
+    return {"plan": plan}
+
+def review_node(state):
+    # interrupt：暂停等待人工审批
+    # 把 plan 展示给人，人决定 approve/reject/modify
+    decision = interrupt({"prompt": "审核部署计划", "plan": state["plan"]})
+    if decision.get("action") == "approve":
+        return {"approved": True, "plan": decision.get("modified_plan", state["plan"])}
+    return {"approved": False}
+
+def deploy_node(state):
+    if not state["approved"]:
+        return {"result": "已取消"}
+    return {"result": execute_deploy(state["plan"])}
+
+graph = StateGraph(DeployState)
+graph.add_node("plan", plan_node)
+graph.add_node("review", review_node)
+graph.add_node("deploy", deploy_node)
+graph.add_edge(START, "plan")
+graph.add_edge("plan", "review")
+graph.add_conditional_edges("review", lambda s: "deploy" if s["approved"] else END)
+graph.add_edge("deploy", END)
+
+# 关键：加 checkpointer，支持断点恢复
+checkpointer = SqliteSaver.from_conn_string("checkpoints.db")
+app = graph.compile(
+    checkpointer=checkpointer,
+    interrupt_before=["review"],   # review 前暂停
+)
+
+# 首次运行：到 review 前暂停，返回 thread_id
+config = {"configurable": {"thread_id": "deploy-001"}}
+result = app.invoke({"plan":""}, config)
+# → 暂停在 review，State 已存入 checkpoints.db
+
+# 人工审核后恢复（可能几小时后）
+app.invoke(Command(resume={"action":"approve"}), config)
+# → 从 checkpoint 恢复，继续执行 deploy
+
+# 即便中途崩溃，下次用同 thread_id 启动也能从最后 checkpoint 恢复</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LangGraph 把 agent 从"固定循环"升级为"状态图"：State 管数据、Node 管处理、Edge 管流转。条件边让它能表达任意复杂的控制流。它是 LangChain 家族中做生产级 agent 的推荐方案——AgentExecutor 能做的它都能做，还能做 AgentExecutor 做不到的。</p>
     <div class="chapter-nav">

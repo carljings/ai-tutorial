@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Reflection 自我反思：让 agent 批判并改进自己 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Reflection 自我反思：让 agent 批判并改进自己 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Reflection 自我反思：让 agent 批判并改进自己 · AI 全栈实战教学">
-<meta property="og:description" content="Reflection 自我反思：让 agent 批判并改进自己 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -518,6 +514,107 @@ print(f"\n最终通过率：{result['score']:.0%}（{result['trials']} 次迭代
 代价：3 轮 = 3 倍的 LLM 调用成本。对一次性任务可能不值，
       对关键代码（如库的核心函数）很值——一次写对比反复调试更省时间。</code></pre>
     <div class="callout"><strong>💡 关键洞察</strong><br>Reflexion 的威力来自<strong>反思的累积性</strong>：第 N 轮的 agent 带着前 N-1 轮所有反思的"教训"，相当于一个越来越有经验的工程师。这和人类"做错一次就记住"的学习机制一致。但要注意它的局限：① 反思是"语言级"的，无法修正模型本身的能力天花板（如果模型根本不会某算法，反思也救不了）；② 成本是线性的（N 轮 = N 倍调用）；③ 反思有时会"钻牛角尖"（在错误方向上越反思越偏），所以要有客观的外部评估（测试用例）作为锚点，不能纯靠自评。</div>
+    
+    <h2><span class="idx"></span>Reflection 的代价控制：何时反思、反思多深</h2>
+    <p>Reflection（自我反思）能显著提升 agent 输出质量，但它有成本——每次反思都要额外调一次模型、额外消耗 token、额外增加延迟。无脑反思（每步都反思、反思到满意为止）会让成本和延迟翻几倍，性价比反而下降。工程上必须回答两个问题：什么时候该反思？反思到什么深度停下来？</p>
+<p>何时反思的核心是<strong>"只在值得的地方反思"</strong>。三类场景值得反思：高风险步骤（错了代价大，如发钱、删数据）、低置信度输出（模型自己都不确定）、用户明确要求复核。不值得反思的场景：低风险步骤（错了无伤大雅）、高置信度输出（反思多半也是浪费）、时间敏感场景（反思的延迟不可接受）。可以用一个简单的"反思预算"——每个会话最多反思 N 次，把额度花在最值的地方。</p>
+<p>反思深度指"反思发现问题后，是简单修补还是推倒重来"。简单问题（错别字、格式）只需浅反思+小修补。复杂问题（逻辑错误、方向偏差）需要深反思+大改甚至重做。判断深度的信号是"问题的影响范围"——只影响当前步骤就浅修，影响后续多步就深改。关键是避免"反思嵌套"（反思自己的反思），这会指数级增加成本且收益递减，硬性限制反思只做一层。</p>
+<table class="data-table"><thead><tr><th>场景</th><th>是否反思</th><th>反思深度</th><th>理由</th></tr></thead><tbody>
+<tr><td>高风险步骤（发钱/删数据）</td><td>是</td><td>深（完整复核）</td><td>错了代价大</td></tr>
+<tr><td>低置信度输出</td><td>是</td><td>中（验证关键点）</td><td>质量不确定</td></tr>
+<tr><td>用户要求复核</td><td>是</td><td>按用户期望</td><td>体验要求</td></tr>
+<tr><td>低风险步骤</td><td>否</td><td>—</td><td>不值得开销</td></tr>
+<tr><td>高置信度输出</td><td>否</td><td>—</td><td>反思收益低</td></tr>
+<tr><td>时间敏感</td><td>否/浅</td><td>最多浅验</td><td>延迟不可接受</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 反思预算管理器：控制何时反思、反思多深
+class ReflectionBudget:
+    def __init__(self, max_reflections_per_session=3):
+        self.max = max_reflections_per_session
+        self.used = {}    # session_id -> 已用次数
+
+    def should_reflect(self, session_id, step):
+        """决定是否对当前步骤做反思"""
+        remaining = self.max - self.used.get(session_id, 0)
+        if remaining <= 0:
+            return False, "反思预算耗尽"
+        # 高风险必反思
+        if step.get("risk") == "high":
+            return True, "high_risk"
+        # 低置信度反思
+        if step.get("confidence", 1.0) < 0.7:
+            return True, "low_confidence"
+        # 低风险高置信度：不反思
+        return False, "not_worth"
+
+    def depth(self, step, issues_found):
+        """决定反思深度：基于问题影响范围"""
+        if not issues_found: return "none"
+        # 问题影响多步 → 深反思（重做）
+        if issues_found[0].get("scope") == "global": return "deep"
+        # 只影响当前 → 浅反思（修补）
+        return "shallow"
+
+# 使用：高风险步骤触发反思，预算耗尽则跳过
+budget = ReflectionBudget(max_reflections_per_session=3)
+for step in plan:
+    result = execute(step)
+    do_it, reason = budget.should_reflect(session, step)
+    if do_it:
+        issues = reflect(result, step)
+        depth = budget.depth(step, issues)
+        if depth == "deep":   replan_from(step)
+        elif depth == "shallow": patch(result, issues)
+        budget.used[session] = budget.used.get(session,0) + 1</code></pre>
+
+    <h2><span class="idx"></span>反思的偏差：自我评估的可靠性边界</h2>
+    <p>Reflection 的隐含假设是"模型的自我评估是可信的"。但这个假设并不总成立——模型评估自己的输出时存在系统性偏差，盲目信任反思会引入新的错误来源。理解这些偏差，才能设计出更可靠的反思机制。</p>
+<p>最常见的偏差是<strong>"确认偏差"</strong>。模型倾向于认为自己刚产出的内容是对的，反思时往往只发现表面问题（错别字、格式）而漏掉深层问题（逻辑错误）。表现是反思后说"看起来没问题"，但其实有大 bug。缓解方法是让反思换个视角——不是问"这有什么问题"，而是问"假设这有问题，最可能错在哪""一个严格的审查者会怎么批评"。视角转换能打破确认偏差。</p>
+<p>第二个偏差是<strong>"过度自信"</strong>。模型对低质量输出也常给出高置信度，反思时倾向于"我觉得没问题"而非"我不确定"。缓解是用外部信号校准——如果有测试用例、有规则检查、有历史对照，用这些客观信号辅助判断，而非只信模型的主观评估。第三个偏差是<strong>"反思一致性"</strong>——同一份输出，不同时间反思可能得到不同结论。缓解是多次反思取共识（多次都指出的问题才信），降低随机噪声。</p>
+<table class="data-table"><thead><tr><th>偏差类型</th><th>表现</th><th>危害</th><th>缓解手段</th></tr></thead><tbody>
+<tr><td>确认偏差</td><td>只发现表面问题</td><td>漏掉深层错误</td><td>换视角提问（审查者角度）</td></tr>
+<tr><td>过度自信</td><td>低质量也给高置信</td><td>误判为"没问题"</td><td>外部信号校准</td></tr>
+<tr><td>反思不一致</td><td>不同次结论不同</td><td>结论随机</td><td>多次取共识</td></tr>
+<tr><td>近因偏差</td><td>受最近内容影响大</td><td>忽略早期错误</td><td>分块独立反思</td></tr>
+<tr><td>锚定偏差</td><td>被初始输出锚定</td><td>反思范围窄</td><td>从零重新生成再对比</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 抗偏差的反思器：多视角 + 多次采样 + 外部校准
+import statistics
+class RobustReflector:
+    def __init__(self, model, external_checkers=None):
+        self.model = model
+        self.checkers = external_checkers or []
+
+    def reflect(self, output, context):
+        # 1. 多视角提问：打破确认偏差
+        perspectives = [
+            ("self", "检查这段输出的任何问题"),
+            ("critic", "假设你是严格的代码审查者，找出最严重的 3 个问题"),
+            ("user", "从最终用户角度，这段输出哪里会让你困惑"),
+        ]
+        issue_sets = []
+        for role, prompt in perspectives:
+            issues = self.model.evaluate(output, prompt_role=role)
+            issue_sets.append(set(i["id"] for i in issues))
+
+        # 2. 多次取共识：降低反思不一致的随机性
+        consensus = set.intersection(*issue_sets) if len(issue_sets)>=2 else issue_sets[0]
+
+        # 3. 外部信号校准：弥补过度自信
+        for checker in self.checkers:
+            ext_issues = checker(output, context)
+            consensus |= set(ext_issues)   # 外部发现的问题无条件纳入
+
+        return sorted(consensus, key=lambda x: -issue_severity(x))
+
+    def calibrated_confidence(self, output, context):
+        """不轻信模型自报置信度，用外部信号校准"""
+        model_conf = self.model.confidence(output)
+        external_pass = all(c(output, context) for c in self.checkers)
+        # 模型自信但外部检查不过 → 降置信度
+        if model_conf > 0.8 and not external_pass:
+            return 0.4, "外部检查未通过，置信度下调"
+        return model_conf, "model+external 一致"</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Reflection 让 agent 从"一次性输出"进化为"迭代改进"。Act → Evaluate → Reflect → Retry 的循环，让 agent 像人一样从错误中学习。这是提升 agent 可靠性的关键模式——尤其在编程、数学等有明确对错的领域，反思 + 外部反馈（测试/编译）能把成功率提升一个台阶。</p>
     <div class="chapter-nav">

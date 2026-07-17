@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学">
-<meta property="og:description" content="LlamaIndex：从 RAG 到 Agent · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -498,6 +494,112 @@ class KnowledgeBaseIngester:
 # （用 cron 或 Airflow 调度）
 # 0 2 * * * python -c "from kb import ingester; ingester.sync('./kb')"</code></pre>
     <div class="callout"><strong>💡 生产建议</strong><br>LlamaIndex 的 Data Ingestion 管道解决的是知识库的<strong>"保鲜"问题</strong>——过时的知识库比没有知识库更危险（用户得到错误答案）。关键设计：① <strong>增量更新</strong>——用文件哈希判断变化，只重新处理变化的文档（全量重建太慢太贵）；② <strong>定时同步</strong>——配合 cron/Airflow 每日同步，保持知识库与源文档一致；③ <strong>文档溯源</strong>——每个节点保留来源文件和时间戳，答案能追溯到具体文档。这三个能力加起来，才能支撑一个可信的生产级 RAG 系统。</div>
+    
+    <h2><span class="idx"></span>LlamaIndex 的索引策略与查询引擎</h2>
+    <p>LlamaIndex 从 RAG 起家，核心强项是<strong>数据索引和查询</strong>。它把"接入各种数据源 → 索引 → 查询"这条链路抽象得很好，但索引类型选错、查询引擎配置不当，会导致召回差或速度慢。理解索引策略和查询引擎的机制，是用好 LlamaIndex 的关键。</p>
+<p>索引类型的选择决定召回质量。<strong>Summary index（链表）</strong>：把所有节点串成链表，查询时遍历全部——召回全但慢，适合小数据集。<strong>Vector index（向量）</strong>：每个节点做向量索引，查询时按相似度取 top-K——快且主流，适合大多数场景。<strong>Tree index（树）</strong>：把节点组织成层次树，查询时从根往下导航——适合大数据集的结构化查询。<strong>Keyword index（关键词）</strong>：传统倒排索引，精确匹配快——适合术语/实体的精确查询。生产里最常用的是<strong>混合索引</strong>（Vector + Keyword），兼顾语义和精确。</p>
+<p>查询引擎决定怎么用索引。最基础的是 <code>RetrieverQueryEngine</code>（检索 top-K → 拼 prompt → 生成）。进阶是<strong>子问题查询引擎</strong>（把复杂问题拆成多个子问题分别查，再合并）——适合需要多跳推理的复杂查询。还有<strong>路由查询引擎</strong>（根据问题类型路由到不同索引/引擎）——适合多数据源、多类型的异构数据。选对引擎能让复杂查询质量大幅提升，但别过度设计——简单查询用基础引擎就够。</p>
+<table class="data-table"><thead><tr><th>索引类型</th><th>结构</th><th>优势</th><th>适合场景</th></tr></thead><tbody>
+<tr><td>Summary</td><td>链表</td><td>召回全</td><td>小数据集</td></tr>
+<tr><td>Vector</td><td>向量索引</td><td>快、语义匹配</td><td>主流场景</td></tr>
+<tr><td>Tree</td><td>层次树</td><td>结构化导航</td><td>大数据集</td></tr>
+<tr><td>Keyword</td><td>倒排</td><td>精确匹配</td><td>术语/实体</td></tr>
+<tr><td>Knowledge Graph</td><td>图</td><td>关系推理</td><td>多跳查询</td></tr>
+<tr><td>混合（Vector+Keyword）</td><td>多路</td><td>兼顾语义和精确</td><td>生产推荐</td></tr>
+</tbody></table>
+<pre><code class="language-python"># LlamaIndex：混合索引 + 路由查询引擎
+from llama_index.core import VectorStoreIndex, SummaryIndex, StorageContext
+from llama_index.core.tools import QueryEngineTool, ToolMetadata
+from llama_index.core.query_engine import RouterQueryEngine, SubQuestionQueryEngine
+from llama_index.core.selectors import LLMSingleSelector
+
+# 1. 建不同索引（针对不同查询特征）
+vector_index = VectorStoreIndex.from_documents(docs)      # 语义查询
+summary_index = SummaryIndex.from_documents(docs)        # 全文遍历
+
+# 2. 包装成工具（路由器按问题类型选）
+vector_tool = QueryEngineTool(
+    query_engine=vector_index.as_query_engine(similarity_top_k=5),
+    metadata=ToolMetadata(
+        name="vector_search",
+        description="语义相似度检索，适合概念性、模糊的查询",
+    ),
+)
+summary_tool = QueryEngineTool(
+    query_engine=summary_index.as_query_engine(),
+    metadata=ToolMetadata(
+        name="full_scan",
+        description="全文遍历，适合需要全面覆盖的总结性查询",
+    ),
+)
+
+# 3. 路由查询引擎：LLM 根据问题选最合适的工具
+router_engine = RouterQueryEngine(
+    selector=LLMSingleSelector.from_defaults(),
+    query_engine_tools=[vector_tool, summary_tool],
+)
+# "什么是注意力机制" → 选 vector_search（概念查询）
+# "总结整篇文档的核心观点" → 选 full_scan（全面覆盖）
+
+# 4. 子问题引擎：复杂多跳查询拆解
+sub_engine = SubQuestionQueryEngine.from_defaults(
+    query_engine_tools=[vector_tool, summary_tool],
+)
+# "对比 A 和 B 方案的性能" → 拆成"查 A 性能"+"查 B 性能"→ 合并</code></pre>
+
+    <h2><span class="idx"></span>从 RAG 到 Agent：LlamaIndex 的演进路径</h2>
+    <p>LlamaIndex 早期是纯 RAG 框架（检索+生成），但逐渐演进出 Agent 能力——agent 可以自主决定查什么、查几次、怎么综合。这条从 RAG 到 Agent 的演进路径，反映了"让检索更智能"的内在需求，也体现了 LlamaIndex 的产品方向。</p>
+<p>演进的第一阶段是<strong>静态 RAG</strong>：一次检索 → 一次生成。简单但只能回答"能一次检索搞定"的问题，复杂多跳问题无能为力。第二阶段是<strong>主动检索（active retrieval）</strong>：agent 生成回答前先自评，觉得证据不足就再检索一次——能多跳但仍是"检索-生成"两阶段。第三阶段是<strong>Agent 化检索</strong>：把检索作为工具，agent 自主决定何时查、查什么、查完够不够、要不要换个查询再查——彻底打破固定流程，按需检索。第四阶段是<strong>多 agent 协作</strong>：研究 agent 负责检索、写作 agent 负责综合，分工协作完成复杂研究任务。</p>
+<p>这种演进的代价是复杂度和成本上升。静态 RAG 一次调用，主动检索多次调用，Agent 化可能几十次调用。所以不是所有场景都要上 Agent 化——简单事实查询用静态 RAG 就够（快且便宜），复杂研究才值得 Agent 化。关键是按问题复杂度选择合适的"智能等级"。</p>
+<table class="data-table"><thead><tr><th>演进阶段</th><th>检索方式</th><th>智能度</th><th>成本</th><th>适合问题</th></tr></thead><tbody>
+<tr><td>静态 RAG</td><td>一次检索</td><td>低</td><td>低</td><td>简单事实</td></tr>
+<tr><td>主动检索</td><td>自评后补检</td><td>中</td><td>中</td><td>多跳推理</td></tr>
+<tr><td>Agent 化检索</td><td>自主多轮检索</td><td>高</td><td>高</td><td>复杂研究</td></tr>
+<tr><td>多 agent 协作</td><td>分工检索+综合</td><td>极高</td><td>极高</td><td>大型调研</td></tr>
+</tbody></table>
+<pre><code class="language-python"># LlamaIndex 从 RAG 到 Agent 的演进实现
+from llama_index.core.query_engine import RetrieverQueryEngine
+from llama_index.core.tools import QueryEngineTool
+from llama_index.experimental.agent import ReActAgent
+
+# 阶段 1：静态 RAG（最简单）
+static_engine = index.as_query_engine(similarity_top_k=5)
+answer = static_engine.query("什么是 KV cache")   # 一次检索一次生成
+
+# 阶段 2：主动检索（自评后补检）
+from llama_index.core.query_engine import RetrieverQueryEngine
+class ActiveRetrievalEngine(RetrieverQueryEngine):
+    def query(self, q):
+        result = super().query(q)
+        # 自评：证据是否充分
+        if self._confidence(result) < 0.6:
+            # 改写 query 再检索一次
+            new_q = self._rewrite(q, result)
+            result2 = super().query(new_q)
+            return self._merge(result, result2)
+        return result
+
+# 阶段 3：Agent 化检索（把检索作为工具，agent 自主决策）
+search_tool = QueryEngineTool.from_defaults(
+    query_engine=index.as_query_engine(),
+    name="search_docs",
+    description="检索文档库，输入查询返回相关内容",
+)
+agent = ReActAgent.from_tools(
+    [search_tool],
+    llm=llm,
+    verbose=True,
+)
+# agent 自主决定：查什么、查几次、够了没
+# 复杂问题："对比 A 和 B 在大规模场景的表现"
+# → agent 会: search("A 大规模") → search("B 大规模") → search("A B 对比") → 综合
+answer = agent.chat("对比 A 和 B 在大规模场景的表现")
+
+# 按问题复杂度路由到不同阶段
+def smart_route(question):
+    if is_simple_fact(question):   return static_engine
+    if needs_multihop(question):   return ActiveRetrievalEngine(...)
+    return agent   # 复杂研究才上 agent，省成本</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LlamaIndex 是 RAG 专精框架（50K stars），核心抽象：Document→Node→Index→Retriever→QueryEngine→Agent。从纯 RAG 进化为 Agentic Document Workflows。选型：纯 RAG 用 LlamaIndex，复杂 Agent 用 LangGraph，生产级最佳组合是 LlamaIndex（数据层）+ LangGraph（控制层）。</p>
     <div class="chapter-nav">

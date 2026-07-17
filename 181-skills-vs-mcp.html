@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Skills vs MCP：两种扩展 agent 的哲学 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Skills vs MCP：两种扩展 agent 的哲学 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Skills vs MCP：两种扩展 agent 的哲学 · AI 全栈实战教学">
-<meta property="og:description" content="Skills vs MCP：两种扩展 agent 的哲学 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -545,6 +541,73 @@ class MonthlyReportAgent:
   判断标准：如果它需要"步骤/判断/规范"，是 Skills；
             如果它需要"连接/操作/数据"，是 MCP。</code></pre>
     <div class="callout"><strong>💡 终极心法</strong><br>Skills 和 MCP 不是竞争关系，而是 agent 能力的两个正交维度：<strong>Skills 扩展"知道什么"（知识/方法），MCP 扩展"能做什么"（能力/接入）</strong>。一个真正强大的 agent，两者都需要——丰富的 Skills 让它懂多领域的方法论，丰富的 MCP 让它能触达多系统。判断该用哪个的终极标准就一句话：<strong>"缺方法用 Skills，缺工具用 MCP"</strong>。掌握了这个区分，你就能为任何扩展需求选对工具，构建出既聪明又能干的 agent。</div>
+    
+    <h2><span class="idx"></span>Skills 与 MCP 的混合编排：各取所长的实战架构</h2>
+    <p>Skills 和 MCP 不是非此即彼，而是互补。理解了各自的强项，才能在真实系统里把它们编排得当，而不是要么全用 Skills、要么全上 MCP。核心判断标准是<strong>"能力是稳定的还是多变的"</strong>。</p>
+<p>稳定的、与领域知识强相关的能力适合 Skills——比如"代码评审 checklist""commit message 规范""某框架的迁移步骤"。这些能力本质是"结构化的指令和经验"，变化慢、需要模型按特定流程思考，写成 Skill 让模型加载对应"思维框架"即可。多变的、依赖外部实时数据的能力适合 MCP——比如"查当前库存""发一条 Slack 消息""读最新的 Jira ticket"。这些能力本质是"动作"，依赖运行时环境，封装成 MCP server 让模型用工具调用最自然。</p>
+<p>典型的混合架构是三层：底层是 MCP servers（提供原子动作：查库、发消息、读文件），中层是 Skills（编排领域流程：如何做一次代码评审、如何处理一个工单），顶层是 agent loop（根据用户意图选择 Skill，Skill 内部按需调用 MCP 工具）。这样分工的好处是：MCP 工具可以被多个 Skill 复用（发消息的能力代码评审和工单处理都用得到），Skill 把"流程经验"沉淀下来不依赖具体工具实现，agent 顶层只管意图路由。</p>
+<table class="data-table"><thead><tr><th>维度</th><th>Skills 适合</th><th>MCP 适合</th><th>混合编排要点</th></tr></thead><tbody>
+<tr><td>能力本质</td><td>结构化指令 / 经验</td><td>运行动作 / 数据访问</td><td>Skill 编排流程，MCP 提供动作</td></tr>
+<tr><td>变化频率</td><td>低（经验沉淀）</td><td>高（接口演进）</td><td>分离让各自独立迭代</td></tr>
+<tr><td>加载时机</td><td>按语义触发</td><td>声明即常驻或按需调用</td><td>Skill 内部按需调 MCP</td></tr>
+<tr><td>复用粒度</td><td>领域流程级</td><td>原子动作级</td><td>一个 MCP 工具被多 Skill 复用</td></tr>
+<tr><td>失败处理</td><td>降级到通用回答</td><td>返回错误码由 Skill 决策</td><td>MCP 不做业务决策</td></tr>
+</tbody></table>
+<pre><code class="language-yaml"># 混合架构示例：代码评审 Skill 编排多个 MCP 工具
+# skills/code-review/SKILL.md
+---
+name: code-review
+description: 按团队规范评审一段代码变更，调用 Git/GitHub MCP 获取 diff 与上下文
+---
+# 代码评审流程
+1. 调用 git-mcp 的 `get_diff` 工具，获取本次变更的 diff
+2. 调用 github-mcp 的 `get_pr_comments` 工具，拉取已有评审意见避免重复
+3. 按下方 checklist 逐项检查（这是 Skill 的核心经验，非工具能替代）：
+   - 命名是否达意、函数是否过长、是否有未处理的边界
+   - 是否引入了新的依赖、是否符合团队的架构分层
+4. 调用 github-mcp 的 `post_review_comment` 工具，把意见发回 PR
+# 关键：checklist 是 Skill 的灵魂（稳定经验），git/github 操作是 MCP（可替换动作）
+# 若换成 GitLab，只需换 MCP server，Skill 的评审流程不变</code></pre>
+
+    <h2><span class="idx"></span>选型决策框架：什么时候用哪个</h2>
+    <p>抽象地讲"互补"还不够，落地时需要一个可操作的决策框架。面对一个新能力需求，按以下四个问题依次判断，基本能定下来。</p>
+<p>问题一：<strong>这个能力的输出是"动作"还是"知识/流程"？</strong>如果主要是引发一次外部副作用（写库、调 API、发通知），优先 MCP。如果主要是让模型按特定角度思考、产出结构化文本（评审意见、迁移方案、测试用例），优先 Skill。问题二：<strong>能力的实现依赖运行时环境吗？</strong>需要连接数据库、需要当前用户的 OAuth token、需要访问内网服务——这些环境相关性强，用 MCP（server 跑在能访问这些资源的环境里）。纯文本推理、不依赖运行时环境，用 Skill。问题三：<strong>能力会跨多个项目/团队复用吗？</strong>通用动作（发消息、建日历事件）做成 MCP 被多方复用收益高；领域流程（某团队的发布 checklist）做成 Skill 更聚焦。问题四：<strong>能力的变更节奏？</strong>频繁迭代的（API 升级）适合 MCP server 独立发版；相对稳定的（最佳实践）适合 Skill。</p>
+<p>遇到模糊地带（既是动作又有流程）就拆：把动作部分做 MCP，把流程部分做 Skill，Skill 编排 MCP。这是最稳妥的默认选择，也是为什么生产系统最终往往是混合架构。</p>
+<table class="data-table"><thead><tr><th>决策问题</th><th>倾向 Skills</th><th>倾向 MCP</th></tr></thead><tbody>
+<tr><td>输出是动作还是知识？</td><td>知识 / 流程 / 结构化文本</td><td>动作 / 副作用</td></tr>
+<tr><td>依赖运行时环境？</td><td>否（纯文本推理）</td><td>是（DB / token / 内网）</td></tr>
+<tr><td>跨团队复用？</td><td>领域聚焦，少复用</td><td>通用动作，多复用</td></tr>
+<tr><td>变更节奏？</td><td>稳定（经验沉淀）</td><td>频繁（接口演进）</td></tr>
+<tr><td>模糊地带</td><td colspan="2">拆分：动作做 MCP，流程做 Skill，Skill 编排 MCP</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 能力选型决策器：输入能力描述，输出推荐方案
+def choose_mechanism(capability):
+    """capability: dict with keys describing the ability"""
+    scores = {"skill": 0, "mcp": 0}
+    # 问题一：动作 vs 知识
+    if capability.get("output") == "action":      scores["mcp"] += 2
+    else:                                          scores["skill"] += 2
+    # 问题二：运行时依赖
+    if capability.get("needs_runtime"):            scores["mcp"] += 2
+    else:                                          scores["skill"] += 1
+    # 问题三：复用广度
+    if capability.get("reuse") == "broad":         scores["mcp"] += 1
+    else:                                          scores["skill"] += 1
+    # 问题四：变更节奏
+    if capability.get("volatility") == "high":     scores["mcp"] += 1
+    else:                                          scores["skill"] += 1
+    if abs(scores["skill"] - scores["mcp"]) <= 1:
+        return "hybrid", scores   # 模糊地带：拆分
+    return ("skill" if scores["skill"] > scores["mcp"] else "mcp"), scores
+
+# 示例：评审一段代码 → 知识、无运行时依赖、领域聚焦、稳定
+print(choose_mechanism({"output":"knowledge","needs_runtime":False,
+                        "reuse":"narrow","volatility":"low"}))
+# → ('skill', {'skill': 5, 'mcp': 0})
+# 示例：发 Slack 消息 → 动作、需 token、广复用、接口偶尔变
+print(choose_mechanism({"output":"action","needs_runtime":True,
+                        "reuse":"broad","volatility":"medium"}))
+# → ('mcp', ...)</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Skills 和 MCP 是扩展 agent 能力的两大支柱，分别对应"知识注入"和"系统接入"。理解了它们的分工，你就能为不同的扩展需求选择正确的工具：流程规范用 Skills，系统连接用 MCP，复杂任务两者配合。这种"方法论 + 工具箱"的组合，正是现代 agent 强大的根源。</p>
     <div class="chapter-nav">

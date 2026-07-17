@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>多 Agent 协作：分工合作的智能体团队 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="多 Agent 协作：分工合作的智能体团队 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="多 Agent 协作：分工合作的智能体团队 · AI 全栈实战教学">
-<meta property="og:description" content="多 Agent 协作：分工合作的智能体团队 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -496,6 +492,134 @@ user_proxy.initiate_chat(
 print(f"\n总轮数：{len(groupchat.messages)}")
 print(f"Token 消耗估算：{sum(m.get('usage',{}).get('total_tokens',0) for m in groupchat.messages)}")</code></pre>
     <div class="callout"><strong>💡 实战要点</strong><br>这个例子暴露了多 agent 的三个工程现实：① <strong>角色 prompt 要正交</strong>——coder 只写、reviewer 只挑刺，职责重叠会导致互相妥协；② <strong>发言顺序要可控</strong>——纯靠 LLM 自由发言容易"抢话"或"冷场"，自定义 speaker selector 能保证流程（写→审→测）；③ <strong>终止条件要明确</strong>——用特殊标记（REVIEW PASS/TEST DONE）作为信号，避免无限对话烧钱。生产环境务必设 max_round 上限并监控 token 消耗。</div>
+    
+    <h2><span class="idx"></span>多 Agent 通信协议：从消息格式到共识机制</h2>
+    <p>多 Agent 协作的核心难题不是"怎么让每个 agent 聪明"，而是"怎么让它们高效沟通"。通信设计不当，多 agent 系统会陷入三种灾难：信息过载（互相发太多冗余消息）、理解偏差（A 说的 B 理解错了）、决策死锁（互相等对方拍板）。一套好的通信协议要同时解决这三类问题。</p>
+<p>消息格式是协议的底层。结构化消息（而非自由文本）是多 agent 系统的基础——每条消息明确包含 sender、receiver、type（请求/回复/通知/广播）、content、references（关联的前序消息）。结构化让 agent 能精确路由消息、追溯上下文、过滤噪声。自由文本通信看似灵活，但每个 agent 要花大量 token 去"理解对方在说什么"，且容易误解。</p>
+<p>共识机制解决"多 agent 意见不一时怎么决策"。简单情况用<strong>层级制</strong>（有个 supervisor 拍板）或<strong>投票制</strong>（多数决）。复杂情况需要<strong>协商</strong>——agent 们交换理由、互相说服、迭代收敛到一个方案。协商的成本高（多轮通信），只在关键决策上用。避免死锁的常用规则是<strong>超时降级</strong>——达不成共识时按默认策略执行，宁可次优也不要卡死。</p>
+<table class="data-table"><thead><tr><th>通信问题</th><th>表现</th><th>协议对策</th><th>典型机制</th></tr></thead><tbody>
+<tr><td>信息过载</td><td>冗余消息淹没</td><td>消息分级 + 订阅</td><td>type 字段 + topic 订阅</td></tr>
+<tr><td>理解偏差</td><td>A 说 B 理解错</td><td>结构化 + 确认</td><td>schema + ACK 回执</td></tr>
+<tr><td>决策死锁</td><td>互相等对方</td><td>超时降级 + 层级</td><td>deadline + supervisor</td></tr>
+<tr><td>消息丢失</td><td>发了没收到</td><td>可靠投递</td><td>重试 + 幂等</td></tr>
+<tr><td>顺序错乱</td><td>后发的先到</td><td>因果排序</td><td>timestamp / 序列号</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 结构化多 agent 通信协议
+import time, uuid
+from dataclasses import dataclass, field
+from typing import Optional
+
+@dataclass
+class Message:
+    id: str = field(default_factory=lambda: str(uuid.uuid4()))
+    sender: str = ""              # agent 标识
+    receiver: str = ""            # 具体 agent 或 "broadcast"
+    type: str = ""                # request / reply / notify / propose / vote
+    topic: str = ""               # 主题，支持订阅过滤
+    content: dict = field(default_factory=dict)
+    reply_to: Optional[str] = None  # 关联的消息 id，构建因果链
+    ts: float = field(default_factory=time.time)
+
+class AgentBus:
+    def __init__(self):
+        self.inbox = {}           # agent_id -> [Message]
+        self.subscribers = {}     # topic -> [agent_id]
+
+    def send(self, msg: Message):
+        if msg.receiver == "broadcast":
+            targets = self.subscribers.get(msg.topic, [])
+        else:
+            targets = [msg.receiver]
+        for t in targets:
+            self.inbox.setdefault(t, []).append(msg)
+
+    def subscribe(self, agent_id, topic):
+        self.subscribers.setdefault(topic, []).append(agent_id)
+
+    def recv(self, agent_id):
+        return self.inbox.pop(agent_id, [])
+
+# 共识：带超时降级的投票
+def reach_consensus(bus, proposer, agents, proposal, timeout=30):
+    msg = Message(sender=proposer, receiver="broadcast", type="propose",
+                  topic="decision", content=proposal)
+    bus.send(msg)
+    votes = {}
+    t0 = time.time()
+    while time.time() - t0 < timeout:
+        for a in agents:
+            for r in bus.recv(a):
+                if r.type == "vote":
+                    votes[r.sender] = r.content["vote"]
+        if len(votes) >= len(agents):   # 全员投票
+            break
+    # 统计：多数通过，否则超时降级
+    yes = sum(1 for v in votes.values() if v == "yes")
+    if yes > len(agents) / 2: return "accepted"
+    return "default_action"   # 超时或未过半 → 默认策略，避免死锁</code></pre>
+
+    <h2><span class="idx"></span>多 Agent 的角色设计与任务分配</h2>
+    <p>多 agent 协作要高效，角色设计是关键。角色不清（每个 agent 都什么都做）会导致职责重叠、互相抢活；角色过细（agent 太多、分工太碎）会导致通信开销压过协作收益。好的角色设计遵循"高内聚低耦合"——每个 agent 职责清晰、内部自洽，agent 间接口最少。</p>
+<p>常见的角色分工模式有几种。<strong>职能分工</strong>：按能力划分（研究员查资料、写手写作、审校审核），每个 agent 专精一类。<strong>流程分工</strong>：按流程阶段划分（规划者规划、执行者执行、反思者复核），每个 agent 负责一个阶段。<strong>视角分工</strong>：按视角划分（魔鬼代言人挑刺、用户代言人体验、风险代言人评估），多角度覆盖。选择哪种取决于任务——产出型任务适合职能分工，流程型任务适合流程分工，决策型任务适合视角分工。</p>
+<p>任务分配的核心难题是<strong>"派给谁"</strong>。简单情况按角色能力静态匹配（写作任务给写手）。复杂情况需要动态分配——考虑当前负载（别让一个 agent 堵塞）、专长匹配度（任务和 agent 历史表现的相关性）、依赖关系（有依赖的任务要按序分配）。动态分配通常由一个 supervisor 或调度器完成，它是多 agent 系统的"项目经理"。</p>
+<table class="data-table"><thead><tr><th>分工模式</th><th>划分依据</th><th>优势</th><th>适合任务</th></tr></thead><tbody>
+<tr><td>职能分工</td><td>能力专精</td><td>每个 agent 深耕</td><td>产出型（写报告）</td></tr>
+<tr><td>流程分工</td><td>流程阶段</td><td>职责清晰不重叠</td><td>流程型（开发流水线）</td></tr>
+<tr><td>视角分工</td><td>不同视角</td><td>多角度覆盖</td><td>决策型（方案评审）</td></tr>
+<tr><td>层级分工</td><td>决策层级</td><td>统一拍板</td><td>复杂项目（supervisor）</td></tr>
+<tr><td>对等分工</td><td>无固定层级</td><td>灵活协商</td><td>探索型（头脑风暴）</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 多 agent 角色与动态任务分配
+class Agent:
+    def __init__(self, agent_id, role, skills, capacity=3):
+        self.id = agent_id
+        self.role = role              # researcher / writer / reviewer / ...
+        self.skills = skills          # ["research","summarize"]
+        self.capacity = capacity      # 并发上限
+        self.load = 0
+        self.history = {}             # skill -> 成功率
+
+class Supervisor:
+    def __init__(self, agents):
+        self.agents = agents
+
+    def assign(self, task):
+        """动态分配：综合专长、负载、历史表现"""
+        candidates = []
+        for a in self.agents:
+            if a.load >= a.capacity: continue       # 满载跳过
+            if task["skill"] not in a.skills: continue  # 无此能力跳过
+            # 综合分：专长匹配 + 历史成功率 - 负载惩罚
+            skill_match = 1.0
+            hist_rate = a.history.get(task["skill"], 0.5)
+            load_penalty = a.load / a.capacity
+            score = 0.4*skill_match + 0.4*hist_rate - 0.2*load_penalty
+            candidates.append((score, a))
+        if not candidates:
+            return None   # 无可用 agent，触发扩容或排队
+        candidates.sort(key=lambda x: -x[0])
+        chosen = candidates[0][1]
+        chosen.load += 1
+        return chosen
+
+    def report_result(self, agent, task, success):
+        """记录历史表现，供下次分配参考"""
+        sk = task["skill"]
+        prev = agent.history.get(sk, {"s":0,"n":0})
+        prev["n"] += 1
+        if success: prev["s"] += 1
+        agent.history[sk] = prev.get("s",0)/prev["n"] if isinstance(prev,dict) else prev
+        agent.load -= 1
+
+# 角色设计示例：报告生成团队
+team = [
+    Agent("r1","researcher",["research","summarize"]),
+    Agent("r2","researcher",["research","factcheck"]),
+    Agent("w1","writer",["write","outline"]),
+    Agent("v1","reviewer",["review","critique"]),
+]
+sup = Supervisor(team)
+# 研究 → 写作 → 审核 的流程分工 + 动态负载均衡</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>多 agent 协作通过"角色分工"提升质量：每个 agent 专注一摊，通过流水线/对话/主管/辩论等模式协作。AutoGen 的 GroupChat、CrewAI 的 Crew、OpenAI Swarm 的 handoffs 都是这一模式的实现。关键是判断任务是否真的需要多 agent——简单任务单 agent 更经济。</p>
     <div class="chapter-nav">

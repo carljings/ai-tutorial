@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>工具调用模式：agent 如何选择和组合工具 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="工具调用模式：agent 如何选择和组合工具 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="工具调用模式：agent 如何选择和组合工具 · AI 全栈实战教学">
-<meta property="og:description" content="工具调用模式：agent 如何选择和组合工具 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -787,6 +783,142 @@ result = await resilient_chain("处理并发布一篇文章", steps, llm)</code>
     <div class="callout"><strong>⚠️ 落地提醒</strong><br>工具链的错误处理要和 UI 配合。当某步被 SKIP 或 FALLBACK 时，应该把"质量可能受影响"告知用户，而非静默继续。否则用户以为拿到了完整结果，其实中间跳过了关键步骤，这种"隐性降级"会严重损害信任。最佳实践是在结果里附带一个 quality_flags 字段，标记哪些步骤降级了。</div>
 
     
+    
+    <h2><span class="idx"></span>工具链的依赖编排与失败传播</h2>
+    <p>工具调用模式（tool chaining）里，工具很少是孤立的——通常一个工具的输出是另一个工具的输入，形成调用链甚至调用图。这种依赖关系不显式管理，就会出"上游错了下游还以为是对的""某个工具卡住整条链瘫痪"的问题。依赖编排和失败传播是工具链工程化的核心。</p>
+<p>依赖编排的标准做法是把工具调用建模成<strong>DAG（有向无环图）</strong>。每个工具节点声明它的输入依赖（需要哪些前序工具的产出）和输出契约（产出什么格式）。调度器按拓扑序执行——无依赖的并行、有依赖的串行。DAG 的好处是显式化依赖，避免隐式假设（A 偷偷依赖 B 的副作用，B 改了 A 就坏），也让并行机会一目了然。</p>
+<p>失败传播决定"一个工具挂了，整条链怎么办"。最差的做法是"挂了就报错退出"——用户体验差且浪费已完成的计算。好的策略是<strong>分级降级</strong>：核心工具失败则整链失败（错误无法绕过）；非核心工具失败则跳过该步、用默认值或空值继续（错误可容忍）。关键是每个工具在 DAG 里标注"是否核心"（critical/optional），调度器据此决定失败时是中断还是降级。另一个机制是<strong>部分结果回传</strong>——即便整链没跑完，已完成的步骤产出可以先返回给用户，标明"以下部分因 X 工具失败而缺失"。</p>
+<table class="data-table"><thead><tr><th>失败模式</th><th>影响</th><th>处理策略</th><th>用户体验</th></tr></thead><tbody>
+<tr><td>核心工具失败</td><td>整链结果不可用</td><td>中断 + 报错</td><td>明确告知失败原因</td></tr>
+<tr><td>非核心工具失败</td><td>部分功能缺失</td><td>跳过 + 默认值</td><td>降级结果 + 标注缺失</td></tr>
+<tr><td>工具超时</td><td>整链卡住</td><td>超时重试/换源</td><td>等待或降级</td></tr>
+<tr><td>工具返回脏数据</td><td>下游被污染</td><td>契约校验拦截</td><td>报错而非错误结果</td></tr>
+<tr><td>部分完成</td><td>有产出但不全</td><td>部分回传</td><td>渐进式结果</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 工具链 DAG 调度 + 分级失败传播
+from dataclasses import dataclass, field
+from concurrent.futures import ThreadPoolExecutor
+
+@dataclass
+class ToolNode:
+    id: str
+    tool: callable
+    deps: list = field(default_factory=list)   # 依赖的前序节点 id
+    critical: bool = True    # 核心节点失败则整链失败
+    timeout: int = 30
+
+class ToolChain:
+    def __init__(self, nodes):
+        self.nodes = {n.id: n for n in nodes}
+
+    def run(self):
+        results = {}
+        failed_optional = set()
+        # 拓扑序执行（简化：假设已排好序）
+        for nid, node in self._topo_order():
+            # 检查依赖：核心依赖失败则跳过/中断
+            if any(d in failed_optional and self.nodes[d].critical for d in node.deps):
+                if node.critical:
+                    return {"status":"failed","reason":f"核心依赖 {node.deps} 失败"}
+                failed_optional.add(nid); continue
+            try:
+                inputs = {d: results[d] for d in node.deps if d in results}
+                results[nid] = self._run_with_timeout(node, inputs)
+            except Exception as e:
+                if node.critical:
+                    # 核心失败：回传已完成的部分 + 报错
+                    return {"status":"partial_failed","results":results,
+                            "failed_at":nid,"reason":str(e)}
+                failed_optional.add(nid)   # 非核心：记录缺失，继续
+                print(f"非核心工具 {nid} 失败，降级跳过：{e}")
+        return {"status":"ok" if not failed_optional else "degraded",
+                "results":results, "missing":list(failed_optional)}
+
+    def _run_with_timeout(self, node, inputs):
+        with ThreadPoolExecutor(max_workers=1) as p:
+            fut = p.submit(node.tool, **inputs)
+            return fut.result(timeout=node.timeout)
+
+    def _topo_order(self):
+        """拓扑排序：保证依赖在前"""
+        order, visited = [], set()
+        def visit(nid):
+            if nid in visited: return
+            for d in self.nodes[nid].deps: visit(d)
+            visited.add(nid); order.append(nid)
+        for nid in self.nodes: visit(nid)
+        return [(n, self.nodes[n]) for n in order]</code></pre>
+
+    <h2><span class="idx"></span>工具的契约设计与版本兼容</h2>
+    <p>工具调用模式要长期稳定，工具的契约设计是地基。契约不清（参数含义模糊、返回格式随意、错误处理没约定），调用方（模型或上游工具）就会用错，且工具一改就连锁崩溃。好的工具契约要让调用方"看一眼就知道怎么用、能预期什么返回、出错怎么办"。</p>
+<p>契约的核心要素有四。<strong>参数 schema</strong>：每个参数的名字、类型、是否必填、取值范围、含义说明。这不仅是文档，更应该是机器可校验的（JSON Schema），让调用方传错参数时能立即发现。<strong>返回 schema</strong>：明确返回的数据结构，成功和失败分别返回什么。<strong>错误码</strong>：定义一套错误码体系（而非随便抛异常），让调用方能按错误类型决策（参数错重试、权限错提示用户、服务挂降级）。<strong>副作用声明</strong>：明确这个工具是否有副作用（读 vs 写），有副作用的要声明幂等性（重复调用是否安全）。</p>
+<p>版本兼容是工具演进的硬约束。工具不可避免会改（加参数、改返回），但调用方（尤其模型）不会同步更新。标准做法是<strong>语义化版本 + 向后兼容窗口</strong>：major 版本变（破坏性改动）要同时维护新旧两个端点一段时间，给调用方迁移期；minor/patch 变（兼容性改动）直接上线。模型侧的工具描述（function schema）也要版本化——不同模型版本可能用不同版本的 schema。</p>
+<table class="data-table"><thead><tr><th>契约要素</th><th>内容</th><th>不规范的后果</th><th>规范做法</th></tr></thead><tbody>
+<tr><td>参数 schema</td><td>类型/必填/范围</td><td>传错参数</td><td>JSON Schema 校验</td></tr>
+<tr><td>返回 schema</td><td>成功/失败结构</td><td>解析崩溃</td><td>固定结构 + 文档</td></tr>
+<tr><td>错误码</td><td>分类错误类型</td><td>无法决策处理</td><td>统一错误码体系</td></tr>
+<tr><td>副作用声明</td><td>读/写/幂等</td><td>误调用致灾</td><td>标注 idempotent</td></tr>
+<tr><td>版本</td><td>semver</td><td>改了就连锁崩</td><td>兼容窗口 + 双版本</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 工具契约定义 + 自动校验 + 版本管理
+from dataclasses import dataclass
+from typing import Any
+import jsonschema
+
+@dataclass
+class ToolContract:
+    name: str
+    version: str               # "1.2.0" 语义化版本
+    params_schema: dict        # JSON Schema
+    returns_schema: dict
+    errors: dict               # {"INVALID_PARAM":"E001","NOT_FOUND":"E404",...}
+    side_effect: str           # "read" / "write_idempotent" / "write_non_idempotent"
+
+class ContractedTool:
+    def __init__(self, contract: ToolContract, handler: callable):
+        self.contract = contract
+        self.handler = handler
+
+    def call(self, **params):
+        # 1. 参数校验：不符 schema 直接拒绝
+        try:
+            jsonschema.validate(params, self.contract.params_schema)
+        except jsonschema.ValidationError as e:
+            return {"ok":False,"error_code":"INVALID_PARAM","detail":str(e)}
+        # 2. 执行
+        try:
+            result = self.handler(**params)
+        except KeyError:
+            return {"ok":False,"error_code":"NOT_FOUND"}
+        # 3. 返回校验：保证返回符合契约
+        jsonschema.validate(result, self.contract.returns_schema)
+        return {"ok":True,"data":result,"version":self.contract.version}
+
+# 版本管理：新旧版本并存 + 迁移窗口
+class ToolRegistry:
+    def __init__(self):
+        self.versions = {}   # name -> {version: tool}
+    def register(self, tool):
+        self.versions.setdefault(tool.contract.name,{})[tool.contract.version] = tool
+    def get(self, name, version=None):
+        avail = self.versions.get(name, {})
+        if version: return avail.get(version)
+        # 默认返回最新，但保留旧版供迁移
+        return avail.get(max(avail)) if avail else None
+
+# 契约示例
+search_contract = ToolContract(
+    name="search", version="2.0.0",
+    params_schema={"type":"object","properties":{
+        "query":{"type":"string"},"limit":{"type":"integer","default":10}},
+        "required":["query"]},
+    returns_schema={"type":"object","properties":{
+        "results":{"type":"array"},"total":{"type":"integer"}}},
+    errors={"INVALID_PARAM":"E001","RATE_LIMITED":"E429"},
+    side_effect="read",
+)
+# v2 加了 limit 参数（兼容），v1 调用方不传 limit 也能用 → minor 升级
+# 若删了某参数（破坏性）→ major 升级，registry 同时留 v1 v2 给迁移期</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>工具调用是 agent "做事"的能力：工具描述是选择依据、function calling 是调用机制、多工具链式组合完成复杂任务、并行调用降低延迟。理解工具调用，加上 ReAct 循环和 Skills 知识，你就掌握了 agent "感知-决策-执行"的完整闭环。</p>
     <div class="chapter-nav">

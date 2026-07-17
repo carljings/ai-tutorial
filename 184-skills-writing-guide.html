@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学">
-<meta property="og:description" content="动手写一个技能：从需求到 SKILL.md · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -688,7 +684,7 @@ description: &gt;
     <h2><span class="idx"></span>完整 SKILL.md 实战：commit-message 技能</h2>
     <p>前面的代码审查技能介绍了结构，但缺少一份<strong>能直接拷贝就用的完整 SKILL.md</strong>。下面是一个更小但更完整的例子——「生成团队规范 commit message」技能。它的好处是行为足够简单（输入 diff，输出一行 message），适合用来验证 SKILL.md 的每一部分是否真的被 agent 正确读取。</p>
     <div class="code-title">commit-message/SKILL.md —— 可直接使用的完整技能</div>
-    <pre><code class="language-python">---
+    <pre><code>---
 name: commit-message
 description: &gt;
   根据代码 diff 生成符合团队规范的 Git commit message。
@@ -742,7 +738,7 @@ description: &gt;
     </table>
     <p>调试时有一招特别好用：<strong>让 agent 自己解释它读了什么</strong>。在测试模式下，加一句「在执行前，先复述你从 SKILL.md 读到的三条最重要的规则」。如果它复述不出来，说明那条规则被 agent 的注意力机制忽略了，必须改写法或挪位置。</p>
     <div class="code-title">skill_debug.py —— 自动化回归测试脚本</div>
-    <pre><code class="language-python"><span class="c">"""
+    <pre><code><span class="c">"""
 skill_debug.py —— 给技能建一个回归测试集
 每个 case = (用户输入, 期望触发的技能名, 至少应包含的关键词)
 """</span>
@@ -844,6 +840,75 @@ if __name__ == "__main__":
     run_suite(CASES)</code></pre>
     <p>把这套测试套件用进团队，有三个工程收益。第一，<strong>技能迭代有底气</strong>：改技能前先跑测试，绿了再合并，避免"优化了一处措辞、破坏了三处行为"的常见事故。第二，<strong>测试用例即文档</strong>：新人想知道某个技能怎么用，最快的方式是看它的测试用例——每个用例都是一个真实的使用场景和预期结果，比读 SKILL.md 更直观。第三，<strong>能纳入 CI</strong>：把 run_suite 接进持续集成，每次有人改技能自动跑全套测试，不通过不让合并，把质量保障自动化。一个进阶实践是<strong>用 LLM 自动生成测试用例</strong>——把技能的 SKILL.md 喂给一个强模型，让它枚举可能的输入边界和期望行为，自动产出 SkillTestCase，能大幅降低写测试的人力成本。这套"技能即代码、测试即保障"的工程纪律，是 Skills 体系走向生产的必经之路。</p>
 
+    
+    <h2><span class="idx"></span>技能的复用与泛化：从单点到平台化</h2>
+    <p>写一个能用的技能不难，难的是写出能被复用、能泛化到多个场景的技能。新手写的技能往往"过拟合"到某个具体项目——里面硬编码了项目路径、特定字段名、团队 jargon。换到另一个项目就失效。从"项目级技能"走向"平台级技能"，是技能写作能力进阶的关键一跃。</p>
+<p>泛化的核心是<strong>"参数化一切项目特定的东西"</strong>。路径、字段名、命名规范、外部服务地址——这些都应该是技能的"配置项"而非硬编码。实现方式有两种：一是 frontmatter 的 <code>inputs</code> 或 <code>config</code> 字段，让技能在被触发时从环境（项目配置文件、用户偏好）读取；二是把项目特定的部分抽成"项目技能"，把通用的流程抽成"通用技能"，通用技能调用项目技能提供的具体参数。后者更彻底，是平台化的标准形态。</p>
+<p>平台化的另一个关键是<strong>"输入输出的契约化"</strong>。一个平台级技能应该明确声明：我接受什么格式的输入（一段 diff？一个 issue？一组数据？）、产出什么格式的输出（一份评审报告？一组测试用例？一个迁移方案？）。契约稳定后，上下游技能才能可靠编排。建议每个技能在 SKILL.md 顶部用一个小表格声明 Input/Output 契约，让其他技能的作者一眼看懂能否衔接。</p>
+<table class="data-table"><thead><tr><th>层级</th><th>特征</th><th>典型问题</th><th>泛化手段</th></tr></thead><tbody>
+<tr><td>项目级技能</td><td>硬编码项目细节</td><td>换项目失效</td><td>参数化路径/字段</td></tr>
+<tr><td>团队级技能</td><td>含团队规范</td><td>换团队要改</td><td>规范抽成配置</td></tr>
+<tr><td>平台级技能</td><td>纯流程+契约</td><td>需明确 IO 契约</td><td>声明 Input/Output</td></tr>
+<tr><td>生态级技能</td><td>公开分发</td><td>需考虑多环境</td><td>适配层 + 默认值</td></tr>
+</tbody></table>
+<pre><code class="language-yaml"># 平台级技能：参数化 + 契约声明
+---
+name: structured-code-review
+description: 按可配置规范评审代码变更，产出结构化评审报告
+config:                       # 这些值从项目/用户配置读取，不硬编码
+  naming_convention: "{{project.naming || 'camelCase'}}"
+  max_function_lines: "{{team.max_lines || 50}}"
+  framework: "{{project.framework}}"   # react/vue/svelte 影响检查项
+---
+# IO 契约（让其他技能可编排本技能）
+# Input:  一段 unified diff（文本）
+# Output: JSON，{summary, issues:[{file,line,severity,msg}], suggestions}
+#
+# 调用示例（另一个技能编排本技能）：
+#   review = invoke('structured-code-review', diff=current_diff)
+#   if review.issues.filter(severity='blocker'): notify_author()
+# 关键：本技能不依赖任何具体项目，项目细节全部走 config，
+# 因此可被任何前端项目的代码评审流程复用。</code></pre>
+
+    <h2><span class="idx"></span>技能写作的反模式清单：避免这些坑</h2>
+    <p>除了正面的写作指南，识别反模式同样重要——很多技能写得不好不是因为缺知识，而是踩了典型的坑。这里梳理高频反模式，写技能前后对照检查能省很多弯路。</p>
+<p><strong>反模式一：description 当说明书</strong>。把详细使用说明塞进 description，导致第一层 token 爆炸且匹配噪声大。description 应该只回答"我什么时候被需要"，不该回答"我具体怎么做"。<strong>反模式二：正文不分层</strong>。把所有内容堆在 SKILL.md 正文，不分辅助文件。结果是每次触发都加载全部，token 浪费严重。<strong>反模式三：示例缺失或失真</strong>。只讲规则不给示例，模型只能猜；或者给的示例过于理想化，遇到真实噪声就崩。<strong>反模式四：硬编码一切</strong>。路径、字段、服务地址写死，换个环境就失效。<strong>反模式五：没有边界声明</strong>。不告诉模型"什么时候不该用我"，导致误触发。<strong>反模式六：步骤缺失跳转</strong>。流程里跳过中间步骤（"然后处理一下边界"——怎么处理？），模型只能瞎编。</p>
+<p>对照检查的最佳时机是写完初稿后、发布前。建议维护一份团队级的"技能 review checklist"，每个新技能合并前过一遍。这比事后修坑成本低一个数量级。</p>
+<table class="data-table"><thead><tr><th>反模式</th><th>症状</th><th>修复方向</th></tr></thead><tbody>
+<tr><td>description 当说明书</td><td>description 超 200 字</td><td>只留触发条件，详情移正文</td></tr>
+<tr><td>正文不分层</td><td>单文件超 3000 字</td><td>拆辅助文件按需加载</td></tr>
+<tr><td>示例缺失/失真</td><td>只有规则无例子</td><td>每条规则配真实示例</td></tr>
+<tr><td>硬编码</td><td>含具体路径/字段</td><td>参数化为 config</td></tr>
+<tr><td>无边界声明</td><td>不知道何时不该用</td><td>加"不适用场景"段</td></tr>
+<tr><td>步骤跳转</td><td>"处理一下边界"</td><td>写明具体子步骤</td></tr>
+<tr><td>无错误处理</td><td>假设一路顺利</td><td>补失败分支与降级</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 技能 review 自动检查器：发布前 lint
+import re, pathlib
+ANTI_PATTERNS = [
+    ("description 过长", lambda s: len(s.frontmatter.get("description","")) > 200),
+    ("正文不分层",       lambda s: len(s.body) > 3000 and len(s.aux_files) == 0),
+    ("硬编码路径",       lambda s: bool(re.search(r'/Users/|/home/|C:\\', s.body))),
+    ("无边界声明",       lambda s: "不适用" not in s.body and "不要用于" not in s.body),
+    ("步骤模糊",         lambda s: bool(re.search(r'处理一下|适当调整|酌情', s.body))),
+    ("无错误处理",       lambda s: "如果失败" not in s.body and "出错时" not in s.body),
+]
+def lint_skill(skill_dir):
+    s = load_skill(pathlib.Path(skill_dir))   # 解析 frontmatter + body
+    issues = [name for name, check in ANTI_PATTERNS if check(s)]
+    if not issues:
+        print(f"✓ {skill_dir} 通过所有检查")
+    else:
+        print(f"✗ {skill_dir} 命中反模式：")
+        for i in issues: print(f"    - {i}")
+    return issues
+# 在 CI 里跑：lint 不过的技能不允许发布
+# $ skill-lint skills/*/
+# ✓ skills/sql-helper 通过
+# ✗ skills/old-report 命中反模式：
+#     - description 过长
+#     - 硬编码路径
+#     - 无错误处理</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>通过"代码审查"技能的完整设计，我们走过了技能开发的全流程：需求分析（触发/输入输出/规则）→ description 设计（精准触发器）→ 正文编写（决策+流程）→ 辅助文件拆分（细节外置）→ 测试迭代。本章还补充了一份可直接使用的 commit-message 技能完整 SKILL.md，以及一张覆盖 90% 调试场景的排查表。掌握这套方法后，你就能为自己的工作流定制任何技能，并通过回归脚本保证迭代不退化。技能开发的心法始终是：description 决定用不用，正文决定准不准，辅助文件决定全不全。</p>
     <div class="chapter-nav">

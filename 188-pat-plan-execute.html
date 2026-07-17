@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Plan-and-Execute：先规划再执行的两段式 · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Plan-and-Execute：先规划再执行的两段式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Plan-and-Execute：先规划再执行的两段式 · AI 全栈实战教学">
-<meta property="og:description" content="Plan-and-Execute：先规划再执行的两段式 · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -812,6 +808,112 @@ class ReWOOAgent:
     <p>实践中最常用的是"按阶段"和"按维度"的混合：先用阶段分大框架（调研→分析→输出），每个阶段内部再按维度拆（调研阶段并行查多个数据源）。关键是控制单步复杂度——一个步骤应该"一个工具调用 + 一次简单推理"就能完成，如果某步需要多次工具调用，说明它该被进一步拆分。给 planner 的 prompt 里加一个约束"每步应在 30 秒内可完成"，能有效避免规划出过大的步骤。最后，所有分解策略都受益于"分解后让 LLM 自检一遍"——把分解结果回灌给 LLM 问"这个计划有什么遗漏"，往往能补上漏掉的步骤。</p>
 
     
+    
+    <h2><span class="idx"></span>Plan 的质量评估与自适应重规划</h2>
+    <p>Plan-and-Execute 的成败 80% 取决于 Plan 的质量。一个差的 plan（步骤遗漏、顺序错误、依赖搞反）会让 Execute 阶段越执行越偏，最终结果南辕北辙。所以工程上必须能评估 plan 质量，并在发现 plan 不靠谱时及时重规划，而不是硬着头皮执行完。</p>
+<p>Plan 质量的评估维度有四个。<strong>完备性</strong>：是否覆盖了达成目标的所有必要步骤（有没有漏掉关键环节）。<strong>正确性</strong>：步骤之间的依赖顺序是否正确（不能先部署再测试）。<strong>可执行性</strong>：每步是否明确到能被 Execute 执行（不能是"处理一下数据"这种模糊描述）。<strong>充分性</strong>：步骤是否冗余或不足（太多浪费、太少不够）。评估可以用 LLM-as-judge 自动打分，也可以维护"plan 模板库"做相似度匹配——类似任务的成熟 plan 作为参照。</p>
+<p>自适应重规划是 Plan-Execute 区别于纯 ReAct 的核心优势。Execute 过程中发现某步失败、或得到的新信息表明原 plan 有误时，不应硬撑，而是回到 Planner 重新规划剩余部分。关键是<strong>"重规划是增量的而非全推倒"</strong>——已完成的有效步骤保留，只重新规划失败点之后的步骤，避免重复劳动和上下文爆炸。判断何时触发重规划的信号：某步连续失败 N 次、Observation 与 plan 预期严重不符、用户中途修改目标。</p>
+<table class="data-table"><thead><tr><th>评估维度</th><th>检查问题</th><th>不达标的后果</th><th>评估方式</th></tr></thead><tbody>
+<tr><td>完备性</td><td>必要步骤是否齐全</td><td>结果不完整</td><td>LLM judge / 模板对照</td></tr>
+<tr><td>正确性</td><td>依赖顺序对不对</td><td>执行报错或返工</td><td>依赖图校验</td></tr>
+<tr><td>可执行性</td><td>每步是否够明确</td><td>Executor 卡住</td><td>Executor 能否解析</td></tr>
+<tr><td>充分性</td><td>步骤不多不少</td><td>冗余或不足</td><td>对标历史 plan</td></tr>
+<tr><td>鲁棒性</td><td>有无失败兜底</td><td>一步错全盘崩</td><td>检查异常分支</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 带自适应重规划的 Plan-Execute
+class PlanExecuteAgent:
+    def __init__(self, planner, executor, max_replans=3):
+        self.planner = planner
+        self.executor = executor
+        self.max_replans = max_replans
+
+    def run(self, goal):
+        plan = self.planner.plan(goal)        # 初始 plan
+        results = {}
+        replan_count = 0
+        i = 0
+        while i < len(plan):
+            step = plan[i]
+            try:
+                result = self.executor.execute(step, results)
+                results[step["id"]] = result
+                # 检查结果是否符合 plan 预期
+                if not self._matches_expectation(result, step):
+                    raise PlanMismatch(step, result)
+                i += 1
+            except (StepFailed, PlanMismatch) as e:
+                replan_count += 1
+                if replan_count > self.max_replans:
+                    return {"status":"failed", "reason":"重规划次数耗尽", "partial":results}
+                # 增量重规划：保留已完成，只重规划剩余
+                remaining_goal = self._derive_remaining(goal, results, plan[i:])
+                new_tail = self.planner.replan(remaining_goal, failed_step=step, error=e)
+                plan = plan[:i] + new_tail    # 替换剩余部分
+                print(f"重规划（第{replan_count}次）：从步骤 {step['id']} 起重新规划 {len(new_tail)} 步")
+        return {"status":"ok", "results":results}
+
+    def _matches_expectation(self, result, step):
+        """结果是否符合 plan 的预期（如某步应产出非空文件）"""
+        check = step.get("expect")
+        if check == "non_empty": return bool(result)
+        if check == "valid_json":
+            import json
+            try: json.loads(result); return True
+            except: return False
+        return True   # 无明确预期则默认通过</code></pre>
+
+    <h2><span class="idx"></span>Planner 与 Executor 的解耦设计</h2>
+    <p>Plan-Execute 模式的一个设计要点是 Planner 和 Executor 的解耦。耦合在一起（同一个 prompt 既规划又执行）会丧失这种模式的核心优势——规划的稳定性和执行的灵活性。解耦后，Planner 可以用更强的模型（规划需要全局视野，值得用贵模型），Executor 可以用更快更便宜的模型（单步执行是局部任务），还能并行化。</p>
+<p>解耦的关键是<strong>清晰的步骤契约</strong>。Planner 产出的每一步必须是一个自包含的、可独立执行的任务描述：明确的输入（依赖哪些前序步骤的产出）、明确的动作（调什么工具/做什么操作）、明确的输出（产出什么、格式如何）。Executor 拿到一个步骤后，不需要知道全局 plan，只看这一步的契约就能执行。这种"步骤即微任务"的设计让 Executor 可以并行执行无依赖的步骤、可以分布式调度、可以重试单步而不影响全局。</p>
+<p>解耦还带来<strong>可替换性</strong>：同一个 plan 可以用不同的 Executor 执行（人工执行、自动化执行、混合执行）。这在"人在回路"场景特别有用——高风险步骤路由给人工 Executor，低风险步骤自动执行，路由策略不侵入 plan 本身。</p>
+<table class="data-table"><thead><tr><th>设计维度</th><th>耦合（一体式）</th><th>解耦（分离式）</th><th>解耦的收益</th></tr></thead><tbody>
+<tr><td>模型选择</td><td>同一模型做规划+执行</td><td>Planner 用强模型，Executor 用快模型</td><td>成本与质量平衡</td></tr>
+<tr><td>并行性</td><td>串行（规划完才执行）</td><td>无依赖步骤可并行</td><td>延迟降低</td></tr>
+<tr><td>可重试</td><td>失败要整体重来</td><td>单步重试</td><td>韧性提升</td></tr>
+<tr><td>可替换</td><td>执行方式写死</td><td>Executor 可换（人/自动）</td><td>支持人在回路</td></tr>
+<tr><td>可测试</td><td>难单独测</td><td>plan 和执行各自测</td><td>质量易保障</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 解耦的步骤契约 + 可替换 Executor
+from dataclasses import dataclass, field
+from typing import Any
+
+@dataclass
+class Step:
+    id: str
+    action: str                  # 工具名 / 操作类型
+    inputs: dict                 # 依赖前序步骤的产出：{"data": "@step3.output"}
+    expect: str = "any"          # 输出预期：non_empty / valid_json / any
+    human: bool = False          # 是否需人工执行
+    output: Any = field(default=None)
+
+class DecoupledExecutor:
+    def __init__(self, auto_executor, human_executor):
+        self.auto = auto_executor
+        self.human = human_executor
+
+    def execute(self, step, results):
+        # 解析输入：把 "@step3.output" 替换为实际前序产出
+        resolved = self._resolve_inputs(step.inputs, results)
+        # 按步骤属性路由：人工步骤走人工，其余自动
+        if step.human:
+            return self.human.execute(step, resolved)
+        return self.auto.execute(step.action, resolved)
+
+    def _resolve_inputs(self, inputs, results):
+        resolved = {}
+        for k, v in inputs.items():
+            if isinstance(v, str) and v.startswith("@"):
+                # @step3.output → results["step3"]["output"]
+                ref = v[1:].split(".", 1)
+                resolved[k] = results[ref[0]][ref[1]] if len(ref)>1 else results[ref[0]]
+            else:
+                resolved[k] = v
+        return resolved
+
+# 同一个 plan，不同执行模式：
+# 自动模式：所有 step.human=False，全自动跑完
+# 人在回路：高风险步骤 human=True，路由给人工确认后继续
+# 关键：plan 不变，只换 Executor，实现"自动/人工"灵活切换</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>Plan-and-Execute 把 agent 的"想"和"做"分离：planner 全局规划、executor 逐步执行、必要时重规划。它适合复杂、多步骤、需要综合的任务。BabyAGI、Plan-and-Solve 都是这个模式的实例。</p>
     <div class="chapter-nav">

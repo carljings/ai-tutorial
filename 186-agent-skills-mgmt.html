@@ -5,16 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Agent 源码如何加载与管理 Skills · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="Agent 源码如何加载与管理 Skills · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="Agent 源码如何加载与管理 Skills · AI 全栈实战教学">
-<meta property="og:description" content="Agent 源码如何加载与管理 Skills · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
-<div class="progress" id="progress"></div>
-<button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-                                <aside class="sidebar">
+                                                                <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -24,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -223,7 +217,7 @@
       <a href="183-skills-lifecycle-management.html" title="技能生命周期管理：安装、更新、版本、权限"><span class="num">183</span>技能生命周期管理</a>
       <a href="184-skills-writing-guide.html" title="动手写一个技能：从需求到 SKILL.md"><span class="num">184</span>动手写一个技能</a>
       <a href="185-skills-plugin-ecosystem.html" title="技能生态与插件市场：从个人到平台"><span class="num">185</span>技能生态与插件市场</a>
-      <a href="186-agent-skills-mgmt.html" class="active" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
+      <a href="186-agent-skills-mgmt.html" title="Agent 源码如何加载与管理 Skills"><span class="num">186</span>Agent 源码如何</a>
     </div>
     <div class="nav-group"><h3>★Agent设计模式</h3>
       <a href="187-pat-react.html" title="ReAct 模式：思考与行动交织的经典循环"><span class="num">187</span>ReAct 模式</a>
@@ -309,6 +303,7 @@
       <a href="249-agent-security-ux.html" title="智能体两大核心痛点：安全与交互"><span class="num">249</span>智能体两大核心痛点</a>
     </div>
   </aside>
+<main class="content">
   <main class="content">
     <section class="hero"><span class="eyebrow">◆ 第 208 章 · ★Agent源码 · Skills 管理</span>
     <h1>Agent 源码如何加载与管理 Skills</h1><p class="lead">从发现、加载到权限管控的完整源码解析</p>
@@ -445,6 +440,120 @@ async def execute_skill_tool(name: str, registry, context):
     <p>这是纵深防御：技能权限管"能不能被引导"，工具权限管"引导了能不能执行"。两层都通过，操作才会真正发生。攻击者即使注入了恶意技能，只要工具权限收紧，也造成不了实际破坏。</p>
     <h3>配置层级</h3>
     <table class="data-table"><thead><tr><th>层级</th><th>载体</th><th>优先级</th><th>示例</th></tr></thead><tbody><tr><td>技能内置</td><td>SKILL.md frontmatter</td><td>最低（默认）</td><td>description 触发条件</td></tr><tr><td>全局配置</td><td>~/.config/opencode/config.json</td><td>中</td><td>个人偏好：禁用某技能</td></tr><tr><td>项目配置</td><td>.opencode/config.json</td><td>高</td><td>项目规范：启用团队技能</td></tr><tr><td>命令行参数</td><td>--skill xxx --no-skill yyy</td><td>最高</td><td>临时覆盖</td></tr></tbody></table>
+    
+    <h2><span class="idx"></span>技能加载的性能优化：从启动延迟到内存占用</h2>
+    <p>agent 源码管理 Skills 时，性能是绕不开的工程命题。技能少时无感，技能多了之后两个瓶颈会浮现：启动延迟（扫描几十上百个技能目录、解析 frontmatter 耗时累积）和内存占用（加载的技能内容常驻内存）。不优化的话，agent 启动从秒级拖到十几秒，用户体验崩坏。</p>
+<p>启动延迟的优化手段分三档。最基础的是<strong>并行扫描</strong>：多层级目录的扫描、多个 SKILL.md 的解析用线程池并行，把串行的 O(n) 拖成接近 O(1)。进阶是<strong>缓存 frontmatter 索引</strong>：把所有技能的 name+description 解析结果序列化成一个索引文件（如 <code>.skills-cache.json</code>），启动时先读缓存（毫秒级），后台再异步校验文件 mtime 是否变化、变了才重新解析。终极是<strong>懒加载</strong>：启动时只加载索引，连 frontmatter 都不全解析，等真正触发某技能时才解析它的完整内容——把启动成本摊到运行时。</p>
+<p>内存占用的优化核心是<strong>"用多少驻留多少"</strong>。被触发的技能正文应该有"最近最少使用（LRU）"的淘汰机制——上下文窗口有限，不可能所有触发过的技能都常驻。典型策略：上下文里只保留当前会话活跃的技能 + 最近 N 个用过的技能，更早的技能内容从上下文移除（需要时重新加载）。这和操作系统的页面置换是同一个思想。</p>
+<table class="data-table"><thead><tr><th>优化手段</th><th>作用阶段</th><th>收益</th><th>代价</th></tr></thead><tbody>
+<tr><td>并行扫描</td><td>启动</td><td>启动延迟降 50-70%</td><td>实现简单，无副作用</td></tr>
+<tr><td>frontmatter 缓存</td><td>启动</td><td>启动延迟降 80%+</td><td>需处理缓存失效</td></tr>
+<tr><td>懒加载</td><td>启动+运行</td><td>启动几乎瞬时</td><td>首次触发有延迟</td></tr>
+<tr><td>LRU 驻留淘汰</td><td>运行</td><td>内存占用可控</td><td>重加载有开销</td></tr>
+<tr><td>内容压缩</td><td>存储</td><td>磁盘/内存减半</td><td>加载时解压 CPU</td></tr>
+<tr><td>预编译模板</td><td>运行</td><td>减少重复解析</td><td>构建复杂度增加</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 技能缓存 + 懒加载管理器（简化）
+import json, pathlib, time
+from functools import lru_cache
+
+class SkillLoader:
+    def __init__(self, skills_dirs):
+        self.skills_dirs = [pathlib.Path(d) for d in skills_dirs]
+        self.cache_file = pathlib.Path(".skills-cache.json")
+        self.index = self._load_or_build_cache()
+
+    def _load_or_build_cache(self):
+        """启动时优先读缓存，mtime 没变就用缓存的 frontmatter"""
+        cache = {}
+        if self.cache_file.exists():
+            cache = json.loads(self.cache_file.read_text())
+        index = {}
+        for d in self.skills_dirs:
+            for skill_md in d.rglob("SKILL.md"):
+                mtime = skill_md.stat().st_mtime
+                key = str(skill_md)
+                # mtime 没变 → 用缓存；变了 → 重新解析
+                if key in cache and cache[key]["mtime"] == mtime:
+                    index[key] = cache[key]["frontmatter"]
+                else:
+                    fm = self._parse_frontmatter(skill_md.read_text())
+                    index[key] = fm
+                    cache[key] = {"mtime": mtime, "frontmatter": fm}
+        self.cache_file.write_text(json.dumps(cache))  # 更新缓存
+        return index
+
+    @lru_cache(maxsize=32)   # LRU 驻留：最近 32 个技能内容常驻内存
+    def load_body(self, skill_path):
+        """按需加载正文，最近用过的常驻，老的自动淘汰"""
+        body = pathlib.Path(skill_path).read_text()
+        # 解析出 frontmatter 之后的部分
+        return body.split("---", 2)[2] if body.startswith("---") else body
+
+    def _parse_frontmatter(self, text):
+        if not text.startswith("---"): return {}
+        return _yaml_load(text.split("---",2)[1])  # 简化
+# 启动：读缓存毫秒级；触发某技能时才 load_body 解析正文；
+# LRU 保证内存里只驻留最近 32 个，超过自动淘汰最久未用的。</code></pre>
+
+    <h2><span class="idx"></span>权限管控的纵深实践：从配置到审计</h2>
+    <p>前面讲了 allow/ask/deny 三模式和技能权限×工具权限的纵深。落到源码实现，还有几个工程细节决定权限系统是否真的好用：配置的可表达性、决策的可解释、行为的可审计。这三点做不到，权限系统会沦为"要么太松等于没有、要么太严什么都拦"的尴尬。</p>
+<p>配置的可表达性指权限规则要能覆盖真实场景的复杂需求。朴素的"技能 X 能用工具 Y"二元规则不够——真实需求往往是"技能 X 在项目 A 里能用工具 Y、但在项目 B 里不能""技能 X 能读但不能写""技能 X 在工作时间能执行、非工作时间要 ask"。所以权限系统要支持维度组合：按技能 × 工具 × 资源 × 操作 × 上下文条件。表达上用 DSL 或结构化规则表，避免散落在各处的 if-else。</p>
+<p>决策的可解释指每次 ask/deny 都要给出"为什么"。用户看到"操作被拒绝"却不知道原因，会非常沮丧且无法配合。源码层面，权限决策器要返回 (decision, reason) 而非裸 bool——reason 是命中的具体规则（"技能 db-migrator 在生产项目中被禁止执行 DROP 操作，规则 PRD-007"）。行为的可审计指所有权限决策要落日志，特别是 ask 后用户的选择和 deny 的事件，便于事后追溯和优化规则。审计日志也是合规要求的硬指标。</p>
+<table class="data-table"><thead><tr><th>实践要点</th><th>朴素实现的问题</th><th>工程化做法</th><th>收益</th></tr></thead><tbody>
+<tr><td>规则可表达</td><td>二元规则覆盖不了条件场景</td><td>多维 DSL：技能×工具×资源×条件</td><td>细粒度控制</td></tr>
+<tr><td>决策可解释</td><td>只返回 bool，用户不知为何被拦</td><td>返回 (decision, reason, rule_id)</td><td>用户可配合</td></tr>
+<tr><td>行为可审计</td><td>无日志，事后无法追溯</td><td>全量决策日志 + ask/deny 高亮</td><td>合规 + 可优化</td></tr>
+<tr><td>规则可测试</td><td>改规则怕引入漏洞</td><td>权限规则也有单测（policy-as-code）</td><td>变更可控</td></tr>
+<tr><td>默认拒绝</td><td>默认允许，新工具漏配就裸奔</td><td>未配置的操作默认 deny</td><td>防遗漏</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 权限决策器：可表达 + 可解释 + 可审计
+import json, time, pathlib
+
+class PermissionEngine:
+    def __init__(self, rules, audit_log=".permission-audit.jsonl"):
+        self.rules = rules      # 结构化规则列表
+        self.audit = pathlib.Path(audit_log)
+
+    def decide(self, skill, tool, resource, op, context):
+        """返回 (decision, reason, rule_id)；默认拒绝"""
+        for rule in self.rules:
+            if self._match(rule, skill, tool, resource, op, context):
+                decision = rule["action"]   # allow / ask / deny
+                reason = rule["description"]
+                self._audit(skill, tool, resource, op, decision, rule["id"])
+                return decision, reason, rule["id"]
+        # 默认拒绝：未匹配任何规则的操作一律 deny（安全默认）
+        self._audit(skill, tool, resource, op, "deny", "DEFAULT-DENY")
+        return "deny", "未配置此操作，默认拒绝", "DEFAULT-DENY"
+
+    def _match(self, rule, skill, tool, resource, op, context):
+        return (rule["skill"].match(skill) and rule["tool"].match(tool)
+                and rule.get("op","*").match(op)
+                and self._check_condition(rule.get("when"), context))
+
+    def _check_condition(self, cond, ctx):
+        if not cond: return True
+        if cond == "business_hours": return 9 <= ctx.get("hour",0) < 18
+        if cond == "non_prod": return ctx.get("env") != "prod"
+        return True
+
+    def _audit(self, *args):
+        with self.audit.open("a") as f:
+            f.write(json.dumps({"ts":time.time(),"args":args})+"
+")
+
+# 规则示例：多维条件
+RULES = [
+    {"id":"PRD-007","skill":"db-migrator","tool":"run_sql","op":"DROP",
+     "when":"non_prod","action":"ask","description":"非生产环境 DROP 需确认"},
+    {"id":"PRD-008","skill":"db-migrator","tool":"run_sql","op":"DROP",
+     "when":None,"action":"deny","description":"生产环境禁止 DROP"},
+]
+eng = PermissionEngine(RULES)
+# 在生产环境执行 DROP → 拒绝并给出规则 ID
+print(eng.decide("db-migrator","run_sql","users","DROP",{"env":"prod"}))
+# → ('deny', '生产环境禁止 DROP', 'PRD-008')</code></pre>
     <h2><span class="idx"></span>本章小结</h2>
     <p>agent 源码管理 Skills 是一条完整链路：发现（多层级扫描+向上遍历+名称校验+构建索引）→ 加载（模型自主触发+skill 工具+按需读辅助文件+容错降级）→ 权限（allow/ask/deny 三模式+按 agent 隔离+技能权限×工具权限纵深防御+多层配置覆盖）。理解了这条链路，你就理解了为什么 agent 能安全地安装几十个技能而不失控——每个环节都有管控。</p>
     <div class="chapter-nav">
@@ -453,6 +562,9 @@ async def execute_skill_tool(name: str, registry, context):
     </div>
     <footer><p>AI 全栈实战教学 · 第 208 章 · Agent 源码如何加载与管理 Skills</p><p>★Agent源码 · Skills 管理三合一：发现 / 加载 / 权限</p></footer>
   </main>
+
+</main>
+
 </div>
 <script src="assets/main.js"></script>
 </body>

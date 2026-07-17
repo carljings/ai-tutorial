@@ -5,10 +5,6 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>其它框架速览：Semantic Kernel / Haystack / Pydantic AI · AI 全栈实战教学</title>
 <link rel="stylesheet" href="assets/style.css">
-<meta name="description" content="其它框架速览：Semantic Kernel / Haystack / Pydantic AI · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:title" content="其它框架速览：Semantic Kernel / Haystack / Pydantic AI · AI 全栈实战教学">
-<meta property="og:description" content="其它框架速览：Semantic Kernel / Haystack / Pydantic AI · AI 全栈实战教学 — AI全栈实战教学系列，深入浅出讲解LLM/Agent/RAG/Transformer核心技术，含可运行代码示例。">
-<meta property="og:type" content="article">
 </head>
 <body>
 <div class="layout">
@@ -318,19 +314,6 @@
       </div>
     </section>
     <h2 class="section" id="why-others"><span class="idx">★</span> 为什么要了解多个框架</h2>
-
-    <table>
-      <tr><th>主题</th><th>要点</th><th>难度</th></tr>
-          <tr><td>为什么要了解多个框架</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Semantic Kernel:微软的企业级 Agent 内核</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Haystack:生产级 NLP 流水线专家</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Pydantic AI:类型安全的 Agent</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>Letta:让 Agent 拥有长期记忆</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>四框架横向对比</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>实战选型建议</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          <tr><td>本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
-          
-    </table>
     <p>面对一个 Agent 任务,很多开发者本能地选 LangChain——因为它最流行、教程最多。但"流行"不等于"适合"。不同框架是为不同场景设计的,选错框架会让后续开发事倍功半。</p>
     <p>选框架要看的几个维度:<strong>集成生态</strong>——它能方便地接入你用的数据源、模型、工具吗?<strong>类型安全</strong>——它的输出是否结构化、可验证?<strong>生产就绪度</strong>——它有成熟的可观测性、错误处理、部署支持吗?<strong>核心抽象</strong>——它的设计哲学是否契合你的任务(Skill 化?流水线?有状态的 Agent)?<strong>学习曲线</strong>——团队上手成本多高?</p>
     <p>本章介绍的四个框架,各自在某个维度上有独到之处。理解它们,不是为了全部学会,而是建立一个"选型雷达":遇到具体任务时,知道哪个维度最重要,从而选到最合适的工具。</p>
@@ -494,6 +477,121 @@ client.agents.messages.create(
     <p>在 .NET 企业应用里嵌入 LLM → <strong>Semantic Kernel</strong>,原生支持、强类型。</p>
     <p>不确定,先快速验证 → <strong>LangChain</strong>,生态最全,踩坑资料最多。</p>
     <p>几个不要踩的坑:不要为了"用新框架"而切换——切换成本高,除非新框架解决了你真实的痛点;不要追求"全栈统一用一个框架"——不同模块用最合适的,比强行统一更健康;不要忽视生产就绪度——demo 跑通和生产稳定是两回事,Haystack、SK 这种企业向框架在监控、错误处理上更成熟。</p>
+    
+    <h2 class="section"><span class="idx"></span>框架选型的决策框架：按需而非按热度</h2>
+    <p>"其他框架"这个主题本质是选型问题——除了主流的几个框架，还有大量小众或新兴框架（Semantic Kernel、Haystack、DSPy、Semantic Kernel 等）。选型不能按 GitHub stars 或热度，要按具体需求。建立一套决策框架，能避免"追热门"导致的选型失误。</p>
+<p>选型的核心维度有五个。<strong>匹配度</strong>：框架的设计哲学是否契合你的场景（重流程编排选 LangGraph，重角色协作选 CrewAI，重检索选 LlamaIndex）。<strong>成熟度</strong>：是否生产验证过、文档完善、社区活跃、维护稳定（小众框架可能功能好但坑多、弃坑风险高）。<strong>学习成本</strong>：团队上手难度（复杂的框架提高门槛，简单团队可能更适合裸写）。<strong>性能与可控性</strong>：是否满足延迟/吞吐要求、出问题能否深入调试（重抽象框架可控性差）。<strong>生态与集成</strong>：是否和你用的其他系统（向量库、模型、监控）集成良好。</p>
+<p>一个常被忽视的维度是<strong>"退出成本"</strong>——如果这个框架不合适，迁移走有多难？强绑定的框架（深度依赖其抽象）退出成本高，轻框架或标准接口退出成本低。对于核心系统，宁可选手感稍逊但退出成本低的方案，保留灵活性。还有一个反直觉的选择是<strong>"不选框架"</strong>——当需求足够简单或足够特殊时，裸写比用框架更好（无抽象泄漏、完全可控、无依赖风险）。很多生产级 agent 最终是裸写的。</p>
+<table class="data-table"><thead><tr><th>维度</th><th>评估问题</th><th>权重（核心系统）</th></tr></thead><tbody>
+<tr><td>匹配度</td><td>设计哲学是否契合场景</td><td>高</td></tr>
+<tr><td>成熟度</td><td>是否生产验证、维护稳定</td><td>高</td></tr>
+<tr><td>可控性</td><td>出问题能否深入调试</td><td>高</td></tr>
+<tr><td>退出成本</td><td>不合适时迁移难度</td><td>高</td></tr>
+<tr><td>学习成本</td><td>团队上手难度</td><td>中</td></tr>
+<tr><td>性能</td><td>延迟/吞吐是否达标</td><td>中</td></tr>
+<tr><td>生态集成</td><td>与现有系统集成</td><td>中</td></tr>
+<tr><td>热度/stars</td><td>社区关注度</td><td>低（参考）</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 框架选型决策器：按维度评分
+def choose_framework(candidates, requirements, weights=None):
+    """candidates: 框架列表; requirements: 场景需求评估"""
+    w = weights or {"match":0.25,"maturity":0.2,"control":0.2,
+                    "exit_cost":0.15,"learning":0.1,"perf":0.1}
+    scores = {}
+    for fw in candidates:
+        s = {
+            "match":     requirements.assess_match(fw),       # 0-1
+            "maturity":  requirements.assess_maturity(fw),
+            "control":   requirements.assess_control(fw),
+            "exit_cost": requirements.assess_exit(fw),         # 易退出=高分
+            "learning":  1 - requirements.assess_learning(fw), # 易学=高分
+            "perf":      requirements.assess_perf(fw),
+        }
+        total = sum(w[k]*s[k] for k in w)
+        scores[fw] = (round(total,2), s)
+    ranked = sorted(scores.items(), key=lambda x:-x[1][0])
+    print("框架选型评分：")
+    for fw,(score,detail) in ranked:
+        print(f"  {fw:20s} {score:.2f}  {detail}")
+    return ranked[0][0]
+
+# 示例：企业级核心 agent 选型
+# LangChain:    0.62（成熟但可控性/退出成本低）
+# LangGraph:    0.81（匹配、可控、易退出）← 推荐
+# CrewAI:       0.68（角色协作好但成熟度略低）
+# 裸写:         0.75（完全可控但开发成本高）
+# → 选 LangGraph，但保留"重要模块裸写"的混合策略
+
+# 另一个考虑：不一定要全局一个框架
+# 不同子系统可选不同方案（检索用 LlamaIndex，编排用 LangGraph），
+# 通过标准接口（function calling / OpenAPI）解耦</code></pre>
+
+    <h2 class="section"><span class="idx"></span>混合架构：多框架协作的工程实践</h2>
+    <p>现实里，大型 agent 系统很少只用一个框架——往往是<strong>混合架构</strong>：用 LlamaIndex 做检索、用 LangGraph 做编排、用 OpenAI SDK 做模型调用、某些关键模块裸写。混合能各取所长，但引入了"框架间如何协作"的工程问题。处理不好，混合架构会比单一框架更乱。</p>
+<p>混合架构的核心是<strong>"标准接口解耦"</strong>。不同框架/模块之间通过标准接口通信，而非深度耦合。常用的解耦接口：<strong>function calling</strong>（把一个模块的能力暴露为标准 tool 定义）、<strong>OpenAPI/HTTP</strong>（把模块作为微服务）、<strong>共享的 state schema</strong>（如 LangGraph 的 State 用 JSON 标准格式）。解耦后，每个模块可以独立替换、独立测试、独立演进，不会因为一个框架升级搞崩全局。</p>
+<p>混合架构的工程要点有三个。第一<strong>"明确边界"</strong>：哪个模块负责什么，边界清晰（检索归 LlamaIndex，决策归 LangGraph），不在边界处重叠。第二<strong>"统一可观测"</strong>：不同框架的 trace 要能串起来（用统一的 trace id 贯穿），否则排障时各看各的、对不上。第三<strong>"依赖收敛"</strong>：避免依赖爆炸——每个框架都带一堆传递依赖，版本冲突频发，要用 lockfile 严格锁定。</p>
+<table class="data-table"><thead><tr><th>解耦方式</th><th>机制</th><th>优势</th><th>适合</th></tr></thead><tbody>
+<tr><td>function calling</td><td>暴露为标准 tool</td><td>轻量、模型原生支持</td><td>模块间松耦合</td></tr>
+<tr><td>OpenAPI/HTTP</td><td>微服务化</td><td>独立部署、可跨语言</td><td>大型系统</td></tr>
+<tr><td>共享 state schema</td><td>JSON 标准格式</td><td>状态流转清晰</td><td>同进程编排</td></tr>
+<tr><td>事件总线</td><td>pub/sub</td><td>异步解耦</td><td>事件驱动</td></tr>
+<tr><td>直接函数调用</td><td>同进程</td><td>简单、零开销</td><td>同框架内部</td></tr>
+</tbody></table>
+<pre><code class="language-python"># 混合架构：LlamaIndex 检索 + LangGraph 编排 + 裸写关键模块
+# 用 function calling 标准接口解耦
+
+# 模块 1：LlamaIndex 检索（暴露为标准 tool）
+from llama_index.core import VectorStoreIndex
+class RetrievalModule:
+    def __init__(self, docs):
+        self.index = VectorStoreIndex.from_documents(docs)
+    def as_tool_spec(self):
+        # 暴露为标准 function calling 工具定义（框架无关）
+        return {
+            "name": "search_knowledge",
+            "description": "检索知识库，返回相关文档片段",
+            "parameters": {"type":"object","properties":{
+                "query":{"type":"string"}}, "required":["query"]},
+        }
+    def __call__(self, **kwargs):
+        nodes = self.index.as_retriever().retrieve(kwargs["query"])
+        return [n.text for n in nodes[:5]]
+
+# 模块 2：裸写的业务逻辑（关键模块，要完全可控）
+class RiskChecker:
+    """风控检查：不依赖任何框架，纯逻辑"""
+    def check(self, action):
+        if action in BLOCKED: return False, "命中黑名单"
+        return True, "通过"
+
+# 模块 3：LangGraph 编排（整合上述模块）
+from langgraph.graph import StateGraph, START, END
+class Orchestrator:
+    def __init__(self, retrieval, risk):
+        self.retrieval = retrieval   # LlamaIndex 模块
+        self.risk = risk             # 裸写模块
+        self.graph = self._build()
+    def _build(self):
+        sg = StateGraph(dict)
+        sg.add_node("retrieve", self._retrieve)
+        sg.add_node("check_risk", self._check)
+        sg.add_node("respond", self._respond)
+        sg.add_edge(START,"retrieve")
+        sg.add_edge("retrieve","check_risk")
+        sg.add_edge("check_risk","respond")
+        sg.add_edge("respond",END)
+        return sg.compile()
+    def _retrieve(self, state):
+        # 通过标准 __call__ 接口调 LlamaIndex，不耦合其内部
+        state["docs"] = self.retrieval(query=state["question"])
+        return state
+    def _check(self, state):
+        ok, msg = self.risk.check(state.get("action"))
+        state["risk_ok"] = ok
+        return state
+# 关键：各模块通过标准接口（__call__ / tool spec）协作，
+# LlamaIndex 可换成别的检索库，风控可换成规则引擎，
+# LangGraph 编排不变 → 解耦带来可替换性</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>本章介绍了 LangChain/LlamaIndex 之外的四个有特色的 Agent 框架。Semantic Kernel 来自微软,Plugin + Planner 抽象,适合企业集成尤其是 .NET 生态。Haystack 以 Pipeline 为核心,生产就绪度高,是 RAG 系统的稳妥选择。Pydantic AI 把类型安全引入 Agent,输出强制结构化验证,适合信息抽取和工具编排。Letta 用分层记忆系统赋予 Agent 长期记忆,适合需要个性化的持续对话。</p>
     <p>选框架的关键是匹配核心需求:RAG 看 Haystack/LlamaIndex,结构化输出看 Pydantic AI,长期记忆看 Letta,企业集成看 SK,快速探索看 LangChain。没有一个框架在所有维度都最强,成熟的工程实践是"按模块选最合适的工具,而不是全栈统一"。</p>
