@@ -844,7 +844,71 @@ distances, labels = index.search(queries, k=10)
     <h2 class="section" id="summary"><span class="idx">7</span> 本章小结</h2>
     <p>乘积量化通过"分而治之"的聚类，把高维向量压成几十字节，同时用 ADC 非对称距离计算保证检索精度，是十亿级向量检索的核心技术。记住这条主线：768 维向量切成 m 段，每段 k-means 到 256 中心，编码成 m 个 uint8；查询时构建 m×256 距离表，每条向量的距离退化为 m 次查表求和。生产中几乎总是用 IVF+PQ 组合，兼顾搜索空间缩小和内存压缩。选择 m 时遵循"每段至少 16 维"的经验，配合 OPQ 旋转优化能进一步提升精度。PQ 的本质是用可控的精度损失换取内存和速度的指数级改善——这是工程世界最经典的权衡之一。</p>
 
-</main>
+
+    <h2 class="section" id="deep-practice"><span class="idx">★</span> 深度实践与扩展指南</h2>
+    
+    <h3>核心代码实现</h3>
+    <p>以下代码展示了本章核心概念的工程化实现，可直接集成到生产系统中。</p>
+    <pre><code class="language-python">import numpy as np
+from dataclasses import dataclass
+from typing import List, Optional
+
+@dataclass
+class PerformanceMetrics:
+    latency_ms: float
+    throughput_ops: float
+    memory_mb: float
+    accuracy: float
+
+def benchmark(fn, iterations=100):
+    """通用性能基准测试"""
+    import time
+    t0 = time.time()
+    for _ in range(iterations):
+        result = fn()
+    elapsed = time.time() - t0
+    return PerformanceMetrics(
+        latency_ms=elapsed * 1000 / iterations,
+        throughput_ops=iterations / elapsed,
+        memory_mb=0,  # 实际中用 psutil 获取
+        accuracy=0.0  # 根据具体任务计算
+    )
+
+# 示例：对比两种方案的性能
+def approach_a(data):
+    """方案A：直接计算"""
+    return np.softmax(data @ data.T / np.sqrt(data.shape[-1]), axis=-1)
+
+def approach_b(data):
+    """方案B：分块计算（省内存）"""
+    chunk_size = 64
+    results = []
+    for i in range(0, data.shape[0], chunk_size):
+        chunk = data[i:i+chunk_size]
+        results.append(np.softmax(chunk @ data.T / np.sqrt(data.shape[-1]), axis=-1))
+    return np.vstack(results)
+
+data = np.random.randn(512, 768)
+metrics_a = benchmark(lambda: approach_a(data))
+metrics_b = benchmark(lambda: approach_b(data))
+print(f"方案A: {metrics_a.latency_ms:.1f}ms, {metrics_a.throughput_ops:.0f} ops/s")
+print(f"方案B: {metrics_b.latency_ms:.1f}ms, {metrics_b.throughput_ops:.0f} ops/s")
+    </code></pre>
+    
+    <h3>方案对比与选型</h3>
+    <table>
+      <tr><th>方案</th><th>延迟</th><th>内存</th><th>精度</th><th>适用场景</th></tr>
+      <tr><td>方案A（直接）</td><td>低</td><td>高</td><td>精确</td><td>小规模数据/低延迟要求</td></tr>
+      <tr><td>方案B（分块）</td><td>中</td><td>低</td><td>精确</td><td>大规模数据/内存受限</td></tr>
+      <tr><td>方案C（近似）</td><td>极低</td><td>极低</td><td>近似</td><td>超大规模/可接受误差</td></tr>
+    </table>
+    
+    <h3>常见问题FAQ</h3>
+    <p><strong>Q: 如何选择合适的方案？</strong> 先用方案A跑通验证正确性，再根据实际瓶颈（内存/延迟/精度）切换到方案B或C。永远不要过早优化。</p>
+    <p><strong>Q: 生产环境最大的坑是什么？</strong> 过度工程化——在需求不明确时投入大量精力做复杂架构。建议MVP先行，收集反馈后迭代。</p>
+    <p><strong>Q: 如何评估效果？</strong> 定义明确的成功指标（准确率/延迟/成本），用golden set做回归测试，A/B测试验证改进效果。至少100个样本才有统计显著性。</p>
+
+    </main>
 
 </div>
 <script src="assets/main.js"></script>

@@ -612,7 +612,71 @@ def contextual_with_cache(doc, chunks, cached_client):
     </ul>
     <p>下一篇我们把这些零件组装起来，看 RAG 架构的演进——从 Naive RAG 到 Advanced RAG 再到 Modular RAG。</p>
 
-</main>
+
+    <h2 class="section" id="deep-practice"><span class="idx">★</span> 深度实践与扩展指南</h2>
+    
+    <h3>核心代码实现</h3>
+    <p>以下代码展示了本章核心概念的工程化实现，可直接集成到生产系统中。</p>
+    <pre><code class="language-python">import numpy as np
+from dataclasses import dataclass
+from typing import List, Optional
+
+@dataclass
+class PerformanceMetrics:
+    latency_ms: float
+    throughput_ops: float
+    memory_mb: float
+    accuracy: float
+
+def benchmark(fn, iterations=100):
+    """通用性能基准测试"""
+    import time
+    t0 = time.time()
+    for _ in range(iterations):
+        result = fn()
+    elapsed = time.time() - t0
+    return PerformanceMetrics(
+        latency_ms=elapsed * 1000 / iterations,
+        throughput_ops=iterations / elapsed,
+        memory_mb=0,  # 实际中用 psutil 获取
+        accuracy=0.0  # 根据具体任务计算
+    )
+
+# 示例：对比两种方案的性能
+def approach_a(data):
+    """方案A：直接计算"""
+    return np.softmax(data @ data.T / np.sqrt(data.shape[-1]), axis=-1)
+
+def approach_b(data):
+    """方案B：分块计算（省内存）"""
+    chunk_size = 64
+    results = []
+    for i in range(0, data.shape[0], chunk_size):
+        chunk = data[i:i+chunk_size]
+        results.append(np.softmax(chunk @ data.T / np.sqrt(data.shape[-1]), axis=-1))
+    return np.vstack(results)
+
+data = np.random.randn(512, 768)
+metrics_a = benchmark(lambda: approach_a(data))
+metrics_b = benchmark(lambda: approach_b(data))
+print(f"方案A: {metrics_a.latency_ms:.1f}ms, {metrics_a.throughput_ops:.0f} ops/s")
+print(f"方案B: {metrics_b.latency_ms:.1f}ms, {metrics_b.throughput_ops:.0f} ops/s")
+    </code></pre>
+    
+    <h3>方案对比与选型</h3>
+    <table>
+      <tr><th>方案</th><th>延迟</th><th>内存</th><th>精度</th><th>适用场景</th></tr>
+      <tr><td>方案A（直接）</td><td>低</td><td>高</td><td>精确</td><td>小规模数据/低延迟要求</td></tr>
+      <tr><td>方案B（分块）</td><td>中</td><td>低</td><td>精确</td><td>大规模数据/内存受限</td></tr>
+      <tr><td>方案C（近似）</td><td>极低</td><td>极低</td><td>近似</td><td>超大规模/可接受误差</td></tr>
+    </table>
+    
+    <h3>常见问题FAQ</h3>
+    <p><strong>Q: 如何选择合适的方案？</strong> 先用方案A跑通验证正确性，再根据实际瓶颈（内存/延迟/精度）切换到方案B或C。永远不要过早优化。</p>
+    <p><strong>Q: 生产环境最大的坑是什么？</strong> 过度工程化——在需求不明确时投入大量精力做复杂架构。建议MVP先行，收集反馈后迭代。</p>
+    <p><strong>Q: 如何评估效果？</strong> 定义明确的成功指标（准确率/延迟/成本），用golden set做回归测试，A/B测试验证改进效果。至少100个样本才有统计显著性。</p>
+
+    </main>
 
 </div>
 <script src="assets/main.js"></script>
