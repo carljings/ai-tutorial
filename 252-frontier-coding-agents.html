@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-  <aside class="sidebar">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -347,6 +347,10 @@ $ claude
     <p>Devin（Cognition Labs）的定位最激进——它是一个"云端 AI 软件工程师"，你在网页上给它一个任务（如"给这个 repo 加分页功能"），它自己在云端环境里规划+写代码+测试+提交 PR。你不需要盯着它，可以并行给它多个任务。代价是贵（$500/月）且不如 IDE 实时——它适合"批量处理标准任务"而非"实时协作开发"。</p>
     <h2><span class="idx"></span>怎么选</h2>
     <table class="data-table"><thead><tr><th>你的场景</th><th>推荐</th><th>理由</th></tr></thead><tbody><tr><td>日常功能开发</td><td>Cursor</td><td>Composer 多文件编辑最好用</td></tr><tr><td>大规模重构/迁移</td><td>Windsurf</td><td>Cascade 规划+执行更可靠</td></tr><tr><td>运维/部署/测试</td><td>Claude Code</td><td>终端原生，能跑命令</td></tr><tr><td>批量 PR/并行任务</td><td>Devin</td><td>云端自主，可并行</td></tr><tr><td>预算有限</td><td>Cursor + Claude Code</td><td>覆盖开发+运维</td></tr><tr><td>团队协作</td><td>Cursor + Devin</td><td>人用Cursor，Devin跑后台</td></tr></tbody></table>
+    <p>2026 年 AI 编程最重要的实践洞察是 **"人机协作比纯人或纯 AI 都高效"**。GitHub 的研究表明，用 AI 编程工具的开发者比不用的人快 55%，但这个提升不是均匀的——AI 在"写新代码"上帮助最大（快 2-3 倍），在"调试复杂 bug"上帮助中等（快 30-50%），在"架构设计"上帮助最小（快 10-20%，因为需要深度领域理解）。所以最优策略是"让 AI 做它擅长的（写/改/测），人做人擅长的（设计/决策/沟通）"——这比"全交给 AI"或"完全不用 AI"都快。</p>
+    <p>Cursor 的 Composer 模式之所以强，核心在于它做了**"多文件原子编辑"**。传统 AI 补全只改当前文件——你说"加注册功能"，它只给你当前文件的代码片段。Composer 不同——它会自动找出所有需要改的文件（model.py 加 User 表、controller.py 加 /register 路由、view.html 加注册表单、test.py 加测试），一次性改完，像有个初级开发者帮你干活。这种"全栈编辑"能力是 Cursor 区别于普通补全工具的核心。</p>
+    <p>Devin 的"云端自主"模式代表了一个有趣但争议的方向。支持者认为它是"AI 编程的未来"——你给任务，它自主完成，不占用你的注意力。反对者指出三个问题：① Devin 在复杂代码库上的成功率不高（公开 demo 有 cherry-picking 嫌疑）；② 你无法实时干预它（它在云端跑，你只能看截图）；③ 出错时调试困难（你不知道它"想"了什么）。Devin 更适合"定义明确的标准任务"（如"加个 CRUD 接口"），而非"模糊的探索性任务"。</p>
+    <p>一个值得关注的趋势是 **Agent 之间的互操作性**。2026 年，越来越多的工具支持 MCP——这意味着你可以用 Cursor 写代码，用 Claude Code 跑测试，用 Devin 处理 PR，它们通过 MCP 共享工具和上下文。这就像微服务架构——每个 Agent 做自己最擅长的事，通过标准协议协作。未来可能出现"Agent 编排平台"——你描述需求，平台自动分配给最合适的 Agent 组合。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>2026 年四大 AI 编程 Agent：Claude Code（终端/运维）、Cursor（IDE/开发）、Windsurf（IDE/重构）、Devin（云端/批量）。最佳实践是同时用两个——IDE 做开发+CLI 做运维。Cursor 的 Composer 和 Windsurf 的 Cascade 是 IDE Agent 的两大范式。Devin 适合云端批量任务但贵。选型：日常开发→Cursor，重构→Windsurf，运维→Claude Code，批量→Devin。</p>
     <div class="chapter-nav">

@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-  <aside class="sidebar">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -347,6 +347,10 @@ def grpo_step(model, prompts, reward_fn, group_size=8):
     <h2><span class="idx"></span>开源推理模型生态</h2>
     <table class="data-table"><thead><tr><th>模型</th><th>出处</th><th>参数</th><th>特点</th></tr></thead><tbody><tr><td>DeepSeek R1</td><td>DeepSeek</td><td>671B(MoE)</td><td>纯RL激发推理，完全开源</td></tr><tr><td>QwQ-32B</td><td>Qwen</td><td>32B</td><td>小参数推理模型，单卡可跑</td></tr><tr><td>Marco-o1</td><td>ATH-MaaS</td><td>7B</td><td>开源小推理模型</td></tr><tr><td>STILL</td><td>人大RUC</td><td>多种</td><td>工具增强推理研究</td></tr><tr><td>Sky-T1</td><td>UC Berkeley</td><td>32B</td><td>开源推理模型训练方案</td></tr></tbody></table>
     <p>开源推理模型的趋势：**用小模型（7B-32B）通过 RL 蒸馏实现推理能力**。DeepSeek R1 虽强但 671B 太大，社区用 R1 的推理数据蒸馏到小模型（如 QwQ-32B），让推理能力"平民化"。单张 4090 就能跑 32B 推理模型——这让"每个人都有推理 AI"成为可能。</p>
+    <p>理解推理模型最关键的认知转变是 **"思考本身变成了一种可调度的计算资源"**。在传统 LLM 里，模型的"思考"是不可见的、一步到位的——输入直接映射到输出。推理模型把"思考"外化成显式的 token 序列——模型生成几千个"思考 token"（如"让我先分解这个问题""这个方向不对，我换个方法试试""我验证一下中间结果"），最后才给出答案。这些思考 token 不是浪费——它们是模型在 test-time 做的"计算"，就像人类解题时在草稿纸上写写画画。多花 5000 token 的"思考"，可能把准确率从 60% 提升到 95%——这在数学竞赛、代码生成、科学推理等"需要多步推理"的任务上极其值得。</p>
+    <p>DeepSeek R1 最让学术界震惊的发现是 **R1-Zero 的"涌现行为"**。R1-Zero 是直接在基座模型上做 RL（没有 SFT 冷启动），训练过程中，模型自己"发现"了一系列高级推理策略——它会自发地在推理中途"反思"（"等一下，我刚才的假设可能有问题"）、"验证"（"让我把结果代回去检查"）、"回溯"（"这条路走不通，我回到第 3 步重新开始"）。这些行为没有被任何训练数据显式教过——它们是 RL 奖励信号（答对得分）驱动下自然涌现的。这暗示了一个深刻结论：**推理能力可能不是"教"出来的，而是在"解决问题"的压力下自然"长"出来的**——正如生物在生存压力下进化出智能。</p>
+    <p>从工程角度，推理模型带来了全新的部署挑战——**延迟和成本是非线性的**。一个普通 LLM 问答 1-3 秒返回，但推理模型可能需要 30 秒到 5 分钟（因为它要"想"几万 token）。这对产品设计的冲击是巨大的：你不能用"loading 转圈"让用户等 5 分钟，必须用流式输出展示思考过程（让用户看到 AI 在"想什么"），或者用后台任务+通知的模式。OpenAI o1/o3 和 DeepSeek R1 的界面都展示了"思考过程"——这不只是 UX 选择，而是必需品（否则用户不知道 AI 是在干活还是挂了）。</p>
+    <p>展望未来，推理模型和普通 LLM 的边界正在模糊。GPT-5 和 Claude 4 已经内置了"自适应思考"——简单问题快回答，难问题自动多想。这意味着未来你可能不需要"选推理模型还是普通模型"——模型自己判断难度，自动分配思考时间。但这也不意味着推理模型的研究价值降低——理解"怎么让模型更好地思考"（更好的 RL 算法/奖励设计/推理策略）仍然是 AI 研究的最前沿。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>推理模型是 2025-2026 年最重要的 AI 突破。核心范式：test-time compute scaling（推理时让模型想更多步换更高智力）。DeepSeek R1 证明纯 RL（GRPO 算法，无 critic）可激发推理能力。推理模型适合数学/代码/科学推理，不适合日常聊天（贵且慢）。开源生态：R1（671B）→ 蒸馏小模型（QwQ-32B）→ 人人可用。模型路由是使用推理模型的正确姿势——按难度分配。</p>
     <div class="chapter-nav">

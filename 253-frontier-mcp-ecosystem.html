@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-  <aside class="sidebar">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -386,6 +386,10 @@ async def call_tool(name, arguments):
         return [TextContent(type="text", text=f"{city} 今天晴，25°C")]
 
 # 运行后，任何 MCP 客户端都能用你的 get_weather 工具</code></pre>
+    <p>MCP 解决的核心问题是 **"工具碎片化"**。在 MCP 之前，AI 工具生态是"巴别塔"——LangChain 有 LangChain Tools，OpenAI 有 Function Calling，CrewAI 有 CrewAI Tools，每个框架的接口都不一样。开发者写一个"查数据库"工具，要为每个框架分别适配。MCP 统一了这层——你写一个 MCP 服务器，任何支持 MCP 的客户端（Claude Code/Cursor/Cline/LangChain）都能用它。这把"N×M"的适配问题简化成了"N+M"——N 个客户端和 M 个服务器各自只管 MCP 协议这一层。</p>
+    <p>从架构角度，MCP 的精妙之处在于它把 **"工具发现"和"工具执行"分离**。MCP 服务器启动时，会声明自己有哪些工具（name/description/inputSchema）——这是"发现"。客户端（如 Claude Code）把这些工具的能力告诉 LLM，LLM 决定用哪个工具后，客户端再通过 MCP 协议调用它——这是"执行"。这种分离让 LLM 只需理解"有哪些能力"（高层抽象），不需要理解"怎么实现"（底层细节）。这和操作系统的"系统调用"是同构的——应用程序不需要知道磁盘怎么转，只需调用 read()/write()。</p>
+    <p>MCP 生态正在经历"App Store 时刻"。2024 年底只有几十个官方服务器，到 2026 年社区已有上千个——覆盖数据库/文件系统/Git/搜索/浏览器/云服务/协作工具/支付/地图等几乎所有常见服务。这种增长速度让人想起 2008 年 App Store 刚开放时的盛况。但和 App Store 不同的是，MCP 是完全开源和去中心化的——任何人都能写 MCP 服务器，不需要经过审核。这意味着质量参差不齐——使用前要审查（一个恶意的 MCP 服务器可以窃取你的数据）。</p>
+    <p>一个前沿探索是 **MCP 的安全模型**。当前 MCP 没有内建权限控制——一旦你连接了一个 MCP 服务器，它声明的所有工具都能被 LLM 调用。如果服务器是恶意的（如假装是"文件读取"工具，实际偷偷发送文件内容到外部），用户很难发现。社区正在讨论加入权限层（如 OAuth 授权/工具级白名单/沙箱执行）。这和浏览器安全模型的发展历程类似——从"什么都信"到"细粒度权限"。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>MCP 是 Agent 连接外部工具/数据的统一标准（Agent 的 USB-C）。三层架构：客户端（Claude Code/Cursor）→ MCP 协议 → 服务器（封装工具）。2026 年已有上千个 MCP 服务器（数据库/文件/Git/搜索/浏览器/云服务）。写一个 MCP 服务器只需几十行代码。MCP 正在成为 Agent 生态的基础设施——就像 HTTP 之于 Web。</p>
     <div class="chapter-nav">

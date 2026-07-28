@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-  <aside class="sidebar">
+    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -374,6 +374,10 @@ response = client.run(
 # Swarm 自动：销售→交接→账单→处理退款</code></pre>
     <h2><span class="idx"></span>多 Agent 的工程挑战</h2>
     <table class="data-table"><thead><tr><th>挑战</th><th>问题</th><th>解法</th></tr></thead><tbody><tr><td>Context 管理</td><td>Agent 间传什么？传太多爆 context</td><td>只传结构化摘要</td></tr><tr><td>错误传播</td><td>一个 Agent 错了后面全错</td><td>每步校验+可回退</td></tr><tr><td>成本控制</td><td>多 Agent = 多倍 LLM 调用</td><td>简单任务用小模型</td></tr><tr><td>调试困难</td><td>多 Agent 链路长，出错难定位</td><td>全链路追踪+日志</td></tr><tr><td>死锁</td><td>Agent 互相等待</td><td>超时+回退机制</td></tr></tbody></table>
+    <p>多 Agent 系统最深的洞察来自一个反直觉的发现：**多个"弱 Agent"协作可以超越单个"强 Agent"**。这在认知科学里有先例——人类团队中，多个普通人的协作（通过分工+讨论+校验）常能比单个天才做出更好的决策（"群体的智慧"）。在 AI 里也有类似现象：多个 7B Agent 各持不同视角辩论，最终的推理质量可能超过单个 70B Agent。这是因为"多样性"本身是一种能力——不同视角的交叉验证能发现单一视角的盲点。</p>
+    <p>OpenAI Swarm 的"交接（handoff）"机制看似简单，实则深刻。它把多 Agent 协调从"中央调度器"模式变成了"分布式接力"模式——没有中心化的调度器，每个 Agent 自己决定"这个问题该不该我处理，不该就交给别人"。这和人类组织里的"转接"是同构的——你打电话给销售，销售发现是技术问题，说"我帮你转到技术部"。这种去中心化的协调比中央调度更灵活、更可扩展（不需要调度器了解所有 Agent 的细节）。</p>
+    <p>多 Agent 系统的工程挑战里，最难的是 **"级联错误"**——Agent A 的输出有 10% 错误率，传给 Agent B（也有 10% 错误率），链路越长错误累积越多。5 个 Agent 串联，最终准确率可能只有 0.9^5 ≈ 59%。解法有三种：① 缩短链路（能并行不串行）；② 每步加校验（发现错误及时纠正）；③ 冗余（多个 Agent 做同一任务，投票取多数）。这三种策略分别牺牲了"简单性""速度""成本"——没有免费午餐。</p>
+    <p>展望未来，多 Agent 的终极形态可能是 **"Agent 社交网络"**——Agent 们像人一样在平台上发布能力、接任务、协作、互评。你可以把你的"研究 Agent"发布到平台上，别人的"写作 Agent"可以雇它做调研，按任务付费。这就是 AI 版的"零工经济"——Agent 之间形成专业分工和市场交换。Google 的 A2A 协议是朝这个方向迈出的第一步。当然，这还非常早期，但它指出了一个令人兴奋（也令人不安）的方向。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>多 Agent 协作是从"单兵"到"团队"的演进。四种模式：流水线（串行）、主管-工人（分配）、辩论（多视角）、Swarm（交接）。A2A 协议让不同框架的 Agent 互操作（Agent 的 HTTP）。OpenAI Swarm 用极简的"交接"机制实现多 Agent 路由。工程挑战：context 传摘要/错误逐步校验/成本用小模型/调试全链路追踪。2026 年趋势：从单 Agent 向多 Agent 演进。</p>
     <div class="chapter-nav">
