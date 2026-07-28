@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                          <aside class="sidebar">
+                                                                            <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -638,6 +638,9 @@ app.invoke(Command(resume={"action":"approve"}), config)
     <p>一个常见的工程误区是把"监控"等同于"告警"——设几个阈值就完事了。LLM 监控的核心不是"超过阈值就告警"，而是"发现趋势变化"——质量从 90% 缓慢降到 85%，任何单一阈值都发现不了，但累积两周就是灾难。好的监控要看趋势（滑动窗口均值）、要看分布（P95/P99 而非均值）、要看分群（不同用户群体分开看）。这种"精细化监控"是 LLMOps 成熟度的标志。</p>
     <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
+    <h3>LangGraph 的状态图 vs 传统 Chain</h3>
+    <p>LangGraph 最大的创新是把 Agent 建模成"状态图"而非"链"。传统 LangChain 是链式的——A→B→C→D，一条路走到底。但真实的 Agent 需要循环（没做完就再来一轮）、分支（根据结果走不同路）、并行（同时做多件事）。状态图天然支持这些——节点是操作，边是路由，状态在节点间传递。这就是为什么 LangGraph 比 LangChain 更适合构建复杂 Agent——它是为 Agent 的"非线性"特性设计的。</p>
+    <div class="callout"><strong>💡 要点</strong><br>LangGraph 的"状态"是核心概念——它是一个 TypedDict，定义了"Agent 工作时需要记住什么"。比如一个客服 Agent 的状态可能包含 {messages, user_info, resolved, escalation_count}。每个节点读取和更新状态，边根据状态决定走哪条路。这种"显式状态管理"让 Agent 的行为可追踪、可调试、可回放——你知道每一步状态是什么、为什么走了这条路。这是 LangGraph 比无状态 Agent 更适合生产环境的原因。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LangGraph 把 agent 从"固定循环"升级为"状态图"：State 管数据、Node 管处理、Edge 管流转。条件边让它能表达任意复杂的控制流。它是 LangChain 家族中做生产级 agent 的推荐方案——AgentExecutor 能做的它都能做，还能做 AgentExecutor 做不到的。</p>
     <div class="chapter-nav">

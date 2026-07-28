@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+        <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -381,6 +381,8 @@ response = client.run(
     <h3>从"单打独斗"到"专业团队"：多 Agent 的组织学</h3>
     <div class="callout"><strong>💡 要点</strong><br>多 Agent 协作的终极价值不是"做了更多事"，而是"做了单 Agent 做不到的事"。一个 Agent 的 context window 是有限的——它无法同时是数据库专家、前端专家、安全专家。多 Agent 让"专业化分工"成为可能——每个 Agent 只需精通一个领域，context 更聚焦、推理更深入。这和人类社会的"分工理论"是同构的——亚当·斯密说"分工是生产力增长的源泉"，这句话在 AI 领域同样适用。</div>
     <p>从成本角度看，多 Agent 系统有一个隐性的经济优势：**可以用便宜的模型做大部分工作，只在高价值环节用贵模型**。比如"研究 Agent"用 7B 开源模型（便宜）做检索和摘要，"决策 Agent"用 GPT-4（贵）做最终判断和综合。这比全程用 GPT-4 便宜 5-10 倍，而质量只低 5-10%。这种"混合模型策略"是多 Agent 系统在生产环境中的核心竞争力。</p>
+    <p>从系统设计角度，多 Agent 系统面临一个经典的分布式系统难题——**"一致性 vs 可用性"的权衡**（CAP 定理的变体）。如果要求多个 Agent 的结果强一致（每个人看到的都一样），就需要同步协调（慢但准确）。如果追求高可用（不等别人自己先干），就可能有冲突（多个 Agent 做了重复或矛盾的事）。现实中通常选"最终一致"——各 Agent 独立工作，最后由协调者合并去重。这和微服务架构的"Saga 模式"是同构的——分布式事务的复杂性，在多 Agent 系统里同样存在。</p>
+    <div class="callout"><strong>💡 要点</strong><br>多 Agent 系统的"甜点区"：不是所有任务都需要多 Agent。**多 Agent 的价值在"需要多种专业能力+可并行"的任务**——如"做市场调研"（研究/分析/写作可并行）。如果任务是"线性单步"（如"翻译一段话"），单 Agent 更好——多 Agent 的协调开销反而是浪费。判断标准：如果你能清晰地画出"分工流程图"（谁做什么、先做什么后做什么），多 Agent 有价值；如果任务不可分（就是一件事），单 Agent 足够。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>多 Agent 协作是从"单兵"到"团队"的演进。四种模式：流水线（串行）、主管-工人（分配）、辩论（多视角）、Swarm（交接）。A2A 协议让不同框架的 Agent 互操作（Agent 的 HTTP）。OpenAI Swarm 用极简的"交接"机制实现多 Agent 路由。工程挑战：context 传摘要/错误逐步校验/成本用小模型/调试全链路追踪。2026 年趋势：从单 Agent 向多 Agent 演进。</p>
     <div class="chapter-nav">

@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+        <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -393,6 +393,8 @@ async def call_tool(name, arguments):
     <h3>写自己的 MCP 服务器：从想法到上线</h3>
     <div class="callout"><strong>💡 要点</strong><br>MCP 最大的价值不是"连接已有工具"，而是"让任何能力都能被 Agent 使用"。如果你有一个内部系统（CRM/ERP/工单/监控），写一个 MCP 服务器封装它，你的 Agent 就能直接操作——不需要人工在多个系统间切换。这就是"把企业系统变成 Agent 的工具箱"——每个 MCP 服务器都是 Agent 生态里的一块"乐高积木"。</div>
     <p>从企业部署角度看，MCP 的安全模型需要额外关注。当你把内部数据库封装成 MCP 服务器给 Agent 用，你必须考虑：① Agent 能不能执行 DELETE？（应该限制）② MCP 服务器返回的数据有没有脱敏？（不应泄露 PII）③ 多个用户共享一个 MCP 服务器时的权限隔离？这些问题在"人用系统"时有成熟的 RBAC 方案，但在"Agent 用系统"时还是新课题——它需要"Agent 身份管理"这个全新的安全领域。</p>
+    <p>从技术演进角度，MCP 正在经历和 HTTP 类似的发展路径：① 标准发布（HTTP 1991，MCP 2024）；② 早期采用者验证（Web 浏览器之于 HTTP，Claude Code/Cursor 之于 MCP）；③ 生态爆发（网站遍地之于 HTTP，MCP 服务器遍地之于 MCP）；④ 安全挑战出现（Web 安全之于 HTTP，MCP 权限之于 MCP）。如果这个类比成立，MCP 还会经历"标准化竞争"（有竞争协议吗？）、"安全加固"（怎么防恶意服务器？）、"商业化"（MCP 应用商店？）等阶段。现在是 MCP 生态的"1995 年"——刚刚起飞，未来 5 年会非常精彩。</p>
+    <div class="callout"><strong>💡 要点</strong><br>MCP 对企业 AI 落地的价值被严重低估了。大多数企业有几十个内部系统（CRM/ERP/工单/HR/财务），每个系统都是信息孤岛。MCP 让 Agent 能统一访问这些系统——一个 Agent 就能跨系统工作（"从 CRM 查客户信息→从 ERP 查订单→从工单系统查售后→综合回复"）。这是企业 AI 从"单点工具"进化到"跨系统助手"的关键基础设施。率先用 MCP 打通内部系统的企业，将在 AI 效率上领先竞争对手一个身位。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>MCP 是 Agent 连接外部工具/数据的统一标准（Agent 的 USB-C）。三层架构：客户端（Claude Code/Cursor）→ MCP 协议 → 服务器（封装工具）。2026 年已有上千个 MCP 服务器（数据库/文件/Git/搜索/浏览器/云服务）。写一个 MCP 服务器只需几十行代码。MCP 正在成为 Agent 生态的基础设施——就像 HTTP 之于 Web。</p>
     <div class="chapter-nav">

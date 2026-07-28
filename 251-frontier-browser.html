@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-      <aside class="sidebar">
+        <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -354,6 +354,9 @@ print(result)
     <h3>从 demo 到生产：浏览器 Agent 的工程化</h3>
     <div class="callout"><strong>💡 要点</strong><br>浏览器 Agent 当前最大的障碍不是"能不能做到"，而是"够不够可靠"。一个 demo 里 Agent 10 步操作成功了 9 步——看起来 90% 成功率不错。但在生产里，10 步串联的成功率是 0.9^10 ≈ 35%——每一步的小错误会指数级累积。所以生产级浏览器 Agent 需要的不是"更聪明的 LLM"，而是"更健壮的错误恢复"——某步失败了能不能重试？页面没加载完能不能等？弹窗出现了能不能关？这些异常处理占了 80% 的代码量。</div>
     <p>一个值得关注的技术方向是 **"结构化网页交互"**——不让 LLM 看"像素截图"，而是给它结构化的页面描述（"这个页面有 3 个按钮：[1]登录 [2]注册 [3]忘记密码；2 个输入框：[4]邮箱 [5]密码"）。这比视觉理解精确得多（不会有"点偏了"的问题），而且快得多（不需要截图+视觉模型）。browser-use 新版本和很多企业级方案都在往这个方向走——视觉是"通用但粗糙"，结构化是"精确但需要适配"。两条路线的融合（结构化为主+视觉辅助）可能是最终解。</p>
+    <p>从投资角度看，浏览器 Agent 是 2026 年最热的 AI 创业方向之一——因为它能切入的市场极其庞大。全球有 3000 万以上的 Web 应用，每一个都是潜在的自动化目标。从电商下单到保险理赔，从数据录入到竞品分析，这些当前需要人工"对着屏幕点点点"的工作，都可能被浏览器 Agent 替代。这就是为什么 browser-use 能在短时间内冲到 GitHub 顶星——它打开了一个比 API 自动化大 10 倍的市场。</p>
+    <p>一个值得深入思考的技术方向是 **"网页的 Agent 友好化"**。当前网页是为人类设计的——视觉布局、交互逻辑、动态加载。如果网页在 HTML 里嵌入"Agent 友好"的语义标注（如 `data-ai-action="submit"` 标记可操作元素），浏览器 Agent 的精度和速度都能提升 10 倍。这就像早期 Web 为搜索引擎加 SEO 标签一样——一旦"Agent 可访问性"成为 Web 标准，浏览器 Agent 就从"通用但粗糙"进化到"精确且高效"。这可能催生一个新的 Web 标准（类似 ARIA 之于无障碍）。</p>
+    <div class="callout"><strong>💡 要点</strong><br>浏览器 Agent 的终极形态可能不是"看屏幕操作"，而是 **"直接和网站的 AI 接口对话"**。未来每个网站可能提供两种接口：给人看的 UI 和给 AI 用的 API。当 AI 访问时，网站直接返回结构化数据（而非 HTML），Agent 不需要"看"和"点击"——直接对话即可。这就是 MCP 的终极愿景——每个服务都通过标准协议暴露能力，Agent 不需要模拟人类操作浏览器。但在那一天到来之前，浏览器 Agent 是"过渡期的必需品"。</div>
     <h2><span class="idx"></span>本章小结</h2>
     <p>浏览器 Agent 让 AI 从"调 API"扩展到"操作任意网页"——不需要网站配合。browser-use（GitHub 最热）用 Playwright+多模态LLM 实现"看页面→操作→看结果"循环。核心挑战是让 LLM "看懂"网页（视觉 vs DOM vs 混合）。应用：调研/表单/监控/采集/测试。风险：安全操作必须人在回路。这是 Agent 从 API 世界走向人类世界的关键一步。</p>
     <div class="chapter-nav">
