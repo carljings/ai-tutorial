@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -62,7 +62,7 @@
       <a href="38-data-engineering.html" title="LLM 数据工程完整流水线"><span class="num">38</span>LLM 数据工程完整</a>
       <a href="39-security-cases.html" title="AI 安全攻防实战案例库"><span class="num">39</span>AI 安全攻防实战案</a>
       <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
-      <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
+      <a href="41-app-architecture.html" class="active" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
       <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
@@ -123,7 +123,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -179,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -187,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -196,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -533,7 +533,35 @@ class AgentOrchestrator:
     <p>无论你处于哪一层架构，以下横切关注点都必须考虑，它们是生产级 LLM 应用的"隐形骨架"。</p>
     <p><strong>成本控制</strong>：LLM 调用是按 token 计费的，一个用户高频使用可能烧掉大量成本。必须实现按用户/按时间的配额限制、token 用量监控、超限告警。Redis 做实时计数，定期同步到数据库做结算。<strong>速率限制</strong>：既要防止单用户滥用，也要防止上游模型 API 被限流。令牌桶算法是常见选择，按用户、按 IP、按 API Key 多维度限流。<strong>异步队列</strong>：长任务（如文档总结、批量处理）不应阻塞 HTTP 请求，用 Celery 或 Arq 放到后台队列异步执行，前端通过 WebSocket 或轮询获取进度。<strong>可观测性</strong>：这是最容易被忽略但最关键的——你需要追踪每个请求经过的每一步、每一步的延迟和 token 消耗。LangSmith、Langfuse、Helicone 等专门为 LLM 应用设计的可观测平台，能帮你快速定位"为什么这次回答质量差"。</p>
 
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <h2 class="section" id="summary"><span class="idx">★</span> <h3>实战配置示例</h3>
+    <pre class="code"><code class="language-yaml"># 生产级 AI 应用的典型配置
+# docker-compose.yml
+version: '3.8'
+services:
+  llm-api:
+    image: vllm/vllm-openai:latest
+    command: --model Qwen/Qwen2.5-7B-Instruct --quantization awq
+    ports: ["8000:8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vector-db:
+    image: milvusdb/milvus:latest
+    ports: ["19530:19530"]
+
+  rag-api:
+    build: .
+    environment:
+      - LLM_ENDPOINT=http://llm-api:8000/v1
+      - VECTOR_DB_HOST=vector-db
+    depends_on: [llm-api, vector-db]
+    ports: ["8080:8080"]</code></pre>
+    本章小结</h2>
     <p>LLM 应用架构遵循"单体→微服务→Agent 编排"三层演进。单体架构（单个 FastAPI 应用）适合 MVP 和原型验证，重点是实现流式输出；微服务架构把 prompt 管理、检索、模型调用、编排拆分成独立服务，支持独立部署和扩缩容，适合中大型应用；Agent 编排架构引入状态图驱动的动态工作流，适合多步推理和复杂任务场景。每一层都需要配套的横切基础设施：成本控制（配额+监控）、速率限制（令牌桶）、异步队列（长任务不阻塞）、可观测性（全链路追踪+质量监控）。选型原则是"够用就好"——不要过早微服务化，也不要在需要 Agent 时还用单体硬撑。架构是演进的，不是一次定型的，关键是保持代码结构能支撑下一步的拆分。</p>
 
 

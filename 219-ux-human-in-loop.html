@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -123,7 +123,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -179,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -187,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -196,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -260,7 +260,7 @@
       <a href="216-ux-chat-interface.html" title="对话界面设计：让 Agent 好用"><span class="num">216</span>对话界面设计</a>
       <a href="217-ux-streaming-design.html" title="流式渲染的工程实现：SSE 与增量解析"><span class="num">217</span>流式渲染的工程实现</a>
       <a href="218-ux-multi-turn.html" title="多轮对话状态管理"><span class="num">218</span>多轮对话状态管理</a>
-      <a href="219-ux-human-in-loop.html" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
+      <a href="219-ux-human-in-loop.html" class="active" title="人在回路（HITL）：让用户掌控 Agent"><span class="num">219</span>人在回路（HITL）</a>
       <a href="220-ux-error-states.html" title="Agent 的错误状态与降级设计"><span class="num">220</span>Agent 的错误状</a>
     </div>
     <div class="nav-group"><h3>★模型压缩部署</h3>
@@ -572,7 +572,36 @@ class HITLFeedbackLoop:
         return new_rules
 # 闭环效果：随着反馈积累，越来越多 case 被自动规则覆盖，
 # 人工介入频率下降，agent 越来越自主</code></pre>
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <h2 class="section" id="summary"><span class="idx">★</span> <h3>工程配置示例</h3>
+    <pre class="code"><code class="language-python"># LLMOps 监控脚本示例
+import time, json
+from datetime import datetime
+
+class LLMMonitor:
+    """监控 LLM 服务的质量/成本/延迟"""
+    def __init__(self):
+        self.metrics = {"latency": [], "tokens": 0, "errors": 0}
+
+    def track(self, response_time, input_tokens, output_tokens, success):
+        self.metrics["latency"].append(response_time)
+        self.metrics["tokens"] += input_tokens + output_tokens
+        if not success: self.metrics["errors"] += 1
+
+    def report(self):
+        latencies = self.metrics["latency"]
+        return {
+            "avg_latency": sum(latencies)/len(latencies) if latencies else 0,
+            "p95_latency": sorted(latencies)[int(len(latencies)*0.95)] if latencies else 0,
+            "total_tokens": self.metrics["tokens"],
+            "error_rate": self.metrics["errors"] / max(len(latencies), 1),
+            "timestamp": datetime.now().isoformat(),
+        }
+
+monitor = LLMMonitor()
+monitor.track(response_time=1.2, input_tokens=100, output_tokens=200, success=True)
+monitor.track(response_time=0.8, input_tokens=50, output_tokens=150, success=False)
+print(json.dumps(monitor.report(), indent=2))</code></pre>
+    本章小结</h2>
     <p>人在回路是高风险 AI 系统的安全基石，本章系统梳理了它的理论与实践。首先我们解释了 HITL 存在的必要性——根源在于"错误代价"与"自动化收益"的不平衡，在金融、医疗、法律、对外公关等场景尤为关键；HITL 还附带产生高质量标注数据，是通向更高自动化的阶梯。其次，HITL 有三种核心模式：approval 在执行前阻断等待审批、approval_with_modification 允许人工修改后执行、correction 事后让用户直接修改内容作为训练信号，三者按风险分级组合使用。第三，LangGraph 的 interrupt 机制是实现 HITL 的利器，它通过"抛出待确认内容 + 持久化状态 + Command resume 恢复"的双向通信，让 Agent 能跨进程、跨时间地等待人介入，生产环境务必搭配 PostgresSaver / RedisSaver 等持久化 checkpointer。第四，完整的调用流程是两次 invoke 衔接：第一次触发执行并在 interrupt 暂停，第二次用 Command(resume=...) 传回决策恢复执行，thread_id 是状态定位的锚点。最后，HITL 的高级形态是动态信任机制——用连续批准计数实现指数衰减抽样，让重复的低风险操作逐渐自动化、高风险或新模式保持人工把关，把 HITL 从"静态成本"变为"渐进自动化"。掌握这些，你就能设计出既安全又高效的 Agent 系统，在风险和效率之间找到最优平衡。</p>
 
 </main>

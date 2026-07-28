@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -22,7 +22,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -127,7 +127,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -172,7 +172,7 @@
       <a href="138-vec-query-rewrite.html" title="查询改写：让检索更准"><span class="num">138</span>查询改写</a>
       <a href="139-vec-context-packing.html" title="上下文组装：Lost in the Middle"><span class="num">139</span>上下文组装</a>
       <a href="140-vec-rag-eval.html" title="RAG 评估：RAGAS 与忠实度"><span class="num">140</span>RAG 评估</a>
-      <a href="141-vec-graphrag.html" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
+      <a href="141-vec-graphrag.html" class="active" title="GraphRAG：知识图谱增强检索"><span class="num">141</span>GraphRAG</a>
       <a href="142-vec-multivec.html" title="ColBERT 与多向量检索"><span class="num">142</span>ColBERT 与多</a>
       <a href="143-vec-splade.html" title="SPLADE 稀疏向量：学习型 BM25"><span class="num">143</span>SPLADE 稀疏向</a>
       <a href="144-vec-eval-benchmark.html" title="ANN 基准测试：ann-benchmark 实战"><span class="num">144</span>ANN 基准测试</a>
@@ -183,7 +183,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -191,7 +191,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -200,7 +200,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -627,6 +627,42 @@ def evaluate_graph_quality(graph):
     return {"connectivity": connectivity, "modularity": modularity}
 </code></pre>
 <p>这些工程细节决定了 GraphRAG 的成败。理论优雅，但"实体消歧错了一半、抽取漏了 30%"的图谱，用起来比纯向量 RAG 还差。所以 GraphRAG 不是"调个库就能用"，它需要认真的数据工程和质量把控。这也是为什么 GraphRAG 适合有工程能力的大团队。</p>
+    <h3>代码：完整 RAG 检索流水线</h3>
+    <pre class="code"><code class="language-python">from sentence_transformers import SentenceTransformer
+import faiss, numpy as np
+
+# 1. 嵌入模型
+encoder = SentenceTransformer('BAAI/bge-small-zh')
+dim = 384
+
+# 2. 准备知识库
+documents = [
+    "Transformer 用自注意力替代 RNN，实现并行计算",
+    "HNSW 是分层小世界图索引，查询延迟低",
+    "RAG 通过检索外部知识减少 LLM 幻觉",
+]
+chunks = [doc for doc in documents]  # 实际应做智能切块
+
+# 3. 嵌入 + 建索引
+embeddings = encoder.encode(chunks, normalize_embeddings=True)
+index = faiss.IndexHNSWFlat(dim, M=16)
+index.add(embeddings.astype('float32'))
+
+# 4. 检索
+question = "什么是 RAG？"
+qvec = encoder.encode([question], normalize_embeddings=True).astype('float32')
+D, I = index.search(qvec, k=2)
+
+# 5. 组装上下文
+context = "
+".join([chunks[i] for i in I[0]])
+prompt = f"基于以下资料回答问题。
+资料:
+{context}
+
+问题: {question}"
+print(f"检索到: {[chunks[i] for i in I[0]]}")
+print(f"Prompt: {prompt[:200]}...")</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <ul>
       <li>向量 RAG 的盲区是全局理解：总结主题、跨文档对比、多跳推理这类任务召回局部片段解决不了。</li>

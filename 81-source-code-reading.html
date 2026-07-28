@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -104,7 +104,7 @@
     <div class="nav-group"><h3>参考</h3>
       <a href="79-debugging-handbook.html" title="LLM 调试手册"><span class="num">79</span>LLM 常见错误与调</a>
       <a href="80-product-growth.html" title="AI 产品运营与增长"><span class="num">80</span>AI 产品运营与增长</a>
-      <a href="81-source-code-reading.html" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
+      <a href="81-source-code-reading.html" class="active" title="开源项目源码导读合集"><span class="num">81</span>开源项目源码导读合集</a>
       <a href="82-tdd-practice.html" title="LLM 测试驱动开发实践"><span class="num">82</span>LLM 测试驱动开发</a>
       <a href="83-best-practices.html" title="LLM 最佳实践速查"><span class="num">83</span>LLM 最佳实践合集</a>
       <a href="84-optimization-stories.html" title="LLM 优化案例集"><span class="num">84</span>LLM 优化案例集</a>
@@ -123,7 +123,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -179,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -187,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -196,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -707,7 +707,27 @@ demo()</code></pre>
       </tbody>
     </table>
 
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <h2 class="section" id="summary"><span class="idx">★</span> <h3>运维与检查清单</h3>
+    <pre class="code"><code class="language-bash"># AI 项目上线检查清单
+
+# 1. 模型推理服务健康检查
+curl http://localhost:8000/health
+curl http://localhost:8000/v1/models | jq .
+
+# 2. 性能基准测试
+ab -n 100 -c 10 -H "Content-Type: application/json" \
+  -d '{"model":"qwen-7b","messages":[{"role":"user","content":"hi"}]}' \
+  http://localhost:8000/v1/chat/completions
+
+# 3. GPU 利用率监控
+watch -n 1 nvidia-smi
+
+# 4. 日志检查
+tail -f /var/log/llm-service.log | grep -E "ERROR|WARN"
+
+# 5. 成本估算
+echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+ | bc)"</code></pre>
+    本章小结</h2>
     <p>这一章我们导读三个经典的 LLM 相关开源项目。核心要点：</p>
     <ul>
       <li><strong>nanoGPT</strong>：300 行理解 GPT 全貌。关键设计：QKV 合并计算（工程优化）、因果掩码（防看未来）、残差连接（深层可训练）。阅读顺序：Block → Attention → train.py。</li>

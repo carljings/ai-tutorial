@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -22,7 +22,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -127,9 +127,9 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
-      <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
+      <a href="100-tfm-kv-cache.html" class="active" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
       <a href="102-tfm-ffn.html" title="前馈网络：注意力之后的"记忆"层"><span class="num">102</span>前馈网络</a>
       <a href="103-tfm-layernorm.html" title="LayerNorm 与残差：让深层 Transformer 可训练"><span class="num">103</span>LayerNorm </a>
@@ -183,7 +183,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -191,7 +191,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -200,7 +200,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -899,7 +899,58 @@ for batch, seq in [(1, 4096), (1, 32768), (32, 4096), (32, 32768)]:
 print(f"\n权重: {model_weights_gb(glm):.1f} GB")
 # 结论：batch=32 + seq=32768 时 KV cache(18GB) 已超过权重，
 # 这就是长上下文批量服务必须上 GQA + KV 量化的原因</code></pre>
-    <h2 class="section" id="summary"><span class="idx">08</span> 本章小结</h2>
+    <h3>代码：KV Cache 实现</h3>
+    <pre class="code"><code class="language-python">class AttentionWithKVCache(nn.Module):
+    """带 KV Cache 的注意力层，推理时缓存历史 K/V 避免重复计算。"""
+    def __init__(self, d_model=512, n_heads=8):
+        super().__init__()
+        self.n_heads = n_heads
+        self.d_k = d_model // n_heads
+        self.W_q = nn.Linear(d_model, d_model, bias=False)
+        self.W_k = nn.Linear(d_model, d_model, bias=False)
+        self.W_v = nn.Linear(d_model, d_model, bias=False)
+        self.k_cache = None  # [B, L, H, d_k]
+        self.v_cache = None
+
+    def forward(self, x, use_cache=True):
+        Q = self.W_q(x).view(*x.shape[:2], self.n_heads, self.d_k)
+        K_new = self.W_k(x).view(*x.shape[:2], self.n_heads, self.d_k)
+        V_new = self.W_v(x).view(*x.shape[:2], self.n_heads, self.d_k)
+
+        if use_cache and self.k_cache is not None:
+            # 拼接历史 K/V（核心：避免重新计算前面的 token）
+            K = torch.cat([self.k_cache, K_new], dim=1)
+            V = torch.cat([self.v_cache, V_new], dim=1)
+        else:
+            K, V = K_new, V_new
+
+        if use_cache:
+            self.k_cache, self.v_cache = K, V
+
+        # 只用最新的 Q 去注意全部历史 K/V
+        scores = Q @ K.transpose(-2, -1) / math.sqrt(self.d_k)
+        attn = F.softmax(scores, dim=-1)
+        return attn @ V</code></pre>
+    <h2 class="section" id="summary"><span class="idx">08</span> <h3>图解：KV Cache 加速原理</h3>
+    <pre class="code"><code class="language-text">KV Cache 为什么能加速
+
+无 Cache（每步重算所有）:
+  Step 1: [Q₁K₁V₁]                    → 算 1 个
+  Step 2: [Q₁K₁V₁ Q₂K₂V₂]            → 算 2 个
+  Step 3: [Q₁K₁V₁ Q₂K₂V₂ Q₃K₃V₃]    → 算 3 个
+  ...
+  Step N: 算 N 个 → 总计 N²/2 次
+
+有 Cache（只算新的）:
+  Step 1: 算 K₁V₁，存 cache          → 算 1 个
+  Step 2: 只算 K₂V₂，读 cache K₁V₁  → 算 1 个
+  Step 3: 只算 K₃V₃，读 cache K₁K₂  → 算 1 个
+  ...
+  Step N: 只算 KₙVₙ                  → 总计 N 次
+
+加速比: N²/2 → N，序列越长加速越大！
+代价: 内存占用线性增长（需存所有历史 KV）</code></pre>
+    本章小结</h2>
     <div class="grid cols-2">
       <div class="callout note">
         <div class="head">KV Cache 核心原理</div>

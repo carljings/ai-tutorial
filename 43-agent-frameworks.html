@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -64,7 +64,7 @@
       <a href="40-open-source-ecosystem.html" title="开源大模型生态全景"><span class="num">40</span>开源大模型生态全景</a>
       <a href="41-app-architecture.html" title="LLM 应用架构模式"><span class="num">41</span>LLM 应用架构模式</a>
       <a href="42-system-design.html" title="AI 系统设计与面试"><span class="num">42</span>AI 系统设计与面试</a>
-      <a href="43-agent-frameworks.html" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
+      <a href="43-agent-frameworks.html" class="active" title="LLM Agent 框架对比深度"><span class="num">43</span>LLM Agent </a>
       <a href="44-career.html" title="AI 时代的职业发展"><span class="num">44</span>AI 时代的职业发展</a>
       <a href="45-coding-cases.html" title="AI 编程实战案例库"><span class="num">45</span>AI 编程实战案例库</a>
       <a href="46-finetuning-project.html" title="LLM 微调完整项目实战"><span class="num">46</span>LLM 微调完整项目</a>
@@ -123,7 +123,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -179,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -187,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -196,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -545,7 +545,35 @@ result = Runner.run_sync(support_agent, "我要退款")
 </code></pre>
     <p>一个值得注意的趋势是：<strong>框架在收敛，概念在趋同</strong>。几乎所有框架都在向"工具调用 + 循环 + 状态管理"这个核心模型靠拢，差异主要在 API 风格和抽象层级。这意味着框架之间的迁移成本会越来越低。所以不必纠结"选错框架"——先选一个最顺手的开始做，理解了 Agent 的核心模式后，切换框架只是 API 适配的问题。</p>
 
-    <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
+    <h2 class="section" id="summary"><span class="idx">★</span> <h3>实战配置示例</h3>
+    <pre class="code"><code class="language-yaml"># 生产级 AI 应用的典型配置
+# docker-compose.yml
+version: '3.8'
+services:
+  llm-api:
+    image: vllm/vllm-openai:latest
+    command: --model Qwen/Qwen2.5-7B-Instruct --quantization awq
+    ports: ["8000:8000"]
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: 1
+              capabilities: [gpu]
+
+  vector-db:
+    image: milvusdb/milvus:latest
+    ports: ["19530:19530"]
+
+  rag-api:
+    build: .
+    environment:
+      - LLM_ENDPOINT=http://llm-api:8000/v1
+      - VECTOR_DB_HOST=vector-db
+    depends_on: [llm-api, vector-db]
+    ports: ["8080:8080"]</code></pre>
+    本章小结</h2>
     <p>五大 Agent 框架各有定位：LangChain 是组件齐全的工具箱，适合需要大量集成的原型开发；LangGraph 用状态图提供精细的工作流控制，是复杂生产级 Agent 的最佳选择；AutoGen 专注多 Agent 对话协作，适合代码生成-执行循环；CrewAI 用角色和任务的高层抽象让多 Agent 协作像写剧本一样简单；OpenAI Agents SDK 以极简主义提供官方级体验，适合 OpenAI 生态快速上线。所有框架的核心模式都是"LLM + 工具调用 + 状态循环"，差异只在抽象层级和 API 风格。选型原则：抽象越高上手越快但越不灵活，根据场景的复杂度和控制需求对号入座。不必纠结选错——先动手做，理解核心模式后切换框架成本低。未来框架会继续收敛，但"理解 Agent 的核心原理"这项能力永远保值。</p>
 
 

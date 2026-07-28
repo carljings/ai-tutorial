@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                <aside class="sidebar">
+                                                                  <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -18,7 +18,7 @@
       <a href="concepts-skills-mcp-cli-functioncall.html"><span class="num">★</span>概念辨析：Skills/MCP/CLI/函数调用</a>
       <a href="01-llm-fundamentals.html" title="LLM 基础与原理"><span class="num">01</span>LLM 基础与原理</a>
       <a href="02-glm-training.html" title="GLM-5.2 从 0 到 1 训练"><span class="num">02</span>GLM-5.2 从 </a>
-      <a href="03-harness.html" class="active" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
+      <a href="03-harness.html" title="Harness 工程"><span class="num">03</span>Harness 工程</a>
       <a href="04-agent-loop.html" title="Agent Loop 详解"><span class="num">04</span>Agent Loop</a>
       <a href="05-agents.html" title="智能体深度实战"><span class="num">05</span>智能体深度实战</a>
       <a href="06-rag.html" title="RAG 知识库搭建"><span class="num">06</span>RAG 知识库搭建</a>
@@ -123,7 +123,7 @@
       <a href="95-tfm-qkv-projection.html" title="Q/K/V 投影：为什么需要三个矩阵"><span class="num">95</span>Q/K/V 投影</a>
       <a href="96-tfm-positional-encoding.html" title="位置编码：没有它 Transformer 是个瞎子"><span class="num">96</span>位置编码</a>
       <a href="97-tfm-rope.html" title="RoPE 旋转位置编码：现代大模型的标配"><span class="num">97</span>RoPE 旋转位置编</a>
-      <a href="98-tfm-multihead.html" title="多头注意力：为什么"多看几个角度"更有效"><span class="num">98</span>多头注意力</a>
+      <a href="98-tfm-multihead.html" title="多头注意力 MHA"><span class="num">98</span>多头注意力</a>
       <a href="99-tfm-mqa-gqa.html" title="从 MHA 到 MQA、GQA：推理加速的关键"><span class="num">99</span>从 MHA 到 MQ</a>
       <a href="100-tfm-kv-cache.html" title="KV Cache：自回归推理为什么离不开它"><span class="num">100</span>KV Cache</a>
       <a href="101-tfm-flash-attention.html" title="FlashAttention：让注意力不再是显存噩梦"><span class="num">101</span>FlashAtten</a>
@@ -136,7 +136,7 @@
       <a href="108-tfm-embedding.html" title="Token Embedding 与 Tie Weights"><span class="num">108</span>Token Embe</a>
       <a href="109-tfm-decoder-only.html" title="为什么 Decoder-Only 一统天下"><span class="num">109</span>为什么 Decode</a>
       <a href="110-tfm-generation-strategy.html" title="解码策略：贪心/采样/beam 的取舍"><span class="num">110</span>解码策略</a>
-      <a href="111-tfm-repetition-penalty.html" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
+      <a href="111-tfm-repetition-penalty.html" class="active" title="重复惩罚与可控生成"><span class="num">111</span>重复惩罚与可控生成</a>
       <a href="112-tfm-sampling-tricks.html" title="典型采样与 mirostat：动态截断"><span class="num">112</span>典型采样与 miro</a>
       <a href="113-tfm-attention-mask.html" title="注意力掩码：因果、双向、文档级"><span class="num">113</span>注意力掩码</a>
       <a href="114-tfm-speculative-decoding.html" title="投机解码：用小模型加速大模型"><span class="num">114</span>投机解码</a>
@@ -179,7 +179,7 @@
       <a href="147-agent-opencode-loop.html" title="OpenCode 的 Agent Loop 实现"><span class="num">147</span>OpenCode 的</a>
       <a href="148-agent-opencode-tools.html" title="OpenCode 工具系统：read/write/bash/grep"><span class="num">148</span>OpenCode 工</a>
       <a href="149-agent-opencode-permission.html" title="OpenCode 权限模型：工具级守卫"><span class="num">149</span>OpenCode 权</a>
-      <a href="150-agent-opencode-context.html" title="OpenCode 上下文收集"><span class="num">150</span>OpenCode 上</a>
+      <a href="150-agent-opencode-context.html" title="OpenCode 的上下文管理"><span class="num">150</span>OpenCode 上</a>
       <a href="151-agent-opencode-mcp.html" title="OpenCode 与 MCP 协议"><span class="num">151</span>OpenCode 与</a>
       <a href="152-agent-opencode-session.html" title="OpenCode 会话持久化"><span class="num">152</span>OpenCode 会</a>
       <a href="153-agent-codex-arch.html" title="Codex CLI 架构：Rust 内核 + TS 前端"><span class="num">153</span>Codex CLI </a>
@@ -187,7 +187,7 @@
       <a href="155-agent-codex-responses-api.html" title="Codex 用 Responses API"><span class="num">155</span>Codex 用 Re</a>
       <a href="156-agent-codex-sandbox-seatbelt.html" title="Codex 沙箱：macOS Seatbelt"><span class="num">156</span>Codex 沙箱</a>
       <a href="157-agent-codex-sandbox-landlock.html" title="Codex 沙箱：Linux Landlock + seccomp"><span class="num">157</span>Codex 沙箱</a>
-      <a href="158-agent-codex-approval.html" title="Codex 审批：sandbox_mode × approval_policy"><span class="num">158</span>Codex 审批</a>
+      <a href="158-agent-codex-approval.html" title="Codex 审批机制"><span class="num">158</span>Codex 审批</a>
       <a href="159-agent-codex-exec.html" title="Codex exec 路径：命令分类"><span class="num">159</span>Codex exec</a>
       <a href="160-agent-codex-guardian.html" title="Codex Guardian AI 审批"><span class="num">160</span>Codex Guar</a>
       <a href="161-agent-codex-config.html" title="Codex 配置：config.toml 全解"><span class="num">161</span>Codex 配置</a>
@@ -196,7 +196,7 @@
       <a href="164-agent-aider-git.html" title="Aider 的 Git 集成"><span class="num">164</span>Aider 的 Gi</a>
       <a href="165-agent-continue-arch.html" title="Continue 的 IDE 架构"><span class="num">165</span>Continue 的</a>
       <a href="166-agent-continue-codebase.html" title="Continue 的代码库索引"><span class="num">166</span>Continue 的</a>
-      <a href="167-agent-continue-embeddings.html" title="Continue 的嵌入管线"><span class="num">167</span>Continue 的</a>
+      <a href="167-agent-continue-embeddings.html" title="Continue 的 Embeddings"><span class="num">167</span>Continue 的</a>
       <a href="168-agent-cline-loop.html" title="Cline 的工具循环与审批"><span class="num">168</span>Cline 的工具循</a>
       <a href="169-agent-cline-diff.html" title="Cline 的差异编辑"><span class="num">169</span>Cline 的差异编</a>
       <a href="170-agent-cursor-agent.html" title="Cursor 的 Agent 模式"><span class="num">170</span>Cursor 的 A</a>
@@ -568,6 +568,46 @@ def presence_penalty(logits, generated_ids, penalty=0.3):
     </div>
     <p>一个实战经验：<strong>80% 的"模型变重复了"问题，根因是 temperature 被设成了 0</strong>。在动用任何惩罚之前，先把 temperature 调到 0.7~1.0，往往问题就消失大半。惩罚参数应该是最后的微调手段，而不是第一反应。</p>
 
+    <h3>代码：Transformer Decoder Layer 实现</h3>
+    <pre class="code"><code class="language-python">class TransformerBlock(nn.Module):
+    """标准 Transformer Block: Attention + FFN + Residual + LayerNorm"""
+    def __init__(self, d_model=512, n_heads=8, d_ff=2048, dropout=0.1):
+        super().__init__()
+        self.attn = MultiHeadAttention(d_model, n_heads)
+        self.ln1 = nn.LayerNorm(d_model)
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model, d_ff),
+            nn.GELU(),
+            nn.Linear(d_ff, d_model),
+        )
+        self.ln2 = nn.LayerNorm(d_model)
+        self.dropout = nn.Dropout(dropout)
+
+    def forward(self, x, mask=None):
+        # Pre-LayerNorm 架构（现代 LLM 标配）
+        h = self.ln1(x)
+        x = x + self.dropout(self.attn(h, mask))
+        h = self.ln2(x)
+        x = x + self.dropout(self.ffn(h))
+        return x
+
+# 堆叠 N 层就是完整的 Transformer
+class MiniTransformer(nn.Module):
+    def __init__(self, vocab_size=50000, d_model=512, n_layers=12):
+        super().__init__()
+        self.embed = nn.Embedding(vocab_size, d_model)
+        self.blocks = nn.ModuleList([
+            TransformerBlock(d_model) for _ in range(n_layers)
+        ])
+        self.ln_f = nn.LayerNorm(d_model)
+        self.head = nn.Linear(d_model, vocab_size, bias=False)
+
+    def forward(self, tokens):
+        x = self.embed(tokens)
+        for block in self.blocks:
+            x = block(x)
+        x = self.ln_f(x)
+        return self.head(x)  # logits</code></pre>
     <h2 class="section" id="summary"><span class="idx">★</span> 本章小结</h2>
     <p>这一章我们把对抗重复的三把剪刀都拆解清楚了。要点回顾：</p>
     <ul>
