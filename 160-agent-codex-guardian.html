@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                        <aside class="sidebar">
+                                                                          <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -334,6 +334,7 @@
           <tr><td>六、审计报告：让 Agent 行为可追溯</td><td>核心概念与实现</td><td>★★★★</td></tr>
           <tr><td><p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
+    <div class="callout"><strong>💡 要点</strong><br>Codex 的 Guardian AI 审批机制代表了 Agent 安全的前沿方向：**用 AI 来监督 AI**。传统的权限控制是"规则式"的（if 命令含 rm 则拒绝），但 AI 的操作意图是模糊的——"rm -rf node_modules"是正常操作还是恶意操作？Guardian AI 用另一个 LLM 来"理解操作意图"——它能区分"清理依赖"（安全）和"删除系统文件"（危险）。这种"AI 监督 AI"的模式，可能是解决 Agent 安全问题的终极方向——因为只有 AI 能理解 AI 的意图。</div>
     本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>

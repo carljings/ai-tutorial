@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                        <aside class="sidebar">
+                                                                          <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -751,6 +751,7 @@ echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+
     <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <p>LLM 调试最大的心智转变是 **"从找 bug 到找 pattern"**。传统调试是找"哪个具体输入导致了错误输出"——这是确定性问题思维。LLM 的输出是概率性的——同一个输入可能时对时错。所以 LLM 调解不是找"那个 bug"，而是找"导致错误的 pattern"——是某类问题容易错？是某些 prompt 措辞导致误解？是特定上下文长度下退化？这需要你收集大量 case，做统计分析（而非逐个排查），找出"什么条件下错误率升高"——这才是 LLM 时代的"debug"。</p>
+    <div class="callout"><strong>💡 要点</strong><br>LLM 调试的最大心法：**不要试图"修好每个错误"，要找到"错误的 pattern"**。LLM 的输出有随机性——同一个 prompt 有时对有时错。逐个修不可行（你修了一个 case 可能引入另一个）。正确做法：收集 100 个错误 case，分类统计——是某类问题集中出错？是某种 prompt 格式导致误解？是特定长度的上下文退化？找到 pattern 后针对性修复（改 prompt/加 few-shot/加约束），一次修一类，而不是一次修一个。这就是从"debug"到"pattern mining"的转变。</div>
     本章小结</h2>
     <p>这一章我们覆盖了 LLM 应用最常见的五类 Bug 和调试方法论。核心要点：</p>
     <ul>

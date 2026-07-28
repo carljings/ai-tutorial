@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-    <aside class="sidebar">
+      <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -378,6 +378,9 @@ response = client.run(
     <p>OpenAI Swarm 的"交接（handoff）"机制看似简单，实则深刻。它把多 Agent 协调从"中央调度器"模式变成了"分布式接力"模式——没有中心化的调度器，每个 Agent 自己决定"这个问题该不该我处理，不该就交给别人"。这和人类组织里的"转接"是同构的——你打电话给销售，销售发现是技术问题，说"我帮你转到技术部"。这种去中心化的协调比中央调度更灵活、更可扩展（不需要调度器了解所有 Agent 的细节）。</p>
     <p>多 Agent 系统的工程挑战里，最难的是 **"级联错误"**——Agent A 的输出有 10% 错误率，传给 Agent B（也有 10% 错误率），链路越长错误累积越多。5 个 Agent 串联，最终准确率可能只有 0.9^5 ≈ 59%。解法有三种：① 缩短链路（能并行不串行）；② 每步加校验（发现错误及时纠正）；③ 冗余（多个 Agent 做同一任务，投票取多数）。这三种策略分别牺牲了"简单性""速度""成本"——没有免费午餐。</p>
     <p>展望未来，多 Agent 的终极形态可能是 **"Agent 社交网络"**——Agent 们像人一样在平台上发布能力、接任务、协作、互评。你可以把你的"研究 Agent"发布到平台上，别人的"写作 Agent"可以雇它做调研，按任务付费。这就是 AI 版的"零工经济"——Agent 之间形成专业分工和市场交换。Google 的 A2A 协议是朝这个方向迈出的第一步。当然，这还非常早期，但它指出了一个令人兴奋（也令人不安）的方向。</p>
+    <h3>从"单打独斗"到"专业团队"：多 Agent 的组织学</h3>
+    <div class="callout"><strong>💡 要点</strong><br>多 Agent 协作的终极价值不是"做了更多事"，而是"做了单 Agent 做不到的事"。一个 Agent 的 context window 是有限的——它无法同时是数据库专家、前端专家、安全专家。多 Agent 让"专业化分工"成为可能——每个 Agent 只需精通一个领域，context 更聚焦、推理更深入。这和人类社会的"分工理论"是同构的——亚当·斯密说"分工是生产力增长的源泉"，这句话在 AI 领域同样适用。</div>
+    <p>从成本角度看，多 Agent 系统有一个隐性的经济优势：**可以用便宜的模型做大部分工作，只在高价值环节用贵模型**。比如"研究 Agent"用 7B 开源模型（便宜）做检索和摘要，"决策 Agent"用 GPT-4（贵）做最终判断和综合。这比全程用 GPT-4 便宜 5-10 倍，而质量只低 5-10%。这种"混合模型策略"是多 Agent 系统在生产环境中的核心竞争力。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>多 Agent 协作是从"单兵"到"团队"的演进。四种模式：流水线（串行）、主管-工人（分配）、辩论（多视角）、Swarm（交接）。A2A 协议让不同框架的 Agent 互操作（Agent 的 HTTP）。OpenAI Swarm 用极简的"交接"机制实现多 Agent 路由。工程挑战：context 传摘要/错误逐步校验/成本用小模型/调试全链路追踪。2026 年趋势：从单 Agent 向多 Agent 演进。</p>
     <div class="chapter-nav">

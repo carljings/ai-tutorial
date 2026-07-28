@@ -10,7 +10,7 @@
 <div class="progress" id="progress"></div>
 <button class="to-top" id="toTop" aria-label="返回顶部">↑</button>
 <div class="layout">
-    <aside class="sidebar">
+      <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -390,6 +390,9 @@ async def call_tool(name, arguments):
     <p>从架构角度，MCP 的精妙之处在于它把 **"工具发现"和"工具执行"分离**。MCP 服务器启动时，会声明自己有哪些工具（name/description/inputSchema）——这是"发现"。客户端（如 Claude Code）把这些工具的能力告诉 LLM，LLM 决定用哪个工具后，客户端再通过 MCP 协议调用它——这是"执行"。这种分离让 LLM 只需理解"有哪些能力"（高层抽象），不需要理解"怎么实现"（底层细节）。这和操作系统的"系统调用"是同构的——应用程序不需要知道磁盘怎么转，只需调用 read()/write()。</p>
     <p>MCP 生态正在经历"App Store 时刻"。2024 年底只有几十个官方服务器，到 2026 年社区已有上千个——覆盖数据库/文件系统/Git/搜索/浏览器/云服务/协作工具/支付/地图等几乎所有常见服务。这种增长速度让人想起 2008 年 App Store 刚开放时的盛况。但和 App Store 不同的是，MCP 是完全开源和去中心化的——任何人都能写 MCP 服务器，不需要经过审核。这意味着质量参差不齐——使用前要审查（一个恶意的 MCP 服务器可以窃取你的数据）。</p>
     <p>一个前沿探索是 **MCP 的安全模型**。当前 MCP 没有内建权限控制——一旦你连接了一个 MCP 服务器，它声明的所有工具都能被 LLM 调用。如果服务器是恶意的（如假装是"文件读取"工具，实际偷偷发送文件内容到外部），用户很难发现。社区正在讨论加入权限层（如 OAuth 授权/工具级白名单/沙箱执行）。这和浏览器安全模型的发展历程类似——从"什么都信"到"细粒度权限"。</p>
+    <h3>写自己的 MCP 服务器：从想法到上线</h3>
+    <div class="callout"><strong>💡 要点</strong><br>MCP 最大的价值不是"连接已有工具"，而是"让任何能力都能被 Agent 使用"。如果你有一个内部系统（CRM/ERP/工单/监控），写一个 MCP 服务器封装它，你的 Agent 就能直接操作——不需要人工在多个系统间切换。这就是"把企业系统变成 Agent 的工具箱"——每个 MCP 服务器都是 Agent 生态里的一块"乐高积木"。</div>
+    <p>从企业部署角度看，MCP 的安全模型需要额外关注。当你把内部数据库封装成 MCP 服务器给 Agent 用，你必须考虑：① Agent 能不能执行 DELETE？（应该限制）② MCP 服务器返回的数据有没有脱敏？（不应泄露 PII）③ 多个用户共享一个 MCP 服务器时的权限隔离？这些问题在"人用系统"时有成熟的 RBAC 方案，但在"Agent 用系统"时还是新课题——它需要"Agent 身份管理"这个全新的安全领域。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>MCP 是 Agent 连接外部工具/数据的统一标准（Agent 的 USB-C）。三层架构：客户端（Claude Code/Cursor）→ MCP 协议 → 服务器（封装工具）。2026 年已有上千个 MCP 服务器（数据库/文件/Git/搜索/浏览器/云服务）。写一个 MCP 服务器只需几十行代码。MCP 正在成为 Agent 生态的基础设施——就像 HTTP 之于 Web。</p>
     <div class="chapter-nav">
