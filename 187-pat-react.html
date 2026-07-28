@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                  <aside class="sidebar">
+                                                                    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -641,6 +641,10 @@ def aggregate_patterns():
         avg = sum(rems)/len(rems)
         flag = "⚠ 可能拖累后续" if avg > 5 else ""
         print(f"{tool:20s} 调用后平均剩余 {avg:.1f} 步  {flag}")</code></pre>
+    <p>从学术界视角看，这些模式不是"发明"出来的，而是从人类认知科学里"翻译"过来的。ReAct 对应人类的"边想边做"——我们不是想完所有步骤才开始行动，而是想一步做一步，根据结果调整。Plan-and-Execute 对应"先规划后执行"——做复杂任务前先列计划。Reflection 对应"复盘"——做完后反思哪里可以更好。这种"认知科学→AI 实现"的映射，是 Agent 设计模式的深层逻辑——好的 AI 行为模式，往往和高效的人类行为模式同构。</p>
+    <p>实践中最重要的教训是：**不要迷信复杂模式**。很多团队上来就上 Tree of Thoughts、Multi-Agent 这些复杂模式，结果延迟高、成本高、调试难，效果还不如简单的 ReAct。模式选择应该从简单开始——先试 ReAct（最简单），不够再试 Plan-Execute，再不够才考虑 ToT/Multi-Agent。复杂模式的边际收益递减，但延迟和成本的边际代价递增。80% 的场景 ReAct + 好的工具集就够了。</p>
+    <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
+    <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>ReAct 是 agent 的基石范式：Thought（推理）→ Action（行动）→ Observation（观察）的循环。它把 LLM 从"一次性回答"升级为"持续交互"。理解了 ReAct，你就理解了所有 agent 的内核——后续的模式都是 ReAct 的扩展或改良。</p>
     <div class="chapter-nav">

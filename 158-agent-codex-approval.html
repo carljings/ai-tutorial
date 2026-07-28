@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                  <aside class="sidebar">
+                                                                    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -568,7 +568,13 @@ policy = "untrusted"      # 未签名命令才问
       <p>审批弹窗若只显示"允许执行 rm 吗？"，用户无法判断风险。应在审批时展示完整命令、影响路径、沙箱状态，让用户在充分信息下决策。Codex 的审批界面会高亮危险参数就是这个原因。</p>
     </div>
 
-<h2><span class="idx"></span>本章小结</h2>
+<p>深入看，Codex 的这套权限模型设计有一个精妙的工程哲学：**把"安全"从"信任模型"问题转化为"控制面"问题**。传统安全思路是"判断该不该信任这个操作"——这在 AI 场景下几乎不可能，因为 AI 的操作意图是模糊的。Codex 的做法是"不判断意图，只控制执行边界"——sandbox_mode 在 OS 层面限定能碰什么文件/网络，approval_policy 在应用层面决定哪些操作需要打断。两层叠加，即使 AI 被注入了恶意指令，它的"爆炸半径"也被限制住了。这是"最小权限原则"在 Agent 时代的最佳实践。</p>
+    <p>对比 Claude Code 和 Cursor 的权限模型也很有启发：Claude Code 用的是"每次操作都问"的保守策略（安全性最高但用户体验差），Cursor 用的是"批量自动+关键确认"的折中策略。Codex 的 sandbox × approval 矩阵其实是最灵活的——它让用户自己选择安全级别，而不是一刀切。这种"用户可选的安全级别"设计，正在成为 Agent 产品的标配。</p>
+    <p>从工程角度看，这些设计细节揭示了一个核心原则：**Agent 的可靠性 = 正常路径 × 异常恢复**。大部分 Agent 实现只关注正常路径（happy path）——工具调用成功、LLM 返回正确格式。但真实世界的 Agent 80% 的代码是在处理异常：工具超时怎么办？LLM 返回了无法解析的 JSON 怎么办？上下文超长了怎么裁剪？用户中途取消了怎么优雅停止？这些异常处理的代码量往往是正常路径的 3-5 倍，但它们才是 Agent 能否上生产的关键。</p>
+    <p>另一个值得深入理解的设计是"上下文窗口管理"——这是 Agent 工程最隐蔽的难点。Agent 每执行一步，上下文就增长一段（用户输入 + 工具结果 + LLM 推理）。10 步之后上下文可能已经上万 token，超出窗口限制。成熟的 Agent（如 OpenCode/Claude Code）都有精细的上下文压缩策略：保留最近 N 轮原文、更早的用摘要替代、工具结果只保留关键信息。这种"滚动窗口 + 摘要压缩"的策略，和人类记忆的"短期记忆清晰 + 长期记忆模糊"是同构的。</p>
+    <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
+    <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
+    <h2><span class="idx"></span>本章小结</h2>
 <p>本章我们通过源码深挖了"Codex 审批：sandbox_mode × approval_policy"。开源 Agent 生态是 AI 工程最活跃的领域，读它们的源码是提升工程能力的捷径。建议你 clone 一两个仓库，对照本文逐文件阅读，收获会远超单纯"会用"。</p>
 <div class="chapter-nav">
 <a href="157-agent-codex-sandbox-landlock.html"><div class="lbl">← 上一章</div><div class="ttl">157 · Codex 沙箱：Linux Landlock + seccomp</div></a><a href="index.html"><div class="lbl">目录</div><div class="ttl">回到总览</div></a><a href="159-agent-codex-exec.html" class="next"><div class="lbl">下一章 →</div><div class="ttl">159 · Codex exec 路径：命令分类</div></a></div>

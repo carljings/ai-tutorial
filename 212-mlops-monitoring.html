@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                  <aside class="sidebar">
+                                                                    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -590,6 +590,8 @@ monitor = LLMMonitor()
 monitor.track(response_time=1.2, input_tokens=100, output_tokens=200, success=True)
 monitor.track(response_time=0.8, input_tokens=50, output_tokens=150, success=False)
 print(json.dumps(monitor.report(), indent=2))</code></pre>
+    <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
+    <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     本章小结</h2>
     <p>ML 监控的核心是捕捉三类衰减:数据漂移(输入分布变化,可早期检测)、概念漂移(输入输出关系变化,需标签回流)、模型性能衰减(前两者导致的结果)。检测手段上,PSI、KS 检验适合数值特征的漂移检测,概念漂移则依赖标签回流的周期性评估。</p>
     <p>工程实现上,Prometheus + Grafana 提供了成熟的指标采集、存储、可视化和告警链路,我们演示了如何把漂移指标暴露成 Prometheus metric 并配置告警规则。关键原则是:分层告警避免噪声、持续时长过滤抖动、聚合维度简化响应、每条告警都带行动建议。</p>

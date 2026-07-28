@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                  <aside class="sidebar">
+                                                                    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -627,6 +627,10 @@ app.invoke(Command(resume={"action":"approve"}), config)
 # → 从 checkpoint 恢复，继续执行 deploy
 
 # 即便中途崩溃，下次用同 thread_id 启动也能从最后 checkpoint 恢复</code></pre>
+    <p>这些工程实践有一个共同的核心思想：**把"不确定性"工程化**。传统软件的输出是确定的，运维只需关注"可用性"（服务在不在线）。LLM 应用的输出是不确定的——同样的输入可能得到不同输出，模型升级可能改变行为。所以 LLMOps 比传统 DevOps 多了三层：质量层（输出好不好）、成本层（花了多少 token）、漂移层（行为有没有变）。这三层是 LLM 运维的"新基建"，不做就是裸奔。</p>
+    <p>一个常见的工程误区是把"监控"等同于"告警"——设几个阈值就完事了。LLM 监控的核心不是"超过阈值就告警"，而是"发现趋势变化"——质量从 90% 缓慢降到 85%，任何单一阈值都发现不了，但累积两周就是灾难。好的监控要看趋势（滑动窗口均值）、要看分布（P95/P99 而非均值）、要看分群（不同用户群体分开看）。这种"精细化监控"是 LLMOps 成熟度的标志。</p>
+    <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
+    <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <h2><span class="idx"></span>本章小结</h2>
     <p>LangGraph 把 agent 从"固定循环"升级为"状态图"：State 管数据、Node 管处理、Edge 管流转。条件边让它能表达任意复杂的控制流。它是 LangChain 家族中做生产级 agent 的推荐方案——AgentExecutor 能做的它都能做，还能做 AgentExecutor 做不到的。</p>
     <div class="chapter-nav">

@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                  <aside class="sidebar">
+                                                                    <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 249 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -565,6 +565,8 @@ tail -f /var/log/llm-service.log | grep -E "ERROR|WARN"
 
 # 5. 成本估算
 echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+ | bc)"</code></pre>
+    <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
+    <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     本章小结</h2>
     <p>AI 产品的 UX 与传统软件截然不同，根源在于输出的概率性和不确定性。本章拆解了四类核心模式。对话式 UX 把功能收拢进会话流，关键在于会话状态管理、节奏控制和一致的人设，必须重视上下文窗口的 token 级截断而非简单按条数截断。流式输出 UX 通过 SSE / WebSocket 逐 token 返回，把感知延迟从"总耗时"压缩到"首 token 延迟"，工程上务必设置 <code>X-Accel-Buffering: no</code> 头避免 Nginx 缓冲，并提供停止生成与自动滚动控制。错误处理 UX 的核心理念是"可解释 + 可恢复"，要按错误类型分类展示友好文案并给出重试路径，绝不能把原始 traceback 暴露给用户。人在回路 UX 在高风险决策节点引入人工审批，包含 approval / feedback / correction 三种变体，本质是"信任的渐进释放"，可通过信任分数动态调整审批频率。四类模式并非孤立，而是层层叠加：一个成熟的 AI 产品往往同时具备对话界面、流式渲染、优雅的错误处理和关键节点的人审机制。掌握这套模式语言，你就能从"能跑的 demo"迈向"用户愿意持续使用的产品"。</p>
 
