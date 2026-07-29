@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -494,6 +494,46 @@ for step in range(20):
     <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <div class="callout"><strong>💡 要点</strong><br>联邦学习在 LLM 时代的复兴：随着隐私法规（GDPR/个人信息保护法）趋严，"把数据集中到一处训练"越来越难。联邦学习让"数据不动模型动"——每个参与方在本地训练，只共享模型梯度。这在医疗（医院间不能共享患者数据）和金融（银行间不能共享交易数据）场景有巨大价值。挑战是通信成本高（要传大量梯度）和安全性（梯度可能泄露数据）。但随着技术成熟，联邦学习可能成为"隐私优先 AI"的基础设施。</div>
+    <h3>代码：联邦学习最简实现</h3>
+    <pre class="code"><code class="language-python">import torch
+import copy
+
+class FederatedServer:
+    """联邦学习服务器：聚合各客户端的模型更新。"""
+    def __init__(self, global_model):
+        self.global_model = global_model
+
+    def aggregate(self, client_updates):
+        """FedAvg：加权平均各客户端的模型参数。"""
+        avg_state = copy.deepcopy(self.global_model.state_dict())
+        for key in avg_state:
+            # 各客户端参数的平均
+            avg_state[key] = torch.stack(
+                [update[key] for update in client_updates]
+            ).mean(dim=0)
+        self.global_model.load_state_dict(avg_state)
+        return self.global_model
+
+class FederatedClient:
+    """联邦学习客户端：在本地数据上训练，只上传梯度。"""
+    def __init__(self, local_data, model):
+        self.data = local_data
+        self.model = copy.deepcopy(model)
+
+    def local_train(self, epochs=3):
+        """在本地数据上训练，返回更新后的参数。"""
+        # 数据不出本地！只返回模型参数
+        optimizer = torch.optim.SGD(self.model.parameters(), lr=0.01)
+        for epoch in range(epochs):
+            for x, y in self.data:
+                loss = torch.nn.functional.mse_loss(self.model(x), y)
+                loss.backward()
+                optimizer.step()
+        return self.model.state_dict()
+
+# 核心思想：数据不动模型动
+# 医院 A 和医院 B 的患者数据不能共享
+# 但各自在本地训练 → 上传梯度 → 服务器聚合 → 全局模型变强</code></pre>
     本章小结</h2>
     <p>联邦学习的核心洞察是"数据不动模型动"——FedAvg 让各参与方本地训练、只上传梯度，服务器加权聚合后下发新模型。但梯度并非天生安全，DLG 攻击证明仅凭梯度就能还原原始数据。于是我们有了两道防线：差分隐私在梯度上加噪声，提供数学可证明的隐私保证（代价是精度下降）；安全聚合用密码学让服务器只能看到梯度总和，看不到个体（代价是通信开销）。生产级联邦学习系统通常同时使用两者。联邦学习的意义远超技术本身——它为"数据可用不可见"提供了可行的工程方案，正在医疗、金融、广告等隐私敏感领域加速落地。</p>
 

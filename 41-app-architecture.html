@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -574,6 +574,51 @@ services:
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <p>从架构演进的角度，LLM 应用正在经历和 Web 应用类似的"从单体到微服务"的转变。早期的 LLM 应用是"单体"——一个 prompt 干所有事（理解+检索+生成+格式化）。随着复杂度增长，这种"巨 prompt"变得不可维护（改一处影响全局）。解法是"拆"——把理解/检索/生成/格式化拆成独立的"微服务"，各自优化、各自评估。这就是 Agent 框架（LangGraph/CrewAI）的本质——它们提供"微服务编排"能力，让你把复杂任务拆成可管理的组件。</p>
     <div class="callout"><strong>💡 要点</strong><br>架构设计的"黄金法则"：**先跑通最简架构，再按瓶颈优化**。不要一上来就设计"完美架构"——你不知道瓶颈在哪。先用最简方案（直连 API+无缓存+无路由）上线，看哪里先出问题（延迟？成本？幻觉？），针对性加那一层的组件。这种"演进式架构"比"一步到位"更务实——也更快上线。</div>
+    <h3>代码：模型路由 + 语义缓存实现</h3>
+    <pre class="code"><code class="language-python">import hashlib
+from sentence_transformers import SentenceTransformer
+
+class ModelRouter:
+    """按问题难度路由到不同模型。"""
+    def route(self, query: str) -> str:
+        # 简单规则：短问题→便宜模型，复杂问题→贵模型
+        if len(query) < 30 and '?' in query:
+            return 'gpt-4o-mini'   # 便宜
+        if any(kw in query for kw in ['分析', '设计', '推理', '代码']):
+            return 'gpt-4o'        # 贵但强
+        return 'gpt-4o-mini'       # 默认便宜
+
+class SemanticCache:
+    """语义缓存：相似问题命中缓存。"""
+    def __init__(self, threshold=0.92):
+        self.encoder = SentenceTransformer('BAAI/bge-small-zh')
+        self.cache = {}  # {embedding: response}
+        self.threshold = threshold
+
+    def get(self, query):
+        qvec = self.encoder.encode([query], normalize_embeddings=True)
+        for emb, resp in self.cache.items():
+            sim = float(np.dot(qvec.flatten(), emb))
+            if sim > self.threshold:
+                return resp  # 命中！
+        return None
+
+    def set(self, query, response):
+        emb = self.encoder.encode([query], normalize_embeddings=True).flatten()
+        self.cache[emb.tobytes()] = response
+
+# 生产架构：请求 → 语义缓存 → 模型路由 → LLM → 缓存写入
+router = ModelRouter()
+cache = SemanticCache()
+query = '什么是 Transformer？'
+cached = cache.get(query)
+if cached:
+    print(f'缓存命中: {cached[:50]}...')
+else:
+    model = router.route(query)
+    print(f'路由到 {model}，调用 LLM...')
+    # response = call_llm(model, query)
+    # cache.set(query, response)</code></pre>
     本章小结</h2>
     <p>LLM 应用架构遵循"单体→微服务→Agent 编排"三层演进。单体架构（单个 FastAPI 应用）适合 MVP 和原型验证，重点是实现流式输出；微服务架构把 prompt 管理、检索、模型调用、编排拆分成独立服务，支持独立部署和扩缩容，适合中大型应用；Agent 编排架构引入状态图驱动的动态工作流，适合多步推理和复杂任务场景。每一层都需要配套的横切基础设施：成本控制（配额+监控）、速率限制（令牌桶）、异步队列（长任务不阻塞）、可观测性（全链路追踪+质量监控）。选型原则是"够用就好"——不要过早微服务化，也不要在需要 Agent 时还用单体硬撑。架构是演进的，不是一次定型的，关键是保持代码结构能支撑下一步的拆分。</p>
 

@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -763,6 +763,38 @@ echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <p>这些优化故事有一个共同模式：**最大的优化收益往往来自最"无聊"的改动**。不是换更先进的算法，而是修最基础的配置——换一个更好的切块策略（+30%）、加一个 reranker（+15%）、开启 prefix caching（-50% 延迟）。这些改动技术上不"酷"，但效果立竿见影。反之，很多团队花几周搞复杂的多 Agent 架构，效果不如调一下切块大小。所以优化的第一原则是"先穷尽简单方案，再考虑复杂方案"——80% 的优化收益来自前 20% 的简单改动。</p>
     <div class="callout"><strong>💡 要点</strong><br>所有优化故事的元教训是 **"先 profiling 再 optimizing"**——不要凭直觉猜瓶颈，用数据定位。你的直觉说"检索太慢"，但 profiling 发现 80% 的时间花在 LLM 生成上——优化检索没用。你的直觉说"召回率低是 embedding 不行"，但 RAGAS 发现召回率 90% 只是 rerank 不够好。数据告诉你真相，直觉只告诉你假设。优化前先量化，是 AI 工程的基本功。</div>
+    <h3>代码：AI 代码审查自动化</h3>
+    <pre class="code"><code class="language-python"># 用 LLM 自动审查 PR 代码
+REVIEW_PROMPT = """你是严格的代码审查员。审查以下代码变更。
+
+审查维度：
+1. 安全（SQL注入/XSS/硬编码密钥）
+2. 性能（N+1查询/不必要的循环/内存泄漏）
+3. 正确性（边界条件/空指针/并发问题）
+4. 可维护性（命名/注释/重复代码）
+
+输出格式：
+## Critical（必须修）
+- 第 N 行: [问题] → [建议]
+
+## Suggestions（建议）
+- [改进建议]
+
+如果代码质量良好，回复：LGTM（Looks Good To Me）
+"""
+
+def review_pr(diff_text, llm):
+    """自动审查一个 PR 的 diff。"""
+    response = llm.chat([
+        {'role': 'system', 'content': REVIEW_PROMPT},
+        {'role': 'user', 'content': f'代码变更:
+{diff_text}'},
+    ])
+    return response
+
+# 自动在 CI/CD 里触发
+# git diff → review_pr() → 如果有 Critical → 阻断合并
+# 比人工审查更一致：7x24 不知疲倦，每次检查标准一致</code></pre>
     本章小结</h2>
     <p>这一章通过四个真实优化案例展示了 LLM 工程的优化方法论。核心要点：</p>
     <ul>

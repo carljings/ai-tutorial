@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -782,6 +782,43 @@ echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+
     <p>这些最佳实践背后的统一原则是 **"先量化再优化"**——80% 的 AI 工程问题出在"凭感觉调"而非"凭数据调"。比如你觉得召回率低，直觉说"换更强的 embedding"——但换完发现没提升，因为真正的问题是切块太粗。如果你一开始就跑了 RAGAS 评估，会发现"检索精度 85% 但忠实度 60%"——说明检索没问题，是生成环节在编造。先量化定位瓶颈，再针对性优化，比"凭感觉一个个试"快 10 倍。这就是为什么我们在 LLMOps 章反复强调"建立评估体系先于开发"。</p>
     <p>另一个被反复验证的实践是 **"从最简方案开始"**。很多团队一上来就上 GraphRAG + 多 Agent + 混合检索 + 自定义 reranker——结果调试两周没跑通。正确做法是先跑通最简 RAG（固定切块 + 向量检索 + 直接拼接），量化 baseline，然后一次只改一个变量。这不仅是工程效率问题，更是"可归因性"问题——你一次改三个变量，效果变好了你不知道是哪个的功劳，效果变差了你不知道是哪个的锅。单变量迭代是科学方法在 AI 工程中的体现。</p>
     <div class="callout"><strong>💡 要点</strong><br>所有最佳实践的元实践是 **"建立反馈闭环"**——不要等用户告诉你"不好"，要主动收集信号（满意度/重复提问率/转人工率），量化当前质量，针对性优化。没有反馈闭环的 AI 系统，就是在黑暗中摸索——你以为在优化，其实可能在退步。</div>
+    <h3>代码：LLM 推理性能基准测试</h3>
+    <pre class="code"><code class="language-python">import time, statistics, requests, json
+
+def benchmark_llm(endpoint, prompt, n=20):
+    """基准测试 LLM 推理服务的性能。"""
+    latencies = []
+    ttfts = []  # Time To First Token
+
+    for i in range(n):
+        start = time.time()
+        response = requests.post(
+            endpoint,
+            json={'messages': [{'role': 'user', 'content': prompt}]},
+            stream=True,
+        )
+        ttft = None
+        for chunk in response.iter_content(chunk_size=1):
+            if chunk:
+                if ttft is None:
+                    ttft = time.time() - start  # 首 token 延迟
+                # 流式接收...
+        total = time.time() - start
+        latencies.append(total)
+        ttfts.append(ttft or total)
+
+    return {
+        'p50_latency': statistics.median(latencies),
+        'p95_latency': sorted(latencies)[int(n * 0.95)],
+        'p50_ttft': statistics.median(ttfts),   # 首 token 最影响体验
+        'throughput': n / sum(latencies),       # QPS
+    }
+
+# 性能目标（生产级）：
+# 首 token 延迟 P95 < 1s（超过 2s 用户流失）
+# 总延迟 P95 < 5s
+# QPS > 10/核心（单 GPU 吞吐）
+# 如果不达标：vLLM → INT4 量化 → prefix cache → 模型路由</code></pre>
     本章小结</h2>
     <p>这一章是 50 条最佳实践的合集，覆盖五大领域。使用建议：</p>
     <ul>

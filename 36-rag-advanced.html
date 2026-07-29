@@ -8,7 +8,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -553,6 +553,41 @@ services:
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <p>RAG 进阶优化的经验总结成一句话：**"检索质量决定上限，生成质量决定下限"**。很多团队花大量精力优化生成（换更强的 LLM/写更好的 prompt），但效果提升有限——因为瓶颈在检索（召回率只有 60%，再多好内容也找不到）。所以 RAG 优化的正确顺序是：先把检索做到 90%+（切块+混合检索+rerank），再优化生成（prompt+上下文组装+输出校验）。这个顺序反了，事倍功半。用 RAGAS 先量化定位瓶颈在检索还是生成，是 RAG 优化的第一步。</p>
     <div class="callout"><strong>💡 要点</strong><br>RAG 进阶优化的经验法则：**每一步优化都要用 RAGAS 量化**。不要凭感觉说"好像变好了"——用三个量化指标（忠实度/回答相关性/检索精度）告诉你到底变好了还是变差了。很多团队调了半天感觉在优化，RAGAS 一跑发现其实在退步——因为改了检索策略导致召回更多噪声。没有量化的优化就是"自我安慰"——RAGAS 是 RAG 工程的"温度计"，没它你不知道系统是"发烧了"还是"退烧了"。</div>
+    <h3>代码：混合检索 + Reranker 完整实现</h3>
+    <pre class="code"><code class="language-python">from sentence_transformers import SentenceTransformer, CrossEncoder
+import numpy as np
+
+class HybridRetriever:
+    """向量检索 + BM25 + Reranker 的完整 RAG 检索器。"""
+    def __init__(self, documents):
+        self.docs = documents
+        self.encoder = SentenceTransformer('BAAI/bge-small-zh')
+        self.reranker = CrossEncoder('BAAI/bge-reranker-base')
+        # 向量索引
+        self.embeddings = self.encoder.encode(documents, normalize_embeddings=True)
+
+    def search(self, query, k=5):
+        # 1. 向量检索（粗召回 top-20）
+        qvec = self.encoder.encode([query], normalize_embeddings=True)
+        vec_scores = np.dot(self.embeddings, qvec.T).flatten()
+        top20 = np.argsort(vec_scores)[-20:][::-1]
+
+        # 2. Reranker 精排（cross-encoder 对 top-20 精排）
+        pairs = [[query, self.docs[i]] for i in top20]
+        rerank_scores = self.reranker.predict(pairs)
+        reranked = sorted(zip(top20, rerank_scores), key=lambda x: -x[1])
+
+        # 3. 返回 top-k
+        return [(self.docs[idx], float(score)) for idx, score in reranked[:k]]
+
+retriever = HybridRetriever([
+    'Transformer 用注意力机制处理序列',
+    'HNSW 是分层图索引，查询快',
+    'RAG 检索外部知识减少幻觉',
+])
+results = retriever.search('怎么减少 AI 幻觉？', k=2)
+for doc, score in results:
+    print(f'[{score:.3f}] {doc}')</code></pre>
     本章小结</h2>
     <p>进阶 RAG 的四种技术分别解决朴素 RAG 的四大痛点：HyDE 用假想答案文档做检索，解决"查询与文档语义鸿沟"问题；混合检索（向量 + BM25 + RRF 融合）解决"单一检索方式覆盖不全"问题，语义和精确关键词兼得；Rerank 用交叉编码器在召回的 Top-50 中精选 Top-5，解决"召回噪声多"问题，实现"双塔粗筛 + 交叉精排"的两阶段架构；Late Chunking 先编码全文再切块，解决"切块导致指代断裂、语义残缺"问题。把它们串联成完整管线，可以比朴素 RAG 提升约 20 个百分点的准确率，代价是延迟增加 1-2 秒。在实际项目中，不需要一步到位上全套，可以先从 Rerank 和混合检索入手（性价比最高），再根据需要叠加 HyDE 和 Late Chunking。</p>
 

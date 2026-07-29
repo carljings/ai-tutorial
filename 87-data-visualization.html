@@ -12,7 +12,7 @@
 </head>
 <body>
 <div class="layout">
-                                                                            <aside class="sidebar">
+                                                                              <aside class="sidebar">
     <div class="brand"><div class="logo">AI</div><div><h1>AI 全栈实战教学</h1><div class="sub">GLM-5.2 · Agent · RAG · 254 章</div></div></div>
     <div class="nav-group"><h3>导览</h3>
       <a href="intro/index.html"><span class="num">🌱</span>零基础十讲</a>
@@ -360,6 +360,39 @@ echo "日均 token: $(cat logs/usage.log | jq '.usage.total_tokens' | paste -sd+
     <p>一个常被忽略的实践要点：**这个领域的最佳实践变化极快**。2024 年的"最佳实践"到 2026 年可能已经过时——模型能力在飞速提升，工具链在快速迭代，今天的"必需品"明天可能变成"内置功能"。所以比起记住具体的工具名/参数值，更重要的是建立"第一性原理思维"——理解底层为什么这样做，这样工具换了你也能快速适应。这也是本教程始终强调"原理深挖"而非"工具速查"的原因。</p>
     <p>从真实项目经验来看，这个方向最容易踩的坑是"过度工程化"。很多团队一上来就用最复杂的方案（多 Agent + GraphRAG + 混合检索 + 重排序），结果调试困难、延迟极高、成本爆炸。正确的做法是"从最简方案开始，按需叠加"——先用最简单的方案跑通，量化效果，针对性优化瓶颈。80% 的优化收益来自前 20% 的简单改动（如换更好的 embedding、加 reranker），后面的复杂方案边际收益递减但成本边际递增。</p>
     <div class="callout"><strong>💡 要点</strong><br>AI 数据可视化的一个前沿方向是 **"AI 叙事"（Data Storytelling）**——不只画图，还自动写解读。传统的 BI 看板给你一个下降的折线图，你得自己猜"为什么下降了"。AI 叙事会自动告诉你"销售额环比下降 15%，主要因为华南区在 3 月下降了 30%，可能与该区域的促销活动结束有关"。这把"看数据"升级为"理解数据"——AI 不只是画图工具，而是数据分析师。这种"图表+自动解读"的组合，正在成为新一代 BI 工具的标配。</div>
+    <h3>代码：AI 自动生成可视化</h3>
+    <pre class="code"><code class="language-python"># 让 LLM 根据 CSV 数据自动生成 matplotlib 图表
+import pandas as pd
+
+VIZ_PROMPT = """根据以下数据和需求，生成 Python matplotlib 代码。
+
+数据列: {columns}
+数据样本: {sample}
+用户需求: {request}
+
+要求：
+1. 选择最合适的图表类型
+2. 添加标题、轴标签、图例
+3. 代码可直接运行（数据已加载为 df）
+"""
+
+def generate_chart(df: pd.DataFrame, request: str, llm):
+    """AI 自动生成数据可视化代码。"""
+    prompt = VIZ_PROMPT.format(
+        columns=list(df.columns),
+        sample=df.head(3).to_string(),
+        request=request,
+    )
+    code = llm.chat([{'role': 'user', 'content': prompt}])
+    # 在沙箱里执行生成的代码
+    exec(code, {'df': df, 'plt': __import__('matplotlib.pyplot', fromlist=['pyplot'])})
+
+# 示例：AI 自动选择图表类型
+# 用户: '展示各产品线月度销售趋势'
+# AI 生成: 折线图（适合趋势）
+# 用户: '对比各区域的市场份额'
+# AI 生成: 饼图（适合占比）
+# 这比手动选图表类型+写代码快 10 倍</code></pre>
     本章小结</td><td>核心概念与实现</td><td>★★★★</td></tr>
           
     </table>
