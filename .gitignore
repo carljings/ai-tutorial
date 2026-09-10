@@ -4,3 +4,6 @@ __pycache__/
 build_*.py
 update_sidebars.py
 short_titles.py
+
+# oh-my-claudecode local state
+.omc/
